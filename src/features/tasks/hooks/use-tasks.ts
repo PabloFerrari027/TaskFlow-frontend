@@ -5,16 +5,19 @@ import { toast } from "sonner";
 import { tasksService } from "@/features/tasks/api/tasks-service";
 import { queryKeys } from "@/lib/query-keys";
 import { getErrorMessage } from "@/lib/errors";
+import { MAX_PAGE_SIZE } from "@/types/common";
 import type {
   ChangeTaskStatusRequest,
   CreateTaskRequest,
   UpdateTaskRequest,
 } from "@/types/task";
 
-export function useTasksQuery(projectId: string) {
+// Task lists can realistically grow large, so this is genuinely paged.
+export function useTasksQuery(projectId: string, page = 1) {
   return useQuery({
-    queryKey: queryKeys.tasks.all(projectId),
-    queryFn: () => tasksService.listByProject(projectId),
+    queryKey: queryKeys.tasks.all(projectId, page),
+    queryFn: () => tasksService.listByProject(projectId, { page }),
+    placeholderData: (previous) => previous,
   });
 }
 
@@ -25,10 +28,12 @@ export function useTaskQuery(taskId: string) {
   });
 }
 
+// Subtasks per task are realistically few — fetch the max page size once.
 export function useSubtasksQuery(taskId: string) {
   return useQuery({
     queryKey: queryKeys.tasks.subtasks(taskId),
-    queryFn: () => tasksService.listSubtasks(taskId),
+    queryFn: () => tasksService.listSubtasks(taskId, { limit: MAX_PAGE_SIZE }),
+    select: (result) => result.data,
   });
 }
 

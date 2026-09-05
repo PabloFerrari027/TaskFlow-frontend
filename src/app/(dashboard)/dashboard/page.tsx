@@ -21,7 +21,7 @@ export default function DashboardPage() {
   const [createWorkspaceOpen, setCreateWorkspaceOpen] = React.useState(false);
 
   const projectsQuery = useProjectsQuery(workspaceId);
-  const activeProjects = (projectsQuery.data ?? []).filter(
+  const activeProjects = (projectsQuery.data?.data ?? []).filter(
     (p) => p.status === "ACTIVE"
   );
 

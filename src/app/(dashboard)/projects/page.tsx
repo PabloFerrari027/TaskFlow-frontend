@@ -18,9 +18,10 @@ export default function ProjectsPage() {
   const [createOpen, setCreateOpen] = React.useState(false);
   const projectsQuery = useProjectsQuery(workspaceId);
 
-  const projects = projectsQuery.data ?? [];
+  const projects = projectsQuery.data?.data ?? [];
   const activeProjects = projects.filter((p) => p.status === "ACTIVE");
   const archivedProjects = projects.filter((p) => p.status === "ARCHIVED");
+  const isTruncated = (projectsQuery.data?.meta.totalPages ?? 0) > 1;
 
   return (
     <div className="space-y-6">
@@ -52,6 +53,13 @@ export default function ProjectsPage() {
           }
         />
       ) : (
+        <>
+        {isTruncated ? (
+          <p className="text-xs text-muted-foreground">
+            Mostrando os primeiros {projectsQuery.data?.meta.limit} de{" "}
+            {projectsQuery.data?.meta.total} projetos.
+          </p>
+        ) : null}
         <Tabs defaultValue="active">
           <TabsList>
             <TabsTrigger value="active">Ativos ({activeProjects.length})</TabsTrigger>
@@ -90,6 +98,7 @@ export default function ProjectsPage() {
             )}
           </TabsContent>
         </Tabs>
+        </>
       )}
 
       {workspaceId ? (
