@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib/api/client";
+import type { PaginatedResult, PaginationParams } from "@/types/common";
 import type {
   CreateCustomFieldDefinitionRequest,
   CustomFieldDefinition,
@@ -8,9 +9,10 @@ import type {
 } from "@/types/custom-field";
 
 export const customFieldsService = {
-  async listByProject(projectId: string) {
-    const { data } = await apiClient.get<CustomFieldDefinition[]>(
-      `/projects/${projectId}/custom-fields`
+  async listByProject(projectId: string, params?: PaginationParams) {
+    const { data } = await apiClient.get<PaginatedResult<CustomFieldDefinition>>(
+      `/projects/${projectId}/custom-fields`,
+      { params }
     );
     return data;
   },
@@ -38,9 +40,10 @@ export const customFieldsService = {
     return data;
   },
 
-  async listTaskValues(taskId: string) {
-    const { data } = await apiClient.get<TaskCustomFieldValue[]>(
-      `/tasks/${taskId}/custom-field-values`
+  async listTaskValues(taskId: string, params?: PaginationParams) {
+    const { data } = await apiClient.get<PaginatedResult<TaskCustomFieldValue>>(
+      `/tasks/${taskId}/custom-field-values`,
+      { params }
     );
     return data;
   },

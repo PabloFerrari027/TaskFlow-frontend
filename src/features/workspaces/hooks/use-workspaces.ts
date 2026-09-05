@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { workspacesService } from "@/features/workspaces/api/workspaces-service";
 import { queryKeys } from "@/lib/query-keys";
 import { getErrorMessage } from "@/lib/errors";
+import { MAX_PAGE_SIZE } from "@/types/common";
 import type {
   AddWorkspaceMemberRequest,
   ChangeWorkspaceMemberRoleRequest,
@@ -13,10 +14,13 @@ import type {
   RenameWorkspaceRequest,
 } from "@/types/workspace";
 
+// A user's own workspace count is realistically small — fetch the max page
+// size once (feeds the switcher/list everywhere) rather than paging it.
 export function useWorkspacesQuery() {
   return useQuery({
     queryKey: queryKeys.workspaces.all(),
-    queryFn: workspacesService.list,
+    queryFn: () => workspacesService.list({ limit: MAX_PAGE_SIZE }),
+    select: (result) => result.data,
   });
 }
 
@@ -117,10 +121,11 @@ export function useInviteWorkspaceMemberMutation(workspaceId: string) {
   });
 }
 
-export function useWorkspaceInvitationsQuery(workspaceId: string) {
+export function useWorkspaceInvitationsQuery(workspaceId: string, page = 1) {
   return useQuery({
-    queryKey: queryKeys.workspaces.invitations(workspaceId),
-    queryFn: () => workspacesService.listInvitations(workspaceId),
+    queryKey: queryKeys.workspaces.invitations(workspaceId, page),
+    queryFn: () => workspacesService.listInvitations(workspaceId, { page }),
+    placeholderData: (previous) => previous,
   });
 }
 

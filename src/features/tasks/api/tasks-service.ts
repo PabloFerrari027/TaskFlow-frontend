@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib/api/client";
+import type { PaginatedResult, PaginationParams } from "@/types/common";
 import type {
   ChangeTaskStatusRequest,
   CreateTaskRequest,
@@ -9,8 +10,11 @@ import type {
 export const MAX_ATTACHMENT_SIZE_BYTES = 20 * 1024 * 1024;
 
 export const tasksService = {
-  async listByProject(projectId: string) {
-    const { data } = await apiClient.get<Task[]>(`/projects/${projectId}/tasks`);
+  async listByProject(projectId: string, params?: PaginationParams) {
+    const { data } = await apiClient.get<PaginatedResult<Task>>(
+      `/projects/${projectId}/tasks`,
+      { params }
+    );
     return data;
   },
 
@@ -19,8 +23,11 @@ export const tasksService = {
     return data;
   },
 
-  async listSubtasks(taskId: string) {
-    const { data } = await apiClient.get<Task[]>(`/tasks/${taskId}/subtasks`);
+  async listSubtasks(taskId: string, params?: PaginationParams) {
+    const { data } = await apiClient.get<PaginatedResult<Task>>(
+      `/tasks/${taskId}/subtasks`,
+      { params }
+    );
     return data;
   },
 

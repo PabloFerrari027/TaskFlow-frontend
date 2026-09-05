@@ -32,7 +32,9 @@ export function SessionList() {
     return <ErrorState error={sessionsQuery.error} onRetry={() => sessionsQuery.refetch()} />;
   }
 
-  if (!sessionsQuery.data || sessionsQuery.data.length === 0) {
+  const sessions = sessionsQuery.data?.data ?? [];
+
+  if (sessions.length === 0) {
     return (
       <EmptyState icon={<MonitorSmartphone className="size-6" />} title="Nenhuma sessão ativa" />
     );
@@ -40,7 +42,7 @@ export function SessionList() {
 
   return (
     <div className="space-y-3">
-      {sessionsQuery.data.map((session) => (
+      {sessions.map((session) => (
         <Card key={session.id} className="flex-row items-center justify-between gap-3 p-4">
           <div className="flex min-w-0 items-start gap-3">
             <MonitorSmartphone className="mt-0.5 size-4.5 shrink-0 text-muted-foreground" />

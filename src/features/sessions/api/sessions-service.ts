@@ -1,9 +1,13 @@
 import { apiClient } from "@/lib/api/client";
+import type { PaginatedResult, PaginationParams } from "@/types/common";
 import type { Session } from "@/types/session";
 
 export const sessionsService = {
-  async list() {
-    const { data } = await apiClient.get<Session[]>("/auth/sessions");
+  async list(params?: PaginationParams) {
+    const { data } = await apiClient.get<PaginatedResult<Session>>(
+      "/auth/sessions",
+      { params }
+    );
     return data;
   },
 

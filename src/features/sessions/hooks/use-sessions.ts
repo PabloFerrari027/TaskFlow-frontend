@@ -7,11 +7,14 @@ import { sessionsService } from "@/features/sessions/api/sessions-service";
 import { queryKeys } from "@/lib/query-keys";
 import { getErrorMessage } from "@/lib/errors";
 import { clearSession, getSnapshot } from "@/lib/auth/token-store";
+import { MAX_PAGE_SIZE } from "@/types/common";
 
+// Sessions are realistically a handful of devices — fetch the max page size
+// once rather than building pager UI for a list this small.
 export function useSessionsQuery() {
   return useQuery({
     queryKey: queryKeys.sessions.all(),
-    queryFn: sessionsService.list,
+    queryFn: () => sessionsService.list({ limit: MAX_PAGE_SIZE }),
   });
 }
 

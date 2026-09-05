@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib/api/client";
+import type { PaginatedResult, PaginationParams } from "@/types/common";
 import type {
   CreateProjectRequest,
   InviteToProjectRequest,
@@ -10,9 +11,10 @@ import type {
 } from "@/types/project";
 
 export const projectsService = {
-  async listByWorkspace(workspaceId: string) {
-    const { data } = await apiClient.get<Project[]>(
-      `/workspaces/${workspaceId}/projects`
+  async listByWorkspace(workspaceId: string, params?: PaginationParams) {
+    const { data } = await apiClient.get<PaginatedResult<Project>>(
+      `/workspaces/${workspaceId}/projects`,
+      { params }
     );
     return data;
   },
@@ -53,9 +55,10 @@ export const projectsService = {
     return data;
   },
 
-  async listInvitations(projectId: string) {
-    const { data } = await apiClient.get<ProjectInvitation[]>(
-      `/projects/${projectId}/invitations`
+  async listInvitations(projectId: string, params?: PaginationParams) {
+    const { data } = await apiClient.get<PaginatedResult<ProjectInvitation>>(
+      `/projects/${projectId}/invitations`,
+      { params }
     );
     return data;
   },
@@ -80,9 +83,10 @@ export const projectsService = {
     return data;
   },
 
-  async listMembers(projectId: string) {
-    const { data } = await apiClient.get<ProjectMember[]>(
-      `/projects/${projectId}/members`
+  async listMembers(projectId: string, params?: PaginationParams) {
+    const { data } = await apiClient.get<PaginatedResult<ProjectMember>>(
+      `/projects/${projectId}/members`,
+      { params }
     );
     return data;
   },

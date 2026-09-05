@@ -5,16 +5,25 @@ import { toast } from "sonner";
 import { projectsService } from "@/features/projects/api/projects-service";
 import { queryKeys } from "@/lib/query-keys";
 import { getErrorMessage } from "@/lib/errors";
+import { MAX_PAGE_SIZE } from "@/types/common";
 import type {
   CreateProjectRequest,
   InviteToProjectRequest,
   UpdateProjectRequest,
 } from "@/types/project";
 
+/**
+ * The Active/Archived tabs on the projects page filter client-side, which
+ * only works correctly against the full list — the API has no status
+ * filter — so this fetches the max page size instead of paging. Returns
+ * the full envelope (not just `.data`) so callers can warn if a workspace
+ * ever exceeds that (`meta.totalPages > 1`).
+ */
 export function useProjectsQuery(workspaceId: string | null) {
   return useQuery({
     queryKey: queryKeys.projects.all(workspaceId ?? ""),
-    queryFn: () => projectsService.listByWorkspace(workspaceId as string),
+    queryFn: () =>
+      projectsService.listByWorkspace(workspaceId as string, { limit: MAX_PAGE_SIZE }),
     enabled: Boolean(workspaceId),
   });
 }
@@ -72,7 +81,8 @@ export function useArchiveProjectMutation(projectId: string) {
 export function useProjectMembersQuery(projectId: string) {
   return useQuery({
     queryKey: queryKeys.projects.members(projectId),
-    queryFn: () => projectsService.listMembers(projectId),
+    queryFn: () => projectsService.listMembers(projectId, { limit: MAX_PAGE_SIZE }),
+    select: (result) => result.data,
   });
 }
 
@@ -103,10 +113,11 @@ export function useInviteProjectMemberMutation(projectId: string) {
   });
 }
 
-export function useProjectInvitationsQuery(projectId: string) {
+export function useProjectInvitationsQuery(projectId: string, page = 1) {
   return useQuery({
-    queryKey: queryKeys.projects.invitations(projectId),
-    queryFn: () => projectsService.listInvitations(projectId),
+    queryKey: queryKeys.projects.invitations(projectId, page),
+    queryFn: () => projectsService.listInvitations(projectId, { page }),
+    placeholderData: (previous) => previous,
   });
 }
 

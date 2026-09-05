@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib/api/client";
+import type { PaginatedResult, PaginationParams } from "@/types/common";
 import type {
   AddWorkspaceMemberRequest,
   ChangeWorkspaceMemberRoleRequest,
@@ -11,8 +12,11 @@ import type {
 } from "@/types/workspace";
 
 export const workspacesService = {
-  async list() {
-    const { data } = await apiClient.get<Workspace[]>("/workspaces");
+  async list(params?: PaginationParams) {
+    const { data } = await apiClient.get<PaginatedResult<Workspace>>(
+      "/workspaces",
+      { params }
+    );
     return data;
   },
 
@@ -69,9 +73,10 @@ export const workspacesService = {
     return data;
   },
 
-  async listInvitations(workspaceId: string) {
-    const { data } = await apiClient.get<WorkspaceInvitation[]>(
-      `/workspaces/${workspaceId}/invitations`
+  async listInvitations(workspaceId: string, params?: PaginationParams) {
+    const { data } = await apiClient.get<PaginatedResult<WorkspaceInvitation>>(
+      `/workspaces/${workspaceId}/invitations`,
+      { params }
     );
     return data;
   },

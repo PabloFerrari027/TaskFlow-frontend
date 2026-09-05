@@ -5,16 +5,20 @@ import { toast } from "sonner";
 import { customFieldsService } from "@/features/custom-fields/api/custom-fields-service";
 import { queryKeys } from "@/lib/query-keys";
 import { getErrorMessage } from "@/lib/errors";
+import { MAX_PAGE_SIZE } from "@/types/common";
 import type {
   CreateCustomFieldDefinitionRequest,
   SetTaskCustomFieldValueRequest,
   UpdateCustomFieldOptionsRequest,
 } from "@/types/custom-field";
 
+// Custom field definitions per project are realistically few — fetch the
+// max page size once rather than paging.
 export function useCustomFieldsQuery(projectId: string) {
   return useQuery({
     queryKey: queryKeys.customFields.all(projectId),
-    queryFn: () => customFieldsService.listByProject(projectId),
+    queryFn: () => customFieldsService.listByProject(projectId, { limit: MAX_PAGE_SIZE }),
+    select: (result) => result.data,
   });
 }
 
@@ -64,10 +68,12 @@ export function useArchiveCustomFieldMutation(projectId: string) {
   });
 }
 
+// Bounded by the number of field definitions on the project — always small.
 export function useTaskCustomFieldValuesQuery(taskId: string) {
   return useQuery({
     queryKey: queryKeys.tasks.customFieldValues(taskId),
-    queryFn: () => customFieldsService.listTaskValues(taskId),
+    queryFn: () => customFieldsService.listTaskValues(taskId, { limit: MAX_PAGE_SIZE }),
+    select: (result) => result.data,
   });
 }
 
