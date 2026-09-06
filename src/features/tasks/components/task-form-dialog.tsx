@@ -23,14 +23,17 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { AssigneeSelect } from "@/features/tasks/components/assignee-select";
+import { SectionSelect } from "@/features/tasks/components/section-select";
 import { taskFormSchema, type TaskFormValues } from "@/features/tasks/schemas";
 import { useCreateTaskMutation, useUpdateTaskMutation } from "@/features/tasks/hooks/use-tasks";
+import { useSectionsQuery } from "@/features/sections/hooks/use-sections";
 import type { Task } from "@/types/task";
 
 interface TaskFormDialogProps {
   projectId: string;
   task?: Task;
   parentTaskId?: string;
+  sectionId?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -39,6 +42,7 @@ export function TaskFormDialog({
   projectId,
   task,
   parentTaskId,
+  sectionId,
   open,
   onOpenChange,
 }: TaskFormDialogProps) {
@@ -46,6 +50,8 @@ export function TaskFormDialog({
   const createMutation = useCreateTaskMutation(projectId);
   const updateMutation = useUpdateTaskMutation(task?.id ?? "");
   const isPending = createMutation.isPending || updateMutation.isPending;
+  const sectionsQuery = useSectionsQuery(projectId);
+  const defaultSectionId = sectionsQuery.data?.find((s) => s.isDefault)?.id;
 
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskFormSchema),
@@ -53,6 +59,7 @@ export function TaskFormDialog({
       title: task?.title ?? "",
       description: task?.description ?? "",
       assigneeId: task?.assigneeId ?? undefined,
+      sectionId: task?.sectionId ?? sectionId ?? defaultSectionId ?? "",
     },
   });
 
@@ -63,6 +70,7 @@ export function TaskFormDialog({
           title: values.title,
           description: values.description || undefined,
           assigneeId: values.assigneeId,
+          sectionId: values.sectionId,
         },
         { onSuccess: () => onOpenChange(false) }
       );
@@ -72,6 +80,7 @@ export function TaskFormDialog({
           title: values.title,
           description: values.description || undefined,
           assigneeId: values.assigneeId,
+          sectionId: values.sectionId,
           parentTaskId,
         },
         {
@@ -130,6 +139,24 @@ export function TaskFormDialog({
                   <FormLabel>Descrição (opcional)</FormLabel>
                   <FormControl>
                     <Textarea rows={3} {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="sectionId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Coluna</FormLabel>
+                  <FormControl>
+                    <SectionSelect
+                      projectId={projectId}
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

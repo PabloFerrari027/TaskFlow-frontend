@@ -37,6 +37,15 @@ export function useSubtasksQuery(taskId: string) {
   });
 }
 
+// One column of the task board. Each column pages independently.
+export function useTasksBySectionQuery(sectionId: string, page = 1) {
+  return useQuery({
+    queryKey: queryKeys.tasks.bySection(sectionId, page),
+    queryFn: () => tasksService.listBySection(sectionId, { page }),
+    placeholderData: (previous) => previous,
+  });
+}
+
 export function useCreateTaskMutation(projectId: string) {
   const queryClient = useQueryClient();
 
@@ -44,6 +53,7 @@ export function useCreateTaskMutation(projectId: string) {
     mutationFn: (payload: CreateTaskRequest) => tasksService.create(projectId, payload),
     onSuccess: (task) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all(projectId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll() });
       if (task.parentTaskId) {
         queryClient.invalidateQueries({
           queryKey: queryKeys.tasks.subtasks(task.parentTaskId),
@@ -63,7 +73,38 @@ export function useUpdateTaskMutation(taskId: string) {
     onSuccess: (task) => {
       queryClient.setQueryData(queryKeys.tasks.detail(taskId), task);
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all(task.projectId) });
+      // `sectionId` may have changed, moving the task between columns —
+      // invalidate every column since we don't track the previous one here.
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll() });
       toast.success("Tarefa atualizada.");
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+}
+
+// Used for the section select on the task detail view and for drag-and-drop
+// on the board — the target section/position is only known at call time, so
+// unlike `useUpdateTaskMutation` this isn't bound to one task via the hook args.
+// `position` lets callers drop a task above/below a specific sibling instead
+// of always appending to the end of the destination section's list.
+export function useMoveTaskToSectionMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      taskId,
+      sectionId,
+      position,
+    }: {
+      taskId: string;
+      sectionId?: string;
+      position?: number;
+    }) => tasksService.update(taskId, { sectionId, position }),
+    onSuccess: (task) => {
+      queryClient.setQueryData(queryKeys.tasks.detail(task.id), task);
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all(task.projectId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll() });
+      toast.success("Tarefa movida.");
     },
     onError: (error) => toast.error(getErrorMessage(error)),
   });

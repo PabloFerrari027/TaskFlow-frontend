@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import { ListTree, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -9,18 +8,22 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { ErrorState } from "@/components/shared/error-state";
 import { MemberAvatar } from "@/components/shared/member-avatar";
 import { useSubtasksQuery } from "@/features/tasks/hooks/use-tasks";
+import { useTaskPanel } from "@/features/tasks/hooks/use-task-panel";
 import { TaskStatusSelect } from "@/features/tasks/components/task-status-select";
 import { TaskFormDialog } from "@/features/tasks/components/task-form-dialog";
 
 export function SubtaskList({
   projectId,
   parentTaskId,
+  sectionId,
 }: {
   projectId: string;
   parentTaskId: string;
+  sectionId: string;
 }) {
   const subtasksQuery = useSubtasksQuery(parentTaskId);
   const [createOpen, setCreateOpen] = React.useState(false);
+  const { openTask } = useTaskPanel();
 
   return (
     <div className="space-y-3">
@@ -40,17 +43,25 @@ export function SubtaskList({
       ) : (
         <div className="divide-y divide-border/60 rounded-lg border border-border/60">
           {subtasksQuery.data.map((subtask) => (
-            <Link
+            <div
               key={subtask.id}
-              href={`/projects/${projectId}/tasks/${subtask.id}`}
-              className="flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-muted/50"
+              role="button"
+              tabIndex={0}
+              onClick={() => openTask(subtask.id)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  openTask(subtask.id);
+                }
+              }}
+              className="flex cursor-pointer items-center gap-3 px-3 py-2.5 transition-colors hover:bg-muted/50"
             >
               <span className="min-w-0 flex-1 truncate text-sm text-foreground">
                 {subtask.title}
               </span>
               {subtask.assigneeId ? <MemberAvatar userId={subtask.assigneeId} /> : null}
               <TaskStatusSelect taskId={subtask.id} status={subtask.status} size="sm" />
-            </Link>
+            </div>
           ))}
         </div>
       )}
@@ -58,6 +69,7 @@ export function SubtaskList({
       <TaskFormDialog
         projectId={projectId}
         parentTaskId={parentTaskId}
+        sectionId={sectionId}
         open={createOpen}
         onOpenChange={setCreateOpen}
       />

@@ -13,6 +13,8 @@ export interface Attachment {
 export interface Task {
   id: string;
   projectId: string;
+  sectionId: string;
+  position: number;
   parentTaskId: string | null;
   title: string;
   description: string | null;
@@ -26,6 +28,7 @@ export interface Task {
 
 export interface CreateTaskRequest {
   title: string;
+  sectionId?: string;
   description?: string;
   assigneeId?: string;
   parentTaskId?: string;
@@ -35,6 +38,8 @@ export interface UpdateTaskRequest {
   title?: string;
   description?: string;
   assigneeId?: string;
+  sectionId?: string;
+  position?: number;
 }
 
 export interface ChangeTaskStatusRequest {
