@@ -8,6 +8,7 @@ export type ErrorCode =
   | "SESSION_NOT_FOUND"
   | "SESSION_EXPIRED"
   | "USER_NOT_FOUND"
+  | "USER_ALREADY_CLOSED"
   | "WORKSPACE_NOT_FOUND"
   | "FORBIDDEN_WORKSPACE_ACTION"
   | "MEMBER_ALREADY_EXISTS"
@@ -24,7 +25,9 @@ export type ErrorCode =
   | "TASK_HAS_PENDING_SUBTASKS"
   | "CUSTOM_FIELD_NOT_FOUND"
   | "CUSTOM_FIELD_VALUE_INVALID"
-  | "SYNC_VERSION_CONFLICT";
+  | "SYNC_VERSION_CONFLICT"
+  | "CLIENT_NOT_FOUND"
+  | "CANNOT_MODIFY_OWN_ACCOUNT";
 
 export interface DomainErrorResponse {
   statusCode: number;

@@ -4,13 +4,19 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { NAV_ITEMS } from "@/components/layout/nav-items";
+import { useIsSuperAdminQuery } from "@/features/admin/hooks/use-clients";
 
 export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const isSuperAdminQuery = useIsSuperAdminQuery();
+
+  const items = NAV_ITEMS.filter(
+    (item) => !item.requiresSuperAdmin || isSuperAdminQuery.isSuccess
+  );
 
   return (
     <nav className="flex flex-col gap-1 p-3">
-      {NAV_ITEMS.map((item) => {
+      {items.map((item) => {
         const active =
           pathname === item.href || pathname.startsWith(`${item.href}/`);
         return (

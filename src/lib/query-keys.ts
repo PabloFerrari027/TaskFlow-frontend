@@ -1,6 +1,14 @@
+import type { ClientStatus } from "@/types/client";
+
 export const queryKeys = {
   sessions: {
     all: () => ["sessions"] as const,
+  },
+  clients: {
+    all: (params?: { page?: number; status?: ClientStatus; email?: string }) =>
+      params ? (["clients", params] as const) : (["clients"] as const),
+    detail: (clientId: string) => ["clients", clientId] as const,
+    isSuperAdmin: () => ["clients", "is-super-admin"] as const,
   },
   workspaces: {
     all: () => ["workspaces"] as const,

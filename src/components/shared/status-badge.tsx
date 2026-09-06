@@ -4,6 +4,7 @@ import type { ProjectStatus } from "@/types/project";
 import type { TaskStatus } from "@/types/task";
 import type { WorkspaceRole } from "@/types/workspace";
 import type { InvitationStatus } from "@/types/common";
+import type { ClientStatus } from "@/types/client";
 
 const PROJECT_STATUS_LABEL: Record<ProjectStatus, string> = {
   ACTIVE: "Ativo",
@@ -76,6 +77,26 @@ export function InvitationStatusBadge({ status }: { status: InvitationStatus }) 
   return (
     <Badge variant="secondary" className={cn(INVITATION_STATUS_CLASS[status])}>
       {INVITATION_STATUS_LABEL[status]}
+    </Badge>
+  );
+}
+
+const CLIENT_STATUS_LABEL: Record<ClientStatus, string> = {
+  ACTIVE: "Ativo",
+  DISABLED: "Suspenso",
+  CLOSED: "Encerrado",
+};
+
+const CLIENT_STATUS_CLASS: Record<ClientStatus, string> = {
+  ACTIVE: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+  DISABLED: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+  CLOSED: "bg-destructive/10 text-destructive",
+};
+
+export function ClientStatusBadge({ status }: { status: ClientStatus }) {
+  return (
+    <Badge variant="secondary" className={cn(CLIENT_STATUS_CLASS[status])}>
+      {CLIENT_STATUS_LABEL[status]}
     </Badge>
   );
 }
