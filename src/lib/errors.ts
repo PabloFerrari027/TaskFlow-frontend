@@ -13,6 +13,7 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   SESSION_NOT_FOUND: "Sua sessão não foi encontrada. Faça login novamente.",
   SESSION_EXPIRED: "Sua sessão expirou. Faça login novamente.",
   USER_NOT_FOUND: "Usuário não encontrado.",
+  USER_ALREADY_CLOSED: "Esta conta já foi encerrada.",
   WORKSPACE_NOT_FOUND: "Workspace não encontrado.",
   FORBIDDEN_WORKSPACE_ACTION: "Você não tem permissão para realizar esta ação.",
   MEMBER_ALREADY_EXISTS: "Este usuário já é membro.",
@@ -33,6 +34,8 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   CUSTOM_FIELD_NOT_FOUND: "Campo customizado não encontrado.",
   CUSTOM_FIELD_VALUE_INVALID: "Valor incompatível com o tipo deste campo.",
   SYNC_VERSION_CONFLICT: "Este item foi alterado por outra pessoa. Atualize e tente novamente.",
+  CLIENT_NOT_FOUND: "Cliente não encontrado.",
+  CANNOT_MODIFY_OWN_ACCOUNT: "Você não pode realizar esta ação na própria conta.",
 };
 
 const DEFAULT_MESSAGE = "Algo deu errado. Tente novamente em instantes.";
