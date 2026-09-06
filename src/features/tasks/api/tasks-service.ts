@@ -31,6 +31,14 @@ export const tasksService = {
     return data;
   },
 
+  async listBySection(sectionId: string, params?: PaginationParams) {
+    const { data } = await apiClient.get<PaginatedResult<Task>>(
+      `/sections/${sectionId}/tasks`,
+      { params }
+    );
+    return data;
+  },
+
   async create(projectId: string, payload: CreateTaskRequest) {
     const { data } = await apiClient.post<Task>(
       `/projects/${projectId}/tasks`,

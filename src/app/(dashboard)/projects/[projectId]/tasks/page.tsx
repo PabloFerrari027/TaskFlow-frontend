@@ -1,12 +1,12 @@
 "use client";
 
 import { use } from "react";
-import { TaskList } from "@/features/tasks/components/task-list";
+import { TaskBoard } from "@/features/tasks/components/task-board";
 
 export default function ProjectTasksPage(
   props: PageProps<"/projects/[projectId]/tasks">
 ) {
   const { projectId } = use(props.params);
 
-  return <TaskList projectId={projectId} canCreate />;
+  return <TaskBoard projectId={projectId} canManage />;
 }

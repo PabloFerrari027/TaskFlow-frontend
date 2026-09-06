@@ -42,6 +42,17 @@ export const queryKeys = {
     subtasks: (taskId: string) => ["tasks", taskId, "subtasks"] as const,
     customFieldValues: (taskId: string) =>
       ["tasks", taskId, "custom-field-values"] as const,
+    // Untyped `["tasks", "section"]` prefix (no sectionId) is used to
+    // invalidate every column's task list at once when a task is created
+    // or moved, since we don't always know which section(s) were affected.
+    bySectionAll: () => ["tasks", "section"] as const,
+    bySection: (sectionId: string, page?: number) =>
+      page
+        ? (["tasks", "section", sectionId, { page }] as const)
+        : (["tasks", "section", sectionId] as const),
+  },
+  sections: {
+    all: (projectId: string) => ["sections", "project", projectId] as const,
   },
   customFields: {
     all: (projectId: string) => ["custom-fields", "project", projectId] as const,

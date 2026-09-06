@@ -31,6 +31,10 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   SUBTASK_PROJECT_MISMATCH: "A subtarefa precisa pertencer ao mesmo projeto da tarefa pai.",
   TASK_HAS_PENDING_SUBTASKS:
     "Conclua ou finalize as subtarefas pendentes antes de concluir esta tarefa.",
+  SECTION_NOT_FOUND: "Coluna não encontrada.",
+  SECTION_PROJECT_MISMATCH: "A coluna precisa pertencer ao mesmo projeto da tarefa.",
+  DEFAULT_SECTION_NOT_DELETABLE: "A coluna padrão do projeto não pode ser apagada.",
+  SECTION_NOT_EMPTY: "Mova ou apague as tarefas desta coluna antes de excluí-la.",
   CUSTOM_FIELD_NOT_FOUND: "Campo customizado não encontrado.",
   CUSTOM_FIELD_VALUE_INVALID: "Valor incompatível com o tipo deste campo.",
   SYNC_VERSION_CONFLICT: "Este item foi alterado por outra pessoa. Atualize e tente novamente.",

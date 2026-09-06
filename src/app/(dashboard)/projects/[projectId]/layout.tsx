@@ -12,6 +12,7 @@ import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { ProjectStatusBadge } from "@/components/shared/status-badge";
 import { ProjectTabsNav } from "@/features/projects/components/project-tabs-nav";
 import { EditProjectDialog } from "@/features/projects/components/edit-project-dialog";
+import { TaskDetailSheet } from "@/features/tasks/components/task-detail-sheet";
 import { useArchiveProjectMutation, useProjectQuery } from "@/features/projects/hooks/use-projects";
 import { useProjectPermission } from "@/features/projects/hooks/use-project-permission";
 
@@ -77,6 +78,7 @@ export default function ProjectDetailLayout(
       {props.children}
 
       <EditProjectDialog project={project} open={editOpen} onOpenChange={setEditOpen} />
+      <TaskDetailSheet projectId={project.id} />
     </div>
   );
 }
