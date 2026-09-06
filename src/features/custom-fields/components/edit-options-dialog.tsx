@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -11,7 +11,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { parseOptionsText } from "@/features/custom-fields/schemas";
 import { useUpdateCustomFieldOptionsMutation } from "@/features/custom-fields/hooks/use-custom-fields";
 import type { CustomFieldDefinition } from "@/types/custom-field";
 
@@ -31,14 +30,26 @@ export function EditOptionsDialog({
   const updateMutation = useUpdateCustomFieldOptionsMutation(projectId);
   // Parent remounts this component (via `key={definition.id}`) whenever a
   // different definition is being edited, so a lazy initializer is enough —
-  // no effect needed to resync `text` when `definition` changes.
-  const [text, setText] = React.useState(() => (definition.options ?? []).join("\n"));
+  // no effect needed to resync `options` when `definition` changes.
+  const [options, setOptions] = React.useState(() => {
+    const initial = definition.options ?? [];
+    return initial.length > 0 ? initial : [""];
+  });
+
+  const sanitized = options.map((option) => option.trim()).filter(Boolean);
+
+  function updateOption(index: number, value: string) {
+    setOptions((prev) => prev.map((option, i) => (i === index ? value : option)));
+  }
+
+  function removeOption(index: number) {
+    setOptions((prev) => prev.filter((_, i) => i !== index));
+  }
 
   function handleSave() {
-    const options = parseOptionsText(text);
-    if (options.length === 0) return;
+    if (sanitized.length === 0) return;
     updateMutation.mutate(
-      { definitionId: definition.id, payload: { options } },
+      { definitionId: definition.id, payload: { options: sanitized } },
       { onSuccess: () => onOpenChange(false) }
     );
   }
@@ -50,16 +61,43 @@ export function EditOptionsDialog({
           <DialogTitle>Editar opções — {definition.name}</DialogTitle>
         </DialogHeader>
 
-        <Textarea
-          rows={5}
-          value={text}
-          onChange={(event) => setText(event.target.value)}
-          placeholder={"Baixa\nMédia\nAlta"}
-        />
-        <p className="text-xs text-muted-foreground">Uma opção por linha.</p>
+        <div className="space-y-2">
+          {options.map((option, index) => (
+            <div key={index} className="flex items-center gap-2">
+              <Input
+                value={option}
+                onChange={(event) => updateOption(index, event.target.value)}
+                placeholder={`Opção ${index + 1}`}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                disabled={options.length === 1}
+                onClick={() => removeOption(index)}
+              >
+                <X />
+              </Button>
+            </div>
+          ))}
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setOptions((prev) => [...prev, ""])}
+        >
+          <Plus /> Adicionar opção
+        </Button>
+        {sanitized.length === 0 ? (
+          <p className="text-sm text-destructive">Informe ao menos uma opção.</p>
+        ) : null}
 
         <DialogFooter>
-          <Button onClick={handleSave} disabled={updateMutation.isPending}>
+          <Button
+            onClick={handleSave}
+            disabled={updateMutation.isPending || sanitized.length === 0}
+          >
             {updateMutation.isPending ? <Loader2 className="animate-spin" /> : null}
             Salvar
           </Button>

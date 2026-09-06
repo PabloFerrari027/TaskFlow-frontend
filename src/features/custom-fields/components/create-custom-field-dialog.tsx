@@ -1,11 +1,11 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useWatch } from "react-hook-form";
-import { Loader2 } from "lucide-react";
+import { useForm, useFieldArray, useWatch } from "react-hook-form";
+import { Loader2, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -23,7 +23,6 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -33,7 +32,7 @@ import {
   CUSTOM_FIELD_TYPES,
   CUSTOM_FIELD_TYPE_LABEL,
   createCustomFieldSchema,
-  parseOptionsText,
+  sanitizeOptions,
   type CreateCustomFieldFormValues,
 } from "@/features/custom-fields/schemas";
 import { useCreateCustomFieldMutation } from "@/features/custom-fields/hooks/use-custom-fields";
@@ -53,7 +52,12 @@ export function CreateCustomFieldDialog({
 
   const form = useForm<CreateCustomFieldFormValues>({
     resolver: zodResolver(createCustomFieldSchema),
-    defaultValues: { name: "", type: "TEXT", optionsText: "" },
+    defaultValues: { name: "", type: "TEXT", options: [{ value: "" }] },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "options",
   });
 
   const type = useWatch({ control: form.control, name: "type" });
@@ -64,7 +68,7 @@ export function CreateCustomFieldDialog({
       {
         name: values.name,
         type: values.type,
-        options: needsOptions ? parseOptionsText(values.optionsText) : undefined,
+        options: needsOptions ? sanitizeOptions(values.options) : undefined,
       },
       {
         onSuccess: () => {
@@ -130,24 +134,50 @@ export function CreateCustomFieldDialog({
             />
 
             {needsOptions ? (
-              <FormField
-                control={form.control}
-                name="optionsText"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Opções</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        rows={4}
-                        placeholder={"Baixa\nMédia\nAlta"}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormDescription>Uma opção por linha.</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="space-y-2">
+                <Label>Opções</Label>
+                <div className="space-y-2">
+                  {fields.map((optionField, index) => (
+                    <FormField
+                      key={optionField.id}
+                      control={form.control}
+                      name={`options.${index}.value`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="flex items-center gap-2">
+                            <FormControl>
+                              <Input placeholder={`Opção ${index + 1}`} {...field} />
+                            </FormControl>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon-xs"
+                              disabled={fields.length === 1}
+                              onClick={() => remove(index)}
+                            >
+                              <X />
+                            </Button>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  ))}
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => append({ value: "" })}
+                >
+                  <Plus /> Adicionar opção
+                </Button>
+                {form.formState.errors.options?.root ? (
+                  <p className="text-sm text-destructive">
+                    {form.formState.errors.options.root.message}
+                  </p>
+                ) : null}
+              </div>
             ) : null}
 
             <DialogFooter>
