@@ -20,6 +20,8 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   MEMBER_NOT_FOUND: "Membro não encontrado.",
   LAST_OWNER_CANNOT_BE_REMOVED:
     "Não é possível remover ou rebaixar o único proprietário do workspace.",
+  WORKSPACE_NOT_EMPTY:
+    "Remova os demais membros antes de excluir o workspace.",
   INVITATION_NOT_FOUND: "Convite não encontrado.",
   INVITATION_ALREADY_PROCESSED: "Este convite já foi processado.",
   INVITATION_EXPIRED: "Este convite expirou.",
