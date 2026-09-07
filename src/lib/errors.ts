@@ -14,6 +14,16 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   SESSION_EXPIRED: "Sua sessão expirou. Faça login novamente.",
   USER_NOT_FOUND: "Usuário não encontrado.",
   USER_ALREADY_CLOSED: "Esta conta já foi encerrada.",
+  EMAIL_NOT_VERIFIED: "Confirme seu e-mail antes de entrar.",
+  EMAIL_ALREADY_VERIFIED: "Este e-mail já foi verificado.",
+  EMAIL_VERIFICATION_NOT_FOUND:
+    "Nenhuma verificação pendente encontrada. Solicite um novo código.",
+  EMAIL_VERIFICATION_EXPIRED: "O código expirou. Solicite um novo código.",
+  EMAIL_VERIFICATION_INVALID_CODE: "Código incorreto. Verifique e tente novamente.",
+  EMAIL_VERIFICATION_MAX_ATTEMPTS_EXCEEDED:
+    "Número máximo de tentativas excedido. Solicite um novo código.",
+  TOO_MANY_VERIFICATION_REQUESTS:
+    "Muitas solicitações de código. Aguarde alguns minutos e tente novamente.",
   WORKSPACE_NOT_FOUND: "Workspace não encontrado.",
   FORBIDDEN_WORKSPACE_ACTION: "Você não tem permissão para realizar esta ação.",
   MEMBER_ALREADY_EXISTS: "Este usuário já é membro.",

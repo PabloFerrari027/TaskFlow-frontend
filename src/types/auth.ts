@@ -1,3 +1,5 @@
+export type AccountStatus = "PENDING_VERIFICATION" | "ACTIVE";
+
 export interface RegisterUserRequest {
   email: string;
   password: string;
@@ -6,6 +8,26 @@ export interface RegisterUserRequest {
 export interface RegisterUserResponse {
   userId: string;
   email: string;
+  status: AccountStatus;
+}
+
+export interface VerifyEmailRequest {
+  email: string;
+  code: string;
+}
+
+export interface VerifyEmailResponse {
+  userId: string;
+  email: string;
+  status: AccountStatus;
+}
+
+export interface ResendVerificationCodeRequest {
+  email: string;
+}
+
+export interface ResendVerificationCodeResponse {
+  expiresInSeconds: number;
 }
 
 export interface LoginRequest {

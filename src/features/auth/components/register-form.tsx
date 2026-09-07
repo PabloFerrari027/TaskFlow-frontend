@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -21,7 +21,6 @@ import { getErrorMessage } from "@/lib/errors";
 
 export function RegisterForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const registerMutation = useRegisterMutation();
 
   const form = useForm<RegisterFormValues>({
@@ -31,18 +30,19 @@ export function RegisterForm() {
 
   function onSubmit(values: RegisterFormValues) {
     registerMutation.mutate(values, {
-      onSuccess: (data) => {
-        toast.success("Conta criada! Faça login para continuar.");
-        const params = new URLSearchParams({ email: data.email });
-        const next = searchParams.get("next");
-        if (next) params.set("next", next);
-        router.push(`/login?${params.toString()}`);
+      onSuccess: () => {
+        // The account is born PENDING_VERIFICATION — login is blocked until
+        // the e-mail code is confirmed, so send the user there directly.
+        toast.success("Conta criada! Enviamos um código de verificação para o seu e-mail.");
+        router.push(`/verify-email?email=${encodeURIComponent(values.email)}`);
       },
       onError: (error) => {
         toast.error(getErrorMessage(error));
       },
     });
   }
+
+  const isPending = registerMutation.isPending;
 
   return (
     <Form {...form}>
@@ -85,8 +85,8 @@ export function RegisterForm() {
           )}
         />
 
-        <Button type="submit" className="w-full" disabled={registerMutation.isPending}>
-          {registerMutation.isPending ? <Loader2 className="animate-spin" /> : null}
+        <Button type="submit" className="w-full" disabled={isPending}>
+          {isPending ? <Loader2 className="animate-spin" /> : null}
           Criar conta
         </Button>
       </form>
