@@ -32,7 +32,10 @@ export type ErrorCode =
   | "CUSTOM_FIELD_VALUE_INVALID"
   | "SYNC_VERSION_CONFLICT"
   | "CLIENT_NOT_FOUND"
-  | "CANNOT_MODIFY_OWN_ACCOUNT";
+  | "CANNOT_MODIFY_OWN_ACCOUNT"
+  | "COMMENT_NOT_FOUND"
+  | "COMMENT_CONTENT_INVALID"
+  | "COMMENT_AUTHOR_MISMATCH";
 
 export interface DomainErrorResponse {
   statusCode: number;
