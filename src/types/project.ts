@@ -8,6 +8,7 @@ export interface Project {
   name: string;
   description: string | null;
   status: ProjectStatus;
+  createdBy: string | null;
   version: number;
   createdAt: string;
   updatedAt: string;

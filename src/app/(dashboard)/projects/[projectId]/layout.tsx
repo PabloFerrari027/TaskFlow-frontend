@@ -10,6 +10,7 @@ import { ErrorState } from "@/components/shared/error-state";
 import { RoleGate } from "@/components/shared/role-gate";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { ProjectStatusBadge } from "@/components/shared/status-badge";
+import { MemberAvatar, MemberIdLabel } from "@/components/shared/member-avatar";
 import { ProjectTabsNav } from "@/features/projects/components/project-tabs-nav";
 import { EditProjectDialog } from "@/features/projects/components/edit-project-dialog";
 import { TaskDetailSheet } from "@/features/tasks/components/task-detail-sheet";
@@ -72,6 +73,13 @@ export default function ProjectDetailLayout(
           </div>
         }
       />
+
+      {project.createdBy ? (
+        <div className="-mt-4 flex items-center gap-1.5 text-xs text-muted-foreground">
+          Criado por <MemberAvatar userId={project.createdBy} className="size-5" />
+          <MemberIdLabel userId={project.createdBy} />
+        </div>
+      ) : null}
 
       <ProjectTabsNav projectId={project.id} />
 
