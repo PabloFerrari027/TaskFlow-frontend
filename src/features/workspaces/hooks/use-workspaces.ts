@@ -58,6 +58,20 @@ export function useRenameWorkspaceMutation(workspaceId: string) {
   });
 }
 
+export function useDeleteWorkspaceMutation(workspaceId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => workspacesService.delete(workspaceId),
+    onSuccess: () => {
+      queryClient.removeQueries({ queryKey: queryKeys.workspaces.detail(workspaceId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.workspaces.all() });
+      toast.success("Workspace excluído.");
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+}
+
 export function useAddWorkspaceMemberMutation(workspaceId: string) {
   const queryClient = useQueryClient();
 

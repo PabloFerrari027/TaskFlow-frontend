@@ -12,6 +12,12 @@ export function canManageWorkspace(role: WorkspaceRole | null | undefined) {
   return Boolean(role && MANAGER_ROLES.includes(role));
 }
 
+// Deleting a workspace requires OWNER specifically — ADMIN is not enough,
+// unlike every other "manage" action above.
+export function canDeleteWorkspace(role: WorkspaceRole | null | undefined) {
+  return role === "OWNER";
+}
+
 export function canInviteWorkspaceMembers(role: WorkspaceRole | null | undefined) {
   return canManageWorkspace(role);
 }

@@ -38,6 +38,13 @@ export const workspacesService = {
     return data;
   },
 
+  async delete(workspaceId: string) {
+    const { data } = await apiClient.delete<{ deleted: boolean; workspaceId: string }>(
+      `/workspaces/${workspaceId}`
+    );
+    return data;
+  },
+
   async addMember(workspaceId: string, payload: AddWorkspaceMemberRequest) {
     const { data } = await apiClient.post<Workspace>(
       `/workspaces/${workspaceId}/members`,
