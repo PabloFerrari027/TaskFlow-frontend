@@ -29,11 +29,13 @@ NEXT_PUBLIC_GOOGLE_CLIENT_ID=   # opcional — login com Google fica oculto se v
 Feature-first / vertical slice: `src/features/<domínio>/{api,hooks,components,schemas}`. Fluxo de dados: Componente → hook do TanStack Query → serviço → `src/lib/api/client.ts` (axios) → API. Componentes de UI nunca chamam a API diretamente.
 
 - `src/app` — rotas (App Router)
-- `src/features` — auth, sessions, workspaces, projects, tasks, custom-fields, invitations
+- `src/features` — auth, sessions, workspaces, projects, tasks, sections, custom-fields, comments, activity, analytics, admin, sync
 - `src/components/ui` — primitivos shadcn/ui
 - `src/components/{layout,marketing,shared}` — composições reutilizáveis
 - `src/lib` — cliente HTTP, autenticação/tokens, permissões, mapeamento de erros
 - `src/types` — tipos alinhados 1:1 aos DTOs de `API.md`
+
+Documentação detalhada (roteamento completo, autenticação, permissões, sincronização offline, cada domínio de negócio, design system): [ARCHITECTURE.md](./ARCHITECTURE.md).
 
 ## Limitações conhecidas (vêm da própria API)
 
