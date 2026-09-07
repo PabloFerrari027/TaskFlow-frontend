@@ -41,6 +41,9 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   SYNC_VERSION_CONFLICT: "Este item foi alterado por outra pessoa. Atualize e tente novamente.",
   CLIENT_NOT_FOUND: "Cliente não encontrado.",
   CANNOT_MODIFY_OWN_ACCOUNT: "Você não pode realizar esta ação na própria conta.",
+  COMMENT_NOT_FOUND: "Comentário não encontrado.",
+  COMMENT_CONTENT_INVALID: "Escreva um comentário de até 5000 caracteres.",
+  COMMENT_AUTHOR_MISMATCH: "Você só pode apagar os seus próprios comentários.",
 };
 
 const DEFAULT_MESSAGE = "Algo deu errado. Tente novamente em instantes.";
