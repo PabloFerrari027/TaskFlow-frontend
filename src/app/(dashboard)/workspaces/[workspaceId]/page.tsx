@@ -13,6 +13,7 @@ import { RoleGate } from "@/components/shared/role-gate";
 import { useWorkspaceQuery } from "@/features/workspaces/hooks/use-workspaces";
 import { MembersTable } from "@/features/workspaces/components/members-table";
 import { WorkspaceInvitationsTable } from "@/features/workspaces/components/invitations-table";
+import { WorkspaceActivitySection } from "@/features/activity/components/workspace-activity-section";
 import { InviteMemberDialog } from "@/features/workspaces/components/invite-member-dialog";
 import { RenameWorkspaceDialog } from "@/features/workspaces/components/rename-workspace-dialog";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -67,6 +68,7 @@ export default function WorkspaceDetailPage() {
             <TabsList>
               <TabsTrigger value="members">Membros</TabsTrigger>
               <TabsTrigger value="invitations">Convites</TabsTrigger>
+              <TabsTrigger value="activity">Atividade</TabsTrigger>
             </TabsList>
           </div>
 
@@ -83,6 +85,10 @@ export default function WorkspaceDetailPage() {
               </div>
             </RoleGate>
             <WorkspaceInvitationsTable workspaceId={workspace.id} canManage={canInvite} />
+          </TabsContent>
+
+          <TabsContent value="activity" className="p-4">
+            <WorkspaceActivitySection workspaceId={workspace.id} />
           </TabsContent>
         </Tabs>
       </Card>

@@ -63,4 +63,14 @@ export const queryKeys = {
         ? (["comments", "task", taskId, { page }] as const)
         : (["comments", "task", taskId] as const),
   },
+  activity: {
+    workspace: (workspaceId: string, page?: number) =>
+      page
+        ? (["activity", "workspace", workspaceId, { page }] as const)
+        : (["activity", "workspace", workspaceId] as const),
+    task: (taskId: string, page?: number) =>
+      page
+        ? (["activity", "task", taskId, { page }] as const)
+        : (["activity", "task", taskId] as const),
+  },
 } as const;
