@@ -57,4 +57,10 @@ export const queryKeys = {
   customFields: {
     all: (projectId: string) => ["custom-fields", "project", projectId] as const,
   },
+  comments: {
+    all: (taskId: string, page?: number) =>
+      page
+        ? (["comments", "task", taskId, { page }] as const)
+        : (["comments", "task", taskId] as const),
+  },
 } as const;
