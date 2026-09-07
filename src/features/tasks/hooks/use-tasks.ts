@@ -6,9 +6,12 @@ import { tasksService } from "@/features/tasks/api/tasks-service";
 import { queryKeys } from "@/lib/query-keys";
 import { getErrorMessage } from "@/lib/errors";
 import { MAX_PAGE_SIZE } from "@/types/common";
+import { useCurrentWorkspace } from "@/features/workspaces/context/current-workspace-context";
+import { isOffline, pushImmediate, queueEntityUpdate } from "@/features/sync/lib/sync-engine";
 import type {
   ChangeTaskStatusRequest,
   CreateTaskRequest,
+  Task,
   UpdateTaskRequest,
 } from "@/types/task";
 
@@ -67,18 +70,101 @@ export function useCreateTaskMutation(projectId: string) {
 
 export function useUpdateTaskMutation(taskId: string) {
   const queryClient = useQueryClient();
+  const { workspaceId } = useCurrentWorkspace();
 
   return useMutation({
-    mutationFn: (payload: UpdateTaskRequest) => tasksService.update(taskId, payload),
+    mutationFn: (payload: UpdateTaskRequest) => {
+      const current = queryClient.getQueryData<Task>(queryKeys.tasks.detail(taskId));
+      if (isOffline() && workspaceId && current) {
+        return Promise.resolve(
+          queueEntityUpdate({
+            workspaceId,
+            entityType: "TASK",
+            entityId: taskId,
+            payload: payload as Record<string, unknown>,
+            current,
+            meta: { projectId: current.projectId },
+          })
+        );
+      }
+      return tasksService.update(taskId, payload);
+    },
     onSuccess: (task) => {
       queryClient.setQueryData(queryKeys.tasks.detail(taskId), task);
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all(task.projectId) });
       // `sectionId` may have changed, moving the task between columns —
       // invalidate every column since we don't track the previous one here.
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll() });
-      toast.success("Tarefa atualizada.");
+      toast.success(
+        isOffline()
+          ? "Alteração salva offline — será sincronizada quando a conexão voltar."
+          : "Tarefa atualizada."
+      );
     },
     onError: (error) => toast.error(getErrorMessage(error)),
+  });
+}
+
+/**
+ * `PATCH /tasks/:taskId` can never send `assigneeId: null` — omitting the
+ * field just leaves the current assignee untouched, and there is no REST
+ * way to clear it (API.md § 9). Clearing an assignee is only possible
+ * through `/sync/push`, so this always goes through the sync engine —
+ * queued when offline, pushed immediately (still bypassing REST) when
+ * online — instead of `tasksService.update`.
+ */
+export function useUnassignTaskMutation(taskId: string) {
+  const queryClient = useQueryClient();
+  const { workspaceId } = useCurrentWorkspace();
+
+  return useMutation({
+    mutationFn: async () => {
+      const current = queryClient.getQueryData<Task>(queryKeys.tasks.detail(taskId));
+      if (!workspaceId || !current) {
+        throw new Error("Não foi possível remover o responsável: dados da tarefa indisponíveis.");
+      }
+
+      if (isOffline()) {
+        const task = queueEntityUpdate({
+          workspaceId,
+          entityType: "TASK",
+          entityId: taskId,
+          payload: { assigneeId: null },
+          current,
+          meta: { projectId: current.projectId },
+        });
+        queryClient.setQueryData(queryKeys.tasks.detail(taskId), task);
+        return { projectId: task.projectId, queuedOffline: true, applied: true };
+      }
+
+      // `pushImmediate` already reconciles the cache (including the fresh
+      // `version`) and toasts on REJECTED/CONFLICT — this only decides
+      // whether the success toast below should fire.
+      const result = await pushImmediate(queryClient, workspaceId, {
+        entityType: "TASK",
+        entityId: taskId,
+        operationType: "UPDATE",
+        payload: { assigneeId: null },
+        baseVersion: current.version,
+      });
+      return {
+        projectId: current.projectId,
+        queuedOffline: false,
+        applied: result?.status === "APPLIED",
+      };
+    },
+    onSuccess: ({ projectId, queuedOffline, applied }) => {
+      if (!applied) return;
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all(projectId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll() });
+      toast.success(
+        queuedOffline
+          ? "Alteração salva offline — será sincronizada quando a conexão voltar."
+          : "Responsável removido."
+      );
+    },
+    onError: (error) =>
+      toast.error(error instanceof Error ? error.message : getErrorMessage(error)),
   });
 }
 
@@ -89,6 +175,7 @@ export function useUpdateTaskMutation(taskId: string) {
 // of always appending to the end of the destination section's list.
 export function useMoveTaskToSectionMutation() {
   const queryClient = useQueryClient();
+  const { workspaceId } = useCurrentWorkspace();
 
   return useMutation({
     mutationFn: ({
@@ -99,12 +186,32 @@ export function useMoveTaskToSectionMutation() {
       taskId: string;
       sectionId?: string;
       position?: number;
-    }) => tasksService.update(taskId, { sectionId, position }),
+    }) => {
+      const payload = { sectionId, position };
+      const current = queryClient.getQueryData<Task>(queryKeys.tasks.detail(taskId));
+      if (isOffline() && workspaceId && current) {
+        return Promise.resolve(
+          queueEntityUpdate({
+            workspaceId,
+            entityType: "TASK",
+            entityId: taskId,
+            payload,
+            current,
+            meta: { projectId: current.projectId },
+          })
+        );
+      }
+      return tasksService.update(taskId, payload);
+    },
     onSuccess: (task) => {
       queryClient.setQueryData(queryKeys.tasks.detail(task.id), task);
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all(task.projectId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll() });
-      toast.success("Tarefa movida.");
+      toast.success(
+        isOffline()
+          ? "Movimentação salva offline — será sincronizada quando a conexão voltar."
+          : "Tarefa movida."
+      );
     },
     onError: (error) => toast.error(getErrorMessage(error)),
   });
@@ -112,10 +219,25 @@ export function useMoveTaskToSectionMutation() {
 
 export function useChangeTaskStatusMutation(taskId: string) {
   const queryClient = useQueryClient();
+  const { workspaceId } = useCurrentWorkspace();
 
   return useMutation({
-    mutationFn: (payload: ChangeTaskStatusRequest) =>
-      tasksService.changeStatus(taskId, payload),
+    mutationFn: (payload: ChangeTaskStatusRequest) => {
+      const current = queryClient.getQueryData<Task>(queryKeys.tasks.detail(taskId));
+      if (isOffline() && workspaceId && current) {
+        return Promise.resolve(
+          queueEntityUpdate({
+            workspaceId,
+            entityType: "TASK",
+            entityId: taskId,
+            payload: payload as unknown as Record<string, unknown>,
+            current,
+            meta: { projectId: current.projectId },
+          })
+        );
+      }
+      return tasksService.changeStatus(taskId, payload);
+    },
     onSuccess: (task) => {
       queryClient.setQueryData(queryKeys.tasks.detail(taskId), task);
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all(task.projectId) });
@@ -125,7 +247,11 @@ export function useChangeTaskStatusMutation(taskId: string) {
         });
       }
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.subtasks(task.id) });
-      toast.success("Status atualizado.");
+      toast.success(
+        isOffline()
+          ? "Status salvo offline — será sincronizado quando a conexão voltar."
+          : "Status atualizado."
+      );
     },
     onError: (error) => toast.error(getErrorMessage(error)),
   });

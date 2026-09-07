@@ -6,9 +6,12 @@ import { projectsService } from "@/features/projects/api/projects-service";
 import { queryKeys } from "@/lib/query-keys";
 import { getErrorMessage } from "@/lib/errors";
 import { MAX_PAGE_SIZE } from "@/types/common";
+import { useCurrentWorkspace } from "@/features/workspaces/context/current-workspace-context";
+import { isOffline, queueEntityUpdate } from "@/features/sync/lib/sync-engine";
 import type {
   CreateProjectRequest,
   InviteToProjectRequest,
+  Project,
   UpdateProjectRequest,
 } from "@/types/project";
 
@@ -51,14 +54,32 @@ export function useCreateProjectMutation(workspaceId: string) {
 
 export function useUpdateProjectMutation(projectId: string) {
   const queryClient = useQueryClient();
+  const { workspaceId } = useCurrentWorkspace();
 
   return useMutation({
-    mutationFn: (payload: UpdateProjectRequest) =>
-      projectsService.update(projectId, payload),
+    mutationFn: (payload: UpdateProjectRequest) => {
+      const current = queryClient.getQueryData<Project>(queryKeys.projects.detail(projectId));
+      if (isOffline() && workspaceId && current) {
+        return Promise.resolve(
+          queueEntityUpdate({
+            workspaceId,
+            entityType: "PROJECT",
+            entityId: projectId,
+            payload: payload as Record<string, unknown>,
+            current,
+          })
+        );
+      }
+      return projectsService.update(projectId, payload);
+    },
     onSuccess: (data) => {
       queryClient.setQueryData(queryKeys.projects.detail(projectId), data);
       queryClient.invalidateQueries({ queryKey: queryKeys.projects.all(data.workspaceId) });
-      toast.success("Projeto atualizado.");
+      toast.success(
+        isOffline()
+          ? "Alteração salva offline — será sincronizada quando a conexão voltar."
+          : "Projeto atualizado."
+      );
     },
     onError: (error) => toast.error(getErrorMessage(error)),
   });
@@ -66,13 +87,32 @@ export function useUpdateProjectMutation(projectId: string) {
 
 export function useArchiveProjectMutation(projectId: string) {
   const queryClient = useQueryClient();
+  const { workspaceId } = useCurrentWorkspace();
 
   return useMutation({
-    mutationFn: () => projectsService.archive(projectId),
+    mutationFn: () => {
+      const current = queryClient.getQueryData<Project>(queryKeys.projects.detail(projectId));
+      if (isOffline() && workspaceId && current) {
+        return Promise.resolve(
+          queueEntityUpdate({
+            workspaceId,
+            entityType: "PROJECT",
+            entityId: projectId,
+            payload: { status: "ARCHIVED" },
+            current,
+          })
+        );
+      }
+      return projectsService.archive(projectId);
+    },
     onSuccess: (data) => {
       queryClient.setQueryData(queryKeys.projects.detail(projectId), data);
       queryClient.invalidateQueries({ queryKey: queryKeys.projects.all(data.workspaceId) });
-      toast.success("Projeto arquivado.");
+      toast.success(
+        isOffline()
+          ? "Arquivamento salvo offline — será sincronizado quando a conexão voltar."
+          : "Projeto arquivado."
+      );
     },
     onError: (error) => toast.error(getErrorMessage(error)),
   });
