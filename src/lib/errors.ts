@@ -46,6 +46,7 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   COMMENT_NOT_FOUND: "Comentário não encontrado.",
   COMMENT_CONTENT_INVALID: "Escreva um comentário de até 5000 caracteres.",
   COMMENT_AUTHOR_MISMATCH: "Você só pode apagar os seus próprios comentários.",
+  INVALID_ANALYTICS_QUERY: "Não foi possível montar este gráfico com os dados disponíveis.",
 };
 
 const DEFAULT_MESSAGE = "Algo deu errado. Tente novamente em instantes.";

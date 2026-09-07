@@ -1,4 +1,5 @@
 import type { ClientStatus } from "@/types/client";
+import type { AnalyticsQueryRequest } from "@/types/analytics";
 
 export const queryKeys = {
   sessions: {
@@ -72,5 +73,8 @@ export const queryKeys = {
       page
         ? (["activity", "task", taskId, { page }] as const)
         : (["activity", "task", taskId] as const),
+  },
+  analytics: {
+    query: (request: AnalyticsQueryRequest) => ["analytics", "query", request] as const,
   },
 } as const;

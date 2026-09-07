@@ -36,7 +36,8 @@ export type ErrorCode =
   | "CANNOT_MODIFY_OWN_ACCOUNT"
   | "COMMENT_NOT_FOUND"
   | "COMMENT_CONTENT_INVALID"
-  | "COMMENT_AUTHOR_MISMATCH";
+  | "COMMENT_AUTHOR_MISMATCH"
+  | "INVALID_ANALYTICS_QUERY";
 
 export interface DomainErrorResponse {
   statusCode: number;

@@ -81,6 +81,17 @@
   --sidebar-accent-foreground: oklch(0.32 0.06 277);
   --sidebar-border: oklch(0.915 0.004 286);
   --sidebar-ring: oklch(0.585 0.233 277.12);
+
+  /* Categorical palette for analytics charts (e.g. tasks-by-project) — kept
+     separate from --chart-1..5 above, whose first two steps (both violet)
+     fail CVD-safe separation for adjacent categories. Values + ordering are
+     the dataviz skill's validated reference palette. */
+  --analytics-cat-1: #2a78d6;
+  --analytics-cat-2: #eb6834;
+  --analytics-cat-3: #1baf7a;
+  --analytics-cat-4: #eda100;
+  --analytics-cat-5: #e87ba4;
+  --analytics-cat-6: #008300;
 }
 
 .dark {
@@ -115,6 +126,13 @@
   --sidebar-accent-foreground: oklch(0.9 0.03 277);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.673 0.201 277.1);
+
+  --analytics-cat-1: #3987e5;
+  --analytics-cat-2: #d95926;
+  --analytics-cat-3: #199e70;
+  --analytics-cat-4: #c98500;
+  --analytics-cat-5: #d55181;
+  --analytics-cat-6: #008300;
 }
 
 @layer base {
