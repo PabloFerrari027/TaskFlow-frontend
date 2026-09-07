@@ -2,6 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   LayoutDashboard,
   FolderKanban,
+  BarChart3,
   Building2,
   MonitorSmartphone,
   ShieldCheck,
@@ -17,6 +18,7 @@ export interface NavItem {
 export const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/projects", label: "Projetos", icon: FolderKanban },
+  { href: "/analytics", label: "Análises", icon: BarChart3 },
   { href: "/workspaces", label: "Workspaces", icon: Building2 },
   { href: "/settings/sessions", label: "Sessões", icon: MonitorSmartphone },
   {
