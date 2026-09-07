@@ -2,6 +2,7 @@
 
 import { Paperclip } from "lucide-react";
 import { MemberAvatar, MemberIdLabel } from "@/components/shared/member-avatar";
+import { TaskDueDateBadge, TaskPriorityBadge } from "@/components/shared/status-badge";
 import { TaskStatusSelect } from "@/features/tasks/components/task-status-select";
 import { useTaskPanel } from "@/features/tasks/hooks/use-task-panel";
 import { useTaskDropTarget } from "@/features/tasks/hooks/use-task-drop-target";
@@ -63,6 +64,13 @@ export function TaskCardItem({ task, onReorder }: TaskCardItemProps) {
 
       {task.description ? (
         <p className="line-clamp-3 text-xs text-muted-foreground">{task.description}</p>
+      ) : null}
+
+      {task.priority || task.dueDate ? (
+        <div className="flex flex-wrap items-center gap-1.5">
+          {task.priority ? <TaskPriorityBadge priority={task.priority} /> : null}
+          {task.dueDate ? <TaskDueDateBadge dueDate={task.dueDate} /> : null}
+        </div>
       ) : null}
 
       <div className="flex items-center justify-between gap-2">

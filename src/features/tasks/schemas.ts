@@ -7,8 +7,10 @@ export const taskFormSchema = z.object({
   description: z.string().optional(),
   assigneeId: z.string().optional(),
   sectionId: z.string().min(1, "Selecione uma coluna."),
+  dueDate: z.string().optional(),
+  priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).optional(),
 });
 
 export type TaskFormValues = z.infer<typeof taskFormSchema>;
 
-export { NONE as UNASSIGNED_VALUE };
+export { NONE as UNASSIGNED_VALUE, NONE as NO_PRIORITY_VALUE };
