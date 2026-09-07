@@ -22,12 +22,29 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { AssigneeSelect } from "@/features/tasks/components/assignee-select";
 import { SectionSelect } from "@/features/tasks/components/section-select";
-import { taskFormSchema, type TaskFormValues } from "@/features/tasks/schemas";
-import { useCreateTaskMutation, useUpdateTaskMutation } from "@/features/tasks/hooks/use-tasks";
+import {
+  NO_PRIORITY_VALUE,
+  taskFormSchema,
+  type TaskFormValues,
+} from "@/features/tasks/schemas";
+import {
+  useCreateTaskMutation,
+  useUnassignTaskMutation,
+  useUpdateTaskMutation,
+} from "@/features/tasks/hooks/use-tasks";
 import { useSectionsQuery } from "@/features/sections/hooks/use-sections";
-import type { Task } from "@/types/task";
+import { TASK_PRIORITY_LABEL } from "@/components/shared/status-badge";
+import { fromDateInputValue, toDateInputValue } from "@/lib/format";
+import type { Task, TaskPriority } from "@/types/task";
 
 interface TaskFormDialogProps {
   projectId: string;
@@ -49,7 +66,9 @@ export function TaskFormDialog({
   const isEditing = Boolean(task);
   const createMutation = useCreateTaskMutation(projectId);
   const updateMutation = useUpdateTaskMutation(task?.id ?? "");
-  const isPending = createMutation.isPending || updateMutation.isPending;
+  const unassignMutation = useUnassignTaskMutation(task?.id ?? "");
+  const isPending =
+    createMutation.isPending || updateMutation.isPending || unassignMutation.isPending;
   const sectionsQuery = useSectionsQuery(projectId);
   const defaultSectionId = sectionsQuery.data?.find((s) => s.isDefault)?.id;
 
@@ -60,19 +79,38 @@ export function TaskFormDialog({
       description: task?.description ?? "",
       assigneeId: task?.assigneeId ?? undefined,
       sectionId: task?.sectionId ?? sectionId ?? defaultSectionId ?? "",
+      dueDate: toDateInputValue(task?.dueDate),
+      priority: task?.priority ?? undefined,
     },
   });
 
   function onSubmit(values: TaskFormValues) {
+    const dueDate = values.dueDate ? fromDateInputValue(values.dueDate) : undefined;
+
     if (isEditing && task) {
+      // `PATCH /tasks/:taskId` can't clear `assigneeId` (see
+      // `useUnassignTaskMutation`) — omitting it from this request would
+      // silently leave the previous assignee in place, so that specific
+      // change has to go through a separate call.
+      const isUnassigning = Boolean(task.assigneeId) && !values.assigneeId;
       updateMutation.mutate(
         {
           title: values.title,
           description: values.description || undefined,
-          assigneeId: values.assigneeId,
+          assigneeId: isUnassigning ? undefined : values.assigneeId,
           sectionId: values.sectionId,
+          dueDate,
+          priority: values.priority,
         },
-        { onSuccess: () => onOpenChange(false) }
+        {
+          onSuccess: () => {
+            if (isUnassigning) {
+              unassignMutation.mutate(undefined, { onSuccess: () => onOpenChange(false) });
+            } else {
+              onOpenChange(false);
+            }
+          },
+        }
       );
     } else {
       createMutation.mutate(
@@ -82,6 +120,8 @@ export function TaskFormDialog({
           assigneeId: values.assigneeId,
           sectionId: values.sectionId,
           parentTaskId,
+          dueDate,
+          priority: values.priority,
         },
         {
           onSuccess: () => {
@@ -180,6 +220,65 @@ export function TaskFormDialog({
                 </FormItem>
               )}
             />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="dueDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Prazo (opcional)</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
+                    </FormControl>
+                    {task?.dueDate ? (
+                      <p className="text-xs text-muted-foreground">
+                        Só é possível trocar por outra data.
+                      </p>
+                    ) : null}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="priority"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Prioridade (opcional)</FormLabel>
+                    <FormControl>
+                      <Select
+                        value={field.value ?? NO_PRIORITY_VALUE}
+                        onValueChange={(next) =>
+                          field.onChange(next === NO_PRIORITY_VALUE ? undefined : next as TaskPriority)
+                        }
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {!task?.priority ? (
+                            <SelectItem value={NO_PRIORITY_VALUE}>Sem prioridade</SelectItem>
+                          ) : null}
+                          {(Object.keys(TASK_PRIORITY_LABEL) as TaskPriority[]).map((p) => (
+                            <SelectItem key={p} value={p}>
+                              {TASK_PRIORITY_LABEL[p]}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    {task?.priority ? (
+                      <p className="text-xs text-muted-foreground">
+                        Só é possível trocar por outra prioridade.
+                      </p>
+                    ) : null}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <DialogFooter>
               <Button type="submit" disabled={isPending}>

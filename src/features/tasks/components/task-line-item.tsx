@@ -2,6 +2,7 @@
 
 import { Paperclip } from "lucide-react";
 import { MemberAvatar } from "@/components/shared/member-avatar";
+import { TaskDueDateBadge, TaskPriorityBadge } from "@/components/shared/status-badge";
 import { TaskStatusSelect } from "@/features/tasks/components/task-status-select";
 import { useTaskPanel } from "@/features/tasks/hooks/use-task-panel";
 import { useTaskDropTarget } from "@/features/tasks/hooks/use-task-drop-target";
@@ -51,6 +52,12 @@ export function TaskLineItem({ task, onReorder }: TaskLineItemProps) {
       )}
     >
       <span className="truncate text-sm font-medium text-foreground">{task.title}</span>
+      {task.priority || task.dueDate ? (
+        <div className="flex flex-wrap items-center gap-1.5">
+          {task.priority ? <TaskPriorityBadge priority={task.priority} /> : null}
+          {task.dueDate ? <TaskDueDateBadge dueDate={task.dueDate} /> : null}
+        </div>
+      ) : null}
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           {task.attachments.length > 0 ? (

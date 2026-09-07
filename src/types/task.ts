@@ -1,5 +1,7 @@
 export type TaskStatus = "TODO" | "IN_PROGRESS" | "DONE";
 
+export type TaskPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+
 export interface Attachment {
   id: string;
   fileName: string;
@@ -20,6 +22,9 @@ export interface Task {
   description: string | null;
   status: TaskStatus;
   assigneeId: string | null;
+  dueDate: string | null;
+  priority: TaskPriority | null;
+  createdBy: string | null;
   version: number;
   createdAt: string;
   updatedAt: string;
@@ -32,6 +37,8 @@ export interface CreateTaskRequest {
   description?: string;
   assigneeId?: string;
   parentTaskId?: string;
+  dueDate?: string;
+  priority?: TaskPriority;
 }
 
 export interface UpdateTaskRequest {
@@ -40,6 +47,8 @@ export interface UpdateTaskRequest {
   assigneeId?: string;
   sectionId?: string;
   position?: number;
+  dueDate?: string;
+  priority?: TaskPriority;
 }
 
 export interface ChangeTaskStatusRequest {
