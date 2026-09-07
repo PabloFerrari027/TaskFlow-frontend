@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/form";
 import { loginSchema, type LoginFormValues } from "@/features/auth/schemas";
 import { useLoginMutation } from "@/features/auth/hooks/use-auth-mutations";
-import { getErrorMessage } from "@/lib/errors";
+import { getErrorCode, getErrorMessage } from "@/lib/errors";
 
 export function LoginForm() {
   const router = useRouter();
@@ -45,6 +45,11 @@ export function LoginForm() {
         router.push(`/login/verify?${params.toString()}`);
       },
       onError: (error) => {
+        if (getErrorCode(error) === "EMAIL_NOT_VERIFIED") {
+          toast.error("Confirme seu e-mail antes de entrar.");
+          router.push(`/verify-email?email=${encodeURIComponent(values.email)}`);
+          return;
+        }
         toast.error(getErrorMessage(error));
       },
     });

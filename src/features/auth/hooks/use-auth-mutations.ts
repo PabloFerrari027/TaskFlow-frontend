@@ -9,6 +9,18 @@ export function useRegisterMutation() {
   });
 }
 
+export function useVerifyEmailMutation() {
+  return useMutation({
+    mutationFn: authService.verifyEmail,
+  });
+}
+
+export function useResendVerificationCodeMutation() {
+  return useMutation({
+    mutationFn: authService.resendVerificationCode,
+  });
+}
+
 export function useLoginMutation() {
   return useMutation({
     mutationFn: authService.login,
