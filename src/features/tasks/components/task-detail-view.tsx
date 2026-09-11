@@ -16,6 +16,7 @@ import { TaskDueDateInput } from "@/features/tasks/components/task-due-date-inpu
 import { TaskFormDialog } from "@/features/tasks/components/task-form-dialog";
 import { SubtaskList } from "@/features/tasks/components/subtask-list";
 import { AttachmentsSection } from "@/features/tasks/components/attachments-section";
+import { ParticipantsSection } from "@/features/tasks/components/participants-section";
 import { CommentComposer } from "@/features/comments/components/comment-composer";
 import { CommentList } from "@/features/comments/components/comment-list";
 import { TaskActivitySection } from "@/features/activity/components/task-activity-section";
@@ -103,6 +104,14 @@ export function TaskDetailView({
                 <p className="text-sm text-muted-foreground">Sem responsável</p>
               )}
             </div>
+
+            <Separator />
+
+            <ParticipantsSection
+              projectId={projectId}
+              taskId={task.id}
+              participantIds={task.participantIds}
+            />
 
             <Separator />
 

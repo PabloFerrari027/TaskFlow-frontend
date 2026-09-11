@@ -321,6 +321,40 @@ export function useChangeTaskStatusMutation(taskId: string) {
   });
 }
 
+// Same pattern as useUpdateTaskMutation: replace the cached task detail with the
+// fresh server response (participantIds already up to date) and invalidate the
+// lists that embed a Task, since a task's participants don't change list
+// membership but callers still expect fresh data everywhere it's rendered.
+export function useAddParticipantMutation(taskId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (userId: string) => tasksService.addParticipant(taskId, userId),
+    onSuccess: (task) => {
+      queryClient.setQueryData(queryKeys.tasks.detail(taskId), task);
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all(task.projectId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll() });
+      toast.success("Participante adicionado.");
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+}
+
+export function useRemoveParticipantMutation(taskId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (userId: string) => tasksService.removeParticipant(taskId, userId),
+    onSuccess: (task) => {
+      queryClient.setQueryData(queryKeys.tasks.detail(taskId), task);
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all(task.projectId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll() });
+      toast.success("Participante removido.");
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+}
+
 export function useUploadAttachmentMutation(taskId: string) {
   const queryClient = useQueryClient();
 
