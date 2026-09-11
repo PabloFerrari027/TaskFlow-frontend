@@ -16,7 +16,10 @@ import { shortenId } from "@/lib/format";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useProjectsQuery } from "@/features/projects/hooks/use-projects";
 import {
+  useAverageCompletionTimeByProjectQuery,
   useCompletedTaskCountQuery,
+  useCompletionRateByProjectQuery,
+  useOverdueRateByProjectQuery,
   useOverdueTasksByProjectQuery,
   useProjectsByStatusQuery,
   useTotalTasksCountQuery,
@@ -52,6 +55,32 @@ const PROJECT_STATUS_COLOR: Record<ProjectStatus, string> = {
 };
 
 const MAX_CATEGORY_SLICES = 6;
+
+const percentFormatter = new Intl.NumberFormat("pt-BR", { style: "percent", maximumFractionDigits: 0 });
+const formatPercent = (value: number) => percentFormatter.format(value);
+const formatHours = (value: number) =>
+  `${value.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}h`;
+
+/**
+ * Shared by the 3 derived-metric charts (completion rate, overdue rate,
+ * average completion time): unlike `rankAndFold`, these values aren't counts
+ * — a rate or an average in hours can't be summed into a meaningful "Outros"
+ * bucket, so this just ranks and caps, with no long-tail folding. Projects
+ * with no eligible data (`value: null` — e.g. no tasks with a due date yet)
+ * are dropped rather than shown as a misleading zero.
+ */
+function rankOnly(entries: { key: string; label: string; value: number | null }[]): CategoryBarChartRow[] {
+  return entries
+    .filter((entry): entry is { key: string; label: string; value: number } => entry.value !== null)
+    .sort((a, b) => b.value - a.value)
+    .slice(0, MAX_CATEGORY_SLICES)
+    .map((entry, index) => ({
+      key: entry.key,
+      label: entry.label,
+      value: entry.value,
+      color: `var(--analytics-cat-${index + 1})`,
+    }));
+}
 
 /**
  * Shared by every "compare N open-ended categories" chart (projects,
@@ -99,6 +128,9 @@ export function AnalyticsDashboard({ workspaceId }: { workspaceId: string }) {
   const byProject = useTasksByProjectQuery(workspaceId);
   const byProjectStatus = useProjectsByStatusQuery(workspaceId);
   const overdueByProject = useOverdueTasksByProjectQuery(workspaceId);
+  const completionRateByProject = useCompletionRateByProjectQuery(workspaceId);
+  const overdueRateByProject = useOverdueRateByProjectQuery(workspaceId);
+  const avgCompletionTimeByProject = useAverageCompletionTimeByProjectQuery(workspaceId);
 
   const statusRows: CategoryBarChartRow[] = TASK_STATUS_ORDER.map((status) => ({
     key: status,
@@ -153,6 +185,30 @@ export function AnalyticsDashboard({ workspaceId }: { workspaceId: string }) {
       count: row.count,
     })),
     "Outros projetos"
+  );
+
+  const completionRateRows = rankOnly(
+    completionRateByProject.rows.map((row) => ({
+      key: row.projectId,
+      label: projectNameById.get(row.projectId) ?? "Projeto removido",
+      value: row.value,
+    }))
+  );
+
+  const overdueRateRows = rankOnly(
+    overdueRateByProject.rows.map((row) => ({
+      key: row.projectId,
+      label: projectNameById.get(row.projectId) ?? "Projeto removido",
+      value: row.value,
+    }))
+  );
+
+  const avgCompletionTimeRows = rankOnly(
+    avgCompletionTimeByProject.rows.map((row) => ({
+      key: row.projectId,
+      label: projectNameById.get(row.projectId) ?? "Projeto removido",
+      value: row.hours,
+    }))
   );
 
   return (
@@ -292,6 +348,72 @@ export function AnalyticsDashboard({ workspaceId }: { workspaceId: string }) {
               rows={overdueProjectRows}
               isLoading={overdueByProject.isLoading || projectsQuery.isLoading}
               emptyTitle="Nenhuma tarefa atrasada"
+            />
+          )}
+        </Card>
+
+        <Card className="space-y-3 p-5">
+          <div>
+            <h2 className="text-sm font-medium text-foreground">Taxa de conclusão por projeto</h2>
+            <p className="text-xs text-muted-foreground">
+              Tarefas concluídas sobre o total, em todos os projetos deste workspace.
+            </p>
+          </div>
+          {completionRateByProject.isError ? (
+            <ErrorState
+              error={completionRateByProject.error}
+              onRetry={() => completionRateByProject.refetch()}
+            />
+          ) : (
+            <CategoryBarChart
+              rows={completionRateRows}
+              isLoading={completionRateByProject.isLoading || projectsQuery.isLoading}
+              emptyTitle="Nenhuma tarefa criada ainda"
+              valueFormatter={formatPercent}
+            />
+          )}
+        </Card>
+
+        <Card className="space-y-3 p-5">
+          <div>
+            <h2 className="text-sm font-medium text-foreground">Taxa de atraso por projeto</h2>
+            <p className="text-xs text-muted-foreground">
+              Entre as tarefas com prazo definido, em todos os projetos deste workspace.
+            </p>
+          </div>
+          {overdueRateByProject.isError ? (
+            <ErrorState
+              error={overdueRateByProject.error}
+              onRetry={() => overdueRateByProject.refetch()}
+            />
+          ) : (
+            <CategoryBarChart
+              rows={overdueRateRows}
+              isLoading={overdueRateByProject.isLoading || projectsQuery.isLoading}
+              emptyTitle="Nenhuma tarefa com prazo definido"
+              valueFormatter={formatPercent}
+            />
+          )}
+        </Card>
+
+        <Card className="space-y-3 p-5">
+          <div>
+            <h2 className="text-sm font-medium text-foreground">Tempo médio de conclusão por projeto</h2>
+            <p className="text-xs text-muted-foreground">
+              Da criação até a conclusão, em horas, em todos os projetos deste workspace.
+            </p>
+          </div>
+          {avgCompletionTimeByProject.isError ? (
+            <ErrorState
+              error={avgCompletionTimeByProject.error}
+              onRetry={() => avgCompletionTimeByProject.refetch()}
+            />
+          ) : (
+            <CategoryBarChart
+              rows={avgCompletionTimeRows}
+              isLoading={avgCompletionTimeByProject.isLoading || projectsQuery.isLoading}
+              emptyTitle="Nenhuma tarefa concluída ainda"
+              valueFormatter={formatHours}
             />
           )}
         </Card>

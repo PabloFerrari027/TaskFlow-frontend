@@ -10,16 +10,29 @@ export type AnalyticsOperator =
 
 export type AnalyticsMetricType = "count" | "sum" | "average";
 
+export type AnalyticsDerivedMetricName =
+  | "completion_rate"
+  | "overdue_rate"
+  | "average_completion_time"
+  | "cycle_time";
+
 export interface AnalyticsFilter {
   field: string;
   operator: AnalyticsOperator;
   value: unknown;
 }
 
-export interface AnalyticsMetric {
+export interface AnalyticsCountMetric {
   type: AnalyticsMetricType;
   field: string;
 }
+
+export interface AnalyticsDerivedMetric {
+  type: "derived";
+  name: AnalyticsDerivedMetricName;
+}
+
+export type AnalyticsMetric = AnalyticsCountMetric | AnalyticsDerivedMetric;
 
 export interface AnalyticsQuery {
   entity: AnalyticsEntity;
@@ -29,9 +42,7 @@ export interface AnalyticsQuery {
   metrics: AnalyticsMetric[];
 }
 
-export interface AnalyticsResultMetric extends AnalyticsMetric {
-  alias: string;
-}
+export type AnalyticsResultMetric = AnalyticsMetric & { alias: string };
 
 export interface AnalyticsResult {
   entity: AnalyticsEntity;
