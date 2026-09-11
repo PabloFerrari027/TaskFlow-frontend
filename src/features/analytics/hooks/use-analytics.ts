@@ -149,6 +149,72 @@ export function useOverdueTasksByProjectQuery(workspaceId: string | null) {
   return { ...query, rows };
 }
 
+export interface ProjectRate {
+  projectId: string;
+  /** `[0, 1]` — `null` quando o backend não tem dados suficientes para o grupo (ver API.md § 12). */
+  value: number | null;
+}
+
+// Completion rate by project, workspace-wide — `[0, 1]` per project, feeds the
+// "Taxa de conclusão por projeto" chart. Like `useTasksByProjectQuery`, this
+// compares projects against each other, so it's never scoped to a single one.
+export function useCompletionRateByProjectQuery(workspaceId: string | null) {
+  const query = useAnalyticsQuery(workspaceId, {
+    entity: "tasks",
+    groupBy: ["projectId"],
+    metrics: [{ type: "derived", name: "completion_rate" }],
+  });
+
+  const rows: ProjectRate[] = (query.data?.data ?? []).map((row) => ({
+    projectId: row.projectId as string,
+    value: typeof row.completion_rate === "number" ? row.completion_rate : null,
+  }));
+
+  return { ...query, rows };
+}
+
+// Overdue rate by project, workspace-wide — `[0, 1]` per project (tasks with no
+// dueDate never enter the denominator, per API.md § 12), feeds the "Taxa de
+// atraso por projeto" chart.
+export function useOverdueRateByProjectQuery(workspaceId: string | null) {
+  const query = useAnalyticsQuery(workspaceId, {
+    entity: "tasks",
+    groupBy: ["projectId"],
+    metrics: [{ type: "derived", name: "overdue_rate" }],
+  });
+
+  const rows: ProjectRate[] = (query.data?.data ?? []).map((row) => ({
+    projectId: row.projectId as string,
+    value: typeof row.overdue_rate === "number" ? row.overdue_rate : null,
+  }));
+
+  return { ...query, rows };
+}
+
+export interface ProjectAverageCompletionTime {
+  projectId: string;
+  /** Horas — `null` quando o projeto ainda não tem nenhuma task concluída com `completedAt`. */
+  hours: number | null;
+}
+
+// Average completion time (createdAt -> completedAt, only DONE tasks) by
+// project, workspace-wide, in hours — feeds the "Tempo médio de conclusão por
+// projeto" chart.
+export function useAverageCompletionTimeByProjectQuery(workspaceId: string | null) {
+  const query = useAnalyticsQuery(workspaceId, {
+    entity: "tasks",
+    groupBy: ["projectId"],
+    metrics: [{ type: "derived", name: "average_completion_time" }],
+  });
+
+  const rows: ProjectAverageCompletionTime[] = (query.data?.data ?? []).map((row) => ({
+    projectId: row.projectId as string,
+    hours: typeof row.average_completion_time === "number" ? row.average_completion_time : null,
+  }));
+
+  return { ...query, rows };
+}
+
 export interface ProjectStatusCount {
   status: ProjectStatus;
   count: number;

@@ -34,10 +34,13 @@ export function CategoryBarChart({
   rows,
   isLoading,
   emptyTitle = "Sem dados para exibir ainda",
+  valueFormatter,
 }: {
   rows: CategoryBarChartRow[];
   isLoading?: boolean;
   emptyTitle?: string;
+  /** Formats each bar's value for its end label and tooltip — e.g. a percentage or "Xh". Defaults to the raw number. */
+  valueFormatter?: (value: number) => string;
 }) {
   if (isLoading) {
     return (
@@ -49,8 +52,11 @@ export function CategoryBarChart({
     );
   }
 
-  const total = rows.reduce((sum, row) => sum + row.value, 0);
-  if (total === 0) {
+  // `rows.length` (not "every value summed is 0") is what "no data" actually
+  // means here — a 0% completion-rate project is real data, not an empty
+  // chart. Count-based callers already filter out zero-count entries before
+  // reaching this component (see `rankAndFold`), so this is equivalent for them.
+  if (rows.length === 0) {
     return <EmptyState icon={<BarChart3 className="size-5" />} title={emptyTitle} />;
   }
 
@@ -83,6 +89,11 @@ export function CategoryBarChart({
               labelFormatter={(_, payload) =>
                 (payload?.[0]?.payload as CategoryBarChartRow | undefined)?.label ?? ""
               }
+              formatter={
+                valueFormatter
+                  ? (value) => valueFormatter(value as number)
+                  : undefined
+              }
             />
           }
         />
@@ -94,6 +105,7 @@ export function CategoryBarChart({
             dataKey="value"
             position="right"
             className="fill-foreground text-xs font-medium tabular-nums"
+            formatter={valueFormatter ? (label) => valueFormatter(Number(label)) : undefined}
           />
         </Bar>
       </BarChart>
