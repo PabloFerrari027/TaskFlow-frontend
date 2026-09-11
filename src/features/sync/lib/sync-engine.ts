@@ -278,7 +278,7 @@ export async function pullChanges(queryClient: QueryClient, workspaceId: string)
     queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll() });
     queryClient.invalidateQueries({
       predicate: (query) =>
-        ["tasks", "custom-fields", "sections", "comments"].includes(
+        ["tasks", "custom-fields", "sections", "comments", "activity", "analytics"].includes(
           query.queryKey[0] as string
         ),
     });

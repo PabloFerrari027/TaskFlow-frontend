@@ -8,12 +8,40 @@ import { getErrorMessage } from "@/lib/errors";
 import { MAX_PAGE_SIZE } from "@/types/common";
 import { useCurrentWorkspace } from "@/features/workspaces/context/current-workspace-context";
 import { isOffline, queueEntityUpdate } from "@/features/sync/lib/sync-engine";
+import type { PaginatedResult } from "@/types/common";
 import type {
   CreateProjectRequest,
   InviteToProjectRequest,
   Project,
   UpdateProjectRequest,
 } from "@/types/project";
+
+// Offline updates only reach the server on the next sync pull, and
+// invalidateQueries' refetch stays paused (networkMode: "online") until
+// then — without this optimistic patch, an offline rename/archive wouldn't
+// show up in the projects list until reconnect (the detail cache is already
+// patched separately in each mutation's onSuccess).
+async function patchCachedProject(
+  queryClient: ReturnType<typeof useQueryClient>,
+  workspaceId: string | null,
+  projectId: string,
+  patch: Partial<Project>
+) {
+  if (!workspaceId) return {};
+  await queryClient.cancelQueries({ queryKey: queryKeys.projects.all(workspaceId) });
+  const previous = queryClient.getQueryData<PaginatedResult<Project>>(
+    queryKeys.projects.all(workspaceId)
+  );
+  if (previous) {
+    queryClient.setQueryData<PaginatedResult<Project>>(queryKeys.projects.all(workspaceId), {
+      ...previous,
+      data: previous.data.map((project) =>
+        project.id === projectId ? { ...project, ...patch } : project
+      ),
+    });
+  }
+  return { previous };
+}
 
 /**
  * The Active/Archived tabs on the projects page filter client-side, which
@@ -72,6 +100,7 @@ export function useUpdateProjectMutation(projectId: string) {
       }
       return projectsService.update(projectId, payload);
     },
+    onMutate: (payload) => patchCachedProject(queryClient, workspaceId, projectId, payload),
     onSuccess: (data) => {
       queryClient.setQueryData(queryKeys.projects.detail(projectId), data);
       queryClient.invalidateQueries({ queryKey: queryKeys.projects.all(data.workspaceId) });
@@ -81,7 +110,12 @@ export function useUpdateProjectMutation(projectId: string) {
           : "Projeto atualizado."
       );
     },
-    onError: (error) => toast.error(getErrorMessage(error)),
+    onError: (error, _payload, context) => {
+      if (workspaceId && context?.previous) {
+        queryClient.setQueryData(queryKeys.projects.all(workspaceId), context.previous);
+      }
+      toast.error(getErrorMessage(error));
+    },
   });
 }
 
@@ -105,6 +139,8 @@ export function useArchiveProjectMutation(projectId: string) {
       }
       return projectsService.archive(projectId);
     },
+    onMutate: () =>
+      patchCachedProject(queryClient, workspaceId, projectId, { status: "ARCHIVED" }),
     onSuccess: (data) => {
       queryClient.setQueryData(queryKeys.projects.detail(projectId), data);
       queryClient.invalidateQueries({ queryKey: queryKeys.projects.all(data.workspaceId) });
@@ -114,7 +150,12 @@ export function useArchiveProjectMutation(projectId: string) {
           : "Projeto arquivado."
       );
     },
-    onError: (error) => toast.error(getErrorMessage(error)),
+    onError: (error, _vars, context) => {
+      if (workspaceId && context?.previous) {
+        queryClient.setQueryData(queryKeys.projects.all(workspaceId), context.previous);
+      }
+      toast.error(getErrorMessage(error));
+    },
   });
 }
 

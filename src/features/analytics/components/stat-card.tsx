@@ -2,7 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export function StatTile({
+export function StatCard({
   label,
   value,
   icon: Icon,

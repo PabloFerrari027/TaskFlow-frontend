@@ -8,6 +8,7 @@ import { getErrorMessage } from "@/lib/errors";
 import { MAX_PAGE_SIZE } from "@/types/common";
 import { useCurrentWorkspace } from "@/features/workspaces/context/current-workspace-context";
 import { isOffline, queueEntityUpdate } from "@/features/sync/lib/sync-engine";
+import type { PaginatedResult } from "@/types/common";
 import type {
   CreateCustomFieldDefinitionRequest,
   CustomFieldDefinition,
@@ -50,6 +51,34 @@ function findCachedDefinition(
   return cached?.data.find((definition) => definition.id === definitionId);
 }
 
+// Offline updates only reach the server on the next sync pull, and
+// invalidateQueries' refetch stays paused (networkMode: "online") until
+// then — without this optimistic patch, an offline options change or
+// archive wouldn't show up in the list until reconnect.
+async function patchCachedDefinition(
+  queryClient: ReturnType<typeof useQueryClient>,
+  projectId: string,
+  definitionId: string,
+  patch: Partial<CustomFieldDefinition>
+) {
+  await queryClient.cancelQueries({ queryKey: queryKeys.customFields.all(projectId) });
+  const previous = queryClient.getQueryData<PaginatedResult<CustomFieldDefinition>>(
+    queryKeys.customFields.all(projectId)
+  );
+  if (previous) {
+    queryClient.setQueryData<PaginatedResult<CustomFieldDefinition>>(
+      queryKeys.customFields.all(projectId),
+      {
+        ...previous,
+        data: previous.data.map((definition) =>
+          definition.id === definitionId ? { ...definition, ...patch } : definition
+        ),
+      }
+    );
+  }
+  return { previous };
+}
+
 export function useUpdateCustomFieldOptionsMutation(projectId: string) {
   const queryClient = useQueryClient();
   const { workspaceId } = useCurrentWorkspace();
@@ -76,6 +105,8 @@ export function useUpdateCustomFieldOptionsMutation(projectId: string) {
       }
       return customFieldsService.updateOptions(definitionId, payload).then(() => undefined);
     },
+    onMutate: ({ definitionId, payload }) =>
+      patchCachedDefinition(queryClient, projectId, definitionId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.customFields.all(projectId) });
       toast.success(
@@ -84,7 +115,12 @@ export function useUpdateCustomFieldOptionsMutation(projectId: string) {
           : "Opções atualizadas."
       );
     },
-    onError: (error) => toast.error(getErrorMessage(error)),
+    onError: (error, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKeys.customFields.all(projectId), context.previous);
+      }
+      toast.error(getErrorMessage(error));
+    },
   });
 }
 
@@ -108,6 +144,8 @@ export function useArchiveCustomFieldMutation(projectId: string) {
       }
       return customFieldsService.archive(definitionId).then(() => undefined);
     },
+    onMutate: (definitionId) =>
+      patchCachedDefinition(queryClient, projectId, definitionId, { archived: true }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.customFields.all(projectId) });
       toast.success(
@@ -116,7 +154,12 @@ export function useArchiveCustomFieldMutation(projectId: string) {
           : "Campo arquivado."
       );
     },
-    onError: (error) => toast.error(getErrorMessage(error)),
+    onError: (error, _definitionId, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKeys.customFields.all(projectId), context.previous);
+      }
+      toast.error(getErrorMessage(error));
+    },
   });
 }
 

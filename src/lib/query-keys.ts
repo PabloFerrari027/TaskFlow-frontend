@@ -1,5 +1,6 @@
 import type { ClientStatus } from "@/types/client";
-import type { AnalyticsQueryRequest } from "@/types/analytics";
+import type { AnalyticsQuery } from "@/types/analytics";
+import { stableStringify } from "@/lib/utils";
 
 export const queryKeys = {
   sessions: {
@@ -75,6 +76,10 @@ export const queryKeys = {
         : (["activity", "task", taskId] as const),
   },
   analytics: {
-    query: (request: AnalyticsQueryRequest) => ["analytics", "query", request] as const,
+    // Requests are built with different property orders across the
+    // specialized hooks in use-analytics.ts; serialize with sorted keys so
+    // logically-identical queries always hash to the same cache entry.
+    query: (request: AnalyticsQuery) =>
+      ["analytics", "query", stableStringify(request)] as const,
   },
 } as const;

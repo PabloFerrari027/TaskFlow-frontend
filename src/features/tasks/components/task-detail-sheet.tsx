@@ -26,7 +26,12 @@ export function TaskDetailSheet({ projectId }: { projectId: string }) {
               </Button>
             </SheetHeader>
             <div className="flex-1 overflow-y-auto px-4 pb-4">
-              <TaskDetailView projectId={projectId} taskId={openTaskId} layout="stacked" />
+              {/* Keyed by taskId: switching to a different task while the
+                  panel stays open re-renders this in place rather than
+                  unmounting it, so without this key, local state (activity
+                  page number, in-progress comment draft) would leak between
+                  tasks instead of resetting. */}
+              <TaskDetailView key={openTaskId} projectId={projectId} taskId={openTaskId} layout="stacked" />
             </div>
           </>
         ) : null}
