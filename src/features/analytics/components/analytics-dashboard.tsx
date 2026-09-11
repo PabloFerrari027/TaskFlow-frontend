@@ -17,13 +17,14 @@ import { useAuth } from "@/lib/auth/auth-context";
 import { useProjectsQuery } from "@/features/projects/hooks/use-projects";
 import {
   useCompletedTaskCountQuery,
+  useOverdueTasksByProjectQuery,
   useProjectsByStatusQuery,
-  useTaskCountQuery,
+  useTotalTasksCountQuery,
   useTasksByAssigneeQuery,
   useTasksByProjectQuery,
   useTasksByStatusQuery,
 } from "@/features/analytics/hooks/use-analytics";
-import { StatTile } from "@/features/analytics/components/stat-tile";
+import { StatCard } from "@/features/analytics/components/stat-card";
 import {
   CategoryBarChart,
   type CategoryBarChartRow,
@@ -91,12 +92,13 @@ export function AnalyticsDashboard({ workspaceId }: { workspaceId: string }) {
   const activeProjectsCount = projects.filter((p) => p.status === "ACTIVE").length;
   const projectNameById = new Map(projects.map((p) => [p.id, p.name]));
 
-  const taskCount = useTaskCountQuery(workspaceId, projectId);
+  const taskCount = useTotalTasksCountQuery(workspaceId, projectId);
   const completedCount = useCompletedTaskCountQuery(workspaceId, projectId);
   const byStatus = useTasksByStatusQuery(workspaceId, projectId);
   const byAssignee = useTasksByAssigneeQuery(workspaceId, projectId);
   const byProject = useTasksByProjectQuery(workspaceId);
   const byProjectStatus = useProjectsByStatusQuery(workspaceId);
+  const overdueByProject = useOverdueTasksByProjectQuery(workspaceId);
 
   const statusRows: CategoryBarChartRow[] = TASK_STATUS_ORDER.map((status) => ({
     key: status,
@@ -144,6 +146,15 @@ export function AnalyticsDashboard({ workspaceId }: { workspaceId: string }) {
     color: PROJECT_STATUS_COLOR[status],
   }));
 
+  const overdueProjectRows = rankAndFold(
+    overdueByProject.rows.map((row) => ({
+      key: row.projectId,
+      label: projectNameById.get(row.projectId) ?? "Projeto removido",
+      count: row.count,
+    })),
+    "Outros projetos"
+  );
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-2">
@@ -167,19 +178,19 @@ export function AnalyticsDashboard({ workspaceId }: { workspaceId: string }) {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatTile
+        <StatCard
           label="Tarefas no total"
           value={taskCount.count}
           icon={ListChecks}
           isLoading={taskCount.isLoading}
         />
-        <StatTile
+        <StatCard
           label="Tarefas concluídas"
           value={completedCount.count}
           icon={CheckCircle2}
           isLoading={completedCount.isLoading}
         />
-        <StatTile
+        <StatCard
           label="Projetos ativos"
           value={activeProjectsCount}
           icon={FolderKanban}
@@ -260,6 +271,27 @@ export function AnalyticsDashboard({ workspaceId }: { workspaceId: string }) {
               rows={projectStatusRows}
               isLoading={byProjectStatus.isLoading}
               emptyTitle="Nenhum projeto criado ainda"
+            />
+          )}
+        </Card>
+
+        <Card className="space-y-3 p-5">
+          <div>
+            <h2 className="text-sm font-medium text-foreground">Tarefas atrasadas por projeto</h2>
+            <p className="text-xs text-muted-foreground">
+              Com prazo vencido, em todos os projetos deste workspace.
+            </p>
+          </div>
+          {overdueByProject.isError ? (
+            <ErrorState
+              error={overdueByProject.error}
+              onRetry={() => overdueByProject.refetch()}
+            />
+          ) : (
+            <CategoryBarChart
+              rows={overdueProjectRows}
+              isLoading={overdueByProject.isLoading || projectsQuery.isLoading}
+              emptyTitle="Nenhuma tarefa atrasada"
             />
           )}
         </Card>

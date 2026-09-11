@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { activityService } from "@/features/activity/api/activity-service";
+import { getTaskActivity, getWorkspaceActivity } from "@/features/activity/api/activity-service";
 import { queryKeys } from "@/lib/query-keys";
 
 // Both feeds are genuinely unbounded (grows with every status/assignee/move
@@ -9,7 +9,7 @@ import { queryKeys } from "@/lib/query-keys";
 export function useWorkspaceActivityQuery(workspaceId: string, page = 1) {
   return useQuery({
     queryKey: queryKeys.activity.workspace(workspaceId, page),
-    queryFn: () => activityService.listByWorkspace(workspaceId, { page }),
+    queryFn: () => getWorkspaceActivity(workspaceId, { page }),
     placeholderData: (previous) => previous,
   });
 }
@@ -17,7 +17,7 @@ export function useWorkspaceActivityQuery(workspaceId: string, page = 1) {
 export function useTaskActivityQuery(taskId: string, page = 1) {
   return useQuery({
     queryKey: queryKeys.activity.task(taskId, page),
-    queryFn: () => activityService.listByTask(taskId, { page }),
+    queryFn: () => getTaskActivity(taskId, { page }),
     placeholderData: (previous) => previous,
   });
 }

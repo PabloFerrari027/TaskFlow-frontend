@@ -16,7 +16,8 @@ import { TaskDueDateInput } from "@/features/tasks/components/task-due-date-inpu
 import { TaskFormDialog } from "@/features/tasks/components/task-form-dialog";
 import { SubtaskList } from "@/features/tasks/components/subtask-list";
 import { AttachmentsSection } from "@/features/tasks/components/attachments-section";
-import { CommentsSection } from "@/features/comments/components/comments-section";
+import { CommentComposer } from "@/features/comments/components/comment-composer";
+import { CommentList } from "@/features/comments/components/comment-list";
 import { TaskActivitySection } from "@/features/activity/components/task-activity-section";
 import { TaskCustomFieldValuesEditor } from "@/features/custom-fields/components/task-custom-field-values-editor";
 import { cn } from "@/lib/utils";
@@ -154,8 +155,10 @@ export function TaskDetailView({
       {/* Always the last sections on the page, regardless of `layout` — a
           comment thread and the change history read as the closing part of
           a task, after every other detail is already visible. */}
-      <Card className="p-5">
-        <CommentsSection projectId={projectId} taskId={task.id} />
+      <Card className="space-y-3 p-5">
+        <h3 className="text-sm font-medium text-foreground">Comentários</h3>
+        <CommentList taskId={task.id} projectId={projectId} />
+        <CommentComposer taskId={task.id} />
       </Card>
 
       <Card className="p-5">

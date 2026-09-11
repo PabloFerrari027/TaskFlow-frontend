@@ -1,24 +1,28 @@
 "use client";
 
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { analyticsService } from "@/features/analytics/api/analytics-service";
+import { runAnalyticsQuery } from "@/features/analytics/api/analytics-service";
 import { queryKeys } from "@/lib/query-keys";
-import type { AnalyticsFilter, AnalyticsQueryRequest } from "@/types/analytics";
+import type { AnalyticsFilter, AnalyticsQuery } from "@/types/analytics";
 import type { ProjectStatus } from "@/types/project";
 import type { TaskStatus } from "@/types/task";
 
 // Shared by every chart below — `workspaceId` is always revalidated by the
 // API against the caller's own role in that workspace (API.md § 12), so this
 // never needs a separate permission check on the frontend.
-function useAnalyticsQuery(workspaceId: string | null, request: Omit<AnalyticsQueryRequest, "workspaceId">) {
-  const fullRequest: AnalyticsQueryRequest | null = workspaceId
+function useAnalyticsQuery(workspaceId: string | null, request: Omit<AnalyticsQuery, "workspaceId">) {
+  const fullRequest: AnalyticsQuery | null = workspaceId
     ? { ...request, workspaceId }
     : null;
 
   return useQuery({
     queryKey: fullRequest ? queryKeys.analytics.query(fullRequest) : ["analytics", "disabled"],
-    queryFn: () => analyticsService.query(fullRequest as AnalyticsQueryRequest),
+    queryFn: () => runAnalyticsQuery(fullRequest as AnalyticsQuery),
     enabled: Boolean(fullRequest),
+    // Aggregated data changes less often than a single entity read — ride
+    // longer before treating the cache as stale (default is 30s).
+    staleTime: 60_000,
   });
 }
 
@@ -27,7 +31,7 @@ function projectFilter(projectId?: string): AnalyticsFilter[] {
 }
 
 // Total task count, optionally scoped to one project — feeds a stat tile.
-export function useTaskCountQuery(workspaceId: string | null, projectId?: string) {
+export function useTotalTasksCountQuery(workspaceId: string | null, projectId?: string) {
   const query = useAnalyticsQuery(workspaceId, {
     entity: "tasks",
     filters: projectFilter(projectId),
@@ -112,6 +116,33 @@ export function useTasksByAssigneeQuery(workspaceId: string | null, projectId?: 
 
   const rows: AssigneeCount[] = (query.data?.data ?? []).map((row) => ({
     assigneeId: (row.assigneeId as string | null) ?? null,
+    count: typeof row.count === "number" ? row.count : 0,
+  }));
+
+  return { ...query, rows };
+}
+
+export interface OverdueProjectCount {
+  projectId: string;
+  count: number;
+}
+
+// Overdue tasks (dueDate before "now") grouped by project, workspace-wide —
+// feeds the "Tarefas atrasadas por projeto" chart (the worked example in
+// API.md § 12). The cutoff is memoized per mount so the query key stays
+// stable across re-renders instead of drifting (and refetching) every tick.
+export function useOverdueTasksByProjectQuery(workspaceId: string | null) {
+  const cutoff = useMemo(() => new Date().toISOString(), []);
+
+  const query = useAnalyticsQuery(workspaceId, {
+    entity: "tasks",
+    filters: [{ field: "dueDate", operator: "lessThan", value: cutoff }],
+    groupBy: ["projectId"],
+    metrics: [{ type: "count", field: "id" }],
+  });
+
+  const rows: OverdueProjectCount[] = (query.data?.data ?? []).map((row) => ({
+    projectId: row.projectId as string,
     count: typeof row.count === "number" ? row.count : 0,
   }));
 

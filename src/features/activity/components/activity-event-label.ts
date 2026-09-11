@@ -16,15 +16,17 @@ function formatDateValue(value: unknown) {
 }
 
 /**
- * API.md § 14 only pins down one payload shape precisely
- * (`{ fromStatus, toStatus }` for `tasks.task_status_changed`) and just
- * names the other event classes (`TaskAssignedEvent`, `TaskMovedEvent`,
- * `TaskDueDateChangedEvent`, `TaskPriorityChangedEvent`,
- * `CommentCreatedEvent`) without their exact `eventType` string or payload
- * keys. This matches on substrings of `eventType` and only renders a
- * "from → to" detail when the expected payload keys actually show up —
- * otherwise it falls back to a plain action label instead of guessing at a
- * schema that might not match what the server actually sends.
+ * Confirmed against the backend source (task.events.ts / comment.events.ts):
+ * every `eventType` this handles is a fixed literal string returned by an
+ * `eventName` getter, passed straight through to the DB and the API
+ * response with no transformation — the backend IS consistent and exactly
+ * matches API.md § 14. The substring matching below is deliberately
+ * defensive rather than a workaround for a real inconsistency: it tolerates
+ * a future new `eventType` (or a payload key rename) without needing a
+ * frontend deploy in lockstep, and only renders a "from → to" detail when
+ * the expected payload keys actually show up. Don't "simplify" this to an
+ * exact `Record<string, ...>` lookup thinking the substring matching is
+ * leftover caution from an unconfirmed contract — it isn't.
  */
 export function describeActivityEntry(entry: ActivityLogEntry): {
   label: string;

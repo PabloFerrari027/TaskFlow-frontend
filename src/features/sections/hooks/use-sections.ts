@@ -8,6 +8,7 @@ import { getErrorMessage } from "@/lib/errors";
 import { MAX_PAGE_SIZE } from "@/types/common";
 import { useCurrentWorkspace } from "@/features/workspaces/context/current-workspace-context";
 import { isOffline, queueEntityDelete, queueEntityUpdate } from "@/features/sync/lib/sync-engine";
+import type { PaginatedResult } from "@/types/common";
 import type { CreateSectionRequest, Section, UpdateSectionRequest } from "@/types/section";
 
 // Sections are a project's columns — realistically few, fetch the max page
@@ -101,6 +102,24 @@ export function useDeleteSectionMutation(projectId: string) {
       }
       return sectionsService.remove(sectionId).then(() => undefined);
     },
+    // Offline deletes only reach the server on the next sync pull, and
+    // invalidateQueries' refetch stays paused (networkMode: "online") until
+    // then — without this optimistic removal, a section deleted offline
+    // would stay visible until reconnect instead of disappearing right away
+    // (same fix as useDeleteCommentMutation).
+    onMutate: async (sectionId) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.sections.all(projectId) });
+      const previous = queryClient.getQueryData<PaginatedResult<Section>>(
+        queryKeys.sections.all(projectId)
+      );
+      if (previous) {
+        queryClient.setQueryData<PaginatedResult<Section>>(queryKeys.sections.all(projectId), {
+          ...previous,
+          data: previous.data.filter((section) => section.id !== sectionId),
+        });
+      }
+      return { previous };
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.sections.all(projectId) });
       toast.success(
@@ -109,6 +128,11 @@ export function useDeleteSectionMutation(projectId: string) {
           : "Coluna apagada."
       );
     },
-    onError: (error) => toast.error(getErrorMessage(error)),
+    onError: (error, _sectionId, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKeys.sections.all(projectId), context.previous);
+      }
+      toast.error(getErrorMessage(error));
+    },
   });
 }

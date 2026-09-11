@@ -21,7 +21,7 @@ export interface AnalyticsMetric {
   field: string;
 }
 
-export interface AnalyticsQueryRequest {
+export interface AnalyticsQuery {
   entity: AnalyticsEntity;
   workspaceId: string;
   filters?: AnalyticsFilter[];

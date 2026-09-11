@@ -129,7 +129,11 @@ export default function WorkspaceDetailPage() {
           </TabsContent>
 
           <TabsContent value="activity" className="p-4">
-            <WorkspaceActivitySection workspaceId={workspace.id} />
+            {/* Keyed by workspace id: switching workspaces via the switcher
+                re-renders this page in place rather than remounting it, so
+                without this key the activity tab's local page number would
+                leak from the previous workspace instead of resetting. */}
+            <WorkspaceActivitySection key={workspace.id} workspaceId={workspace.id} />
           </TabsContent>
         </Tabs>
       </Card>

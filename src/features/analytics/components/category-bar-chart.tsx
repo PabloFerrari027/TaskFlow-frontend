@@ -1,9 +1,13 @@
+"use client";
+
 import { BarChart3 } from "lucide-react";
+import { Bar, BarChart, Cell, LabelList, XAxis, YAxis } from "recharts";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 
@@ -14,10 +18,17 @@ export interface CategoryBarChartRow {
   color: string;
 }
 
+const chartConfig = {
+  value: { label: "Valor" },
+} satisfies ChartConfig;
+
+const ROW_HEIGHT = 32;
+
 /**
- * A small horizontal bar list — every value is labeled directly, so there's
- * no legend box or axis to read: hover/focus a row for a tooltip repeating
- * the same numbers already on screen.
+ * A small horizontal bar chart — built on Recharts via shadcn's `chart`
+ * wrapper (ARCHITECTURE.md § 12). Every bar gets its own color from the
+ * `--analytics-cat-1..6` CVD-safe palette passed in per row, not shadcn's
+ * own `--chart-1..5` (those fail contrast for the first two categories).
  */
 export function CategoryBarChart({
   rows,
@@ -43,39 +54,49 @@ export function CategoryBarChart({
     return <EmptyState icon={<BarChart3 className="size-5" />} title={emptyTitle} />;
   }
 
-  const max = Math.max(...rows.map((row) => row.value), 1);
-
   return (
-    <div className="space-y-1">
-      {rows.map((row) => {
-        const widthPercent = row.value > 0 ? Math.max((row.value / max) * 100, 2) : 0;
-        return (
-          <Tooltip key={row.key}>
-            <TooltipTrigger asChild>
-              <div
-                tabIndex={0}
-                className="group -mx-1 flex items-center gap-3 rounded-md px-1 py-1 outline-none focus-visible:bg-muted/60"
-              >
-                <span className="w-24 shrink-0 truncate text-xs text-muted-foreground sm:w-36">
-                  {row.label}
-                </span>
-                <div className="h-5 flex-1 rounded-sm bg-muted/60">
-                  <div
-                    className="h-5 rounded-r-[4px] transition-[filter] group-hover:brightness-110"
-                    style={{ width: `${widthPercent}%`, backgroundColor: row.color }}
-                  />
-                </div>
-                <span className="w-8 shrink-0 text-right text-xs font-medium tabular-nums text-foreground">
-                  {row.value}
-                </span>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              {row.label}: {row.value}
-            </TooltipContent>
-          </Tooltip>
-        );
-      })}
-    </div>
+    <ChartContainer
+      config={chartConfig}
+      className="aspect-auto w-full"
+      style={{ height: Math.max(rows.length * ROW_HEIGHT, ROW_HEIGHT * 2) }}
+    >
+      <BarChart
+        data={rows}
+        layout="vertical"
+        margin={{ left: 0, right: 28, top: 0, bottom: 0 }}
+        barCategoryGap={6}
+      >
+        <XAxis type="number" hide />
+        <YAxis
+          dataKey="label"
+          type="category"
+          width={132}
+          tickLine={false}
+          axisLine={false}
+          tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
+        />
+        <ChartTooltip
+          cursor={{ fill: "var(--muted)" }}
+          content={
+            <ChartTooltipContent
+              hideIndicator
+              labelFormatter={(_, payload) =>
+                (payload?.[0]?.payload as CategoryBarChartRow | undefined)?.label ?? ""
+              }
+            />
+          }
+        />
+        <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+          {rows.map((row) => (
+            <Cell key={row.key} fill={row.color} />
+          ))}
+          <LabelList
+            dataKey="value"
+            position="right"
+            className="fill-foreground text-xs font-medium tabular-nums"
+          />
+        </Bar>
+      </BarChart>
+    </ChartContainer>
   );
 }

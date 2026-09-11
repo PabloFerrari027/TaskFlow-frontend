@@ -1,11 +1,11 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, type QueryKey } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { tasksService } from "@/features/tasks/api/tasks-service";
 import { queryKeys } from "@/lib/query-keys";
 import { getErrorMessage } from "@/lib/errors";
-import { MAX_PAGE_SIZE } from "@/types/common";
+import { MAX_PAGE_SIZE, type PaginatedResult } from "@/types/common";
 import { useCurrentWorkspace } from "@/features/workspaces/context/current-workspace-context";
 import { isOffline, pushImmediate, queueEntityUpdate } from "@/features/sync/lib/sync-engine";
 import type {
@@ -14,6 +14,18 @@ import type {
   Task,
   UpdateTaskRequest,
 } from "@/types/task";
+
+function withCountAdjusted(result: PaginatedResult<Task>, delta: number): PaginatedResult<Task> {
+  const total = Math.max(0, result.meta.total + delta);
+  return {
+    ...result,
+    meta: {
+      ...result.meta,
+      total,
+      totalPages: Math.max(1, Math.ceil(total / result.meta.limit)),
+    },
+  };
+}
 
 // Task lists can realistically grow large, so this is genuinely paged.
 export function useTasksQuery(projectId: string, page = 1) {
@@ -203,6 +215,53 @@ export function useMoveTaskToSectionMutation() {
       }
       return tasksService.update(taskId, payload);
     },
+    // Each board column is its own paginated cache (tasks.bySection), so a
+    // cross-column move needs to be reflected in both the source and
+    // destination column's cache directly — invalidateQueries alone leaves
+    // the task sitting in the old column (refetch is paused while offline,
+    // per networkMode: "online") instead of appearing to move at all.
+    // Same-column reordering is left alone: the task never disappears there,
+    // it just settles into its exact position once the next pull reconciles.
+    onMutate: async ({ taskId, sectionId: toSectionId }) => {
+      if (!toSectionId) return {};
+
+      await queryClient.cancelQueries({ queryKey: queryKeys.tasks.bySectionAll() });
+
+      const previousEntries: Array<{ queryKey: QueryKey; data: PaginatedResult<Task> }> = [];
+      let movedTask: Task | undefined;
+
+      for (const [key, data] of queryClient.getQueriesData<PaginatedResult<Task>>({
+        queryKey: queryKeys.tasks.bySectionAll(),
+      })) {
+        if (!data) continue;
+        const found = data.data.find((t) => t.id === taskId);
+        if (!found) continue;
+        movedTask = found;
+        previousEntries.push({ queryKey: key, data });
+        queryClient.setQueryData<PaginatedResult<Task>>(
+          key,
+          withCountAdjusted({ ...data, data: data.data.filter((t) => t.id !== taskId) }, -1)
+        );
+      }
+
+      if (movedTask) {
+        for (const [key, data] of queryClient.getQueriesData<PaginatedResult<Task>>({
+          queryKey: queryKeys.tasks.bySection(toSectionId),
+        })) {
+          if (!data) continue;
+          previousEntries.push({ queryKey: key, data });
+          queryClient.setQueryData<PaginatedResult<Task>>(
+            key,
+            withCountAdjusted(
+              { ...data, data: [...data.data, { ...movedTask, sectionId: toSectionId }] },
+              1
+            )
+          );
+        }
+      }
+
+      return { previousEntries };
+    },
     onSuccess: (task) => {
       queryClient.setQueryData(queryKeys.tasks.detail(task.id), task);
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all(task.projectId) });
@@ -213,7 +272,12 @@ export function useMoveTaskToSectionMutation() {
           : "Tarefa movida."
       );
     },
-    onError: (error) => toast.error(getErrorMessage(error)),
+    onError: (error, _vars, context) => {
+      context?.previousEntries?.forEach(({ queryKey, data }) => {
+        queryClient.setQueryData(queryKey, data);
+      });
+      toast.error(getErrorMessage(error));
+    },
   });
 }
 

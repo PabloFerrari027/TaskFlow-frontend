@@ -36,6 +36,7 @@ Este documento detalha a arquitetura, convenções e domínios do frontend do Ta
 | Ícones | lucide-react |
 | Datas | date-fns (locale `pt-BR`) |
 | Toasts | sonner |
+| Gráficos | Recharts, via o wrapper `chart` do shadcn/ui (`src/components/ui/chart.tsx`, instalado com `npx shadcn add chart`) |
 
 O app é 100% client-rendered nas rotas autenticadas (todas as páginas do dashboard são `"use client"`); a landing page (`/`) e as páginas de erro (`/403`, `not-found`) são Server Components estáticos. Não há Route Handlers nem Server Actions — todo acesso a dados passa pela API REST do backend TaskFlow via axios.
 
@@ -196,6 +197,28 @@ Fábrica central e tipada de chaves — nenhum hook constrói arrays de chave ma
 
 - Chaves de listas paginadas (`tasks.all`, `workspaces.invitations`, `projects.invitations`, `tasks.bySection`, `activity.*`, `comments.all`) só incluem `{ page }` quando a página é relevante para a invalidação; omitir a página faz `invalidateQueries` casar como prefixo e invalidar todas as páginas de uma vez.
 - `tasks.bySectionAll()` é um prefixo deliberadamente "solto" (`["tasks", "section"]`, sem `sectionId`) usado para invalidar todas as colunas do quadro de uma vez quando não se sabe exatamente quais seções foram afetadas (criação/movimentação de tarefa).
+- `analytics.query(request)` serializa o `AnalyticsQuery` inteiro com `stableStringify` (`src/lib/utils.ts` — `JSON.stringify` com as chaves de cada objeto ordenadas recursivamente) em vez de embutir o objeto cru na chave. Os hooks especializados de `use-analytics.ts` montam o mesmo request lógico com ordens de propriedade diferentes; sem essa normalização, duas queries idênticas na prática virariam entradas de cache distintas.
+
+### Atualização otimista em cache de lista (`onMutate`/`onError`)
+
+Além de `setQueryData` no `onSuccess` (que atualiza a query de **detalhe** assim que a mutação resolve, seja ela online ou uma cópia otimista devolvida por `queueEntityUpdate`), as mutações de **edição/exclusão que afetam uma lista** (`sections`, `comments`, `custom-fields`, `projects`, e o caso especial de `useMoveTaskToSectionMutation` em `tasks`) também aplicam o patch diretamente na(s) query(ies) de lista via `onMutate`, com rollback em `onError`:
+
+```ts
+onMutate: async (vars) => {
+  await queryClient.cancelQueries({ queryKey: queryKeys.<dominio>.all(id) });
+  const previous = queryClient.getQueryData<PaginatedResult<T>>(queryKeys.<dominio>.all(id));
+  if (previous) {
+    queryClient.setQueryData(queryKeys.<dominio>.all(id), { ...previous, data: /* filtrado ou merged */ });
+  }
+  return { previous };
+},
+onError: (error, vars, context) => {
+  if (context?.previous) queryClient.setQueryData(queryKeys.<dominio>.all(id), context.previous);
+  toast.error(getErrorMessage(error));
+},
+```
+
+Isso existe porque `invalidateQueries` sozinho **não** é suficiente offline: o `QueryClient` roda com `networkMode: "online"` (padrão), então o refetch disparado por uma invalidação fica pausado (`fetchStatus: "paused"`) enquanto o navegador está offline — sem o patch otimista, um item apagado/editado offline continuaria visível na lista até a próxima reconexão, mesmo a mutação já tendo sido enfileirada com sucesso no outbox. Ver [§10](#10-sincronização-offline) para o caso mais elaborado (`useMoveTaskToSectionMutation`, que precisa mover o item entre duas caches de coluna diferentes).
 
 ### Padrão de paginação
 
@@ -242,13 +265,19 @@ A feature mais sofisticada do app. Implementa suporte a uso offline via o endpoi
   - `queueEntityUpdate` / `queueEntityDelete`: enfileiram uma operação e devolvem uma cópia otimista da entidade (para o `onSuccess` da mutação atualizar o cache como se fosse online).
   - `pushImmediate`: envia uma única operação via `/sync/push` mesmo estando online — usado exclusivamente para limpar `assigneeId` de uma tarefa, a única escrita que a superfície REST não consegue expressar (`PATCH /tasks/:id` nunca aceita `assigneeId: null`; omitir o campo mantém o responsável atual).
   - `flushOutbox`: agrupa operações pendentes por workspace, envia cada grupo, reconcilia o cache por resultado (`APPLIED`/`CONFLICT`/`REJECTED`/`DUPLICATE`) e remove do outbox só o que o servidor de fato respondeu — o que falhar por estar ainda offline permanece na fila.
-  - `pullChanges`: pagina `/sync/pull` até `hasMore` ser falso; como o formato de uma mudança é opaco (`SyncChange = Record<string, unknown>`), qualquer pull não-vazio simplesmente invalida os grupos de query relevantes (tarefas, projetos, seções, custom fields, comentários) em vez de tentar mesclar campo a campo — os endpoints REST continuam sendo a fonte de verdade.
+  - `pullChanges`: pagina `/sync/pull` até `hasMore` ser falso; como o formato de uma mudança é opaco (`SyncChange = Record<string, unknown>`), qualquer pull não-vazio simplesmente invalida os grupos de query relevantes (tarefas, projetos, seções, custom fields, comentários, atividade, analytics) em vez de tentar mesclar campo a campo — os endpoints REST continuam sendo a fonte de verdade. `activity`/`analytics` entram na mesma lista mesmo sendo só leitura: ambos derivam dos mesmos eventos de domínio que geraram as outras mudanças, então um dispositivo que puxou alterações de outro ficaria com o feed de atividade ou o dashboard desatualizados até o `staleTime` expirar naturalmente, se não fossem invalidados junto.
 - **`context/sync-context.tsx`** (`SyncProvider`) — dispara `flushOutbox` + `pullChanges` sempre que o navegador fica online, e a cada 30s como rede de segurança caso o evento `online` não dispare (ex.: aba que nunca recebeu o evento). Expõe `{ isOnline, pendingCount, isSyncing, syncNow }` via `useSync()`.
 - **`components/sync-status-indicator.tsx`** — ícone na topbar (nuvem cortada / spinner / refresh com badge de contagem) que também permite forçar sync manual.
 
 ### Como os hooks de domínio decidem online vs. offline
 
-Cada mutação elegível (`useUpdateTaskMutation`, `useChangeTaskStatusMutation`, `useMoveTaskToSectionMutation`, `useUpdateSectionMutation`, `useDeleteSectionMutation`, `useUpdateProjectMutation`, `useArchiveProjectMutation`, `useUpdateCustomFieldOptionsMutation`, `useArchiveCustomFieldMutation`, `useDeleteCommentMutation`) segue o mesmo padrão: se `isOffline()` (checa `!navigator.onLine`) **e** há um workspace atual **e** a entidade já está em cache, chama `queueEntityUpdate`/`queueEntityDelete` em vez do service HTTP; senão, segue o caminho REST normal. O toast de sucesso também muda de texto ("salvo offline — será sincronizado...") para deixar claro ao usuário que a alteração ainda não chegou ao servidor.
+Cada mutação elegível (`useUpdateTaskMutation`, `useChangeTaskStatusMutation`, `useMoveTaskToSectionMutation`, `useUnassignTaskMutation`, `useUpdateSectionMutation`, `useDeleteSectionMutation`, `useUpdateProjectMutation`, `useArchiveProjectMutation`, `useUpdateCustomFieldOptionsMutation`, `useArchiveCustomFieldMutation`, `useDeleteCommentMutation`) segue o mesmo padrão: se `isOffline()` (checa `!navigator.onLine`) **e** há um workspace atual **e** a entidade já está em cache, chama `queueEntityUpdate`/`queueEntityDelete` em vez do service HTTP; senão, segue o caminho REST normal. O toast de sucesso também muda de texto ("salvo offline — será sincronizado...") para deixar claro ao usuário que a alteração ainda não chegou ao servidor.
+
+Apenas `SECTION` e `COMMENT` suportam exclusão via sync — `PROJECT` e `CUSTOM_FIELD_DEFINITION` sempre voltam `REJECTED` se uma `DELETE` for enfileirada para eles (por isso essas duas entidades só têm mutações de *edição* offline: arquivar, não apagar).
+
+### Caso especial: mover tarefa entre colunas offline (`useMoveTaskToSectionMutation`)
+
+O quadro Kanban renderiza cada seção como uma query paginada independente (`tasks.bySection(sectionId, page)`) — uma tarefa "pertence" à cache da sua coluna, não a uma lista única do projeto. Uma movimentação entre colunas offline precisa, portanto, tocar **duas** caches ao mesmo tempo: remover o item da coluna de origem e inseri-lo na de destino. `onMutate` faz isso varrendo toda página atualmente em cache sob o prefixo `tasks.bySectionAll()` (`queryClient.getQueriesData` com matching parcial de chave) até achar a tarefa, removendo-a de onde estava, e inserindo uma cópia (com `sectionId` já atualizado) em toda página em cache da seção de destino — ajustando `meta.total`/`meta.totalPages` dos dois lados. Reordenar dentro da **mesma** coluna não recebe esse tratamento: o item nunca desaparece nesse caso, só assenta na posição exata quando o próximo `pullChanges` reconciliar — um `onMutate` que reordenasse com precisão dentro de uma página paginada teria risco/complexidade desproporcional ao ganho.
 
 ## 11. Domínios de negócio (features)
 
@@ -261,9 +290,9 @@ Cada mutação elegível (`useUpdateTaskMutation`, `useChangeTaskStatusMutation`
 | **sections** | `/projects/:id/sections`, `/sections/:id` | Colunas do quadro Kanban; uma seção "padrão" (`isDefault`) não pode ser apagada; exclusão exige seção vazia. |
 | **tasks** | `/projects/:id/tasks`, `/tasks/:id`, `/tasks/:id/status`, `/tasks/:id/subtasks`, `/tasks/:id/attachments` | Entidade central. Suporta subtarefas (`parentTaskId`), anexos (upload multipart, limite de 20MB, download via blob), prioridade e prazo (uma vez definidos, só podem ser trocados por outro valor — não removidos pela API). |
 | **custom-fields** | `/projects/:id/custom-fields`, `/custom-fields/:id/options`, `/archive`, `/tasks/:id/custom-field-values` | Tipos: `TEXT`, `NUMBER`, `DATE`, `SINGLE_SELECT`, `MULTI_SELECT`, `CHECKBOX`, `PEOPLE`. Arquivamento em vez de exclusão. |
-| **comments** | `/tasks/:id/comments`, `/comments/:id` | Sem `version` (não versionado) — exclusão offline sempre reaplica ao sincronizar. Autor só pode apagar os próprios comentários (validado no servidor). |
-| **activity** | `/workspaces/:id/activity`, `/tasks/:id/activity` | Feed de auditoria paginado (genuinamente ilimitado — cresce a cada edição de status/responsável/movimentação). |
-| **analytics** | `/analytics/query` (POST) | Query builder genérico: `entity` (`tasks`\|`projects`) + `filters` + `groupBy` + `metrics`. Hooks especializados (`use-analytics.ts`) montam queries prontas (contagem total, por status, por responsável, por projeto) para alimentar `AnalyticsDashboard`. |
+| **comments** | `/tasks/:id/comments`, `/comments/:id` | Sem `version` (não versionado) — exclusão offline sempre reaplica ao sincronizar; a UI remove o comentário do cache otimisticamente (`onMutate`) porque o `invalidateQueries` sozinho não refetcha enquanto offline. Autor **ou** `OWNER`/`ADMIN` do workspace pode apagar (`canManageWorkspace`); a API sempre revalida. Criação é sempre online-only, como toda entidade do app — nunca passa pelo outbox. |
+| **activity** | `/workspaces/:id/activity`, `/tasks/:id/activity` | Feed de auditoria paginado (genuinamente ilimitado — cresce a cada edição de status/responsável/movimentação/comentário). O endpoint de tarefa devolve uma timeline **unificada**: eventos de `comments.comment_created` aparecem tanto no feed de atividade quanto no `CommentList` acima dele — repetição intencional (mesmo padrão do GitHub/Linear: o feed é o resumo cronológico, os comentários acima são o conteúdo completo). `describeActivityEntry` (`activity-event-label.ts`) traduz `eventType` para pt-BR por correspondência de substring. **Confirmado contra o código do backend** (`task.events.ts`/`comment.events.ts`): todo `eventType` é uma string literal fixa por classe de evento, sem transformação entre o evento de domínio e a resposta da API — o backend é consistente e bate exatamente com o `API.md` § 14. A correspondência por substring é defensiva por escolha (tolera um `eventType` novo ou uma troca de chave de payload sem exigir deploy do frontend em lockstep), não uma correção para uma inconsistência real — não é "gambiarra" a simplificar para um mapa exato. |
+| **analytics** | `/analytics/query` (POST) | Query builder genérico: `entity` (`tasks`\|`projects`) + `filters` + `groupBy` + `metrics`. Hooks especializados (`use-analytics.ts`) montam queries prontas — `useTotalTasksCountQuery`, `useCompletedTaskCountQuery`, `useTasksByStatusQuery`, `useTasksByAssigneeQuery`, `useTasksByProjectQuery`, `useOverdueTasksByProjectQuery`, `useProjectsByStatusQuery` — nenhum componente monta um `AnalyticsQuery` manualmente. Toda query exige `workspaceId` (`enabled: false` se ausente) e usa `staleTime: 60_000` (o dobro do default) porque dado agregado muda menos que uma leitura de entidade individual. |
 | **admin** | `/admin/clients`, `/suspend`, `/activate` (DELETE = encerrar) | Gestão de contas da plataforma, exclusiva de `SUPER_ADMIN`; ver [§6](#6-autorização-e-papéis) para como o acesso é inferido. |
 | **sync** | `/sync/push`, `/sync/pull` | Ver [§10](#10-sincronização-offline). |
 
@@ -283,6 +312,7 @@ Cada mutação elegível (`useUpdateTaskMutation`, `useChangeTaskStatusMutation`
 
 - **shadcn/ui** (`components.json`, estilo `radix-nova`, cor base `neutral`, ícones `lucide`) gera os primitivos em `src/components/ui/` — não são editados manualmente fora de customizações pontuais; alterações de configuração passam pelo CLI `shadcn`.
 - **Tokens de tema** em `src/app/globals.css`, definidos em OKLCH, com paletas separadas para claro/escuro (`:root` / `.dark`), aplicados via `next-themes` (`attribute="class"`, `defaultTheme="system"`). O componente `ThemeToggle` alterna entre os modos.
+- **Gráficos**: `CategoryBarChart` (`features/analytics/components/category-bar-chart.tsx`) é um bar chart horizontal construído sobre Recharts via o wrapper `ChartContainer`/`ChartTooltip`/`ChartTooltipContent` do shadcn/ui (`src/components/ui/chart.tsx`). Cada barra recebe sua cor por linha via `<Cell fill={row.color}>` (não por série do `ChartConfig`, já que as categorias — projetos, responsáveis — são abertas e não fixas).
 - **Paleta de gráficos**: `--chart-1..5` (tokens padrão do shadcn) **não** é usada em novos gráficos categóricos porque as duas primeiras cores falham em distinção segura para daltonismo (CVD) quando adjacentes. Uma paleta dedicada `--analytics-cat-1..6` (com valores próprios claro/escuro) é a referência validada usada por `AnalyticsDashboard`/`CategoryBarChart`.
 - **`cn()`** (`src/lib/utils.ts`) é apenas um re-export do pacote `cn` (não a implementação local `clsx`+`tailwind-merge` mais comum em outros projetos shadcn) — usado em todo o código para compor classes condicionalmente.
 - Componentes compartilhados de padrão de tela em `components/shared/`: `PageHeader`, `EmptyState`, `ErrorState` (mostra a mensagem já traduzida via `getErrorMessage` + botão "Tentar novamente"), `ConfirmDialog` (wrapper de `AlertDialog` para confirmações destrutivas), `Pager`, `RoleGate`, `StatusBadge.tsx` (badges tipados para todo enum de status do domínio: projeto, tarefa, prioridade, prazo, papel de workspace, convite, cliente), `MemberAvatar`/`MemberIdLabel` (avatar de iniciais + tooltip, já que a API não expõe nome/e-mail de membros — só `userId`).
@@ -298,6 +328,7 @@ Padrão único e consistente em todo o app: `react-hook-form` + `zodResolver` + 
 - **Preferências puramente locais** (modo de visualização do quadro, largura de coluna, workspace selecionado) vivem em `localStorage` via hooks dedicados, nunca em query params nem sincronizadas com o servidor — documentado explicitamente nos comentários desses hooks.
 - **Comentários no código** são usados com moderação e só para decisões não óbvias (por que um MIME type customizado, por que `setTimeout` em vez de `requestAnimationFrame`, por que um campo é opaco) — não para descrever o que o código faz.
 - **`"use client"`** é declarado por arquivo conforme necessário; páginas que só compõem componentes client-only ainda assim costumam ser marcadas para deixar explícito o boundary.
+- **Views com estado local precisam de `key={id}`** quando podem trocar de identidade sem desmontar: `TaskDetailView` (chave `taskId`, tanto na rota cheia quanto no `TaskDetailSheet`), `WorkspaceActivitySection` e `AnalyticsDashboard` (chave `workspaceId`) forçam remount ao trocar de tarefa/workspace. Sem isso, componentes React re-renderizam no lugar em vez de remontar quando só a prop de identidade muda — estado local (página de paginação, rascunho de formulário) vazaria de uma tarefa/workspace para o próximo em vez de resetar. Qualquer view nova com estado local (`useState`) escopado a um id — não só cache de query — precisa do mesmo tratamento.
 
 ## 15. Limitações conhecidas
 

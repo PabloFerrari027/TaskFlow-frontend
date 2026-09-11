@@ -45,7 +45,12 @@ export default function TaskDetailPage(
         </Link>
       </div>
 
-      <TaskDetailView projectId={projectId} taskId={taskId} layout="grid" />
+      {/* Keyed by taskId: subtask/parent-task links navigate between two
+          instances of this same page component without unmounting it, so
+          without this key, local state inside (activity page number,
+          in-progress comment draft) would leak from the old task to the new
+          one instead of resetting. */}
+      <TaskDetailView key={taskId} projectId={projectId} taskId={taskId} layout="grid" />
     </div>
   );
 }
