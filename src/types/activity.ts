@@ -1,4 +1,4 @@
-export type ActivityEntityType = "TASK" | "COMMENT";
+export type ActivityEntityType = "TASK" | "COMMENT" | "SECTION" | "CUSTOM_FIELD";
 
 export interface ActivityLogEntry {
   id: string;

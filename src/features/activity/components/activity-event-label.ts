@@ -39,6 +39,33 @@ export function describeActivityEntry(entry: ActivityLogEntry): {
   const type = entry.eventType.toLowerCase();
   const payload = entry.payload ?? {};
 
+  // Checked before the generic eventType substring matching below — a
+  // "sections.section_created"/"sections.section_moved" eventType would
+  // otherwise match the "created"/"section" branches meant for tasks (see
+  // module doc comment above) and render a wrong, task-flavored label.
+  if (entry.entityType === "SECTION") {
+    if (type.includes("moved")) {
+      return { label: "moveu a seção", detail: null };
+    }
+    const name = typeof payload.name === "string" ? payload.name : null;
+    return { label: "criou a seção", detail: name };
+  }
+
+  if (entry.entityType === "CUSTOM_FIELD") {
+    if (type.includes("archived")) {
+      return { label: "arquivou o campo personalizado", detail: null };
+    }
+    if (type.includes("options")) {
+      const options = Array.isArray(payload.options) ? (payload.options as unknown[]) : null;
+      return {
+        label: "atualizou as opções do campo personalizado",
+        detail: options ? options.join(", ") : null,
+      };
+    }
+    const name = typeof payload.name === "string" ? payload.name : null;
+    return { label: "criou um campo personalizado", detail: name };
+  }
+
   if (type.includes("status")) {
     const from = payload.fromStatus;
     const to = payload.toStatus;
