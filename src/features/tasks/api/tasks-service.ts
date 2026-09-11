@@ -77,4 +77,18 @@ export const tasksService = {
     );
     return response.data as Blob;
   },
+
+  async addParticipant(taskId: string, userId: string) {
+    const { data } = await apiClient.post<Task>(`/tasks/${taskId}/participants`, {
+      userId,
+    });
+    return data;
+  },
+
+  async removeParticipant(taskId: string, userId: string) {
+    const { data } = await apiClient.delete<Task>(
+      `/tasks/${taskId}/participants/${userId}`
+    );
+    return data;
+  },
 };

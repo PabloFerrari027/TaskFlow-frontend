@@ -29,6 +29,8 @@ export interface Task {
   createdAt: string;
   updatedAt: string;
   attachments: Attachment[];
+  /** Participantes aditivos da task — não inclui assigneeId automaticamente (conceitos independentes, sem hierarquia). */
+  participantIds: string[];
 }
 
 export interface CreateTaskRequest {
