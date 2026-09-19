@@ -10,6 +10,7 @@ import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { UserMenu } from "@/components/layout/user-menu";
 import { WorkspaceSwitcher } from "@/features/workspaces/components/workspace-switcher";
 import { SyncStatusIndicator } from "@/features/sync/components/sync-status-indicator";
+import { AssistantChat } from "@/features/assistant/components/assistant-chat";
 
 export function Topbar() {
   const [mobileOpen, setMobileOpen] = React.useState(false);
@@ -35,6 +36,7 @@ export function Topbar() {
       </div>
 
       <div className="flex items-center gap-1">
+        <AssistantChat />
         <SyncStatusIndicator />
         <ThemeToggle />
         <UserMenu />
