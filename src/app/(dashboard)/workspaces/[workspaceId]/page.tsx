@@ -114,7 +114,7 @@ export default function WorkspaceDetailPage() {
           </div>
 
           <TabsContent value="members" className="p-4">
-            <MembersTable workspace={workspace} canManage={canManage} />
+            <MembersTable workspace={workspace} canManage={canManage} currentUserRole={myRole} />
           </TabsContent>
 
           <TabsContent value="invitations" className="space-y-4 p-4">

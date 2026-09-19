@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { MemberAvatar, MemberIdLabel } from "@/components/shared/member-avatar";
 import { formatDate } from "@/lib/format";
-import { isLastOwner } from "@/lib/permissions";
+import { canGrantOwnerRole, isLastOwner } from "@/lib/permissions";
 import { useAuth } from "@/lib/auth/auth-context";
 import {
   useChangeMemberRoleMutation,
@@ -33,13 +33,16 @@ const ROLE_OPTIONS: WorkspaceRole[] = ["OWNER", "ADMIN", "MEMBER", "GUEST"];
 export function MembersTable({
   workspace,
   canManage,
+  currentUserRole,
 }: {
   workspace: Workspace;
   canManage: boolean;
+  currentUserRole: WorkspaceRole | null | undefined;
 }) {
   const { userId } = useAuth();
   const changeRoleMutation = useChangeMemberRoleMutation(workspace.id);
   const removeMemberMutation = useRemoveMemberMutation(workspace.id);
+  const canGrantOwner = canGrantOwnerRole(currentUserRole);
 
   return (
     <Table>
@@ -54,7 +57,17 @@ export function MembersTable({
       <TableBody>
         {workspace.members.map((member) => {
           const protectedOwner = isLastOwner(workspace.members, member.userId);
-          const disableRoleChange = !canManage || protectedOwner;
+          // Granting OWNER, and demoting an existing OWNER, both require the
+          // acting user to already be an OWNER — an ADMIN can't touch OWNER
+          // at all, in either direction.
+          const ownerRoleLocked = member.role === "OWNER" && !canGrantOwner;
+          const disableRoleChange = !canManage || protectedOwner || ownerRoleLocked;
+          // Keep OWNER out of the option list unless the acting user can
+          // grant it — except on the row it's already selected for, so the
+          // trigger still displays the member's real (locked) role.
+          const roleOptions = canGrantOwner
+            ? ROLE_OPTIONS
+            : ROLE_OPTIONS.filter((role) => role !== "OWNER" || role === member.role);
 
           return (
             <TableRow key={member.userId}>
@@ -80,7 +93,7 @@ export function MembersTable({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {ROLE_OPTIONS.map((role) => (
+                      {roleOptions.map((role) => (
                         <SelectItem key={role} value={role}>
                           {role}
                         </SelectItem>
