@@ -38,6 +38,18 @@ export function canArchiveProject(role: WorkspaceRole | null | undefined) {
   return canManageWorkspace(role);
 }
 
+// Same OWNER-only bar as deleting a workspace (API.md § 4) — deliberately
+// more restrictive than the ADMIN-level actions above.
+export function canManageAssistantSettings(role: WorkspaceRole | null | undefined) {
+  return role === "OWNER";
+}
+
+// Only an OWNER can grant OWNER to someone else — or demote an existing
+// OWNER — even though ADMIN can otherwise manage members freely.
+export function canGrantOwnerRole(currentUserRole: WorkspaceRole | null | undefined) {
+  return currentUserRole === "OWNER";
+}
+
 export function isLastOwner(
   members: { userId: string; role: WorkspaceRole }[],
   userId: string

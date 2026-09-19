@@ -1,6 +1,7 @@
 import { apiClient } from "@/lib/api/client";
 import type {
   AuthTokensResponse,
+  CurrentUserResponse,
   GoogleLoginRequest,
   LoginChallengeResponse,
   LoginRequest,
@@ -59,6 +60,11 @@ export const authService = {
       "/auth/login/google",
       payload
     );
+    return data;
+  },
+
+  async getCurrentUser() {
+    const { data } = await apiClient.get<CurrentUserResponse>("/auth/me");
     return data;
   },
 };

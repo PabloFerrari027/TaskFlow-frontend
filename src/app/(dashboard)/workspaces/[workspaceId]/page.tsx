@@ -20,10 +20,12 @@ import { WorkspaceInvitationsTable } from "@/features/workspaces/components/invi
 import { WorkspaceActivitySection } from "@/features/activity/components/workspace-activity-section";
 import { InviteMemberDialog } from "@/features/workspaces/components/invite-member-dialog";
 import { RenameWorkspaceDialog } from "@/features/workspaces/components/rename-workspace-dialog";
+import { WorkspaceAssistantSettingsPanel } from "@/features/workspaces/components/assistant-settings-panel";
 import { useAuth } from "@/lib/auth/auth-context";
 import {
   canDeleteWorkspace,
   canInviteWorkspaceMembers,
+  canManageAssistantSettings,
   canManageWorkspace,
 } from "@/lib/permissions";
 import type { WorkspaceRole } from "@/types/workspace";
@@ -58,6 +60,7 @@ export default function WorkspaceDetailPage() {
   const canManage = canManageWorkspace(myRole);
   const canInvite = canInviteWorkspaceMembers(myRole);
   const canDelete = canDeleteWorkspace(myRole);
+  const canManageAssistant = canManageAssistantSettings(myRole);
   const isEmpty = workspace.members.length === 1;
 
   return (
@@ -110,11 +113,12 @@ export default function WorkspaceDetailPage() {
               <TabsTrigger value="members">Membros</TabsTrigger>
               <TabsTrigger value="invitations">Convites</TabsTrigger>
               <TabsTrigger value="activity">Atividade</TabsTrigger>
+              <TabsTrigger value="assistant">Assistente</TabsTrigger>
             </TabsList>
           </div>
 
           <TabsContent value="members" className="p-4">
-            <MembersTable workspace={workspace} canManage={canManage} />
+            <MembersTable workspace={workspace} canManage={canManage} currentUserRole={myRole} />
           </TabsContent>
 
           <TabsContent value="invitations" className="space-y-4 p-4">
@@ -134,6 +138,10 @@ export default function WorkspaceDetailPage() {
                 without this key the activity tab's local page number would
                 leak from the previous workspace instead of resetting. */}
             <WorkspaceActivitySection key={workspace.id} workspaceId={workspace.id} />
+          </TabsContent>
+
+          <TabsContent value="assistant" className="p-4">
+            <WorkspaceAssistantSettingsPanel workspace={workspace} canManage={canManageAssistant} />
           </TabsContent>
         </Tabs>
       </Card>
