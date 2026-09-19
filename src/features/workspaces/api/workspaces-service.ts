@@ -109,4 +109,12 @@ export const workspacesService = {
     );
     return data;
   },
+
+  async updateAssistantSettings(workspaceId: string, enabled: boolean) {
+    const { data } = await apiClient.patch<{ enabled: boolean }>(
+      `/workspaces/${workspaceId}/assistant-settings`,
+      { enabled }
+    );
+    return data;
+  },
 };

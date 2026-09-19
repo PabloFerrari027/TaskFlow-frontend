@@ -12,6 +12,7 @@ import type {
   CreateWorkspaceRequest,
   InviteToWorkspaceRequest,
   RenameWorkspaceRequest,
+  Workspace,
 } from "@/types/workspace";
 
 // A user's own workspace count is realistically small — fetch the max page
@@ -164,6 +165,23 @@ export function useWorkspaceInvitationPreviewQuery(token: string) {
     queryKey: queryKeys.workspaces.invitationPreview(token),
     queryFn: () => workspacesService.previewInvitation(token),
     retry: false,
+  });
+}
+
+// Response is only `{ enabled }`, not a full WorkspaceDto — merge into the
+// cached workspace instead of replacing it.
+export function useUpdateAssistantSettingsMutation(workspaceId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (enabled: boolean) => workspacesService.updateAssistantSettings(workspaceId, enabled),
+    onSuccess: ({ enabled }) => {
+      queryClient.setQueryData<Workspace>(queryKeys.workspaces.detail(workspaceId), (current) =>
+        current ? { ...current, assistantEnabled: enabled } : current
+      );
+      toast.success(enabled ? "Assistente habilitado." : "Assistente desabilitado.");
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
   });
 }
 

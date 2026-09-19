@@ -12,6 +12,9 @@ export interface Workspace {
   id: string;
   name: string;
   ownerId: string;
+  // Off by default for every workspace — the AI assistant only works when an
+  // OWNER turns it on (or turns it back on after the backend's kill switch).
+  assistantEnabled: boolean;
   members: WorkspaceMember[];
   version: number;
   createdAt: string;
