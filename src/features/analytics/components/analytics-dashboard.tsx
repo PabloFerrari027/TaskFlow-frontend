@@ -28,6 +28,7 @@ import {
   useTasksByStatusQuery,
 } from "@/features/analytics/hooks/use-analytics";
 import { StatCard } from "@/features/analytics/components/stat-card";
+import { NaturalLanguageQueryBox } from "@/features/analytics/components/natural-language-query-box";
 import {
   CategoryBarChart,
   type CategoryBarChartRow,
@@ -232,6 +233,8 @@ export function AnalyticsDashboard({ workspaceId }: { workspaceId: string }) {
           </SelectContent>
         </Select>
       </div>
+
+      <NaturalLanguageQueryBox workspaceId={workspaceId} />
 
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard
