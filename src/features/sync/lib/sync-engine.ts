@@ -4,6 +4,10 @@ import { syncService } from "@/features/sync/api/sync-service";
 import { enqueueOperation, getOutbox, removeOperations } from "@/features/sync/lib/outbox";
 import { getDeviceId } from "@/features/sync/lib/device-id";
 import { getCursor, setCursor } from "@/features/sync/lib/cursor";
+import {
+  invalidateByEntityChange,
+  invalidateWorkspaceData,
+} from "@/features/sync/lib/invalidate-entity";
 import { queryKeys } from "@/lib/query-keys";
 import type { Project } from "@/types/project";
 import type { Section } from "@/types/section";
@@ -92,37 +96,13 @@ function toWireOperation(op: QueuedOperation): SyncOperation {
 }
 
 function invalidateForEntity(queryClient: QueryClient, op: QueuedOperation) {
-  const projectId = op.meta?.projectId;
-  switch (op.entityType) {
-    case "TASK":
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.detail(op.entityId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll() });
-      if (projectId) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all(projectId) });
-      }
-      return;
-    case "PROJECT":
-      queryClient.invalidateQueries({ queryKey: queryKeys.projects.detail(op.entityId) });
-      return;
-    case "SECTION":
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll() });
-      if (projectId) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.sections.all(projectId) });
-      }
-      return;
-    case "CUSTOM_FIELD_DEFINITION":
-      if (projectId) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.customFields.all(projectId) });
-      }
-      return;
-    case "COMMENT": {
-      const taskId = op.meta?.taskId;
-      if (taskId) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.comments.all(taskId) });
-      }
-      return;
-    }
-  }
+  invalidateByEntityChange(queryClient, {
+    entityType: op.entityType,
+    entityId: op.entityId,
+    workspaceId: op.workspaceId,
+    projectId: op.meta?.projectId,
+    taskId: op.meta?.taskId,
+  });
 }
 
 // Writes a push result's `serverEntityState` straight into the query cache
@@ -258,7 +238,8 @@ export async function flushOutbox(queryClient: QueryClient) {
 /** Pulls every page of changes since the last cursor for a workspace. The
  * exact shape of a change is left opaque by the API — rather than guess a
  * schema to merge by hand, any non-empty pull just invalidates this
- * workspace's synced query groups so they refetch from the REST endpoints,
+ * workspace's synced query groups (tasks, projects, sections, custom fields,
+ * comments, activity, analytics) so they refetch from the REST endpoints,
  * which are the actual source of truth. */
 export async function pullChanges(queryClient: QueryClient, workspaceId: string) {
   let cursor = getCursor(workspaceId);
@@ -273,14 +254,5 @@ export async function pullChanges(queryClient: QueryClient, workspaceId: string)
     hasMore = response.hasMore;
   }
 
-  if (sawChanges) {
-    queryClient.invalidateQueries({ queryKey: queryKeys.projects.all(workspaceId) });
-    queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll() });
-    queryClient.invalidateQueries({
-      predicate: (query) =>
-        ["tasks", "custom-fields", "sections", "comments", "activity", "analytics"].includes(
-          query.queryKey[0] as string
-        ),
-    });
-  }
+  if (sawChanges) invalidateWorkspaceData(queryClient, workspaceId);
 }

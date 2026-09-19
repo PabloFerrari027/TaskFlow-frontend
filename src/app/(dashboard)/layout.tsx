@@ -1,6 +1,7 @@
 import { RequireAuth } from "@/features/auth/components/require-auth";
 import { CurrentWorkspaceProvider } from "@/features/workspaces/context/current-workspace-context";
 import { SyncProvider } from "@/features/sync/context/sync-context";
+import { RealtimeConnector } from "@/features/realtime/components/realtime-connector";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 
@@ -13,6 +14,7 @@ export default function DashboardLayout({
     <RequireAuth>
       <CurrentWorkspaceProvider>
         <SyncProvider>
+          <RealtimeConnector />
           <div className="flex min-h-screen">
             <Sidebar />
             <div className="flex min-w-0 flex-1 flex-col">

@@ -7,11 +7,15 @@ export function StatCard({
   value,
   icon: Icon,
   isLoading,
+  displayValue,
 }: {
   label: string;
   value: number;
   icon: LucideIcon;
   isLoading?: boolean;
+  // Overrides the plain number (e.g. "42%", "3d 4h", "Sem dados"). Falls
+  // back to `value` formatted as a plain number when omitted.
+  displayValue?: string;
 }) {
   return (
     <Card className="flex-row items-center gap-3 p-4">
@@ -24,7 +28,7 @@ export function StatCard({
           <Skeleton className="mt-1 h-6 w-14" />
         ) : (
           <p className="text-xl font-semibold text-foreground">
-            {value.toLocaleString("pt-BR")}
+            {displayValue ?? value.toLocaleString("pt-BR")}
           </p>
         )}
       </div>

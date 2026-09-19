@@ -1,8 +1,13 @@
 "use client";
 
 import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { runAnalyticsQuery } from "@/features/analytics/api/analytics-service";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
+import {
+  runAnalyticsQuery,
+  runNaturalLanguageQuery,
+} from "@/features/analytics/api/analytics-service";
+import { getErrorCode, getErrorMessage } from "@/lib/errors";
 import { queryKeys } from "@/lib/query-keys";
 import type { AnalyticsFilter, AnalyticsQuery } from "@/types/analytics";
 import type { ProjectStatus } from "@/types/project";
@@ -236,4 +241,24 @@ export function useProjectsByStatusQuery(workspaceId: string | null) {
   }));
 
   return { ...query, rows };
+}
+
+// A mutation, not a query: each question is a one-off action, not something
+// to cache by a reusable key. The result lives in `mutation.data` (already
+// local to this hook instance) — never in the TanStack Query cache, since
+// there's nothing to invalidate/refetch for a natural-language answer.
+export function useNaturalLanguageQueryMutation(workspaceId: string) {
+  return useMutation({
+    mutationFn: (text: string) => runNaturalLanguageQuery(text, workspaceId),
+    onError: (error) => {
+      // INVALID_ANALYTICS_QUERY gets a different message here than in the
+      // shared ERROR_MESSAGES table: there it means a fixed dashboard chart
+      // broke (a bug), here it means the AI misread the question.
+      if (getErrorCode(error) === "INVALID_ANALYTICS_QUERY") {
+        toast.error("Não entendi bem sua pergunta, tente reformular.");
+        return;
+      }
+      toast.error(getErrorMessage(error));
+    },
+  });
 }

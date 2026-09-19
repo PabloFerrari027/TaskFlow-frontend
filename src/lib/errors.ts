@@ -65,6 +65,9 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   REAUTHENTICATION_REQUIRED: "Senha incorreta ou reautenticação necessária.",
   ASSISTANT_DISABLED_FOR_WORKSPACE:
     "O assistente está desligado neste workspace. Peça a um OWNER para habilitá-lo.",
+  AI_TRANSLATION_FAILED: "Não consegui processar sua pergunta agora, tente novamente.",
+  AI_RATE_LIMIT_EXCEEDED:
+    "Você atingiu o limite de perguntas por enquanto, tente novamente mais tarde.",
 };
 
 const DEFAULT_MESSAGE = "Algo deu errado. Tente novamente em instantes.";

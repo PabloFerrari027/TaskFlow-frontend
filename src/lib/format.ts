@@ -89,3 +89,26 @@ export function getInitialsFromId(id: string) {
 export function shortenId(id: string, length = 8) {
   return id.slice(0, length);
 }
+
+const percentFormatter = new Intl.NumberFormat("pt-BR", {
+  style: "percent",
+  maximumFractionDigits: 0,
+});
+
+// completion_rate/overdue_rate come back as a [0, 1] fraction.
+export function formatRatio(value: number): string {
+  return percentFormatter.format(value);
+}
+
+const HOURS_PER_DAY = 24;
+
+// average_completion_time/cycle_time come back as a raw hour count — shown
+// as "3d 4h" instead, since nobody reads project timelines in hours.
+export function formatDurationHours(hours: number): string {
+  const totalHours = Math.round(hours);
+  const days = Math.floor(totalHours / HOURS_PER_DAY);
+  const remainingHours = totalHours % HOURS_PER_DAY;
+  if (days === 0) return `${remainingHours}h`;
+  if (remainingHours === 0) return `${days}d`;
+  return `${days}d ${remainingHours}h`;
+}

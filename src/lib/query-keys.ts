@@ -51,6 +51,9 @@ export const queryKeys = {
     // invalidate every column's task list at once when a task is created
     // or moved, since we don't always know which section(s) were affected.
     bySectionAll: () => ["tasks", "section"] as const,
+    // Same idea for every project's task list, when the project isn't known
+    // (e.g. a realtime change signal only carries the task id).
+    byProjectAll: () => ["tasks", "project"] as const,
     bySection: (sectionId: string, page?: number) =>
       page
         ? (["tasks", "section", sectionId, { page }] as const)
@@ -58,17 +61,21 @@ export const queryKeys = {
   },
   sections: {
     all: (projectId: string) => ["sections", "project", projectId] as const,
+    byProjectAll: () => ["sections", "project"] as const,
   },
   customFields: {
     all: (projectId: string) => ["custom-fields", "project", projectId] as const,
+    byProjectAll: () => ["custom-fields", "project"] as const,
   },
   comments: {
     all: (taskId: string, page?: number) =>
       page
         ? (["comments", "task", taskId, { page }] as const)
         : (["comments", "task", taskId] as const),
+    byTaskAll: () => ["comments", "task"] as const,
   },
   activity: {
+    root: () => ["activity"] as const,
     workspace: (workspaceId: string, page?: number) =>
       page
         ? (["activity", "workspace", workspaceId, { page }] as const)
@@ -79,6 +86,7 @@ export const queryKeys = {
         : (["activity", "task", taskId] as const),
   },
   analytics: {
+    root: () => ["analytics"] as const,
     // Requests are built with different property orders across the
     // specialized hooks in use-analytics.ts; serialize with sorted keys so
     // logically-identical queries always hash to the same cache entry.
