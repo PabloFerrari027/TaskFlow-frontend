@@ -44,7 +44,9 @@ export type ErrorCode =
   | "COMMENT_NOT_FOUND"
   | "COMMENT_CONTENT_INVALID"
   | "COMMENT_AUTHOR_MISMATCH"
-  | "INVALID_ANALYTICS_QUERY";
+  | "INVALID_ANALYTICS_QUERY"
+  | "AI_TRANSLATION_FAILED"
+  | "AI_RATE_LIMIT_EXCEEDED";
 
 export interface DomainErrorResponse {
   statusCode: number;

@@ -57,6 +57,9 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   COMMENT_CONTENT_INVALID: "Escreva um comentário de até 5000 caracteres.",
   COMMENT_AUTHOR_MISMATCH: "Você só pode apagar os seus próprios comentários.",
   INVALID_ANALYTICS_QUERY: "Não foi possível montar este gráfico com os dados disponíveis.",
+  AI_TRANSLATION_FAILED: "Não consegui processar sua pergunta agora, tente novamente.",
+  AI_RATE_LIMIT_EXCEEDED:
+    "Você atingiu o limite de perguntas por enquanto, tente novamente mais tarde.",
 };
 
 const DEFAULT_MESSAGE = "Algo deu errado. Tente novamente em instantes.";
