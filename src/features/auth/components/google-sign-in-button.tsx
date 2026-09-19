@@ -7,26 +7,11 @@ import { toast } from "sonner";
 import { useGoogleLoginMutation } from "@/features/auth/hooks/use-auth-mutations";
 import { getErrorMessage } from "@/lib/errors";
 import { getSafeRedirectPath } from "@/lib/safe-redirect";
-
-const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-
-interface GoogleCredentialResponse {
-  credential: string;
-}
-
-interface GoogleAccountsId {
-  initialize: (config: {
-    client_id: string;
-    callback: (response: GoogleCredentialResponse) => void;
-  }) => void;
-  renderButton: (parent: HTMLElement, options: Record<string, unknown>) => void;
-}
-
-declare global {
-  interface Window {
-    google?: { accounts: { id: GoogleAccountsId } };
-  }
-}
+import {
+  GOOGLE_IDENTITY_SCRIPT_SRC,
+  googleClientId as clientId,
+  type GoogleCredentialResponse,
+} from "@/lib/google-identity";
 
 export function GoogleSignInButton() {
   const router = useRouter();
@@ -79,7 +64,7 @@ export function GoogleSignInButton() {
       </div>
       <div className="flex justify-center">
         <Script
-          src="https://accounts.google.com/gsi/client"
+          src={GOOGLE_IDENTITY_SCRIPT_SRC}
           strategy="afterInteractive"
           onReady={() => setScriptLoaded(true)}
         />

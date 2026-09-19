@@ -3,6 +3,9 @@ import type { AnalyticsQuery } from "@/types/analytics";
 import { stableStringify } from "@/lib/utils";
 
 export const queryKeys = {
+  auth: {
+    me: () => ["auth", "me"] as const,
+  },
   sessions: {
     all: () => ["sessions"] as const,
   },

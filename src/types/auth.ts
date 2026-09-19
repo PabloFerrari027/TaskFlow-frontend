@@ -67,6 +67,14 @@ export interface RefreshTokenResponse {
   expiresInSeconds: number;
 }
 
+export interface CurrentUserResponse {
+  id: string;
+  email: string;
+  status: AccountStatus;
+  hasPassword: boolean;
+  googleLinked: boolean;
+}
+
 export interface AccessTokenPayload {
   sub: string;
   email?: string;

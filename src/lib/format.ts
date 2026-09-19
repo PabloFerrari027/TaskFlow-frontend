@@ -19,6 +19,10 @@ export function formatDateTime(value: string) {
   return formatDate(value, "d MMM yyyy 'às' HH:mm");
 }
 
+export function formatTime(value: string) {
+  return formatDate(value, "HH:mm");
+}
+
 export function formatRelativeTime(value: string) {
   try {
     return formatDistanceToNow(new Date(value), {

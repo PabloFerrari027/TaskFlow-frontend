@@ -57,6 +57,14 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   COMMENT_CONTENT_INVALID: "Escreva um comentário de até 5000 caracteres.",
   COMMENT_AUTHOR_MISMATCH: "Você só pode apagar os seus próprios comentários.",
   INVALID_ANALYTICS_QUERY: "Não foi possível montar este gráfico com os dados disponíveis.",
+  AI_ASSISTANT_RATE_LIMIT_EXCEEDED:
+    "Você atingiu o limite de mensagens por enquanto, tente novamente mais tarde.",
+  AI_ASSISTANT_TRANSLATION_FAILED: "Não consegui falar com o assistente agora, tente novamente.",
+  PENDING_ACTION_NOT_FOUND: "Essa ação não está mais disponível.",
+  PENDING_ACTION_EXPIRED: "Essa ação expirou. Peça de novo pelo chat.",
+  REAUTHENTICATION_REQUIRED: "Senha incorreta ou reautenticação necessária.",
+  ASSISTANT_DISABLED_FOR_WORKSPACE:
+    "O assistente está desligado neste workspace. Peça a um OWNER para habilitá-lo.",
 };
 
 const DEFAULT_MESSAGE = "Algo deu errado. Tente novamente em instantes.";
