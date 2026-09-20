@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import {
   Select,
   SelectContent,
@@ -8,6 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useSectionsQuery } from "@/features/sections/hooks/use-sections";
+import { buildTree, flattenTree, getAncestors } from "@/lib/tree";
 
 export function SectionSelect({
   projectId,
@@ -21,7 +23,15 @@ export function SectionSelect({
   disabled?: boolean;
 }) {
   const sectionsQuery = useSectionsQuery(projectId);
-  const sections = sectionsQuery.data ?? [];
+  // Sub-sections are listed right under their parent with the full path as the
+  // label ("Backlog / Ideias"), so same-named sub-sections stay distinguishable.
+  const options = React.useMemo(() => {
+    const sections = sectionsQuery.data ?? [];
+    return flattenTree(buildTree(sections)).map((section) => ({
+      id: section.id,
+      label: [...getAncestors(sections, section.id), section].map((s) => s.name).join(" / "),
+    }));
+  }, [sectionsQuery.data]);
 
   return (
     <Select value={value} onValueChange={onChange} disabled={disabled}>
@@ -29,9 +39,9 @@ export function SectionSelect({
         <SelectValue placeholder="Selecione uma coluna" />
       </SelectTrigger>
       <SelectContent>
-        {sections.map((section) => (
-          <SelectItem key={section.id} value={section.id}>
-            {section.name}
+        {options.map((option) => (
+          <SelectItem key={option.id} value={option.id}>
+            {option.label}
           </SelectItem>
         ))}
       </SelectContent>

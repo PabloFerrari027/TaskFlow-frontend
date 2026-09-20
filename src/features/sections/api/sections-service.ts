@@ -1,6 +1,11 @@
 import { apiClient } from "@/lib/api/client";
 import type { PaginatedResult, PaginationParams } from "@/types/common";
-import type { CreateSectionRequest, Section, UpdateSectionRequest } from "@/types/section";
+import type {
+  CreateSectionRequest,
+  MoveSectionRequest,
+  Section,
+  UpdateSectionRequest,
+} from "@/types/section";
 
 export const sectionsService = {
   async listByProject(projectId: string, params?: PaginationParams) {
@@ -21,6 +26,11 @@ export const sectionsService = {
 
   async update(sectionId: string, payload: UpdateSectionRequest) {
     const { data } = await apiClient.patch<Section>(`/sections/${sectionId}`, payload);
+    return data;
+  },
+
+  async move(sectionId: string, payload: MoveSectionRequest) {
+    const { data } = await apiClient.patch<Section>(`/sections/${sectionId}/move`, payload);
     return data;
   },
 

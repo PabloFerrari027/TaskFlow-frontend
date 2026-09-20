@@ -119,6 +119,23 @@ export function useUpdateProjectMutation(projectId: string) {
   });
 }
 
+// Moving is online-only: the sync engine has no reparent operation, and the
+// server is what validates scope/cycles, so there's nothing to queue offline.
+export function useMoveProjectMutation(workspaceId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ projectId, parentId }: { projectId: string; parentId: string | null }) =>
+      projectsService.move(projectId, { parentId }),
+    onSuccess: (data) => {
+      queryClient.setQueryData(queryKeys.projects.detail(data.id), data);
+      queryClient.invalidateQueries({ queryKey: queryKeys.projects.all(workspaceId) });
+      toast.success("Projeto movido.");
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+}
+
 export function useArchiveProjectMutation(projectId: string) {
   const queryClient = useQueryClient();
   const { workspaceId } = useCurrentWorkspace();

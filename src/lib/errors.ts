@@ -47,6 +47,17 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   SECTION_PROJECT_MISMATCH: "A coluna precisa pertencer ao mesmo projeto da tarefa.",
   DEFAULT_SECTION_NOT_DELETABLE: "A coluna padrão do projeto não pode ser apagada.",
   SECTION_NOT_EMPTY: "Mova ou apague as tarefas desta coluna antes de excluí-la.",
+  CANNOT_BE_OWN_PARENT: "Um item não pode ser pai dele mesmo.",
+  CANNOT_MOVE_INTO_OWN_DESCENDANT:
+    "Não é possível mover um item para dentro de um dos seus próprios descendentes.",
+  PARENT_OUT_OF_SCOPE:
+    "O destino precisa estar no mesmo escopo do item (workspace, projeto ou tarefa).",
+  PARENT_PROJECT_ARCHIVED: "Não é possível colocar um projeto dentro de um projeto arquivado.",
+  PROJECT_HAS_CHILDREN:
+    "Este projeto tem sub-projetos. Mova ou arquive os sub-projetos primeiro.",
+  SECTION_HAS_CHILDREN:
+    "Esta coluna tem subseções. Mova ou apague as subseções antes de excluí-la.",
+  COMMENT_HAS_CHILDREN: "Apague as respostas deste comentário antes de apagá-lo.",
   ASSIGNEE_NOT_PROJECT_MEMBER: "Esta pessoa não tem acesso ao projeto e não pode ser responsável pela tarefa.",
   CUSTOM_FIELD_NOT_FOUND: "Campo customizado não encontrado.",
   CUSTOM_FIELD_VALUE_INVALID: "Valor incompatível com o tipo deste campo.",

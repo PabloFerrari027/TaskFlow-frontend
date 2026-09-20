@@ -5,8 +5,7 @@ import { toast } from "sonner";
 import { sectionsService } from "@/features/sections/api/sections-service";
 import { queryKeys } from "@/lib/query-keys";
 import { getErrorMessage } from "@/lib/errors";
-import { MAX_PAGE_SIZE } from "@/types/common";
-import { useCurrentWorkspace } from "@/features/workspaces/context/current-workspace-context";
+import { MAX_PAGE_SIZE } from "@/types/common";import { useCurrentWorkspace } from "@/features/workspaces/context/current-workspace-context";
 import { isOffline, queueEntityDelete, queueEntityUpdate } from "@/features/sync/lib/sync-engine";
 import type { PaginatedResult } from "@/types/common";
 import type { CreateSectionRequest, Section, UpdateSectionRequest } from "@/types/section";
@@ -78,6 +77,23 @@ export function useUpdateSectionMutation(projectId: string) {
           ? "Alteração salva offline — será sincronizada quando a conexão voltar."
           : "Coluna atualizada."
       );
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+}
+
+// Online-only, same reasoning as `useMoveProjectMutation`. A reparent also
+// changes which column each task list renders under, so task lists refresh too.
+export function useMoveSectionMutation(projectId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ sectionId, parentId }: { sectionId: string; parentId: string | null }) =>
+      sectionsService.move(sectionId, { parentId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.sections.all(projectId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll() });
+      toast.success("Coluna movida.");
     },
     onError: (error) => toast.error(getErrorMessage(error)),
   });

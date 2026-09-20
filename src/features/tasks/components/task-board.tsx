@@ -25,7 +25,14 @@ export function TaskBoard({
   const [createTaskSectionId, setCreateTaskSectionId] = React.useState<string | null>(null);
   const { viewMode, setViewMode } = useTaskViewMode();
 
-  const sections = sectionsQuery.data ?? [];
+  const sections = React.useMemo(() => sectionsQuery.data ?? [], [sectionsQuery.data]);
+  // Only root sections are board columns; sub-sections live inside their
+  // parent's column as an accordion. A section whose parent isn't in the list
+  // is treated as a root so it never vanishes from the board.
+  const rootSections = React.useMemo(() => {
+    const ids = new Set(sections.map((section) => section.id));
+    return sections.filter((section) => !section.parentId || !ids.has(section.parentId));
+  }, [sections]);
 
   return (
     <div className="space-y-4">
@@ -48,16 +55,17 @@ export function TaskBoard({
         <ErrorState error={sectionsQuery.error} onRetry={() => sectionsQuery.refetch()} />
       ) : (
         <div className="flex items-start gap-4 overflow-x-auto pb-2">
-          {sections.map((section, index) => (
+          {rootSections.map((section, index) => (
             <SectionColumn
               key={section.id}
               projectId={projectId}
               section={section}
+              allSections={sections}
               index={index}
-              count={sections.length}
+              count={rootSections.length}
               canManage={canManage}
               viewMode={viewMode}
-              onAddTask={() => setCreateTaskSectionId(section.id)}
+              onAddTask={setCreateTaskSectionId}
             />
           ))}
         </div>

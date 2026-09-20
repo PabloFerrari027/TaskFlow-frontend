@@ -3,6 +3,7 @@ import type { PaginatedResult, PaginationParams } from "@/types/common";
 import type {
   CreateProjectRequest,
   InviteToProjectRequest,
+  MoveProjectRequest,
   Project,
   ProjectInvitation,
   ProjectInvitationPreview,
@@ -35,6 +36,14 @@ export const projectsService = {
   async update(projectId: string, payload: UpdateProjectRequest) {
     const { data } = await apiClient.patch<Project>(
       `/projects/${projectId}`,
+      payload
+    );
+    return data;
+  },
+
+  async move(projectId: string, payload: MoveProjectRequest) {
+    const { data } = await apiClient.patch<Project>(
+      `/projects/${projectId}/move`,
       payload
     );
     return data;
