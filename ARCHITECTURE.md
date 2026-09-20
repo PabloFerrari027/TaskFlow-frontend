@@ -101,7 +101,7 @@ Regras que o código segue consistentemente:
 
 (dashboard)/                               Layout protegido — RequireAuth + CurrentWorkspaceProvider + SyncProvider
   /dashboard                               Home: projetos ativos do workspace atual
-  /workspaces                              Lista de workspaces do usuário
+  /workspaces                              Lista de workspaces do usuário (destino padrão pós-login); clicar num card o define como workspace atual
   /workspaces/[workspaceId]                Detalhe: membros / convites / atividade (tabs)
   /projects                                Todos os projetos do workspace (ativos + arquivados)
   /projects/[projectId]/                   Layout do projeto: header, tabs, TaskDetailSheet global

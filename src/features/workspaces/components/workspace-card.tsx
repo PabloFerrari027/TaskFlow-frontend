@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { WorkspaceRoleBadge } from "@/components/shared/status-badge";
 import { useAuth } from "@/lib/auth/auth-context";
+import { cn } from "@/lib/utils";
 import type { Workspace } from "@/types/workspace";
 
 export function WorkspaceCard({
@@ -21,14 +22,22 @@ export function WorkspaceCard({
   const myRole = workspace.members.find((m) => m.userId === userId)?.role;
 
   return (
-    <Card className="gap-3 p-5">
+    // Clicking anywhere on the card makes it the current workspace. The
+    // "Selecionar" button is the keyboard path — its click bubbles up here.
+    <Card
+      onClick={onSelect}
+      className={cn(
+        "cursor-pointer gap-3 p-5 transition-colors hover:bg-muted/40",
+        isCurrent && "ring-2 ring-primary/40"
+      )}
+    >
       <div className="flex items-start justify-between gap-2">
         <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
           <Building2 className="size-4.5" />
         </div>
         {isCurrent ? (
           <span className="flex items-center gap-1 text-xs font-medium text-primary">
-            <Check className="size-3.5" /> Atual
+            <Check className="size-3.5" /> Em uso
           </span>
         ) : null}
       </div>
@@ -46,12 +55,14 @@ export function WorkspaceCard({
 
       <div className="flex gap-2 pt-1">
         {!isCurrent ? (
-          <Button size="sm" variant="outline" onClick={onSelect}>
+          <Button size="sm" variant="outline">
             Selecionar
           </Button>
         ) : null}
         <Button size="sm" variant={isCurrent ? "outline" : "ghost"} asChild>
-          <Link href={`/workspaces/${workspace.id}`}>Configurações</Link>
+          <Link href={`/workspaces/${workspace.id}`} onClick={(e) => e.stopPropagation()}>
+            Configurações
+          </Link>
         </Button>
       </div>
     </Card>
