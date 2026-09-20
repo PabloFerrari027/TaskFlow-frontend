@@ -1,29 +1,31 @@
 "use client";
 
-import * as React from "react";
 import Script from "next/script";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { useGoogleLoginMutation } from "@/features/auth/hooks/use-auth-mutations";
+import { useGoogleIdentityToken } from "@/features/auth/hooks/use-google-identity-token";
 import { getErrorMessage } from "@/lib/errors";
 import { getSafeRedirectPath } from "@/lib/safe-redirect";
-import {
-  GOOGLE_IDENTITY_SCRIPT_SRC,
-  googleClientId as clientId,
-  type GoogleCredentialResponse,
-} from "@/lib/google-identity";
 
+/**
+ * "Continuar com Google" on the login/register screens. Unlike the
+ * ReauthDialog / security-settings uses of `useGoogleIdentityToken`, there is
+ * no session yet here: the credential is exchanged for one (POST
+ * /auth/login/google) and the user is sent into the app. The backend decides
+ * login vs. sign-up from the token's e-mail.
+ */
 export function GoogleSignInButton() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const googleLoginMutation = useGoogleLoginMutation();
-  const buttonRef = React.useRef<HTMLDivElement>(null);
-  const [scriptLoaded, setScriptLoaded] = React.useState(false);
 
-  const handleCredential = React.useCallback(
-    (response: GoogleCredentialResponse) => {
+  const { buttonRef, scriptProps, isConfigured } = useGoogleIdentityToken({
+    enabled: true,
+    onCredential: (idToken) => {
+      if (googleLoginMutation.isPending) return;
       googleLoginMutation.mutate(
-        { idToken: response.credential },
+        { idToken },
         {
           onSuccess: () => {
             toast.success("Login realizado com sucesso.");
@@ -33,27 +35,10 @@ export function GoogleSignInButton() {
         }
       );
     },
-    [googleLoginMutation, router, searchParams]
-  );
+    buttonWidth: 336,
+  });
 
-  React.useEffect(() => {
-    if (!scriptLoaded || !clientId || !buttonRef.current) return;
-    if (!window.google) return;
-
-    window.google.accounts.id.initialize({
-      client_id: clientId,
-      callback: handleCredential,
-    });
-    window.google.accounts.id.renderButton(buttonRef.current, {
-      type: "standard",
-      theme: "outline",
-      size: "large",
-      width: 336,
-      text: "continue_with",
-    });
-  }, [scriptLoaded, handleCredential]);
-
-  if (!clientId) return null;
+  if (!isConfigured) return null;
 
   return (
     <div className="space-y-5">
@@ -63,11 +48,7 @@ export function GoogleSignInButton() {
         <div className="h-px flex-1 bg-border" />
       </div>
       <div className="flex justify-center">
-        <Script
-          src={GOOGLE_IDENTITY_SCRIPT_SRC}
-          strategy="afterInteractive"
-          onReady={() => setScriptLoaded(true)}
-        />
+        <Script {...scriptProps} />
         <div ref={buttonRef} />
       </div>
     </div>

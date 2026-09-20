@@ -1,14 +1,19 @@
 import { apiClient } from "@/lib/api/client";
 import type {
   AuthTokensResponse,
+  ChangePasswordRequest,
   CurrentUserResponse,
   GoogleLoginRequest,
+  LinkGoogleRequest,
+  LinkGoogleResponse,
   LoginChallengeResponse,
   LoginRequest,
+  PasswordUpdateResponse,
   RegisterUserRequest,
   RegisterUserResponse,
   ResendVerificationCodeRequest,
   ResendVerificationCodeResponse,
+  SetFirstPasswordRequest,
   VerifyEmailRequest,
   VerifyEmailResponse,
   VerifyTwoFactorRequest,
@@ -65,6 +70,30 @@ export const authService = {
 
   async getCurrentUser() {
     const { data } = await apiClient.get<CurrentUserResponse>("/auth/me");
+    return data;
+  },
+
+  async changePassword(payload: ChangePasswordRequest) {
+    const { data } = await apiClient.patch<PasswordUpdateResponse>(
+      "/auth/password",
+      payload
+    );
+    return data;
+  },
+
+  async setFirstPassword(payload: SetFirstPasswordRequest) {
+    const { data } = await apiClient.post<PasswordUpdateResponse>(
+      "/auth/password",
+      payload
+    );
+    return data;
+  },
+
+  async linkGoogle(payload: LinkGoogleRequest) {
+    const { data } = await apiClient.post<LinkGoogleResponse>(
+      "/auth/google-link",
+      payload
+    );
     return data;
   },
 };

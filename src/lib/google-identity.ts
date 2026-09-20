@@ -1,6 +1,5 @@
 // Shared Google Identity Services (GIS) plumbing — one `declare global` so
-// GoogleSignInButton (real login) and ReauthDialog (one-off identity
-// confirmation, never a session change) don't each redeclare `Window.google`.
+// every consumer of `useGoogleIdentityToken` shares a single `Window.google`.
 export const GOOGLE_IDENTITY_SCRIPT_SRC = "https://accounts.google.com/gsi/client";
 export const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
