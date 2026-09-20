@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { OtpInput } from "@/components/shared/otp-input";
 import {
   Form,
   FormControl,
@@ -92,16 +92,12 @@ export function VerifyEmailForm({ email }: { email: string }) {
               <FormItem>
                 <FormLabel>Código de verificação</FormLabel>
                 <FormControl>
-                  <Input
-                    inputMode="numeric"
-                    autoComplete="one-time-code"
-                    maxLength={6}
-                    placeholder="000000"
-                    className="text-center text-lg tracking-[0.5em]"
-                    {...field}
-                    onChange={(event) =>
-                      field.onChange(event.target.value.replace(/\D/g, ""))
-                    }
+                  <OtpInput
+                    value={field.value}
+                    onChange={field.onChange}
+                    onComplete={() => form.handleSubmit(onSubmit)()}
+                    disabled={verifyMutation.isPending}
+                    autoFocus
                   />
                 </FormControl>
                 <FormMessage />

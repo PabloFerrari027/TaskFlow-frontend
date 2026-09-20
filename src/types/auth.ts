@@ -67,6 +67,29 @@ export interface RefreshTokenResponse {
   expiresInSeconds: number;
 }
 
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface SetFirstPasswordRequest {
+  newPassword: string;
+  googleIdToken: string;
+}
+
+export interface PasswordUpdateResponse {
+  success: boolean;
+}
+
+export interface LinkGoogleRequest {
+  currentPassword: string;
+  googleIdToken: string;
+}
+
+export interface LinkGoogleResponse {
+  success: boolean;
+}
+
 export interface CurrentUserResponse {
   id: string;
   email: string;

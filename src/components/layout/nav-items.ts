@@ -5,6 +5,7 @@ import {
   BarChart3,
   Building2,
   MonitorSmartphone,
+  KeyRound,
   ShieldCheck,
 } from "lucide-react";
 
@@ -21,6 +22,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/analytics", label: "Análises", icon: BarChart3 },
   { href: "/workspaces", label: "Workspaces", icon: Building2 },
   { href: "/settings/sessions", label: "Sessões", icon: MonitorSmartphone },
+  { href: "/settings/security", label: "Segurança", icon: KeyRound },
   {
     href: "/admin/clients",
     label: "Clientes",

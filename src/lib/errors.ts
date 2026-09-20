@@ -68,6 +68,17 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   AI_TRANSLATION_FAILED: "Não consegui processar sua pergunta agora, tente novamente.",
   AI_RATE_LIMIT_EXCEEDED:
     "Você atingiu o limite de perguntas por enquanto, tente novamente mais tarde.",
+  ACCOUNT_HAS_NO_PASSWORD:
+    "Sua conta ainda não tem senha. Defina uma senha em vez de alterá-la.",
+  CURRENT_PASSWORD_INCORRECT: "A senha atual está incorreta.",
+  ACCOUNT_ALREADY_HAS_PASSWORD:
+    "Sua conta já tem uma senha. Use a opção de alterar senha.",
+  NO_IDENTITY_METHOD_AVAILABLE:
+    "Sua conta não tem um método disponível para confirmar sua identidade.",
+  INVALID_GOOGLE_TOKEN:
+    "Não foi possível confirmar sua identidade com o Google, tente novamente.",
+  GOOGLE_ACCOUNT_ALREADY_LINKED:
+    "Essa conta Google já está vinculada a outra conta TaskFlow.",
 };
 
 const DEFAULT_MESSAGE = "Algo deu errado. Tente novamente em instantes.";

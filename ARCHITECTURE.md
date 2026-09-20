@@ -113,6 +113,7 @@ Regras que o código segue consistentemente:
     /custom-fields                         Campos personalizados do projeto
   /analytics                               Dashboard analítico do workspace atual
   /settings/sessions                       Sessões ativas do usuário
+  /settings/security                       Alterar senha / definir primeira senha (conta Google-only) / vincular Google (conta com senha)
   /admin/clients                           Gestão de clientes (apenas SUPER_ADMIN)
 ```
 
@@ -294,6 +295,8 @@ Camada **aditiva** sobre o offline-first (`features/realtime/`): quando outro us
 | Feature | Endpoints principais | Observações |
 |---|---|---|
 | **auth** | `/auth/register`, `/verify-email`, `/login`, `/login/verify`, `/login/google` | 2FA por e-mail obrigatório no login por senha; Google pula o 2FA. |
+| **auth (senha)** | `PATCH /auth/password`, `POST /auth/password` | `SecuritySettingsSection` em `/settings/security` escolhe o formulário por `hasPassword` (`GET /auth/me`): com senha → alterar (senha atual + nova; `CURRENT_PASSWORD_INCORRECT` vira erro no campo); sem senha → definir (nova senha + ID Token do Google via `useGoogleIdentityToken`, o mesmo hook do `ReauthDialog`; o token vai direto na requisição, sem estado). Ambos revogam as outras sessões (a atual continua válida); definir invalida `GET /auth/me`. Só existe em Configurações — nunca linkado a partir do chat do assistente. |
+| **auth (vincular Google)** | `POST /auth/google-link` | Segundo card de `SecuritySettingsSection`, só com `hasPassword && !googleLinked` (com `googleLinked` mostra apenas "Conta Google vinculada"; desvincular não existe). Senha atual + ID Token via `useGoogleIdentityToken` (o botão do Google é o submit). `CURRENT_PASSWORD_INCORRECT` vira erro no campo; `GOOGLE_ACCOUNT_ALREADY_LINKED`/`INVALID_GOOGLE_TOKEN` viram toast. Revoga as outras sessões e invalida `GET /auth/me`. |
 | **sessions** | `/auth/sessions` | Lista/revoga sessões (dispositivos); `useLogout` revoga a sessão atual (best-effort) e sempre limpa o estado local mesmo se a chamada falhar. |
 | **workspaces** | `/workspaces`, `/workspaces/:id`, `/members`, `/invitations`, `/assistant-settings` | CRUD + membros + convites; exclusão exige workspace vazio (só o `OWNER` sozinho) e papel `OWNER`. `assistantEnabled` (`PATCH /workspaces/:id/assistant-settings`, só `OWNER`) liga/desliga o [assistente de IA](#assistente-de-ia-com-ações) para o workspace — nasce `false` em todo workspace novo, e o backend também pode desligar sozinho (kill switch, ver abaixo); reativar sempre exige um `OWNER` de novo, nunca é automático. UI: aba "Assistente" na página do workspace (`WorkspaceAssistantSettingsPanel`). O seletor de papel de membro existente (`MembersTable`) só lista/permite `OWNER` quando quem está agindo já é `OWNER` (`canGrantOwnerRole` em `src/lib/permissions.ts`) — vale tanto para promover quanto para rebaixar um `OWNER` existente, espelhando a mesma regra do backend. |
 | **projects** | `/workspaces/:id/projects`, `/projects/:id`, `/archive`, `/members`, `/invitations` | Sem exclusão — só arquivamento (`ProjectStatus: ACTIVE \| ARCHIVED`). Papel de gestão herdado do workspace ([§6](#6-autorização-e-papéis)). |

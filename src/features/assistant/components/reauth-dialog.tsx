@@ -16,11 +16,7 @@ import {
 import { cn } from "@/lib/utils";
 import { PendingActionDetails } from "@/features/assistant/components/pending-action-details";
 import { useCurrentUserQuery } from "@/features/auth/hooks/use-current-user";
-import {
-  GOOGLE_IDENTITY_SCRIPT_SRC,
-  googleClientId,
-  type GoogleCredentialResponse,
-} from "@/lib/google-identity";
+import { useGoogleIdentityToken } from "@/features/auth/hooks/use-google-identity-token";
 
 /**
  * Bloqueante de propósito (adendo de segurança máxima): um passo inline no
@@ -66,42 +62,13 @@ export function ReauthDialog({
   const hasPassword = Boolean(currentUser?.hasPassword);
   const googleLinked = Boolean(currentUser?.googleLinked);
 
-  const [scriptLoaded, setScriptLoaded] = React.useState(false);
-  const googleButtonRef = React.useRef<HTMLDivElement>(null);
-
-  // Effect only re-runs on open/script-ready/googleLinked changes, never on
-  // every render — the callback reads these refs instead, so a fresh
-  // `onConfirmWithGoogle` identity from the parent doesn't re-mount the
-  // Google-rendered button.
-  const onConfirmWithGoogleRef = React.useRef(onConfirmWithGoogle);
-  React.useEffect(() => {
-    onConfirmWithGoogleRef.current = onConfirmWithGoogle;
-  }, [onConfirmWithGoogle]);
-  const isPendingRef = React.useRef(isPending);
-  React.useEffect(() => {
-    isPendingRef.current = isPending;
-  }, [isPending]);
-
-  React.useEffect(() => {
-    if (!open || !scriptLoaded || !googleLinked || !googleClientId) return;
-    if (!window.google || !googleButtonRef.current) return;
-
-    window.google.accounts.id.initialize({
-      client_id: googleClientId,
-      callback: (response: GoogleCredentialResponse) => {
-        if (isPendingRef.current) return;
-        onConfirmWithGoogleRef.current(response.credential);
-      },
-    });
-    googleButtonRef.current.innerHTML = "";
-    window.google.accounts.id.renderButton(googleButtonRef.current, {
-      type: "standard",
-      theme: "outline",
-      size: "large",
-      text: "continue_with",
-      width: 300,
-    });
-  }, [open, scriptLoaded, googleLinked]);
+  const { buttonRef: googleButtonRef, scriptProps } = useGoogleIdentityToken({
+    enabled: open && googleLinked,
+    onCredential: (idToken) => {
+      if (isPending) return;
+      onConfirmWithGoogle(idToken);
+    },
+  });
 
   const noReauthMethodAvailable =
     !currentUserQuery.isLoading && !hasPassword && !googleLinked;
@@ -120,13 +87,7 @@ export function ReauthDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {googleLinked ? (
-          <Script
-            src={GOOGLE_IDENTITY_SCRIPT_SRC}
-            strategy="afterInteractive"
-            onReady={() => setScriptLoaded(true)}
-          />
-        ) : null}
+        {googleLinked ? <Script {...scriptProps} /> : null}
 
         <div className="space-y-3">
           <PendingActionDetails
