@@ -9,6 +9,7 @@ export const taskFormSchema = z.object({
   sectionId: z.string().min(1, "Selecione uma coluna."),
   dueDate: z.string().optional(),
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).optional(),
+  mentionedUserIds: z.array(z.string()).max(50, "No máximo 50 menções."),
 });
 
 export type TaskFormValues = z.infer<typeof taskFormSchema>;

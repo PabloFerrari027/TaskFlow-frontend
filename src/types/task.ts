@@ -31,6 +31,8 @@ export interface Task {
   attachments: Attachment[];
   /** Participantes aditivos da task — não inclui assigneeId automaticamente (conceitos independentes, sem hierarquia). */
   participantIds: string[];
+  /** Usuários mencionados na descrição (task ou subtask). */
+  mentionedUserIds: string[];
 }
 
 export interface CreateTaskRequest {
@@ -41,6 +43,7 @@ export interface CreateTaskRequest {
   parentTaskId?: string;
   dueDate?: string;
   priority?: TaskPriority;
+  mentionedUserIds?: string[];
 }
 
 export interface UpdateTaskRequest {
@@ -51,6 +54,8 @@ export interface UpdateTaskRequest {
   position?: number;
   dueDate?: string;
   priority?: TaskPriority;
+  /** Substitui o conjunto atual de menções; `[]` remove todas; omitido não altera. */
+  mentionedUserIds?: string[];
 }
 
 export interface ChangeTaskStatusRequest {

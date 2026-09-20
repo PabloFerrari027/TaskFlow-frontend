@@ -43,6 +43,7 @@ export function CommentNode({ node, level, projectId }: CommentNodeProps) {
           {replying ? (
             <CommentComposer
               taskId={comment.taskId}
+              projectId={projectId}
               parentId={comment.id}
               onSubmitted={() => setReplying(false)}
               onCancel={() => setReplying(false)}
