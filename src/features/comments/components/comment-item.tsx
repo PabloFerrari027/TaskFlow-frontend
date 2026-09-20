@@ -1,6 +1,6 @@
 "use client";
 
-import { Trash2 } from "lucide-react";
+import { Reply, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { MemberAvatar, MemberIdLabel } from "@/components/shared/member-avatar";
@@ -10,7 +10,14 @@ import { useProjectPermission } from "@/features/projects/hooks/use-project-perm
 import { useDeleteCommentMutation } from "@/features/comments/hooks/use-comments";
 import type { Comment } from "@/types/comment";
 
-export function CommentItem({ comment, projectId }: { comment: Comment; projectId: string }) {
+interface CommentItemProps {
+  comment: Comment;
+  projectId: string;
+  hasReplies: boolean;
+  onReply: () => void;
+}
+
+export function CommentItem({ comment, projectId, hasReplies, onReply }: CommentItemProps) {
   const { userId: currentUserId } = useAuth();
   const { canManage } = useProjectPermission(projectId);
   const deleteMutation = useDeleteCommentMutation(comment.taskId);
@@ -28,20 +35,38 @@ export function CommentItem({ comment, projectId }: { comment: Comment; projectI
               {formatRelativeTime(comment.createdAt)}
             </span>
           </div>
-          {canDelete ? (
-            <ConfirmDialog
-              trigger={
-                <Button size="icon-xs" variant="ghost">
+          <div className="flex items-center gap-0.5">
+            <Button size="xs" variant="ghost" onClick={onReply}>
+              <Reply /> Responder
+            </Button>
+            {canDelete ? (
+              hasReplies ? (
+                // The API refuses to delete a comment that still has replies
+                // (COMMENT_HAS_CHILDREN), so don't offer a delete that can only fail.
+                <Button
+                  size="icon-xs"
+                  variant="ghost"
+                  disabled
+                  title="Apague as respostas deste comentário antes de apagá-lo."
+                >
                   <Trash2 className="text-destructive" />
                 </Button>
-              }
-              title="Apagar comentário"
-              description="Esta ação não pode ser desfeita."
-              confirmLabel="Apagar"
-              isLoading={deleteMutation.isPending}
-              onConfirm={() => deleteMutation.mutate(comment.id)}
-            />
-          ) : null}
+              ) : (
+                <ConfirmDialog
+                  trigger={
+                    <Button size="icon-xs" variant="ghost">
+                      <Trash2 className="text-destructive" />
+                    </Button>
+                  }
+                  title="Apagar comentário"
+                  description="Esta ação não pode ser desfeita."
+                  confirmLabel="Apagar"
+                  isLoading={deleteMutation.isPending}
+                  onConfirm={() => deleteMutation.mutate(comment.id)}
+                />
+              )
+            ) : null}
+          </div>
         </div>
         <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">{comment.content}</p>
       </div>
