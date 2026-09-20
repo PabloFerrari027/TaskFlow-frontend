@@ -59,6 +59,8 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
     "Esta coluna tem subseções. Mova ou apague as subseções antes de excluí-la.",
   COMMENT_HAS_CHILDREN: "Apague as respostas deste comentário antes de apagá-lo.",
   ASSIGNEE_NOT_PROJECT_MEMBER: "Esta pessoa não tem acesso ao projeto e não pode ser responsável pela tarefa.",
+  MENTIONED_USER_NOT_PROJECT_MEMBER:
+    "Alguém que você mencionou não tem acesso ao projeto. Remova a menção ou convide a pessoa primeiro.",
   CUSTOM_FIELD_NOT_FOUND: "Campo customizado não encontrado.",
   CUSTOM_FIELD_VALUE_INVALID: "Valor incompatível com o tipo deste campo.",
   SYNC_VERSION_CONFLICT: "Este item foi alterado por outra pessoa. Atualize e tente novamente.",
