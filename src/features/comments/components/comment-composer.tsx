@@ -15,8 +15,18 @@ import {
 import { commentFormSchema, type CommentFormValues } from "@/features/comments/schemas";
 import { useCreateCommentMutation } from "@/features/comments/hooks/use-comments";
 
-export function CommentComposer({ taskId }: { taskId: string }) {
+interface CommentComposerProps {
+  taskId: string;
+  // When set, the composer posts a reply to this comment instead of a new
+  // top-level comment, and is rendered inline under it.
+  parentId?: string;
+  onSubmitted?: () => void;
+  onCancel?: () => void;
+}
+
+export function CommentComposer({ taskId, parentId, onSubmitted, onCancel }: CommentComposerProps) {
   const createMutation = useCreateCommentMutation(taskId);
+  const isReply = Boolean(parentId);
 
   const form = useForm<CommentFormValues>({
     resolver: zodResolver(commentFormSchema),
@@ -25,8 +35,13 @@ export function CommentComposer({ taskId }: { taskId: string }) {
 
   function onSubmit(values: CommentFormValues) {
     createMutation.mutate(
-      { content: values.content },
-      { onSuccess: () => form.reset({ content: "" }) }
+      { content: values.content, parentId },
+      {
+        onSuccess: () => {
+          form.reset({ content: "" });
+          onSubmitted?.();
+        },
+      }
     );
   }
 
@@ -39,13 +54,28 @@ export function CommentComposer({ taskId }: { taskId: string }) {
           render={({ field }) => (
             <FormItem className="flex-1">
               <FormControl>
-                <Textarea rows={2} placeholder="Escreva um comentário…" {...field} />
+                <Textarea
+                  rows={2}
+                  autoFocus={isReply}
+                  placeholder={isReply ? "Escreva uma resposta…" : "Escreva um comentário…"}
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit" size="icon" disabled={createMutation.isPending}>
+        {onCancel ? (
+          <Button type="button" variant="ghost" onClick={onCancel} disabled={createMutation.isPending}>
+            Cancelar
+          </Button>
+        ) : null}
+        <Button
+          type="submit"
+          size="icon"
+          aria-label={isReply ? "Enviar resposta" : "Enviar comentário"}
+          disabled={createMutation.isPending}
+        >
           {createMutation.isPending ? <Loader2 className="animate-spin" /> : <Send />}
         </Button>
       </form>

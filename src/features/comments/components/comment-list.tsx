@@ -1,15 +1,20 @@
 "use client";
 
+import * as React from "react";
 import { MessageSquare } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ErrorState } from "@/components/shared/error-state";
 import { useCommentsQuery } from "@/features/comments/hooks/use-comments";
-import { CommentItem } from "@/features/comments/components/comment-item";
+import { CommentNode } from "@/features/comments/components/comment-thread";
+import { buildTree } from "@/lib/tree";
 
 export function CommentList({ taskId, projectId }: { taskId: string; projectId: string }) {
   const commentsQuery = useCommentsQuery(taskId);
   const comments = commentsQuery.data ?? [];
+  // Replies arrive as a flat list (oldest first) linked by parentId; rebuild the
+  // thread client-side. Replies whose parent is gone just render where they land.
+  const threads = React.useMemo(() => buildTree(comments), [comments]);
 
   if (commentsQuery.isLoading) {
     return (
@@ -37,8 +42,8 @@ export function CommentList({ taskId, projectId }: { taskId: string; projectId: 
 
   return (
     <div className="space-y-3">
-      {comments.map((comment) => (
-        <CommentItem key={comment.id} comment={comment} projectId={projectId} />
+      {threads.map((thread) => (
+        <CommentNode key={thread.item.id} node={thread} level={0} projectId={projectId} />
       ))}
     </div>
   );

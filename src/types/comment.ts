@@ -1,6 +1,8 @@
 export interface Comment {
   id: string;
   taskId: string;
+  // null for a top-level comment; otherwise the comment this one replies to.
+  parentId: string | null;
   authorId: string;
   content: string;
   createdAt: string;
@@ -9,4 +11,5 @@ export interface Comment {
 
 export interface CreateCommentRequest {
   content: string;
+  parentId?: string;
 }
