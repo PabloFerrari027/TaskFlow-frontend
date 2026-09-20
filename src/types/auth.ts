@@ -1,12 +1,14 @@
 export type AccountStatus = "PENDING_VERIFICATION" | "ACTIVE";
 
 export interface RegisterUserRequest {
+  name: string;
   email: string;
   password: string;
 }
 
 export interface RegisterUserResponse {
   userId: string;
+  name: string;
   email: string;
   status: AccountStatus;
 }
@@ -106,6 +108,9 @@ export interface LinkGoogleResponse {
 export interface CurrentUserResponse {
   id: string;
   email: string;
+  // null on accounts created before the field existed (or Google without a
+  // profile name) — callers fall back to the e-mail.
+  name: string | null;
   status: AccountStatus;
   hasPassword: boolean;
   googleLinked: boolean;

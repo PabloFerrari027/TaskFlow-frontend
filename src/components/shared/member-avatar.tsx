@@ -7,12 +7,13 @@ import {
 import { getInitialsFromId, shortenId } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth/auth-context";
+import { useSelfIdentity } from "@/features/auth/hooks/use-current-user";
 
 /**
- * The API never returns a display name or e-mail for a member — only their
- * `userId`. This renders an initials avatar from the id and shows the full
- * id (or "Você" for the current user) in a tooltip, which is the most this
- * data can honestly support.
+ * Member endpoints only return a `userId`, never a name — only the current
+ * user's name is known (GET /auth/me). Other members get an initials avatar
+ * from the id and a shortened id in the tooltip; the current user gets their
+ * name's initials and "Você".
  */
 export function MemberAvatar({
   userId,
@@ -23,13 +24,14 @@ export function MemberAvatar({
 }) {
   const { userId: currentUserId } = useAuth();
   const isSelf = currentUserId === userId;
+  const { initials: selfInitials } = useSelfIdentity({ enabled: isSelf });
 
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <Avatar className={cn("size-7", className)}>
           <AvatarFallback className="text-xs">
-            {getInitialsFromId(userId)}
+            {isSelf && selfInitials ? selfInitials : getInitialsFromId(userId)}
           </AvatarFallback>
         </Avatar>
       </TooltipTrigger>
@@ -43,6 +45,15 @@ export function MemberAvatar({
 export function MemberIdLabel({ userId }: { userId: string }) {
   const { userId: currentUserId } = useAuth();
   const isSelf = currentUserId === userId;
+  const { label } = useSelfIdentity({ enabled: isSelf });
+
+  if (isSelf && label) {
+    return (
+      <span className="text-sm text-foreground">
+        {label} <span className="text-xs text-muted-foreground">(você)</span>
+      </span>
+    );
+  }
 
   return (
     <span className="font-mono text-xs text-muted-foreground">
