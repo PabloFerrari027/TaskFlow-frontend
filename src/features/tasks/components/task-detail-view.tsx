@@ -52,6 +52,18 @@ export function TaskDetailView({
 
   const task = taskQuery.data;
 
+  const subtasksAndAttachments = (
+    <>
+      <Card className="p-5">
+        <SubtaskList projectId={projectId} parentTaskId={task.id} sectionId={task.sectionId} />
+      </Card>
+
+      <Card className="p-5">
+        <AttachmentsSection taskId={task.id} attachments={task.attachments} />
+      </Card>
+    </>
+  );
+
   return (
     <div className="space-y-6">
       <div className={cn("gap-6", layout === "grid" ? "grid lg:grid-cols-3" : "flex flex-col")}>
@@ -68,13 +80,7 @@ export function TaskDetailView({
             </p>
           </Card>
 
-          <Card className="p-5">
-            <SubtaskList projectId={projectId} parentTaskId={task.id} sectionId={task.sectionId} />
-          </Card>
-
-          <Card className="p-5">
-            <AttachmentsSection taskId={task.id} attachments={task.attachments} />
-          </Card>
+          {layout === "grid" ? subtasksAndAttachments : null}
         </div>
 
         <div className="space-y-6">
@@ -159,6 +165,10 @@ export function TaskDetailView({
             <TaskCustomFieldValuesEditor projectId={projectId} taskId={task.id} />
           </Card>
         </div>
+
+        {/* Stacked layout has no side column, so these follow all the task
+            info above instead of sitting between the description and it. */}
+        {layout === "stacked" ? <div className="space-y-6">{subtasksAndAttachments}</div> : null}
       </div>
 
       {/* Always the last sections on the page, regardless of `layout` — a

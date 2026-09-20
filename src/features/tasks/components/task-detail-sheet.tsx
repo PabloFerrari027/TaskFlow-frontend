@@ -14,7 +14,7 @@ export function TaskDetailSheet({ projectId }: { projectId: string }) {
 
   return (
     <Sheet open={Boolean(openTaskId)} onOpenChange={(open) => !open && closeTask()}>
-      <SheetContent className="w-full gap-0 overflow-y-auto sm:max-w-2xl">
+      <SheetContent className="gap-0 overflow-y-auto data-[side=right]:w-full data-[side=right]:sm:max-w-4xl">
         {openTaskId ? (
           <>
             <SheetHeader className="flex-row items-center justify-between gap-2 pr-12">
