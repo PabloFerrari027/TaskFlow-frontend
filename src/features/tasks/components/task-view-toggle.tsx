@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutGrid, List } from "lucide-react";
+import { LayoutGrid, Table2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { TaskViewMode } from "@/features/tasks/hooks/use-task-view-mode";
 
@@ -19,21 +19,21 @@ export function TaskViewToggle({
     >
       <Button
         type="button"
-        variant={value === "line" ? "secondary" : "ghost"}
-        size="sm"
-        aria-pressed={value === "line"}
-        onClick={() => onChange("line")}
-      >
-        <List /> Compacto
-      </Button>
-      <Button
-        type="button"
         variant={value === "card" ? "secondary" : "ghost"}
         size="sm"
         aria-pressed={value === "card"}
         onClick={() => onChange("card")}
       >
-        <LayoutGrid /> Detalhado
+        <LayoutGrid /> Cards
+      </Button>
+      <Button
+        type="button"
+        variant={value === "table" ? "secondary" : "ghost"}
+        size="sm"
+        aria-pressed={value === "table"}
+        onClick={() => onChange("table")}
+      >
+        <Table2 /> Linhas
       </Button>
     </div>
   );

@@ -1,42 +1,25 @@
 "use client";
 
-import * as React from "react";
 import {
   ChevronLeft,
   ChevronRight,
   FolderInput,
   ListTree,
+  MoreHorizontal,
   Pencil,
   Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-function ActionButton({
-  label,
-  onClick,
-  disabled,
-  children,
-}: {
-  label: string;
-  onClick: () => void;
-  disabled?: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button variant="ghost" size="icon-xs" aria-label={label} disabled={disabled} onClick={onClick}>
-          {children}
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>{label}</TooltipContent>
-    </Tooltip>
-  );
-}
-
-// Column actions laid out side by side. Every icon has a text label, shown as
-// a tooltip on hover/focus, so nothing is left for the user to guess.
+// Column actions tucked into a single "more" menu so the column header stays
+// clean. Every item has a text label, so nothing is left for the user to guess.
 export function SectionActionsBar({
   onRename,
   onCreateSubsection,
@@ -59,39 +42,42 @@ export function SectionActionsBar({
   const hasReorder = Boolean(onMoveLeft || onMoveRight);
 
   return (
-    <div className="flex shrink-0 items-center">
-      {hasReorder ? (
-        <>
-          <ActionButton
-            label="Mover para a esquerda"
-            disabled={!onMoveLeft}
-            onClick={() => onMoveLeft?.()}
-          >
-            <ChevronLeft />
-          </ActionButton>
-          <ActionButton
-            label="Mover para a direita"
-            disabled={!onMoveRight}
-            onClick={() => onMoveRight?.()}
-          >
-            <ChevronRight />
-          </ActionButton>
-        </>
-      ) : null}
-      <ActionButton label="Renomear coluna" onClick={onRename}>
-        <Pencil />
-      </ActionButton>
-      <ActionButton label="Criar subcoluna" onClick={onCreateSubsection}>
-        <ListTree />
-      </ActionButton>
-      <ActionButton label="Colocar dentro de outra coluna" onClick={onMove}>
-        <FolderInput />
-      </ActionButton>
-      {onDelete ? (
-        <ActionButton label="Apagar coluna" onClick={onDelete}>
-          <Trash2 className="text-destructive" />
-        </ActionButton>
-      ) : null}
-    </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon-xs" aria-label="Ações da coluna">
+          <MoreHorizontal />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuItem onSelect={onRename}>
+          <Pencil /> Renomear coluna
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={onCreateSubsection}>
+          <ListTree /> Criar subcoluna
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={onMove}>
+          <FolderInput /> Colocar dentro de outra coluna
+        </DropdownMenuItem>
+        {hasReorder ? (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem disabled={!onMoveLeft} onSelect={() => onMoveLeft?.()}>
+              <ChevronLeft /> Mover para a esquerda
+            </DropdownMenuItem>
+            <DropdownMenuItem disabled={!onMoveRight} onSelect={() => onMoveRight?.()}>
+              <ChevronRight /> Mover para a direita
+            </DropdownMenuItem>
+          </>
+        ) : null}
+        {onDelete ? (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem variant="destructive" onSelect={onDelete}>
+              <Trash2 /> Apagar coluna
+            </DropdownMenuItem>
+          </>
+        ) : null}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

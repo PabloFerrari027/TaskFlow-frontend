@@ -9,8 +9,10 @@ import { RoleGate } from "@/components/shared/role-gate";
 import { useSectionsQuery } from "@/features/sections/hooks/use-sections";
 import { SectionFormDialog } from "@/features/sections/components/section-form-dialog";
 import { SectionColumn } from "@/features/tasks/components/section-column";
+import { TaskFiltersBar } from "@/features/tasks/components/task-filters-bar";
 import { TaskFormDialog } from "@/features/tasks/components/task-form-dialog";
 import { TaskViewToggle } from "@/features/tasks/components/task-view-toggle";
+import { useTaskFilters } from "@/features/tasks/hooks/use-task-filters";
 import { useTaskViewMode } from "@/features/tasks/hooks/use-task-view-mode";
 
 export function TaskBoard({
@@ -24,6 +26,7 @@ export function TaskBoard({
   const [createSectionOpen, setCreateSectionOpen] = React.useState(false);
   const [createTaskSectionId, setCreateTaskSectionId] = React.useState<string | null>(null);
   const { viewMode, setViewMode } = useTaskViewMode();
+  const { filters, patchFilters, resetFilters, activeCount } = useTaskFilters();
 
   const sections = React.useMemo(() => sectionsQuery.data ?? [], [sectionsQuery.data]);
   // Only root sections are board columns; sub-sections live inside their
@@ -58,6 +61,14 @@ export function TaskBoard({
         <TaskViewToggle value={viewMode} onChange={setViewMode} />
       </div>
 
+      <TaskFiltersBar
+        projectId={projectId}
+        filters={filters}
+        onChange={patchFilters}
+        onReset={resetFilters}
+        activeCount={activeCount}
+      />
+
       {sectionsQuery.isLoading ? (
         <div className="flex gap-4">
           {Array.from({ length: 3 }).map((_, i) => (
@@ -79,6 +90,7 @@ export function TaskBoard({
               canManage={canManage}
               viewMode={viewMode}
               onAddTask={setCreateTaskSectionId}
+              filters={filters}
               expandHref={`/projects/${projectId}/sections/${section.id}`}
             />
           ))}

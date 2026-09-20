@@ -2,20 +2,24 @@
 
 import * as React from "react";
 
-export type TaskViewMode = "line" | "card";
+// Every task list offers the same two views: one detailed card per task, or
+// one spreadsheet-style row per task ("table").
+export type TaskViewMode = "card" | "table";
 
 const STORAGE_KEY = "taskflow.taskViewMode";
 
 // Purely a per-browser display preference — persisted to localStorage,
 // never synced with the server or other viewers.
 export function useTaskViewMode() {
-  const [viewMode, setViewModeState] = React.useState<TaskViewMode>("line");
+  const [viewMode, setViewModeState] = React.useState<TaskViewMode>("card");
 
   React.useEffect(() => {
     Promise.resolve().then(() => {
       try {
         const stored = window.localStorage.getItem(STORAGE_KEY);
-        if (stored === "line" || stored === "card") setViewModeState(stored);
+        if (stored === "card" || stored === "table") {
+          setViewModeState(stored);
+        }
       } catch {
         // ignore unavailable storage
       }
