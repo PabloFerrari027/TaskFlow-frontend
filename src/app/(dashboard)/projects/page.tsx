@@ -12,12 +12,33 @@ import { useAuth } from "@/lib/auth/auth-context";
 import { canManageWorkspace } from "@/lib/permissions";
 import { useProjectsQuery } from "@/features/projects/hooks/use-projects";
 import { ProjectTree } from "@/features/projects/components/project-tree";
+import { ProjectTable } from "@/features/projects/components/project-table";
+import { ProjectViewToggle } from "@/features/projects/components/project-view-toggle";
 import { ProjectGridSkeleton } from "@/features/projects/components/project-grid-skeleton";
 import { CreateProjectDialog } from "@/features/projects/components/create-project-dialog";
+import {
+  useProjectViewMode,
+  type ProjectViewMode,
+} from "@/features/projects/hooks/use-project-view-mode";
+import type { Project } from "@/types/project";
+
+function ProjectList({
+  viewMode,
+  ...props
+}: {
+  viewMode: ProjectViewMode;
+  projects: Project[];
+  allProjects: Project[];
+  workspaceId: string;
+  canManage: boolean;
+}) {
+  return viewMode === "table" ? <ProjectTable {...props} /> : <ProjectTree {...props} />;
+}
 
 export default function ProjectsPage() {
   const { workspace, workspaceId, isLoading: workspaceLoading } = useCurrentWorkspace();
   const { userId } = useAuth();
+  const { viewMode, setViewMode } = useProjectViewMode();
   const [createOpen, setCreateOpen] = React.useState(false);
   const projectsQuery = useProjectsQuery(workspaceId);
 
@@ -67,12 +88,15 @@ export default function ProjectsPage() {
           </p>
         ) : null}
         <Tabs defaultValue="active">
-          <TabsList>
-            <TabsTrigger value="active">Ativos ({activeProjects.length})</TabsTrigger>
-            <TabsTrigger value="archived">
-              Arquivados ({archivedProjects.length})
-            </TabsTrigger>
-          </TabsList>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <TabsList>
+              <TabsTrigger value="active">Ativos ({activeProjects.length})</TabsTrigger>
+              <TabsTrigger value="archived">
+                Arquivados ({archivedProjects.length})
+              </TabsTrigger>
+            </TabsList>
+            <ProjectViewToggle value={viewMode} onChange={setViewMode} />
+          </div>
 
           <TabsContent value="active" className="pt-4">
             {activeProjects.length === 0 ? (
@@ -81,11 +105,12 @@ export default function ProjectsPage() {
                 title="Nenhum projeto ativo"
               />
             ) : (
-              <ProjectTree
+              <ProjectList
                 projects={activeProjects}
                 allProjects={projects}
                 workspaceId={workspaceId as string}
                 canManage={canManage}
+                viewMode={viewMode}
               />
             )}
           </TabsContent>
@@ -97,11 +122,12 @@ export default function ProjectsPage() {
                 title="Nenhum projeto arquivado"
               />
             ) : (
-              <ProjectTree
+              <ProjectList
                 projects={archivedProjects}
                 allProjects={projects}
                 workspaceId={workspaceId as string}
                 canManage={canManage}
+                viewMode={viewMode}
               />
             )}
           </TabsContent>
