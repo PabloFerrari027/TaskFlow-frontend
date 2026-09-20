@@ -5,6 +5,7 @@ export interface Comment {
   parentId: string | null;
   authorId: string;
   content: string;
+  mentionedUserIds: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -12,4 +13,5 @@ export interface Comment {
 export interface CreateCommentRequest {
   content: string;
   parentId?: string;
+  mentionedUserIds?: string[];
 }

@@ -88,12 +88,24 @@ export function useUpdateTaskMutation(taskId: string) {
     mutationFn: (payload: UpdateTaskRequest) => {
       const current = queryClient.getQueryData<Task>(queryKeys.tasks.detail(taskId));
       if (isOffline() && workspaceId && current) {
+        // `/sync/push` payloads don't carry mentions (REST-only, API.md § 9) —
+        // queueing them would drop them silently while the optimistic copy
+        // showed them as saved, so they're left out and the user is told.
+        const { mentionedUserIds, ...syncable } = payload;
+        const currentMentions = current.mentionedUserIds ?? [];
+        if (
+          mentionedUserIds &&
+          (mentionedUserIds.length !== currentMentions.length ||
+            mentionedUserIds.some((id) => !currentMentions.includes(id)))
+        ) {
+          toast.warning("Menções só podem ser alteradas online — o restante da edição foi salvo.");
+        }
         return Promise.resolve(
           queueEntityUpdate({
             workspaceId,
             entityType: "TASK",
             entityId: taskId,
-            payload: payload as Record<string, unknown>,
+            payload: syncable as Record<string, unknown>,
             current,
             meta: { projectId: current.projectId },
           })

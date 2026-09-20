@@ -29,6 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { MentionPicker } from "@/components/shared/mention-picker";
 import { AssigneeSelect } from "@/features/tasks/components/assignee-select";
 import { SectionSelect } from "@/features/tasks/components/section-select";
 import {
@@ -81,6 +82,7 @@ export function TaskFormDialog({
       sectionId: task?.sectionId ?? sectionId ?? defaultSectionId ?? "",
       dueDate: toDateInputValue(task?.dueDate),
       priority: task?.priority ?? undefined,
+      mentionedUserIds: task?.mentionedUserIds ?? [],
     },
   });
 
@@ -101,6 +103,8 @@ export function TaskFormDialog({
           sectionId: values.sectionId,
           dueDate,
           priority: values.priority,
+          // Replaces the task's whole mention set, so sending it every time is safe.
+          mentionedUserIds: values.mentionedUserIds,
         },
         {
           onSuccess: () => {
@@ -122,6 +126,7 @@ export function TaskFormDialog({
           parentTaskId,
           dueDate,
           priority: values.priority,
+          mentionedUserIds: values.mentionedUserIds.length ? values.mentionedUserIds : undefined,
         },
         {
           onSuccess: () => {
@@ -164,7 +169,7 @@ export function TaskFormDialog({
                 <FormItem>
                   <FormLabel>Título</FormLabel>
                   <FormControl>
-                    <Input placeholder="Corrigir bug de login" autoFocus {...field} />
+                    <Input placeholder="Ex.: Enviar proposta ao cliente" autoFocus {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -180,6 +185,27 @@ export function TaskFormDialog({
                   <FormControl>
                     <Textarea rows={3} {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="mentionedUserIds"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Menções (opcional)</FormLabel>
+                  <FormControl>
+                    <MentionPicker
+                      projectId={projectId}
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
+                  </FormControl>
+                  <p className="text-xs text-muted-foreground">
+                    Quem for mencionado recebe um aviso por e-mail.
+                  </p>
                   <FormMessage />
                 </FormItem>
               )}

@@ -4,6 +4,7 @@ import { Reply, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { MemberAvatar, MemberIdLabel } from "@/components/shared/member-avatar";
+import { MentionedUsers } from "@/components/shared/mention-picker";
 import { formatRelativeTime } from "@/lib/format";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useProjectPermission } from "@/features/projects/hooks/use-project-permission";
@@ -69,6 +70,7 @@ export function CommentItem({ comment, projectId, hasReplies, onReply }: Comment
           </div>
         </div>
         <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">{comment.content}</p>
+        <MentionedUsers userIds={comment.mentionedUserIds ?? []} className="mt-2" />
       </div>
     </div>
   );

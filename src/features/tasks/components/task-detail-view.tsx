@@ -1,8 +1,5 @@
 "use client";
 
-import * as React from "react";
-import { Pencil } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
@@ -13,7 +10,11 @@ import { TaskStatusSelect } from "@/features/tasks/components/task-status-select
 import { TaskSectionSelect } from "@/features/tasks/components/task-section-select";
 import { TaskPrioritySelect } from "@/features/tasks/components/task-priority-select";
 import { TaskDueDateInput } from "@/features/tasks/components/task-due-date-input";
-import { TaskFormDialog } from "@/features/tasks/components/task-form-dialog";
+import { TaskAssigneeSelect } from "@/features/tasks/components/task-assignee-select";
+import {
+  TaskDescriptionField,
+  TaskTitleField,
+} from "@/features/tasks/components/task-inline-text-fields";
 import { SubtaskList } from "@/features/tasks/components/subtask-list";
 import { AttachmentsSection } from "@/features/tasks/components/attachments-section";
 import { ParticipantsSection } from "@/features/tasks/components/participants-section";
@@ -34,7 +35,6 @@ export function TaskDetailView({
   taskId: string;
   layout?: "grid" | "stacked";
 }) {
-  const [editOpen, setEditOpen] = React.useState(false);
   const taskQuery = useTaskQuery(taskId);
 
   if (taskQuery.isLoading) {
@@ -69,15 +69,14 @@ export function TaskDetailView({
       <div className={cn("gap-6", layout === "grid" ? "grid lg:grid-cols-3" : "flex flex-col")}>
         <div className={cn("space-y-6", layout === "grid" ? "lg:col-span-2" : "")}>
           <Card className="p-5">
-            <div className="flex items-start justify-between gap-3">
-              <h1 className="text-xl font-semibold text-foreground">{task.title}</h1>
-              <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
-                <Pencil /> Editar
-              </Button>
-            </div>
-            <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">
-              {task.description || "Sem descrição"}
-            </p>
+            {/* Both fields save on blur — no separate edit mode. */}
+            <TaskTitleField taskId={task.id} title={task.title} />
+            <TaskDescriptionField
+              projectId={projectId}
+              taskId={task.id}
+              description={task.description}
+              mentionedUserIds={task.mentionedUserIds ?? []}
+            />
           </Card>
 
           {layout === "grid" ? subtasksAndAttachments : null}
@@ -101,14 +100,11 @@ export function TaskDetailView({
 
             <div className="space-y-1.5">
               <p className="text-xs font-medium text-muted-foreground uppercase">Responsável</p>
-              {task.assigneeId ? (
-                <div className="flex items-center gap-2">
-                  <MemberAvatar userId={task.assigneeId} />
-                  <MemberIdLabel userId={task.assigneeId} />
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">Sem responsável</p>
-              )}
+              <TaskAssigneeSelect
+                projectId={projectId}
+                taskId={task.id}
+                assigneeId={task.assigneeId}
+              />
             </div>
 
             <Separator />
@@ -177,19 +173,12 @@ export function TaskDetailView({
       <Card className="space-y-3 p-5">
         <h3 className="text-sm font-medium text-foreground">Comentários</h3>
         <CommentList taskId={task.id} projectId={projectId} />
-        <CommentComposer taskId={task.id} />
+        <CommentComposer taskId={task.id} projectId={projectId} />
       </Card>
 
       <Card className="p-5">
         <TaskActivitySection taskId={task.id} />
       </Card>
-
-      <TaskFormDialog
-        projectId={projectId}
-        task={task}
-        open={editOpen}
-        onOpenChange={setEditOpen}
-      />
     </div>
   );
 }
