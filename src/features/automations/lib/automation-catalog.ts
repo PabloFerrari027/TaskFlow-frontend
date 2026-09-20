@@ -108,11 +108,11 @@ export const TRIGGER_EVENTS: TriggerEventSpec[] = [
   {
     entityType: "TASK",
     eventType: "tasks.task_parent_changed",
-    phrase: "mudar de tarefa pai",
+    phrase: "virar subtarefa de outra tarefa",
     fields: [
       PROJECT_ID,
-      f("fromParentId", "tarefa pai anterior", "a", "text"),
-      f("toParentId", "nova tarefa pai", "a", "text"),
+      f("fromParentId", "tarefa principal anterior", "a", "text"),
+      f("toParentId", "nova tarefa principal", "a", "text"),
     ],
     taskIdField: "entityId",
   },
@@ -190,11 +190,11 @@ export const TRIGGER_EVENTS: TriggerEventSpec[] = [
   {
     entityType: "SECTION",
     eventType: "sections.section_parent_changed",
-    phrase: "mudar de seção pai",
+    phrase: "virar subseção de outra seção",
     fields: [
       PROJECT_ID,
-      f("fromParentId", "seção pai anterior", "a", "section"),
-      f("toParentId", "nova seção pai", "a", "section"),
+      f("fromParentId", "seção principal anterior", "a", "section"),
+      f("toParentId", "nova seção principal", "a", "section"),
     ],
     taskIdField: null,
   },
@@ -223,10 +223,10 @@ export const TRIGGER_EVENTS: TriggerEventSpec[] = [
   {
     entityType: "PROJECT",
     eventType: "projects.project_parent_changed",
-    phrase: "mudar de projeto pai",
+    phrase: "virar subprojeto de outro projeto",
     fields: [
-      f("fromParentId", "projeto pai anterior", "o", "project"),
-      f("toParentId", "novo projeto pai", "o", "project"),
+      f("fromParentId", "projeto principal anterior", "o", "project"),
+      f("toParentId", "novo projeto principal", "o", "project"),
     ],
     taskIdField: null,
   },
@@ -328,7 +328,7 @@ export function payloadFieldsOf(event: TriggerEventSpec | undefined): PayloadFie
 export const OPERATOR_LABEL: Record<AnalyticsOperator, string> = {
   equals: "for",
   notEquals: "não for",
-  in: "for um destes",
+  in: "for um destes:",
   greaterThan: "for maior que",
   lessThan: "for menor que",
   between: "estiver entre",

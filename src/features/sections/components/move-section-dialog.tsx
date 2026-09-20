@@ -27,8 +27,8 @@ export function MoveSectionDialog({
       open={open}
       onOpenChange={onOpenChange}
       title={`Mover “${section.name}”`}
-      description="Escolha a coluna pai, ou o nível raiz para torná-la uma coluna do quadro."
-      rootLabel="Nível raiz (coluna do quadro)"
+      description="Escolha dentro de qual coluna ela ficará, ou deixe como coluna principal do quadro."
+      rootLabel="Coluna principal do quadro"
       items={sections}
       movingId={section.id}
       currentParentId={section.parentId}

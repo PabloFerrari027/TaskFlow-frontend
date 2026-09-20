@@ -2,7 +2,7 @@ import { Flag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatDueDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import type { ProjectStatus } from "@/types/project";
+import type { ProjectRole, ProjectStatus } from "@/types/project";
 import type { TaskPriority, TaskStatus } from "@/types/task";
 import type { WorkspaceRole } from "@/types/workspace";
 import type { InvitationStatus } from "@/types/common";
@@ -99,6 +99,11 @@ export function WorkspaceRoleBadge({ role }: { role: WorkspaceRole }) {
     </Badge>
   );
 }
+
+export const PROJECT_ROLE_LABEL: Record<ProjectRole, string> = {
+  MEMBER: "Membro",
+  GUEST: "Convidado",
+};
 
 const INVITATION_STATUS_LABEL: Record<InvitationStatus, string> = {
   PENDING: "Pendente",

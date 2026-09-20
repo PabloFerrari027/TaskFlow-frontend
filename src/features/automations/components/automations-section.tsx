@@ -68,13 +68,22 @@ export function AutomationsSection({ workspaceId }: { workspaceId: string }) {
         gallery
       ) : (
         <>
-          <div className="flex flex-wrap justify-end gap-2">
-            <Button variant="outline" size="sm" onClick={() => setShowGallery((shown) => !shown)}>
-              <Sparkles /> Nova a partir de um template
-            </Button>
-            <Button size="sm" onClick={() => openDialog(null, null)}>
-              <Plus /> Nova automação
-            </Button>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="max-w-xl space-y-0.5">
+              <h3 className="text-base font-semibold text-foreground">Automações</h3>
+              <p className="text-sm text-muted-foreground">
+                Tarefas repetitivas feitas sozinhas: quando algo acontece, o TaskFlow faz o resto.
+                Use o botão ao lado de cada uma para pausar ou voltar a ligar.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" onClick={() => setShowGallery((shown) => !shown)}>
+                <Sparkles /> {showGallery ? "Esconder modelos" : "Ver modelos prontos"}
+              </Button>
+              <Button size="sm" onClick={() => openDialog(null, null)}>
+                <Plus /> Criar automação
+              </Button>
+            </div>
           </div>
           {showGallery ? gallery : null}
           <AutomationRuleList

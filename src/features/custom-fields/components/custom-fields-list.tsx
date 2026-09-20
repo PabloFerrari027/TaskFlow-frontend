@@ -54,8 +54,8 @@ export function CustomFieldsList({
       ) : !fieldsQuery.data || fieldsQuery.data.length === 0 ? (
         <EmptyState
           icon={<SlidersHorizontal className="size-6" />}
-          title="Nenhum campo personalizado"
-          description="Crie campos como Prioridade ou Sprint para adaptar este projeto às suas necessidades."
+          title="Nenhum campo extra criado"
+          description="Crie campos como Cliente ou Valor para guardar mais informações em cada tarefa."
           action={
             <RoleGate allowed={canManage}>
               <Button onClick={() => setCreateOpen(true)}>
@@ -88,6 +88,8 @@ export function CustomFieldsList({
                     <Button
                       variant="ghost"
                       size="icon-sm"
+                      aria-label="Editar opções"
+                      title="Editar opções"
                       onClick={() => setEditingField(definition)}
                     >
                       <Pencil />
@@ -95,7 +97,7 @@ export function CustomFieldsList({
                   ) : null}
                   <ConfirmDialog
                     trigger={
-                      <Button variant="ghost" size="icon-sm">
+                      <Button variant="ghost" size="icon-sm" aria-label="Arquivar campo" title="Arquivar campo">
                         <Archive className="text-destructive" />
                       </Button>
                     }

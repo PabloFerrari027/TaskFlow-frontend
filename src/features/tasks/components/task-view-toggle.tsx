@@ -12,26 +12,28 @@ export function TaskViewToggle({
   onChange: (mode: TaskViewMode) => void;
 }) {
   return (
-    <div className="flex items-center gap-0.5 rounded-md border border-border/60 p-0.5">
+    <div
+      role="group"
+      aria-label="Modo de visualização das tarefas"
+      className="flex items-center gap-0.5 rounded-md border border-border/60 p-0.5"
+    >
       <Button
         type="button"
         variant={value === "line" ? "secondary" : "ghost"}
-        size="icon-sm"
-        aria-label="Ver em linha"
+        size="sm"
         aria-pressed={value === "line"}
         onClick={() => onChange("line")}
       >
-        <List />
+        <List /> Compacto
       </Button>
       <Button
         type="button"
         variant={value === "card" ? "secondary" : "ghost"}
-        size="icon-sm"
-        aria-label="Ver em cards"
+        size="sm"
         aria-pressed={value === "card"}
         onClick={() => onChange("card")}
       >
-        <LayoutGrid />
+        <LayoutGrid /> Detalhado
       </Button>
     </div>
   );
