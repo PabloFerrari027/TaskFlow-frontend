@@ -2,17 +2,18 @@
 
 import * as React from "react";
 import { toast } from "sonner";
+import Link from "next/link";
 import {
+  ArrowLeft,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
   GripVertical,
   ListChecks,
-  Pencil,
+  ListTree,
+  Maximize2,
   Plus,
-  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -25,7 +26,7 @@ import { useDeleteSectionMutation, useUpdateSectionMutation } from "@/features/s
 import { useSectionDropTarget } from "@/features/sections/hooks/use-section-drop-target";
 import { useSectionColumnWidth } from "@/features/tasks/hooks/use-section-column-width";
 import { SectionFormDialog } from "@/features/sections/components/section-form-dialog";
-import { SectionActionsMenu } from "@/features/sections/components/section-actions-menu";
+import { SectionActionsBar } from "@/features/sections/components/section-actions-bar";
 import { MoveSectionDialog } from "@/features/sections/components/move-section-dialog";
 import { TaskLineItem } from "@/features/tasks/components/task-line-item";
 import { TaskCardItem } from "@/features/tasks/components/task-card-item";
@@ -39,7 +40,6 @@ import type { Section } from "@/types/section";
 // className logic below), so if this floor were lower than what a view
 // actually needs, dragging a column narrow would clip its own content.
 const MIN_COLUMN_WIDTH: Record<TaskViewMode, number> = { line: 288, card: 320 };
-const MAX_COLUMN_WIDTH = 560;
 
 // Each section's root element carries `data-section-drop`. Nested sections
 // render inside their parent's DOM, so drag events bubble to the parent too —
@@ -61,6 +61,12 @@ interface SectionColumnProps {
   canManage: boolean;
   viewMode: TaskViewMode;
   onAddTask: (sectionId: string) => void;
+  // `expanded` is the dedicated column page: the column fills the whole page
+  // and lays its tasks out in a grid. `expandHref` is where the header's
+  // expand control leads — the column's own page from the board, or back to the
+  // project board when already `expanded`. Omit it to hide the control.
+  expanded?: boolean;
+  expandHref?: string;
 }
 
 export function SectionColumn({
@@ -73,6 +79,8 @@ export function SectionColumn({
   canManage,
   viewMode,
   onAddTask,
+  expanded = false,
+  expandHref,
 }: SectionColumnProps) {
   const isNested = variant === "nested";
   const [page, setPage] = React.useState(1);
@@ -83,13 +91,19 @@ export function SectionColumn({
   const [renameOpen, setRenameOpen] = React.useState(false);
   const [subsectionOpen, setSubsectionOpen] = React.useState(false);
   const [moveOpen, setMoveOpen] = React.useState(false);
+  const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [isDropTarget, setIsDropTarget] = React.useState(false);
   // Accordion state: whether this section's own body is open (nested only) and
   // whether its sub-sections are shown (any section that has some).
   const [bodyOpen, setBodyOpen] = React.useState(true);
-  const [subsectionsOpen, setSubsectionsOpen] = React.useState(false);
+  // Sub-columns start visible: hidden behind a toggle, people never discover them.
+  const [subsectionsOpen, setSubsectionsOpen] = React.useState(() =>
+    allSections.some((candidate) => candidate.parentId === section.id)
+  );
   const [width, setWidth] = useSectionColumnWidth(section.id);
   const columnRef = React.useRef<HTMLDivElement>(null);
+  // A width saved under another view mode may be below this mode's minimum.
+  const effectiveWidth = width ? Math.max(width, MIN_COLUMN_WIDTH[viewMode]) : null;
 
   const childSections = React.useMemo(
     () => allSections.filter((candidate) => candidate.parentId === section.id),
@@ -126,7 +140,7 @@ export function SectionColumn({
     const fromParentId = allSections.find((s) => s.id === fromSectionId)?.parentId ?? null;
     if (fromParentId !== section.parentId) {
       toast.info(
-        "Nesta versão, tarefas só podem ser movidas entre seções do mesmo nível. Use o seletor de seção na própria tarefa para mover entre níveis."
+        "Arrastar só funciona entre colunas do mesmo nível. Para mover entre uma coluna e uma subcoluna, abra a tarefa e troque a coluna nela."
       );
       return;
     }
@@ -202,6 +216,12 @@ export function SectionColumn({
     const minWidth = MIN_COLUMN_WIDTH[viewMode];
     const startX = e.clientX;
     const startWidth = columnRef.current?.getBoundingClientRect().width ?? minWidth;
+    // An auto-sized (`flex-1`) column fills the board, so its starting width
+    // can be anything up to the board's width. A fixed cap below that would
+    // make the column jump the moment the drag starts and block widening it
+    // back — the board's own width (never below the start width) is the limit.
+    const boardWidth = columnRef.current?.parentElement?.clientWidth ?? startWidth;
+    const maxWidth = Math.max(boardWidth, startWidth, minWidth);
     document.body.style.cursor = "col-resize";
     document.body.style.userSelect = "none";
     // Pointer capture keeps every move/up event routed to this handle even
@@ -212,10 +232,10 @@ export function SectionColumn({
 
     function onPointerMove(moveEvent: PointerEvent) {
       const next = Math.min(
-        MAX_COLUMN_WIDTH,
+        maxWidth,
         Math.max(minWidth, startWidth + (moveEvent.clientX - startX))
       );
-      setWidth(next);
+      setWidth(Math.round(next));
     }
     function end() {
       document.body.style.cursor = "";
@@ -229,18 +249,7 @@ export function SectionColumn({
     handle.addEventListener("pointercancel", end);
   }
 
-  const subsectionsToggle =
-    childSections.length > 0 ? (
-      <Button
-        variant="ghost"
-        size="xs"
-        aria-expanded={subsectionsOpen}
-        onClick={() => setSubsectionsOpen((open) => !open)}
-      >
-        <ChevronDown className={cn("transition-transform", !subsectionsOpen && "-rotate-90")} />
-        {`+${childSections.length} ${childSections.length === 1 ? "subseção" : "subseções"}`}
-      </Button>
-    ) : null;
+  const hasChildren = childSections.length > 0;
 
   return (
     <div
@@ -249,12 +258,18 @@ export function SectionColumn({
       onDragOver={handleColumnDragOver}
       onDragLeave={handleColumnDragLeave}
       onDrop={handleColumnDrop}
-      style={!isNested && width ? { flex: `0 0 ${width}px` } : undefined}
+      style={
+        !isNested && !expanded && effectiveWidth ? { flex: `0 0 ${effectiveWidth}px` } : undefined
+      }
       className={cn(
         "relative flex flex-col rounded-lg border border-border/60 transition-colors",
         isNested ? "bg-background" : "bg-muted/20",
         !isNested &&
-          (width ? "shrink-0" : cn("flex-1", viewMode === "card" ? "min-w-80" : "min-w-72")),
+          (expanded
+            ? "w-full min-w-0 flex-1"
+            : effectiveWidth
+              ? "shrink-0"
+              : cn("flex-1", viewMode === "card" ? "min-w-80" : "min-w-72")),
         isDropTarget ? "border-primary bg-primary/5" : "",
         sectionDrop.dropEdge === "left" && "shadow-[inset_2px_0_0_0_var(--primary)]",
         sectionDrop.dropEdge === "right" && "shadow-[inset_-2px_0_0_0_var(--primary)]"
@@ -268,16 +283,28 @@ export function SectionColumn({
       >
         <div className="flex min-w-0 items-center gap-2">
           {isNested ? (
-            <Button
-              variant="ghost"
-              size="icon-xs"
+            // The whole title is the toggle, not just the small chevron.
+            <button
+              type="button"
               aria-expanded={bodyOpen}
-              aria-label={bodyOpen ? "Recolher subseção" : "Expandir subseção"}
+              aria-label={`${bodyOpen ? "Recolher" : "Expandir"} a subcoluna ${section.name}`}
               onClick={() => setBodyOpen((open) => !open)}
+              className="flex min-w-0 cursor-pointer items-center gap-2 rounded-sm text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <ChevronDown className={cn("transition-transform", !bodyOpen && "-rotate-90")} />
-            </Button>
-          ) : (
+              <ChevronDown
+                className={cn(
+                  "size-4 shrink-0 text-muted-foreground transition-transform",
+                  !bodyOpen && "-rotate-90"
+                )}
+              />
+              <span className="truncate text-sm font-semibold text-foreground">
+                {section.name}
+              </span>
+              {tasksQuery.data ? (
+                <Badge variant="secondary">{tasksQuery.data.meta.total}</Badge>
+              ) : null}
+            </button>
+          ) : expanded ? null : (
             <RoleGate allowed={canManage}>
               <span
                 draggable
@@ -287,7 +314,7 @@ export function SectionColumn({
                     JSON.stringify({ sectionId: section.id })
                   );
                   e.dataTransfer.effectAllowed = "move";
-                  setLiftedDragImage(e);
+                  setLiftedDragImage(e, columnRef.current);
                 }}
                 title="Arraste para reordenar a coluna"
                 className="shrink-0 cursor-grab text-muted-foreground active:cursor-grabbing"
@@ -296,92 +323,107 @@ export function SectionColumn({
               </span>
             </RoleGate>
           )}
-          <span className="truncate text-sm font-semibold text-foreground">{section.name}</span>
-          {tasksQuery.data ? (
-            <Badge variant="secondary">{tasksQuery.data.meta.total}</Badge>
+          {!isNested ? (
+            <>
+              <span className="truncate text-sm font-semibold text-foreground">
+                {section.name}
+              </span>
+              {tasksQuery.data ? (
+                <Badge variant="secondary">{tasksQuery.data.meta.total}</Badge>
+              ) : null}
+            </>
           ) : null}
         </div>
-        <RoleGate allowed={canManage}>
-          <div className="flex shrink-0 items-center gap-0.5">
-            {!isNested ? (
-              <>
-                <Button
-                  variant="ghost"
-                  size="icon-xs"
-                  disabled={index === 0 || moveMutation.isPending}
-                  onClick={() =>
-                    moveMutation.mutate({
-                      sectionId: section.id,
-                      payload: { position: section.position - 1 },
-                    })
-                  }
-                >
-                  <ChevronLeft />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon-xs"
-                  disabled={index === count - 1 || moveMutation.isPending}
-                  onClick={() =>
-                    moveMutation.mutate({
-                      sectionId: section.id,
-                      payload: { position: section.position + 1 },
-                    })
-                  }
-                >
-                  <ChevronRight />
-                </Button>
-              </>
-            ) : null}
-            <Button variant="ghost" size="icon-xs" onClick={() => setRenameOpen(true)}>
-              <Pencil />
-            </Button>
-            <SectionActionsMenu
-              sectionName={section.name}
+        <div className="flex shrink-0 items-center">
+          {!isNested && expandHref ? (
+            expanded ? (
+              <Button variant="ghost" size="xs" asChild>
+                <Link href={expandHref}>
+                  <ArrowLeft /> Voltar ao projeto
+                </Link>
+              </Button>
+            ) : (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon-xs" asChild>
+                    <Link href={expandHref} aria-label="Abrir coluna em página própria">
+                      <Maximize2 />
+                    </Link>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Abrir coluna em página própria</TooltipContent>
+              </Tooltip>
+            )
+          ) : null}
+          <RoleGate allowed={canManage}>
+            <SectionActionsBar
+              onRename={() => setRenameOpen(true)}
               onCreateSubsection={() => setSubsectionOpen(true)}
               onMove={() => setMoveOpen(true)}
+              // Reordering is for board columns only; nested ones omit the props
+              // so the arrows aren't rendered at all.
+              {...(!isNested && {
+                onMoveLeft:
+                  index > 0 && !moveMutation.isPending
+                    ? () =>
+                        moveMutation.mutate({
+                          sectionId: section.id,
+                          payload: { position: section.position - 1 },
+                        })
+                    : null,
+                onMoveRight:
+                  index < count - 1 && !moveMutation.isPending
+                    ? () =>
+                        moveMutation.mutate({
+                          sectionId: section.id,
+                          payload: { position: section.position + 1 },
+                        })
+                    : null,
+              })}
+              onDelete={!section.isDefault ? () => setDeleteOpen(true) : null}
             />
-            {!section.isDefault ? (
-              <ConfirmDialog
-                trigger={
-                  <Button variant="ghost" size="icon-xs">
-                    <Trash2 className="text-destructive" />
-                  </Button>
-                }
-                title="Apagar coluna"
-                description="A coluna só pode ser apagada se estiver vazia. Mova ou apague as tarefas e as subseções primeiro."
-                confirmLabel="Apagar"
-                isLoading={deleteMutation.isPending}
-                onConfirm={() => deleteMutation.mutate(section.id)}
-              />
-            ) : null}
-          </div>
-        </RoleGate>
+          </RoleGate>
+        </div>
       </div>
 
       {!isNested || bodyOpen ? (
         <>
-          {subsectionsToggle ? (
-            <div className="flex items-center gap-1.5 border-b border-border/60 px-2 py-1">
-              {subsectionsToggle}
-              <Badge variant="outline">Protótipo</Badge>
-            </div>
+          {/* With sub-columns present, say which tasks belong to this level. */}
+          {hasChildren ? (
+            <p className="px-3 pt-2 text-xs font-medium text-muted-foreground">
+              Tarefas desta coluna
+            </p>
           ) : null}
 
-          <div className="flex-1 space-y-2 p-2">
+          {/* Expanded, the column is wide: lay tasks out in a grid instead of one long stack. */}
+          <div
+            className={cn(
+              "flex-1 p-2",
+              expanded ? "grid content-start gap-2 sm:grid-cols-2 xl:grid-cols-3" : "space-y-2"
+            )}
+          >
             {tasksQuery.isLoading ? (
-              <div className="space-y-2">
+              <div className="col-span-full space-y-2">
                 {Array.from({ length: 2 }).map((_, i) => (
                   <Skeleton key={i} className="h-16 w-full" />
                 ))}
               </div>
             ) : tasksQuery.isError ? (
-              <ErrorState error={tasksQuery.error} onRetry={() => tasksQuery.refetch()} />
+              <div className="col-span-full">
+                <ErrorState error={tasksQuery.error} onRetry={() => tasksQuery.refetch()} />
+              </div>
             ) : tasks.length === 0 ? (
               <EmptyState
-                className="py-8"
+                className="col-span-full py-8"
                 icon={<ListChecks className="size-5" />}
-                title="Nenhuma tarefa"
+                title="Nenhuma tarefa aqui ainda"
+                description={
+                  canManage
+                    ? expanded
+                      ? "Use “Nova tarefa” abaixo para adicionar a primeira."
+                      : "Use “Nova tarefa” abaixo ou arraste uma tarefa de outra coluna para cá."
+                    : undefined
+                }
               />
             ) : (
               tasks.map((task) =>
@@ -404,35 +446,66 @@ export function SectionColumn({
             </div>
           ) : null}
 
-          {subsectionsOpen && childSections.length > 0 ? (
-            <div className="space-y-2 border-t border-border/60 p-2">
-              {childSections.map((child) => (
-                <SectionColumn
-                  key={child.id}
-                  projectId={projectId}
-                  section={child}
-                  allSections={allSections}
-                  variant="nested"
-                  canManage={canManage}
-                  viewMode={viewMode}
-                  onAddTask={onAddTask}
-                />
-              ))}
-            </div>
-          ) : null}
-
           <RoleGate allowed={canManage}>
-            <div className="border-t border-border/60 p-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full justify-start"
-                onClick={() => onAddTask(section.id)}
-              >
+            <div className="flex flex-wrap items-center gap-1 border-t border-border/60 p-2">
+              <Button variant="ghost" size="sm" onClick={() => onAddTask(section.id)}>
                 <Plus /> Nova tarefa
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => setSubsectionOpen(true)}>
+                <ListTree /> Nova subcoluna
               </Button>
             </div>
           </RoleGate>
+
+          {hasChildren ? (
+            <div className="border-t border-border/60">
+              <button
+                type="button"
+                aria-expanded={subsectionsOpen}
+                onClick={() => setSubsectionsOpen((open) => !open)}
+                className="flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm font-medium text-foreground outline-none hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+              >
+                <ListTree className="size-4 shrink-0 text-muted-foreground" />
+                <span className="min-w-0 flex-1 truncate">
+                  {childSections.length === 1
+                    ? "1 subcoluna"
+                    : `${childSections.length} subcolunas`}
+                </span>
+                <span className="shrink-0 text-xs font-normal text-muted-foreground">
+                  {subsectionsOpen ? "Ocultar" : "Mostrar"}
+                </span>
+                <ChevronDown
+                  className={cn(
+                    "size-4 shrink-0 text-muted-foreground transition-transform",
+                    !subsectionsOpen && "-rotate-90"
+                  )}
+                />
+              </button>
+
+              {subsectionsOpen ? (
+                <div className="px-2 pb-2">
+                  <p className="px-1 pb-2 text-xs text-muted-foreground">
+                    Dividem as tarefas de “{section.name}” em grupos menores.
+                  </p>
+                  {/* The accent line ties the sub-columns to this column. */}
+                  <div className="ml-1 space-y-2 border-l-2 border-primary/30 pl-2">
+                    {childSections.map((child) => (
+                      <SectionColumn
+                        key={child.id}
+                        projectId={projectId}
+                        section={child}
+                        allSections={allSections}
+                        variant="nested"
+                        canManage={canManage}
+                        viewMode={viewMode}
+                        onAddTask={onAddTask}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
         </>
       ) : null}
 
@@ -451,6 +524,16 @@ export function SectionColumn({
           if (!open) setSubsectionsOpen(true);
         }}
       />
+      <ConfirmDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        trigger={<span className="hidden" />}
+        title={`Apagar a coluna “${section.name}”?`}
+        description="A coluna só pode ser apagada se estiver vazia. Mova ou apague as tarefas e as subcolunas primeiro."
+        confirmLabel="Apagar coluna"
+        isLoading={deleteMutation.isPending}
+        onConfirm={() => deleteMutation.mutate(section.id)}
+      />
       {moveOpen ? (
         <MoveSectionDialog
           projectId={projectId}
@@ -461,7 +544,7 @@ export function SectionColumn({
         />
       ) : null}
 
-      {!isNested ? (
+      {!isNested && !expanded ? (
         <div
           role="separator"
           aria-orientation="vertical"

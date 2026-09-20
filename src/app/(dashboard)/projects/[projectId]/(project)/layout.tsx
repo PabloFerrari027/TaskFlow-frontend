@@ -10,7 +10,6 @@ import { ErrorState } from "@/components/shared/error-state";
 import { RoleGate } from "@/components/shared/role-gate";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { ProjectStatusBadge } from "@/components/shared/status-badge";
-import { MemberAvatar, MemberIdLabel } from "@/components/shared/member-avatar";
 import { ProjectTabsNav } from "@/features/projects/components/project-tabs-nav";
 import { EditProjectDialog } from "@/features/projects/components/edit-project-dialog";
 import { CreateProjectDialog } from "@/features/projects/components/create-project-dialog";
@@ -23,6 +22,7 @@ import {
   useProjectsQuery,
 } from "@/features/projects/hooks/use-projects";
 import { useProjectPermission } from "@/features/projects/hooks/use-project-permission";
+import { useAuth } from "@/lib/auth/auth-context";
 
 export default function ProjectDetailLayout(
   props: LayoutProps<"/projects/[projectId]">
@@ -31,7 +31,9 @@ export default function ProjectDetailLayout(
   const [editOpen, setEditOpen] = React.useState(false);
   const [subprojectOpen, setSubprojectOpen] = React.useState(false);
   const [moveOpen, setMoveOpen] = React.useState(false);
+  const [archiveOpen, setArchiveOpen] = React.useState(false);
 
+  const { userId } = useAuth();
   const projectQuery = useProjectQuery(projectId);
   const { canManage } = useProjectPermission(projectId);
   const archiveMutation = useArchiveProjectMutation(projectId);
@@ -66,40 +68,40 @@ export default function ProjectDetailLayout(
             <ProjectStatusBadge status={project.status} />
             <RoleGate allowed={canManage}>
               <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
-                <Pencil /> Editar
+                <Pencil /> Editar nome e descrição
               </Button>
               {project.status === "ACTIVE" ? (
                 <Button variant="outline" size="sm" onClick={() => setSubprojectOpen(true)}>
-                  <FolderPlus /> Sub-projeto
+                  <FolderPlus /> Criar sub-projeto
                 </Button>
               ) : null}
               <Button variant="outline" size="sm" onClick={() => setMoveOpen(true)}>
-                <FolderInput /> Mover
+                <FolderInput /> Mover para outro projeto
               </Button>
               {project.status === "ACTIVE" ? (
-                <ConfirmDialog
-                  trigger={
-                    <Button variant="outline" size="sm">
-                      <Archive /> Arquivar
-                    </Button>
-                  }
-                  title="Arquivar projeto"
-                  description="O projeto será marcado como arquivado. Não é possível excluir projetos, apenas arquivá-los."
-                  confirmLabel="Arquivar"
-                  isLoading={archiveMutation.isPending}
-                  onConfirm={() => archiveMutation.mutate()}
-                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-destructive hover:text-destructive"
+                  onClick={() => setArchiveOpen(true)}
+                >
+                  <Archive /> Arquivar projeto
+                </Button>
               ) : null}
             </RoleGate>
           </div>
         }
       />
 
-      {project.createdBy ? (
-        <div className="-mt-4 flex items-center gap-1.5 text-xs text-muted-foreground">
-          Criado por <MemberAvatar userId={project.createdBy} className="size-5" />
-          <MemberIdLabel userId={project.createdBy} />
+      {project.status === "ARCHIVED" ? (
+        <div className="-mt-2 flex items-center gap-2 rounded-lg border border-border/60 bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+          <Archive className="size-4 shrink-0" aria-hidden />
+          Este projeto está arquivado: ele fica guardado apenas para consulta.
         </div>
+      ) : null}
+
+      {project.createdBy === userId ? (
+        <p className="-mt-4 text-xs text-muted-foreground">Criado por você</p>
       ) : null}
 
       <ProjectTabsNav projectId={project.id} />
@@ -112,6 +114,16 @@ export default function ProjectDetailLayout(
         parent={project}
         open={subprojectOpen}
         onOpenChange={setSubprojectOpen}
+      />
+      <ConfirmDialog
+        open={archiveOpen}
+        onOpenChange={setArchiveOpen}
+        trigger={<span className="hidden" />}
+        title="Arquivar este projeto?"
+        description="O projeto fica guardado apenas para consulta. Projetos não podem ser excluídos, somente arquivados."
+        confirmLabel="Arquivar projeto"
+        isLoading={archiveMutation.isPending}
+        onConfirm={() => archiveMutation.mutate()}
       />
       {moveOpen ? (
         <MoveProjectDialog

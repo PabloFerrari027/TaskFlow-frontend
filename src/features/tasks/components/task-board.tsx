@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Plus } from "lucide-react";
+import { Columns3, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/shared/error-state";
@@ -33,16 +33,29 @@ export function TaskBoard({
     const ids = new Set(sections.map((section) => section.id));
     return sections.filter((section) => !section.parentId || !ids.has(section.parentId));
   }, [sections]);
+  // "Nova tarefa" in the toolbar drops into the project's default column, or
+  // the first one when none is flagged as default.
+  const firstSectionId = (rootSections.find((s) => s.isDefault) ?? rootSections[0])?.id;
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-2">
-        <TaskViewToggle value={viewMode} onChange={setViewMode} />
-        <RoleGate allowed={canManage}>
-          <Button size="sm" variant="outline" onClick={() => setCreateSectionOpen(true)}>
-            <Plus /> Nova coluna
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Quick-add: the per-column button can sit far below a long list. */}
+          <Button
+            size="sm"
+            disabled={!firstSectionId}
+            onClick={() => firstSectionId && setCreateTaskSectionId(firstSectionId)}
+          >
+            <Plus /> Nova tarefa
           </Button>
-        </RoleGate>
+          <RoleGate allowed={canManage}>
+            <Button size="sm" variant="outline" onClick={() => setCreateSectionOpen(true)}>
+              <Columns3 /> Adicionar coluna
+            </Button>
+          </RoleGate>
+        </div>
+        <TaskViewToggle value={viewMode} onChange={setViewMode} />
       </div>
 
       {sectionsQuery.isLoading ? (
@@ -66,6 +79,7 @@ export function TaskBoard({
               canManage={canManage}
               viewMode={viewMode}
               onAddTask={setCreateTaskSectionId}
+              expandHref={`/projects/${projectId}/sections/${section.id}`}
             />
           ))}
         </div>

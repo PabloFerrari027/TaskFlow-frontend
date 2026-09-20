@@ -20,11 +20,15 @@ export default function ProjectInvitationsPage(
       <RoleGate allowed={canManage}>
         <div className="flex justify-end">
           <Button size="sm" onClick={() => setInviteOpen(true)}>
-            <UserPlus /> Convidar
+            <UserPlus /> Convidar pessoa
           </Button>
         </div>
       </RoleGate>
-      <ProjectInvitationsTable projectId={projectId} canManage={canManage} />
+      <ProjectInvitationsTable
+        projectId={projectId}
+        canManage={canManage}
+        onInvite={() => setInviteOpen(true)}
+      />
       <InviteProjectMemberDialog
         projectId={projectId}
         open={inviteOpen}

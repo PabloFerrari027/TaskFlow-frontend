@@ -7,37 +7,72 @@ import type { DragEvent } from "react";
 export const TASK_DRAG_MIME = "application/x-taskflow-task";
 export const SECTION_DRAG_MIME = "application/x-taskflow-section";
 
-// Native HTML5 drag-and-drop auto-generates a drag image at ~50% opacity
-// whenever `setDragImage` is never called. To make the dragged card feel like
-// it's actually being lifted off the list (full opacity, slight tilt + shadow)
-// instead of a faded/plain copy, we apply that "lifted" look directly to the
-// source element — the same node already on screen, guaranteed to be
-// correctly painted — right before calling `setDragImage`, which makes the
-// browser snapshot it as-is. An off-screen clone was tried first but browsers
-// frequently snapshot elements positioned outside the viewport as blank, so
-// the style is applied to the real element instead and reverted a frame later
-// once the snapshot has already been taken.
-export function setLiftedDragImage(event: DragEvent<HTMLElement>) {
+// Native HTML5 drag-and-drop paints its drag image semi-transparent — browsers
+// (Chromium in particular) fade it regardless of what is passed to
+// `setDragImage`, and it can't be styled. To get a fully opaque item that
+// floats above everything else until it's dropped, the native image is
+// replaced by an invisible one and a real clone of the element is attached to
+// `document.body` (fixed position, top z-index) and moved along with the
+// cursor. The clone is removed as soon as the drag ends or the item is dropped.
+//
+// `target` is the element to lift; it defaults to the dragged element itself,
+// but a drag handle (e.g. a column's grip) passes the whole column instead.
+export function setLiftedDragImage(event: DragEvent<HTMLElement>, target?: HTMLElement | null) {
   const source = event.currentTarget;
-  const rect = source.getBoundingClientRect();
+  const lifted = target ?? source;
+  const rect = lifted.getBoundingClientRect();
+  const offsetX = event.clientX - rect.left;
+  const offsetY = event.clientY - rect.top;
 
-  const prevTransform = source.style.transform;
-  const prevBoxShadow = source.style.boxShadow;
-  const prevZIndex = source.style.zIndex;
+  const blank = document.createElement("div");
+  blank.style.cssText = "position:fixed;top:-100px;left:-100px;width:1px;height:1px;opacity:0";
+  document.body.appendChild(blank);
+  event.dataTransfer.setDragImage(blank, 0, 0);
+  // The browser snapshots the image after `dragstart` returns, so the
+  // placeholder can only be removed once that has happened.
+  setTimeout(() => blank.remove(), 0);
 
-  source.style.transform = "rotate(2deg) scale(1.03)";
-  source.style.boxShadow = "0 12px 20px -6px rgb(0 0 0 / 0.25), 0 6px 8px -4px rgb(0 0 0 / 0.2)";
-  source.style.zIndex = "50";
+  const ghost = lifted.cloneNode(true) as HTMLElement;
+  ghost.removeAttribute("draggable");
+  ghost.removeAttribute("id");
+  ghost.style.cssText = [
+    "position:fixed",
+    `left:${event.clientX - offsetX}px`,
+    `top:${event.clientY - offsetY}px`,
+    `width:${rect.width}px`,
+    `height:${rect.height}px`,
+    "margin:0",
+    "opacity:1",
+    "pointer-events:none",
+    "z-index:2147483647",
+    "transform:rotate(2deg) scale(1.03)",
+    "transform-origin:center",
+    "box-shadow:0 12px 20px -6px rgb(0 0 0 / 0.25), 0 6px 8px -4px rgb(0 0 0 / 0.2)",
+    "transition:none",
+  ].join(";");
+  ghost.setAttribute("aria-hidden", "true");
+  document.body.appendChild(ghost);
 
-  event.dataTransfer.setDragImage(source, event.clientX - rect.left, event.clientY - rect.top);
+  // `dragover` (unlike `drag`) reports real coordinates in every browser and
+  // bubbles from wherever the cursor is, so one document-level listener is
+  // enough to keep the clone under the cursor.
+  function move(e: globalThis.DragEvent) {
+    ghost.style.left = `${e.clientX - offsetX}px`;
+    ghost.style.top = `${e.clientY - offsetY}px`;
+  }
 
-  // Chromium captures the drag image snapshot asynchronously after dragstart
-  // returns (not synchronously when `setDragImage` is called), so reverting
-  // via `requestAnimationFrame` races it and can revert before the snapshot
-  // is taken. `setTimeout` runs strictly later, after that capture is done.
-  setTimeout(() => {
-    source.style.transform = prevTransform;
-    source.style.boxShadow = prevBoxShadow;
-    source.style.zIndex = prevZIndex;
-  }, 0);
+  function cleanup() {
+    ghost.remove();
+    document.removeEventListener("dragover", move, true);
+    document.removeEventListener("drop", cleanup, true);
+    document.removeEventListener("dragend", cleanup, true);
+    source.removeEventListener("dragend", cleanup);
+  }
+
+  document.addEventListener("dragover", move, true);
+  // The source can unmount mid-drag (a dropped task moves to another column),
+  // in which case its own `dragend` never fires — `drop` covers that path.
+  document.addEventListener("drop", cleanup, true);
+  document.addEventListener("dragend", cleanup, true);
+  source.addEventListener("dragend", cleanup);
 }
