@@ -11,7 +11,10 @@ import { ErrorState } from "@/components/shared/error-state";
 import { useSectionsQuery } from "@/features/sections/hooks/use-sections";
 import { SectionColumn } from "@/features/tasks/components/section-column";
 import { TaskDetailSheet } from "@/features/tasks/components/task-detail-sheet";
+import { TaskFiltersBar } from "@/features/tasks/components/task-filters-bar";
 import { TaskFormDialog } from "@/features/tasks/components/task-form-dialog";
+import { TaskViewToggle } from "@/features/tasks/components/task-view-toggle";
+import { useTaskFilters } from "@/features/tasks/hooks/use-task-filters";
 import { useTaskViewMode } from "@/features/tasks/hooks/use-task-view-mode";
 
 // A single column on its own page. This route sits outside the project
@@ -22,7 +25,8 @@ export default function SectionPage(
 ) {
   const { projectId, sectionId } = use(props.params);
   const sectionsQuery = useSectionsQuery(projectId);
-  const { viewMode } = useTaskViewMode();
+  const { viewMode, setViewMode } = useTaskViewMode();
+  const { filters, patchFilters, resetFilters, activeCount } = useTaskFilters();
   const [createTaskSectionId, setCreateTaskSectionId] = React.useState<string | null>(null);
 
   const sections = sectionsQuery.data ?? [];
@@ -52,18 +56,31 @@ export default function SectionPage(
     );
   } else {
     content = (
-      <div className="flex min-h-[calc(100vh-8rem)]">
-        <SectionColumn
-          projectId={projectId}
-          section={section}
-          allSections={sections}
-          // Same as the board, which doesn't gate column/task actions by role.
-          canManage
-          viewMode={viewMode}
-          onAddTask={setCreateTaskSectionId}
-          expanded
-          expandHref={backHref}
-        />
+      <div className="space-y-3">
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <TaskFiltersBar
+            projectId={projectId}
+            filters={filters}
+            onChange={patchFilters}
+            onReset={resetFilters}
+            activeCount={activeCount}
+          />
+          <TaskViewToggle value={viewMode} onChange={setViewMode} />
+        </div>
+        <div className="flex min-h-[calc(100vh-11rem)]">
+          <SectionColumn
+            projectId={projectId}
+            section={section}
+            allSections={sections}
+            // Same as the board, which doesn't gate column/task actions by role.
+            canManage
+            viewMode={viewMode}
+            onAddTask={setCreateTaskSectionId}
+            filters={filters}
+            expanded
+            expandHref={backHref}
+          />
+        </div>
       </div>
     );
   }

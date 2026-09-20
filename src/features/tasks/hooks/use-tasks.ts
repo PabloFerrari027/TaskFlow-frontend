@@ -1,6 +1,12 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient, type QueryKey } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type QueryClient,
+  type QueryKey,
+} from "@tanstack/react-query";
 import { toast } from "sonner";
 import { tasksService } from "@/features/tasks/api/tasks-service";
 import { queryKeys } from "@/lib/query-keys";
@@ -25,6 +31,47 @@ function withCountAdjusted(result: PaginatedResult<Task>, delta: number): Pagina
       totalPages: Math.max(1, Math.ceil(total / result.meta.limit)),
     },
   };
+}
+
+/** Options shared by the mutations that the spreadsheet-style table drives. */
+interface TaskMutationOptions {
+  /**
+   * Inline edits in the table save cell by cell, so a success toast and a full
+   * refetch per cell would be noise: `silent` skips the toast and patches the
+   * task in place in every cached list instead. Errors still toast.
+   */
+  silent?: boolean;
+}
+
+const LIST_CACHE_PREFIXES = [queryKeys.tasks.bySectionAll(), queryKeys.tasks.byProjectAll()];
+
+function patchTaskInLists(queryClient: QueryClient, task: Task) {
+  for (const queryKey of LIST_CACHE_PREFIXES) {
+    queryClient.setQueriesData<PaginatedResult<Task>>({ queryKey }, (data) =>
+      data && Array.isArray(data.data)
+        ? { ...data, data: data.data.map((t) => (t.id === task.id ? task : t)) }
+        : data
+    );
+  }
+  // The lists above are already correct; this only makes caches nobody is
+  // looking at right now refetch the next time they're mounted.
+  queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all(task.projectId), refetchType: "none" });
+  queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll(), refetchType: "none" });
+}
+
+// The detail cache is only filled once a task is opened, but the mutations need
+// the current copy (version, assignee) for offline queueing and to clear an
+// assignee — so fall back to the copy sitting in a cached list.
+function findCachedTask(queryClient: QueryClient, taskId: string): Task | undefined {
+  const detail = queryClient.getQueryData<Task>(queryKeys.tasks.detail(taskId));
+  if (detail) return detail;
+  for (const queryKey of LIST_CACHE_PREFIXES) {
+    for (const [, data] of queryClient.getQueriesData<PaginatedResult<Task>>({ queryKey })) {
+      const found = Array.isArray(data?.data) ? data.data.find((t) => t.id === taskId) : undefined;
+      if (found) return found;
+    }
+  }
+  return undefined;
 }
 
 // Task lists can realistically grow large, so this is genuinely paged.
@@ -61,7 +108,10 @@ export function useTasksBySectionQuery(sectionId: string, page = 1) {
   });
 }
 
-export function useCreateTaskMutation(projectId: string) {
+export function useCreateTaskMutation(
+  projectId: string,
+  { silent = false }: TaskMutationOptions = {}
+) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -74,19 +124,22 @@ export function useCreateTaskMutation(projectId: string) {
           queryKey: queryKeys.tasks.subtasks(task.parentTaskId),
         });
       }
-      toast.success("Tarefa criada.");
+      if (!silent) toast.success("Tarefa criada.");
     },
     onError: (error) => toast.error(getErrorMessage(error)),
   });
 }
 
-export function useUpdateTaskMutation(taskId: string) {
+export function useUpdateTaskMutation(
+  taskId: string,
+  { silent = false }: TaskMutationOptions = {}
+) {
   const queryClient = useQueryClient();
   const { workspaceId } = useCurrentWorkspace();
 
   return useMutation({
     mutationFn: (payload: UpdateTaskRequest) => {
-      const current = queryClient.getQueryData<Task>(queryKeys.tasks.detail(taskId));
+      const current = findCachedTask(queryClient, taskId);
       if (isOffline() && workspaceId && current) {
         // `/sync/push` payloads don't carry mentions (REST-only, API.md § 9) —
         // queueing them would drop them silently while the optimistic copy
@@ -115,6 +168,10 @@ export function useUpdateTaskMutation(taskId: string) {
     },
     onSuccess: (task) => {
       queryClient.setQueryData(queryKeys.tasks.detail(taskId), task);
+      if (silent) {
+        patchTaskInLists(queryClient, task);
+        return;
+      }
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all(task.projectId) });
       // `sectionId` may have changed, moving the task between columns —
       // invalidate every column since we don't track the previous one here.
@@ -137,13 +194,16 @@ export function useUpdateTaskMutation(taskId: string) {
  * queued when offline, pushed immediately (still bypassing REST) when
  * online — instead of `tasksService.update`.
  */
-export function useUnassignTaskMutation(taskId: string) {
+export function useUnassignTaskMutation(
+  taskId: string,
+  { silent = false }: TaskMutationOptions = {}
+) {
   const queryClient = useQueryClient();
   const { workspaceId } = useCurrentWorkspace();
 
   return useMutation({
     mutationFn: async () => {
-      const current = queryClient.getQueryData<Task>(queryKeys.tasks.detail(taskId));
+      const current = findCachedTask(queryClient, taskId);
       if (!workspaceId || !current) {
         throw new Error("Não foi possível remover o responsável: dados da tarefa indisponíveis.");
       }
@@ -181,6 +241,7 @@ export function useUnassignTaskMutation(taskId: string) {
       if (!applied) return;
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all(projectId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll() });
+      if (silent) return;
       toast.success(
         queuedOffline
           ? "Alteração salva offline — será sincronizada quando a conexão voltar."
@@ -293,13 +354,16 @@ export function useMoveTaskToSectionMutation() {
   });
 }
 
-export function useChangeTaskStatusMutation(taskId: string) {
+export function useChangeTaskStatusMutation(
+  taskId: string,
+  { silent = false }: TaskMutationOptions = {}
+) {
   const queryClient = useQueryClient();
   const { workspaceId } = useCurrentWorkspace();
 
   return useMutation({
     mutationFn: (payload: ChangeTaskStatusRequest) => {
-      const current = queryClient.getQueryData<Task>(queryKeys.tasks.detail(taskId));
+      const current = findCachedTask(queryClient, taskId);
       if (isOffline() && workspaceId && current) {
         return Promise.resolve(
           queueEntityUpdate({
@@ -316,13 +380,17 @@ export function useChangeTaskStatusMutation(taskId: string) {
     },
     onSuccess: (task) => {
       queryClient.setQueryData(queryKeys.tasks.detail(taskId), task);
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all(task.projectId) });
       if (task.parentTaskId) {
         queryClient.invalidateQueries({
           queryKey: queryKeys.tasks.subtasks(task.parentTaskId),
         });
       }
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.subtasks(task.id) });
+      if (silent) {
+        patchTaskInLists(queryClient, task);
+        return;
+      }
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all(task.projectId) });
       toast.success(
         isOffline()
           ? "Status salvo offline — será sincronizado quando a conexão voltar."

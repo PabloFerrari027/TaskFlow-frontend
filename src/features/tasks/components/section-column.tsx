@@ -3,15 +3,7 @@
 import * as React from "react";
 import { toast } from "sonner";
 import Link from "next/link";
-import {
-  ArrowLeft,
-  ChevronDown,
-  GripVertical,
-  ListChecks,
-  ListTree,
-  Maximize2,
-  Plus,
-} from "lucide-react";
+import { ArrowLeft, ChevronDown, GripVertical, ListChecks, Maximize2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
@@ -28,9 +20,15 @@ import { useSectionColumnWidth } from "@/features/tasks/hooks/use-section-column
 import { SectionFormDialog } from "@/features/sections/components/section-form-dialog";
 import { SectionActionsBar } from "@/features/sections/components/section-actions-bar";
 import { MoveSectionDialog } from "@/features/sections/components/move-section-dialog";
-import { TaskLineItem } from "@/features/tasks/components/task-line-item";
 import { TaskCardItem } from "@/features/tasks/components/task-card-item";
+import { TaskTable } from "@/features/tasks/components/task-table";
 import type { TaskViewMode } from "@/features/tasks/hooks/use-task-view-mode";
+import {
+  applyTaskFilters,
+  countActiveFilters,
+  EMPTY_TASK_FILTERS,
+  type TaskFilters,
+} from "@/features/tasks/lib/task-filters";
 import { setLiftedDragImage, TASK_DRAG_MIME, SECTION_DRAG_MIME } from "@/lib/dnd";
 import { cn } from "@/lib/utils";
 import type { Section } from "@/types/section";
@@ -39,7 +37,7 @@ import type { Section } from "@/types/section";
 // manually resized column skips those Tailwind classes entirely (see the
 // className logic below), so if this floor were lower than what a view
 // actually needs, dragging a column narrow would clip its own content.
-const MIN_COLUMN_WIDTH: Record<TaskViewMode, number> = { line: 288, card: 320 };
+const MIN_COLUMN_WIDTH: Record<TaskViewMode, number> = { card: 320, table: 320 };
 
 // Each section's root element carries `data-section-drop`. Nested sections
 // render inside their parent's DOM, so drag events bubble to the parent too —
@@ -67,6 +65,9 @@ interface SectionColumnProps {
   // project board when already `expanded`. Omit it to hide the control.
   expanded?: boolean;
   expandHref?: string;
+  // Narrows the tasks shown in this column (and its sub-columns). The API
+  // can't filter, so this only applies to the page of tasks currently loaded.
+  filters?: TaskFilters;
 }
 
 export function SectionColumn({
@@ -81,6 +82,7 @@ export function SectionColumn({
   onAddTask,
   expanded = false,
   expandHref,
+  filters = EMPTY_TASK_FILTERS,
 }: SectionColumnProps) {
   const isNested = variant === "nested";
   const [page, setPage] = React.useState(1);
@@ -93,13 +95,9 @@ export function SectionColumn({
   const [moveOpen, setMoveOpen] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [isDropTarget, setIsDropTarget] = React.useState(false);
-  // Accordion state: whether this section's own body is open (nested only) and
-  // whether its sub-sections are shown (any section that has some).
+  // Whether a sub-column's own body is open (nested only). Sub-columns always
+  // start visible: hidden behind a toggle, people never discover them.
   const [bodyOpen, setBodyOpen] = React.useState(true);
-  // Sub-columns start visible: hidden behind a toggle, people never discover them.
-  const [subsectionsOpen, setSubsectionsOpen] = React.useState(() =>
-    allSections.some((candidate) => candidate.parentId === section.id)
-  );
   const [width, setWidth] = useSectionColumnWidth(section.id);
   const columnRef = React.useRef<HTMLDivElement>(null);
   // A width saved under another view mode may be below this mode's minimum.
@@ -114,9 +112,15 @@ export function SectionColumn({
     moveMutation.mutate({ sectionId, payload: { position: targetPosition } })
   );
 
-  const tasks = tasksQuery.data?.data ?? [];
+  const loadedTasks = React.useMemo(() => tasksQuery.data?.data ?? [], [tasksQuery.data]);
+  const tasks = React.useMemo(() => applyTaskFilters(loadedTasks, filters), [loadedTasks, filters]);
+  const isFiltering = countActiveFilters(filters) > 0;
+  const hiddenByFilters = loadedTasks.length - tasks.length;
+  const emptyMessage = isFiltering && loadedTasks.length > 0
+    ? "Nenhuma tarefa corresponde aos filtros."
+    : undefined;
 
-  // Dropping directly on a task (see `TaskCardItem`/`TaskLineItem`) inserts
+  // Dropping directly on a task (see `TaskCardItem`) inserts
   // above/below that specific task via its own `position`. Dropping anywhere
   // else in the column (empty space, gaps between items) appends to the end
   // of this section's full list — `meta.total` is the true end regardless of
@@ -250,6 +254,19 @@ export function SectionColumn({
   }
 
   const hasChildren = childSections.length > 0;
+  // With sub-columns below, an empty direct list would only add a big
+  // "no tasks" block above them — the sub-columns speak for themselves.
+  const hideTaskList =
+    hasChildren &&
+    viewMode !== "table" &&
+    !tasksQuery.isLoading &&
+    !tasksQuery.isError &&
+    !emptyMessage &&
+    tasks.length === 0;
+  // Header controls appear on hover/focus (or while their menu is open), and
+  // stay visible on touch screens where there is no hover.
+  const revealOnHover =
+    "transition-opacity opacity-0 group-hover/header:opacity-100 group-focus-within/header:opacity-100 has-[[data-state=open]]:opacity-100 [@media(hover:none)]:opacity-100";
 
   return (
     <div
@@ -262,23 +279,27 @@ export function SectionColumn({
         !isNested && !expanded && effectiveWidth ? { flex: `0 0 ${effectiveWidth}px` } : undefined
       }
       className={cn(
-        "relative flex flex-col rounded-lg border border-border/60 transition-colors",
-        isNested ? "bg-background" : "bg-muted/20",
+        "relative flex flex-col transition-colors",
+        // Sub-columns are plain groups inside their parent — no box of their own.
+        isNested
+          ? "rounded-md"
+          : "rounded-lg border border-border/60 bg-muted/20",
         !isNested &&
           (expanded
             ? "w-full min-w-0 flex-1"
             : effectiveWidth
               ? "shrink-0"
-              : cn("flex-1", viewMode === "card" ? "min-w-80" : "min-w-72")),
-        isDropTarget ? "border-primary bg-primary/5" : "",
+              : "flex-1 min-w-80"),
+        isDropTarget && (isNested ? "bg-primary/5 ring-1 ring-primary/50" : "border-primary bg-primary/5"),
         sectionDrop.dropEdge === "left" && "shadow-[inset_2px_0_0_0_var(--primary)]",
         sectionDrop.dropEdge === "right" && "shadow-[inset_-2px_0_0_0_var(--primary)]"
       )}
     >
       <div
         className={cn(
-          "flex items-center justify-between gap-2 px-3 py-2",
-          (!isNested || bodyOpen) && "border-b border-border/60"
+          "group/header flex items-center justify-between gap-2",
+          isNested ? "px-1 py-1" : "px-3 py-2",
+          !isNested && "border-b border-border/60"
         )}
       >
         <div className="flex min-w-0 items-center gap-2">
@@ -317,7 +338,10 @@ export function SectionColumn({
                   setLiftedDragImage(e, columnRef.current);
                 }}
                 title="Arraste para reordenar a coluna"
-                className="shrink-0 cursor-grab text-muted-foreground active:cursor-grabbing"
+                className={cn(
+                  "shrink-0 cursor-grab text-muted-foreground active:cursor-grabbing",
+                  revealOnHover
+                )}
               >
                 <GripVertical className="size-4" />
               </span>
@@ -335,27 +359,27 @@ export function SectionColumn({
           ) : null}
         </div>
         <div className="flex shrink-0 items-center">
-          {!isNested && expandHref ? (
-            expanded ? (
-              <Button variant="ghost" size="xs" asChild>
-                <Link href={expandHref}>
-                  <ArrowLeft /> Voltar ao projeto
-                </Link>
-              </Button>
-            ) : (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon-xs" asChild>
-                    <Link href={expandHref} aria-label="Abrir coluna em página própria">
-                      <Maximize2 />
-                    </Link>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Abrir coluna em página própria</TooltipContent>
-              </Tooltip>
-            )
+          {!isNested && expandHref && expanded ? (
+            <Button variant="ghost" size="xs" asChild>
+              <Link href={expandHref}>
+                <ArrowLeft /> Voltar ao projeto
+              </Link>
+            </Button>
+          ) : null}
+          {!isNested && expandHref && !expanded ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon-xs" className={revealOnHover} asChild>
+                  <Link href={expandHref} aria-label="Abrir coluna em página própria">
+                    <Maximize2 />
+                  </Link>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Abrir coluna em página própria</TooltipContent>
+            </Tooltip>
           ) : null}
           <RoleGate allowed={canManage}>
+            <div className={revealOnHover}>
             <SectionActionsBar
               onRename={() => setRenameOpen(true)}
               onCreateSubsection={() => setSubsectionOpen(true)}
@@ -382,6 +406,7 @@ export function SectionColumn({
               })}
               onDelete={!section.isDefault ? () => setDeleteOpen(true) : null}
             />
+            </div>
           </RoleGate>
         </div>
       </div>
@@ -389,7 +414,7 @@ export function SectionColumn({
       {!isNested || bodyOpen ? (
         <>
           {/* With sub-columns present, say which tasks belong to this level. */}
-          {hasChildren ? (
+          {hasChildren && !hideTaskList ? (
             <p className="px-3 pt-2 text-xs font-medium text-muted-foreground">
               Tarefas desta coluna
             </p>
@@ -398,8 +423,12 @@ export function SectionColumn({
           {/* Expanded, the column is wide: lay tasks out in a grid instead of one long stack. */}
           <div
             className={cn(
-              "flex-1 p-2",
-              expanded ? "grid content-start gap-2 sm:grid-cols-2 xl:grid-cols-3" : "space-y-2"
+              "flex-1",
+              isNested ? "px-1 py-1" : "p-2",
+              expanded && viewMode === "card"
+                ? "grid content-start gap-2 sm:grid-cols-2 xl:grid-cols-3"
+                : "space-y-2",
+              hideTaskList && "hidden"
             )}
           >
             {tasksQuery.isLoading ? (
@@ -412,29 +441,46 @@ export function SectionColumn({
               <div className="col-span-full">
                 <ErrorState error={tasksQuery.error} onRetry={() => tasksQuery.refetch()} />
               </div>
+            ) : viewMode === "table" ? (
+              <TaskTable
+                projectId={projectId}
+                sectionId={section.id}
+                tasks={tasks}
+                canManage={canManage}
+                emptyMessage={emptyMessage}
+              />
             ) : tasks.length === 0 ? (
               <EmptyState
                 className="col-span-full py-8"
                 icon={<ListChecks className="size-5" />}
-                title="Nenhuma tarefa aqui ainda"
+                title={emptyMessage ?? "Nenhuma tarefa aqui ainda"}
                 description={
-                  canManage
-                    ? expanded
-                      ? "Use “Nova tarefa” abaixo para adicionar a primeira."
-                      : "Use “Nova tarefa” abaixo ou arraste uma tarefa de outra coluna para cá."
-                    : undefined
+                  emptyMessage
+                    ? "Mude ou limpe os filtros para ver as tarefas desta coluna."
+                    : canManage
+                      ? expanded
+                        ? "Use “Nova tarefa” abaixo para adicionar a primeira."
+                        : "Use “Nova tarefa” abaixo ou arraste uma tarefa de outra coluna para cá."
+                      : undefined
                 }
               />
             ) : (
-              tasks.map((task) =>
-                viewMode === "card" ? (
-                  <TaskCardItem key={task.id} task={task} onReorder={handleReorder} />
-                ) : (
-                  <TaskLineItem key={task.id} task={task} onReorder={handleReorder} />
-                )
-              )
+              tasks.map((task) => (
+                <TaskCardItem key={task.id} task={task} onReorder={handleReorder} />
+              ))
             )}
           </div>
+
+          {isFiltering && hiddenByFilters > 0 ? (
+            <p className="px-3 pb-2 text-xs text-muted-foreground">
+              {hiddenByFilters === 1
+                ? "1 tarefa escondida pelos filtros"
+                : `${hiddenByFilters} tarefas escondidas pelos filtros`}
+              {tasksQuery.data && tasksQuery.data.meta.totalPages > 1
+                ? " (só as desta página são filtradas)."
+                : "."}
+            </p>
+          ) : null}
 
           {tasksQuery.data ? (
             <div className="px-2 pb-2">
@@ -446,64 +492,37 @@ export function SectionColumn({
             </div>
           ) : null}
 
+          {/* "Nova subcoluna" lives in the "⋯" menu, so the footer is one quiet button. */}
           <RoleGate allowed={canManage}>
-            <div className="flex flex-wrap items-center gap-1 border-t border-border/60 p-2">
-              <Button variant="ghost" size="sm" onClick={() => onAddTask(section.id)}>
+            <div className={cn("pb-1", isNested ? "px-1" : "px-2")}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground"
+                onClick={() => onAddTask(section.id)}
+              >
                 <Plus /> Nova tarefa
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => setSubsectionOpen(true)}>
-                <ListTree /> Nova subcoluna
               </Button>
             </div>
           </RoleGate>
 
           {hasChildren ? (
-            <div className="border-t border-border/60">
-              <button
-                type="button"
-                aria-expanded={subsectionsOpen}
-                onClick={() => setSubsectionsOpen((open) => !open)}
-                className="flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm font-medium text-foreground outline-none hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
-              >
-                <ListTree className="size-4 shrink-0 text-muted-foreground" />
-                <span className="min-w-0 flex-1 truncate">
-                  {childSections.length === 1
-                    ? "1 subcoluna"
-                    : `${childSections.length} subcolunas`}
-                </span>
-                <span className="shrink-0 text-xs font-normal text-muted-foreground">
-                  {subsectionsOpen ? "Ocultar" : "Mostrar"}
-                </span>
-                <ChevronDown
-                  className={cn(
-                    "size-4 shrink-0 text-muted-foreground transition-transform",
-                    !subsectionsOpen && "-rotate-90"
-                  )}
-                />
-              </button>
-
-              {subsectionsOpen ? (
-                <div className="px-2 pb-2">
-                  <p className="px-1 pb-2 text-xs text-muted-foreground">
-                    Dividem as tarefas de “{section.name}” em grupos menores.
-                  </p>
-                  {/* The accent line ties the sub-columns to this column. */}
-                  <div className="ml-1 space-y-2 border-l-2 border-primary/30 pl-2">
-                    {childSections.map((child) => (
-                      <SectionColumn
-                        key={child.id}
-                        projectId={projectId}
-                        section={child}
-                        allSections={allSections}
-                        variant="nested"
-                        canManage={canManage}
-                        viewMode={viewMode}
-                        onAddTask={onAddTask}
-                      />
-                    ))}
-                  </div>
+            // Sub-columns are plain groups split by thin dividers — no boxes.
+            <div className="mx-2 mb-1 divide-y divide-border/60 border-t border-border/60">
+              {childSections.map((child) => (
+                <div key={child.id} className="py-1">
+                  <SectionColumn
+                    projectId={projectId}
+                    section={child}
+                    allSections={allSections}
+                    variant="nested"
+                    canManage={canManage}
+                    viewMode={viewMode}
+                    onAddTask={onAddTask}
+                    filters={filters}
+                  />
                 </div>
-              ) : null}
+              ))}
             </div>
           ) : null}
         </>
@@ -519,10 +538,7 @@ export function SectionColumn({
         projectId={projectId}
         parent={section}
         open={subsectionOpen}
-        onOpenChange={(open) => {
-          setSubsectionOpen(open);
-          if (!open) setSubsectionsOpen(true);
-        }}
+        onOpenChange={setSubsectionOpen}
       />
       <ConfirmDialog
         open={deleteOpen}

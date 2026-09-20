@@ -8,6 +8,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { shortenId } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useAssignableMembers } from "@/features/tasks/hooks/use-assignable-members";
 import { UNASSIGNED_VALUE } from "@/features/tasks/schemas";
@@ -16,10 +17,12 @@ export function AssigneeSelect({
   projectId,
   value,
   onChange,
+  triggerClassName,
 }: {
   projectId: string;
   value: string | undefined;
   onChange: (value: string | undefined) => void;
+  triggerClassName?: string;
 }) {
   const { userId: currentUserId } = useAuth();
   const { userIds } = useAssignableMembers(projectId);
@@ -29,7 +32,7 @@ export function AssigneeSelect({
       value={value ?? UNASSIGNED_VALUE}
       onValueChange={(next) => onChange(next === UNASSIGNED_VALUE ? undefined : next)}
     >
-      <SelectTrigger className="w-full">
+      <SelectTrigger className={cn("w-full", triggerClassName)}>
         <SelectValue />
       </SelectTrigger>
       <SelectContent>

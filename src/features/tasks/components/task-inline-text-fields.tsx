@@ -25,13 +25,15 @@ function useAutoSavedText({
   serverValue,
   field,
   allowEmpty,
+  silent,
 }: {
   taskId: string;
   serverValue: string;
   field: "title" | "description";
   allowEmpty: boolean;
+  silent?: boolean;
 }) {
-  const updateMutation = useUpdateTaskMutation(taskId);
+  const updateMutation = useUpdateTaskMutation(taskId, { silent });
   const [draft, setDraft] = React.useState<string | null>(null);
 
   function commit() {
@@ -80,6 +82,65 @@ export function TaskTitleField({ taskId, title }: { taskId: string; title: strin
       />
       {isSaving ? (
         <Loader2 className="absolute top-1/2 right-2 size-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+      ) : null}
+    </div>
+  );
+}
+
+// Every title input of the table carries this attribute so Enter/arrows can hop
+// between rows like a spreadsheet column.
+const TITLE_CELL_ATTR = "data-task-title-cell";
+
+function focusSiblingTitleCell(input: HTMLInputElement, offset: 1 | -1) {
+  const cells = Array.from(
+    input.closest("table")?.querySelectorAll<HTMLInputElement>(`input[${TITLE_CELL_ATTR}]`) ?? []
+  );
+  cells[cells.indexOf(input) + offset]?.focus();
+}
+
+/**
+ * The title as a table cell. Unlike `TaskTitleField` it stays enabled while
+ * saving (a disabled input drops focus and would break Tab/Enter navigation)
+ * and saves silently — see `useUpdateTaskMutation`'s `silent` option.
+ */
+export function TaskTitleCell({ taskId, title }: { taskId: string; title: string }) {
+  const { value, isSaving, onChange, commit, revert } = useAutoSavedText({
+    taskId,
+    serverValue: title,
+    field: "title",
+    allowEmpty: false,
+    silent: true,
+  });
+
+  return (
+    <div className="relative">
+      <Input
+        {...{ [TITLE_CELL_ATTR]: "" }}
+        aria-label="Título da tarefa"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          const input = e.currentTarget;
+          if (e.key === "Enter") {
+            // Blur first so the draft is committed, then move down a row.
+            input.blur();
+            focusSiblingTitleCell(input, 1);
+          } else if (e.key === "ArrowDown") {
+            e.preventDefault();
+            focusSiblingTitleCell(input, 1);
+          } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            focusSiblingTitleCell(input, -1);
+          } else if (e.key === "Escape") {
+            revert();
+            input.blur();
+          }
+        }}
+        className={cn(INLINE_FIELD_CLASS, "h-8 pr-7 shadow-none")}
+      />
+      {isSaving ? (
+        <Loader2 className="absolute top-1/2 right-2 size-3.5 -translate-y-1/2 animate-spin text-muted-foreground" />
       ) : null}
     </div>
   );
