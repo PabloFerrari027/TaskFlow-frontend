@@ -44,6 +44,12 @@ export function canManageAssistantSettings(role: WorkspaceRole | null | undefine
   return role === "OWNER";
 }
 
+// Every automation-rules endpoint is OWNER/ADMIN only (API.md § 21) — even
+// listing — because a rule runs without anyone confirming it.
+export function canManageAutomations(role: WorkspaceRole | null | undefined) {
+  return canManageWorkspace(role);
+}
+
 // Only an OWNER can grant OWNER to someone else — or demote an existing
 // OWNER — even though ADMIN can otherwise manage members freely.
 export function canGrantOwnerRole(currentUserRole: WorkspaceRole | null | undefined) {

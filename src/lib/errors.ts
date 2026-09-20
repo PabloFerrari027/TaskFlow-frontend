@@ -94,6 +94,11 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
     "Este link de redefinição é inválido, expirou ou já foi usado. Peça um novo.",
   TOO_MANY_PASSWORD_RESET_REQUESTS:
     "Muitos pedidos de redefinição. Aguarde alguns minutos e tente novamente.",
+  INVALID_AUTOMATION_TRIGGER:
+    "O evento ou as condições escolhidos não podem disparar uma automação.",
+  INVALID_AUTOMATION_ACTION:
+    "A ação escolhida não pode rodar neste evento ou tem valores inválidos.",
+  AUTOMATION_RULE_NOT_FOUND: "Automação não encontrada.",
 };
 
 const DEFAULT_MESSAGE = "Algo deu errado. Tente novamente em instantes.";

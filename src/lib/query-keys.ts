@@ -85,6 +85,9 @@ export const queryKeys = {
         ? (["activity", "task", taskId, { page }] as const)
         : (["activity", "task", taskId] as const),
   },
+  automations: {
+    all: (workspaceId: string) => ["automations", "workspace", workspaceId] as const,
+  },
   analytics: {
     root: () => ["analytics"] as const,
     // Requests are built with different property orders across the

@@ -21,11 +21,13 @@ import { WorkspaceActivitySection } from "@/features/activity/components/workspa
 import { InviteMemberDialog } from "@/features/workspaces/components/invite-member-dialog";
 import { RenameWorkspaceDialog } from "@/features/workspaces/components/rename-workspace-dialog";
 import { WorkspaceAssistantSettingsPanel } from "@/features/workspaces/components/assistant-settings-panel";
+import { AutomationsSection } from "@/features/automations/components/automations-section";
 import { useAuth } from "@/lib/auth/auth-context";
 import {
   canDeleteWorkspace,
   canInviteWorkspaceMembers,
   canManageAssistantSettings,
+  canManageAutomations,
   canManageWorkspace,
 } from "@/lib/permissions";
 import type { WorkspaceRole } from "@/types/workspace";
@@ -61,6 +63,7 @@ export default function WorkspaceDetailPage() {
   const canInvite = canInviteWorkspaceMembers(myRole);
   const canDelete = canDeleteWorkspace(myRole);
   const canManageAssistant = canManageAssistantSettings(myRole);
+  const canManageAutomationRules = canManageAutomations(myRole);
   const isEmpty = workspace.members.length === 1;
 
   return (
@@ -114,6 +117,9 @@ export default function WorkspaceDetailPage() {
               <TabsTrigger value="invitations">Convites</TabsTrigger>
               <TabsTrigger value="activity">Atividade</TabsTrigger>
               <TabsTrigger value="assistant">Assistente</TabsTrigger>
+              {canManageAutomationRules ? (
+                <TabsTrigger value="automations">Automações</TabsTrigger>
+              ) : null}
             </TabsList>
           </div>
 
@@ -143,6 +149,13 @@ export default function WorkspaceDetailPage() {
           <TabsContent value="assistant" className="p-4">
             <WorkspaceAssistantSettingsPanel workspace={workspace} canManage={canManageAssistant} />
           </TabsContent>
+
+          {canManageAutomationRules ? (
+            <TabsContent value="automations" className="p-4">
+              {/* Keyed by workspace id for the same reason as the activity tab. */}
+              <AutomationsSection key={workspace.id} workspaceId={workspace.id} />
+            </TabsContent>
+          ) : null}
         </Tabs>
       </Card>
 
