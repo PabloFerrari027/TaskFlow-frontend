@@ -220,9 +220,10 @@ export function InlineTextField({
 
 /**
  * One parameter of the action. The default — and what almost every rule
- * wants — is a fixed value. "Valor do evento" (the `{{payload.FIELD}}`
- * placeholder) lives behind a second tab so nobody has to know it exists to
- * build a rule, and nobody types the placeholder syntax by hand.
+ * wants — is a fixed value ("Escolher"). "Copiar do que aconteceu" (the
+ * `{{payload.FIELD}}` placeholder) lives behind a second tab so nobody has to
+ * know it exists to build a rule, and nobody types the placeholder syntax by
+ * hand.
  */
 export function ParamValueField({
   param,
@@ -249,7 +250,7 @@ export function ParamValueField({
     draft.mode === "event"
       ? draft.eventField
         ? eventValueText(draft.eventField, event)
-        : "valor do evento"
+        : "copiar do que aconteceu"
       : draft.value.trim() === ""
         ? param.label
         : lookups.labelFor(param.kind, draft.value);
@@ -269,8 +270,8 @@ export function ParamValueField({
           className="gap-0"
         >
           <TabsList className="m-2 w-auto">
-            <TabsTrigger value="fixed">Valor fixo</TabsTrigger>
-            <TabsTrigger value="event">Valor do evento</TabsTrigger>
+            <TabsTrigger value="fixed">Escolher</TabsTrigger>
+            <TabsTrigger value="event">Do que aconteceu</TabsTrigger>
           </TabsList>
 
           <TabsContent value="fixed">
@@ -303,7 +304,8 @@ export function ParamValueField({
             {eventOptions.length > 0 ? (
               <>
                 <p className="px-3 pb-1 text-xs text-muted-foreground">
-                  Usa o valor que o próprio evento trouxe, na hora em que a regra rodar.
+                  Em vez de um valor sempre igual, usa a informação do que acabou de acontecer.
+                  Ex.: “quem fez a alteração”.
                 </p>
                 <OptionCommand
                   options={eventOptions}
@@ -316,7 +318,7 @@ export function ParamValueField({
               </>
             ) : (
               <p className="px-3 pb-3 text-xs text-muted-foreground">
-                Este evento não traz nenhum valor compatível com este campo.
+                Nada do que aconteceu serve para este campo. Use a aba “Escolher”.
               </p>
             )}
           </TabsContent>

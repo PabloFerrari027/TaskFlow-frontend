@@ -62,7 +62,7 @@ export function AutomationRuleFormDialog({
     event.preventDefault();
     if (problems.length > 0 || isPending) return;
 
-    // A blank name isn't an error — the rule's own sentence is a better name
+    // A blank name isn't an error — the automation's own sentence is a better name
     // than making someone invent one.
     const request = toRequest(draft, autoName(draft, lookups));
     const onSuccess = () => onOpenChange(false);
@@ -79,27 +79,26 @@ export function AutomationRuleFormDialog({
         <DialogHeader>
           <DialogTitle>{rule ? "Editar automação" : "Nova automação"}</DialogTitle>
           <DialogDescription>
-            Monte a regra como uma frase: clique em cada trecho destacado para escolher.
+            Uma automação faz algo sozinha quando algo acontece. Responda aos três passos abaixo
+            — os campos destacados em laranja ainda precisam de uma escolha.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="sticky top-0 z-10 bg-popover pb-1">
-            <AutomationLivePreview draft={draft} lookups={lookups} />
-          </div>
+          <AutomationSentenceBuilder draft={draft} onChange={setDraft} lookups={lookups} />
+
+          <AutomationLivePreview draft={draft} lookups={lookups} />
 
           <div className="space-y-2">
-            <Label htmlFor="automation-name">Nome (opcional)</Label>
+            <Label htmlFor="automation-name">Nome da automação (opcional)</Label>
             <Input
               id="automation-name"
               value={draft.name}
               maxLength={120}
-              placeholder="Se ficar em branco, usamos a própria frase da regra"
+              placeholder="Se deixar em branco, usamos o resumo acima como nome"
               onChange={(event) => setDraft({ ...draft, name: event.target.value })}
             />
           </div>
-
-          <AutomationSentenceBuilder draft={draft} onChange={setDraft} lookups={lookups} />
 
           <DialogFooter className="items-center sm:justify-between">
             <p className="text-xs text-muted-foreground">

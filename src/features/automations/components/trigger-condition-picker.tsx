@@ -23,18 +23,21 @@ import {
 import { Button } from "@/components/ui/button";
 import type { AnalyticsOperator } from "@/types/analytics";
 
-// One extra condition, chained onto the sentence with "e": "…e o novo status
+// One extra condition, on its own row in step 2: "Somente se o novo status
 // for Concluída". Uses the same filter shape/operators as analytics
 // (`AnalyticsFilter`) — that is what the API validates against — but there is
 // no analytics filter component to reuse: the analytics screens build their
 // queries in code, never from user-picked filters.
 export function TriggerConditionPicker({
+  lead,
   condition,
   event,
   lookups,
   onChange,
   onRemove,
 }: {
+  // Connector before the condition: "Somente se" for the first, "e" after.
+  lead: string;
   condition: ConditionDraft;
   event: TriggerEventSpec | undefined;
   lookups: AutomationLookups;
@@ -103,11 +106,11 @@ export function TriggerConditionPicker({
 
   return (
     <>
-      <span>e</span>
+      <span>{lead}</span>
       <InlinePicker
         value={condition.field}
         options={fieldOptions}
-        placeholder="campo"
+        placeholder="escolher o quê"
         displayLabel={condition.field}
         ariaLabel="Campo da condição"
         onChange={(nextField) => onChange({ ...condition, field: nextField, value: "" })}
@@ -115,8 +118,8 @@ export function TriggerConditionPicker({
       <InlinePicker
         value={condition.operator}
         options={operatorOptions}
-        placeholder="operador"
-        ariaLabel="Operador da condição"
+        placeholder="escolher"
+        ariaLabel="Comparação da condição"
         onChange={(operator) => {
           const next = operator as AnalyticsOperator;
           onChange({

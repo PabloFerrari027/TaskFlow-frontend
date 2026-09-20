@@ -258,14 +258,14 @@ export function isParamComplete(param: ParamDraft | undefined) {
 export function validateDraft(draft: RuleDraft): string[] {
   const problems: string[] = [];
   const event = findTriggerEvent(draft.entityType, draft.eventType);
-  if (!event) problems.push("o evento que dispara a regra");
+  if (!event) problems.push("quando a automação deve agir (passo 1)");
   if (draft.conditions.some((condition) => !isConditionComplete(condition))) {
-    problems.push("o valor de cada condição");
+    problems.push("os detalhes de cada condição (passo 2)");
   }
   const spec = findAction(draft.tool);
-  if (!draft.tool) problems.push("a ação");
+  if (!draft.tool) problems.push("o que ela deve fazer (passo 3)");
   for (const param of spec?.params ?? []) {
-    if (!isParamComplete(draft.params[param.key])) problems.push(`${param.label} da ação`);
+    if (!isParamComplete(draft.params[param.key])) problems.push(`${param.label} (passo 3)`);
   }
   return problems;
 }
@@ -292,7 +292,7 @@ const missing = (text: string): SentenceSegment => ({ text: `[${text}]`, tone: "
 export function eventValueText(fieldName: string, event: TriggerEventSpec | undefined) {
   if (fieldName === ACTOR_FIELD.field) return "quem fez a alteração";
   const field = payloadFieldsOf(event).find((spec) => spec.field === fieldName);
-  return `valor do evento (${field?.label ?? fieldName})`;
+  return `${field?.label ?? fieldName} (do que aconteceu)`;
 }
 
 function conditionValueSegments(

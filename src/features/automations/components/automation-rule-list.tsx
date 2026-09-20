@@ -21,7 +21,7 @@ import type { AutomationRule } from "@/types/automation";
 // backend after too many firings / the creator losing OWNER/ADMIN), so the
 // tooltip lists the possibilities instead of claiming one.
 const DISABLED_HINT =
-  "Esta automação não está rodando. Pode ter sido desligada por alguém ou pelo sistema (disparos demais em pouco tempo, ou quem a criou deixou de ser proprietário/administrador). Ative de novo quando quiser.";
+  "Esta automação está pausada e não está fazendo nada. Use o botão ao lado para ligá-la de novo. Ela pode ter sido pausada por alguém ou pelo sistema (se agiu vezes demais em pouco tempo, ou se quem a criou deixou de ser proprietário/administrador).";
 
 export function AutomationRuleList({
   workspaceId,
@@ -61,7 +61,7 @@ export function AutomationRuleList({
                       variant="secondary"
                       className="bg-amber-500/10 text-amber-600 dark:text-amber-400"
                     >
-                      Desativada
+                      Pausada
                     </Badge>
                   </TooltipTrigger>
                   <TooltipContent className="max-w-xs">{DISABLED_HINT}</TooltipContent>
@@ -81,7 +81,7 @@ export function AutomationRuleList({
             <Switch
               checked={rule.enabled}
               disabled={toggleMutation.isPending}
-              aria-label={rule.enabled ? "Desativar automação" : "Ativar automação"}
+              aria-label={rule.enabled ? "Pausar automação" : "Ligar automação"}
               onCheckedChange={(enabled) => toggleMutation.mutate({ ruleId: rule.id, enabled })}
             />
             <Button
@@ -99,7 +99,7 @@ export function AutomationRuleList({
                 </Button>
               }
               title="Excluir automação"
-              description={`“${rule.name}” deixará de rodar. Essa ação não pode ser desfeita.`}
+              description={`“${rule.name}” será apagada e deixará de agir. Se só quiser parar por um tempo, use o botão de pausar. Essa ação não pode ser desfeita.`}
               confirmLabel="Excluir"
               isLoading={deleteMutation.isPending}
               onConfirm={() => deleteMutation.mutate(rule.id)}

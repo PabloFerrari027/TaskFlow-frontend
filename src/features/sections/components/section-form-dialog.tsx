@@ -90,11 +90,13 @@ export function SectionFormDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {isEditing ? "Renomear coluna" : parent ? "Nova subseção" : "Nova coluna"}
+            {isEditing ? "Renomear coluna" : parent ? "Nova subcoluna" : "Nova coluna"}
           </DialogTitle>
-          {!isEditing && parent ? (
+          {!isEditing ? (
             <DialogDescription>
-              Subseção de “{parent.name}” (protótipo): aparece como um accordion dentro da coluna.
+              {parent
+                ? `Uma subcoluna aparece dentro da coluna “${parent.name}”, para separar melhor as tarefas dela.`
+                : "Colunas ajudam a organizar as tarefas por etapa, como “A fazer”, “Em andamento” e “Concluído”."}
             </DialogDescription>
           ) : null}
         </DialogHeader>
@@ -108,7 +110,7 @@ export function SectionFormDialog({
                 <FormItem>
                   <FormLabel>Nome</FormLabel>
                   <FormControl>
-                    <Input placeholder="Em progresso" autoFocus {...field} />
+                    <Input placeholder="Ex.: Em andamento" autoFocus {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

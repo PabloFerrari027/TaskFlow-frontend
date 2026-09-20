@@ -1,6 +1,7 @@
 "use client";
 
-import { UserMinus, Users } from "lucide-react";
+import Link from "next/link";
+import { UserMinus, UserPlus, Users } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -15,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ErrorState } from "@/components/shared/error-state";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { PROJECT_ROLE_LABEL } from "@/components/shared/status-badge";
 import { MemberAvatar, MemberIdLabel } from "@/components/shared/member-avatar";
 import { formatDate } from "@/lib/format";
 import {
@@ -50,8 +52,17 @@ export function ProjectMembersTable({
     return (
       <EmptyState
         icon={<Users className="size-6" />}
-        title="Nenhum membro específico do projeto"
-        description="Membros do workspace já têm acesso implícito. Convide alguém especificamente para este projeto na aba Convites."
+        title="Ninguém foi adicionado só a este projeto"
+        description="Quem já faz parte do workspace tem acesso automaticamente. Para dar acesso a outra pessoa, envie um convite."
+        action={
+          canManage ? (
+            <Button asChild>
+              <Link href={`/projects/${projectId}/invitations`}>
+                <UserPlus /> Convidar pessoa
+              </Link>
+            </Button>
+          ) : undefined
+        }
       />
     );
   }
@@ -76,7 +87,7 @@ export function ProjectMembersTable({
               </div>
             </TableCell>
             <TableCell>
-              <Badge variant="secondary">{member.role}</Badge>
+              <Badge variant="secondary">{PROJECT_ROLE_LABEL[member.role] ?? member.role}</Badge>
             </TableCell>
             <TableCell className="text-muted-foreground">
               {formatDate(member.createdAt)}
@@ -85,12 +96,12 @@ export function ProjectMembersTable({
               <TableCell>
                 <ConfirmDialog
                   trigger={
-                    <Button variant="ghost" size="icon-sm">
+                    <Button variant="ghost" size="icon-sm" aria-label="Remover do projeto" title="Remover do projeto">
                       <UserMinus className="text-destructive" />
                     </Button>
                   }
-                  title="Remover do projeto"
-                  description="Esta pessoa perderá o acesso específico a este projeto."
+                  title="Remover do projeto?"
+                  description="Esta pessoa perderá o acesso a este projeto. Você pode convidá-la de novo quando quiser."
                   confirmLabel="Remover"
                   isLoading={removeMutation.isPending}
                   onConfirm={() => removeMutation.mutate(member.userId)}

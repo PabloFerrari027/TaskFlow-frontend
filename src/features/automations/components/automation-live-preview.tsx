@@ -45,14 +45,14 @@ export function AutomationLivePreview({
       aria-live="polite"
     >
       <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-        O que esta regra faz
+        Resumo: o que esta automação vai fazer
       </p>
       <p className="text-base leading-relaxed text-foreground/90">
         <SentenceText segments={describeDraft(draft, lookups)} />
       </p>
       <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
         <ShieldCheck className="mt-0.5 size-3.5 shrink-0" />
-        Roda sozinha, sem pedir confirmação, com a permissão de quem criou a regra.
+        Depois de salva, roda sozinha, sem pedir confirmação, com as permissões de quem a criou.
       </p>
     </div>
   );

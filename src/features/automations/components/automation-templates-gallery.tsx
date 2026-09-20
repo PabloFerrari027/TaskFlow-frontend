@@ -9,7 +9,7 @@ import {
 import { cn } from "@/lib/utils";
 
 /**
- * Ready-made examples so the tab never opens on a blank form: picking one
+ * Ready-made models so the tab never opens on a blank form: picking one
  * opens the builder already filled in, leaving only the workspace-specific
  * choices (which section, which project) to the user.
  */
@@ -33,10 +33,12 @@ export function AutomationTemplatesGallery({
           </h3>
           <p className="text-sm text-muted-foreground">
             Uma automação faz algo sozinha quando algo acontece — por exemplo, mover a tarefa de
-            seção quando ela for concluída. Comece por um exemplo e ajuste do seu jeito.
+            seção quando ela for concluída. Escolha um modelo pronto abaixo e ajuste do seu jeito.
           </p>
         </div>
-      ) : null}
+      ) : (
+        <h3 className="text-sm font-semibold text-foreground">Modelos prontos</h3>
+      )}
 
       <div className="grid gap-3 sm:grid-cols-2">
         {AUTOMATION_TEMPLATES.map((template) => (
@@ -48,13 +50,14 @@ export function AutomationTemplatesGallery({
           >
             <p className="text-sm font-medium text-foreground">{template.title}</p>
             <p className="text-xs text-muted-foreground">{template.description}</p>
+            <p className="pt-1 text-xs font-medium text-primary">Usar este modelo →</p>
           </button>
         ))}
       </div>
 
       <div>
         <Button variant="outline" size="sm" onClick={onCreateFromScratch}>
-          Criar do zero
+          Prefiro montar a minha do zero
         </Button>
       </div>
     </div>
