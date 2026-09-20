@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { authService } from "@/features/auth/api/auth-service";
-import { setSession } from "@/lib/auth/token-store";
+import { clearSession, setSession } from "@/lib/auth/token-store";
 import { getErrorCode, getErrorMessage } from "@/lib/errors";
 import { queryKeys } from "@/lib/query-keys";
 import type { AuthTokensResponse } from "@/types/auth";
@@ -49,6 +49,21 @@ export function useGoogleLoginMutation() {
   return useMutation({
     mutationFn: authService.loginWithGoogle,
     onSuccess: persistTokens,
+  });
+}
+
+export function useForgotPasswordMutation() {
+  return useMutation({
+    mutationFn: authService.forgotPassword,
+  });
+}
+
+// A reset revokes EVERY session server-side, including any this browser still
+// holds — drop the local one so the login screen doesn't bounce a stale token.
+export function useResetPasswordMutation() {
+  return useMutation({
+    mutationFn: authService.resetPassword,
+    onSuccess: () => clearSession(),
   });
 }
 

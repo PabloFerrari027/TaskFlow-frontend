@@ -1,12 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import {
   Form,
   FormControl,
@@ -31,6 +33,12 @@ export function LoginForm() {
       password: "",
     },
   });
+
+  // Carry over whatever the user already typed so they don't retype it.
+  const typedEmail = useWatch({ control: form.control, name: "email" });
+  const forgotPasswordHref = typedEmail
+    ? `/forgot-password?email=${encodeURIComponent(typedEmail)}`
+    : "/forgot-password";
 
   function onSubmit(values: LoginFormValues) {
     loginMutation.mutate(values, {
@@ -82,10 +90,18 @@ export function LoginForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Senha</FormLabel>
+              <div className="flex items-center justify-between">
+                <FormLabel>Senha</FormLabel>
+                <Link
+                  href={forgotPasswordHref}
+                  className="text-xs font-medium text-primary hover:underline"
+                  tabIndex={-1}
+                >
+                  Esqueci minha senha
+                </Link>
+              </div>
               <FormControl>
-                <Input
-                  type="password"
+                <PasswordInput
                   autoComplete="current-password"
                   placeholder="••••••••"
                   {...field}

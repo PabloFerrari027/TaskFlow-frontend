@@ -4,7 +4,7 @@ import * as React from "react";
 import Script from "next/script";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import {
   Dialog,
   DialogContent,
@@ -108,8 +108,7 @@ export function ReauthDialog({
           ) : (
             <>
               {hasPassword ? (
-                <Input
-                  type="password"
+                <PasswordInput
                   value={password}
                   onChange={(event) => onPasswordChange(event.target.value)}
                   placeholder="Sua senha"

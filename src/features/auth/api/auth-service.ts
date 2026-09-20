@@ -3,6 +3,8 @@ import type {
   AuthTokensResponse,
   ChangePasswordRequest,
   CurrentUserResponse,
+  ForgotPasswordRequest,
+  ForgotPasswordResponse,
   GoogleLoginRequest,
   LinkGoogleRequest,
   LinkGoogleResponse,
@@ -11,6 +13,7 @@ import type {
   PasswordUpdateResponse,
   RegisterUserRequest,
   RegisterUserResponse,
+  ResetPasswordRequest,
   ResendVerificationCodeRequest,
   ResendVerificationCodeResponse,
   SetFirstPasswordRequest,
@@ -66,6 +69,18 @@ export const authService = {
       payload
     );
     return data;
+  },
+
+  async forgotPassword(payload: ForgotPasswordRequest) {
+    const { data } = await apiClient.post<ForgotPasswordResponse>(
+      "/auth/forgot-password",
+      payload
+    );
+    return data;
+  },
+
+  async resetPassword(payload: ResetPasswordRequest) {
+    await apiClient.post("/auth/reset-password", payload);
   },
 
   async getCurrentUser() {
