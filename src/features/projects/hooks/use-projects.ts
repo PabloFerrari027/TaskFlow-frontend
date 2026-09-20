@@ -80,13 +80,34 @@ export function useCreateProjectMutation(workspaceId: string) {
   });
 }
 
-export function useUpdateProjectMutation(projectId: string) {
+interface UpdateProjectMutationOptions {
+  /**
+   * Inline edits in the projects table save cell by cell, so a success toast
+   * and a full refetch per cell would be noise: `silent` skips the toast and
+   * patches the project in place in the cached list instead. Errors still toast.
+   */
+  silent?: boolean;
+}
+
+export function useUpdateProjectMutation(
+  projectId: string,
+  { silent = false }: UpdateProjectMutationOptions = {}
+) {
   const queryClient = useQueryClient();
   const { workspaceId } = useCurrentWorkspace();
 
   return useMutation({
     mutationFn: (payload: UpdateProjectRequest) => {
-      const current = queryClient.getQueryData<Project>(queryKeys.projects.detail(projectId));
+      // The detail cache is only filled once a project is opened, but the
+      // table edits straight from the list — fall back to its copy (its
+      // version is what offline queueing needs).
+      const current =
+        queryClient.getQueryData<Project>(queryKeys.projects.detail(projectId)) ??
+        (workspaceId
+          ? queryClient
+              .getQueryData<PaginatedResult<Project>>(queryKeys.projects.all(workspaceId))
+              ?.data.find((project) => project.id === projectId)
+          : undefined);
       if (isOffline() && workspaceId && current) {
         return Promise.resolve(
           queueEntityUpdate({
@@ -103,6 +124,22 @@ export function useUpdateProjectMutation(projectId: string) {
     onMutate: (payload) => patchCachedProject(queryClient, workspaceId, projectId, payload),
     onSuccess: (data) => {
       queryClient.setQueryData(queryKeys.projects.detail(projectId), data);
+      if (silent) {
+        // The optimistic patch already shows the edit; swap in the server copy
+        // (new version) and let inactive caches refetch on their next mount.
+        queryClient.setQueryData<PaginatedResult<Project>>(
+          queryKeys.projects.all(data.workspaceId),
+          (list) =>
+            list
+              ? { ...list, data: list.data.map((p) => (p.id === data.id ? data : p)) }
+              : list
+        );
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.projects.all(data.workspaceId),
+          refetchType: "none",
+        });
+        return;
+      }
       queryClient.invalidateQueries({ queryKey: queryKeys.projects.all(data.workspaceId) });
       toast.success(
         isOffline()
