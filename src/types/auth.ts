@@ -52,6 +52,19 @@ export interface AuthTokensResponse {
   sessionId: string;
 }
 
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ForgotPasswordResponse {
+  expiresInSeconds: number;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  newPassword: string;
+}
+
 export interface GoogleLoginRequest {
   idToken: string;
 }

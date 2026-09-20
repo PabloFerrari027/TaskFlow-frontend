@@ -20,6 +20,12 @@ export const loginSchema = z.object({
 
 export type LoginFormValues = z.infer<typeof loginSchema>;
 
+export const forgotPasswordSchema = z.object({
+  email: z.email("Informe um e-mail válido."),
+});
+
+export type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
+
 export const verifyCodeSchema = z.object({
   code: z
     .string()
@@ -37,6 +43,15 @@ const passwordsMatch = {
     path: ["confirmPassword"],
   },
 };
+
+export const resetPasswordSchema = z
+  .object({
+    newPassword: newPasswordSchema,
+    confirmPassword: z.string().min(1, "Confirme a nova senha."),
+  })
+  .refine(passwordsMatch.check, passwordsMatch.options);
+
+export type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
 
 export const changePasswordSchema = z
   .object({

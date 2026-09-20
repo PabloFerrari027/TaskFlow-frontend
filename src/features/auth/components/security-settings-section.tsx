@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import {
   Card,
   CardContent,
@@ -188,7 +188,7 @@ function LinkGoogleForm() {
             <FormItem>
               <FormLabel>Senha atual</FormLabel>
               <FormControl>
-                <Input type="password" autoComplete="current-password" {...field} />
+                <PasswordInput autoComplete="current-password" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -254,7 +254,7 @@ function ChangePasswordForm() {
             <FormItem>
               <FormLabel>Senha atual</FormLabel>
               <FormControl>
-                <Input type="password" autoComplete="current-password" {...field} />
+                <PasswordInput autoComplete="current-password" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -268,8 +268,7 @@ function ChangePasswordForm() {
             <FormItem>
               <FormLabel>Nova senha</FormLabel>
               <FormControl>
-                <Input
-                  type="password"
+                <PasswordInput
                   autoComplete="new-password"
                   placeholder="Mínimo 8 caracteres"
                   {...field}
@@ -287,7 +286,7 @@ function ChangePasswordForm() {
             <FormItem>
               <FormLabel>Confirmar nova senha</FormLabel>
               <FormControl>
-                <Input type="password" autoComplete="new-password" {...field} />
+                <PasswordInput autoComplete="new-password" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -355,8 +354,7 @@ function SetPasswordForm({ googleLinked }: { googleLinked: boolean }) {
             <FormItem>
               <FormLabel>Nova senha</FormLabel>
               <FormControl>
-                <Input
-                  type="password"
+                <PasswordInput
                   autoComplete="new-password"
                   placeholder="Mínimo 8 caracteres"
                   {...field}
@@ -374,7 +372,7 @@ function SetPasswordForm({ googleLinked }: { googleLinked: boolean }) {
             <FormItem>
               <FormLabel>Confirmar nova senha</FormLabel>
               <FormControl>
-                <Input type="password" autoComplete="new-password" {...field} />
+                <PasswordInput autoComplete="new-password" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

@@ -90,6 +90,10 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
     "Não foi possível confirmar sua identidade com o Google, tente novamente.",
   GOOGLE_ACCOUNT_ALREADY_LINKED:
     "Essa conta Google já está vinculada a outra conta TaskFlow.",
+  INVALID_PASSWORD_RESET_TOKEN:
+    "Este link de redefinição é inválido, expirou ou já foi usado. Peça um novo.",
+  TOO_MANY_PASSWORD_RESET_REQUESTS:
+    "Muitos pedidos de redefinição. Aguarde alguns minutos e tente novamente.",
 };
 
 const DEFAULT_MESSAGE = "Algo deu errado. Tente novamente em instantes.";
