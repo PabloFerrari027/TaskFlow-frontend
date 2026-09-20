@@ -1,11 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { Menu } from "lucide-react";
+import { Menu, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Logo } from "@/components/shared/logo";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
+import { useSidebar } from "@/components/layout/sidebar-context";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { UserMenu } from "@/components/layout/user-menu";
 import { WorkspaceSwitcher } from "@/features/workspaces/components/workspace-switcher";
@@ -14,6 +15,7 @@ import { AssistantChat } from "@/features/assistant/components/assistant-chat";
 
 export function Topbar() {
   const [mobileOpen, setMobileOpen] = React.useState(false);
+  const { collapsed, toggle } = useSidebar();
 
   return (
     <header className="flex h-16 items-center justify-between gap-3 border-b border-border/60 bg-background px-4 sm:px-6">
@@ -31,6 +33,19 @@ export function Topbar() {
             <SidebarNav onNavigate={() => setMobileOpen(false)} />
           </SheetContent>
         </Sheet>
+
+        <Button
+          variant="ghost"
+          size="icon"
+          className="hidden md:inline-flex"
+          aria-label={collapsed ? "Mostrar menu lateral" : "Esconder menu lateral"}
+          aria-expanded={!collapsed}
+          aria-controls="app-sidebar"
+          title={collapsed ? "Mostrar menu lateral" : "Esconder menu lateral"}
+          onClick={toggle}
+        >
+          {collapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
+        </Button>
 
         <WorkspaceSwitcher />
       </div>
