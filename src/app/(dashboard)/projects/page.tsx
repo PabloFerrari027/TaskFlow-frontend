@@ -8,17 +8,23 @@ import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ErrorState } from "@/components/shared/error-state";
 import { useCurrentWorkspace } from "@/features/workspaces/context/current-workspace-context";
+import { useAuth } from "@/lib/auth/auth-context";
+import { canManageWorkspace } from "@/lib/permissions";
 import { useProjectsQuery } from "@/features/projects/hooks/use-projects";
-import { ProjectCard } from "@/features/projects/components/project-card";
+import { ProjectTree } from "@/features/projects/components/project-tree";
 import { ProjectGridSkeleton } from "@/features/projects/components/project-grid-skeleton";
 import { CreateProjectDialog } from "@/features/projects/components/create-project-dialog";
 
 export default function ProjectsPage() {
-  const { workspaceId, isLoading: workspaceLoading } = useCurrentWorkspace();
+  const { workspace, workspaceId, isLoading: workspaceLoading } = useCurrentWorkspace();
+  const { userId } = useAuth();
   const [createOpen, setCreateOpen] = React.useState(false);
   const projectsQuery = useProjectsQuery(workspaceId);
 
   const projects = projectsQuery.data?.data ?? [];
+  const canManage = canManageWorkspace(
+    workspace?.members.find((member) => member.userId === userId)?.role
+  );
   const activeProjects = projects.filter((p) => p.status === "ACTIVE");
   const archivedProjects = projects.filter((p) => p.status === "ARCHIVED");
   const isTruncated = (projectsQuery.data?.meta.totalPages ?? 0) > 1;
@@ -75,11 +81,12 @@ export default function ProjectsPage() {
                 title="Nenhum projeto ativo"
               />
             ) : (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {activeProjects.map((project) => (
-                  <ProjectCard key={project.id} project={project} />
-                ))}
-              </div>
+              <ProjectTree
+                projects={activeProjects}
+                allProjects={projects}
+                workspaceId={workspaceId as string}
+                canManage={canManage}
+              />
             )}
           </TabsContent>
 
@@ -90,11 +97,12 @@ export default function ProjectsPage() {
                 title="Nenhum projeto arquivado"
               />
             ) : (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {archivedProjects.map((project) => (
-                  <ProjectCard key={project.id} project={project} />
-                ))}
-              </div>
+              <ProjectTree
+                projects={archivedProjects}
+                allProjects={projects}
+                workspaceId={workspaceId as string}
+                canManage={canManage}
+              />
             )}
           </TabsContent>
         </Tabs>

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -36,6 +37,8 @@ type SectionFormValues = z.infer<typeof sectionFormSchema>;
 interface SectionFormDialogProps {
   projectId: string;
   section?: Section;
+  // When set (and not editing), creates a sub-section of this section.
+  parent?: Section;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -43,6 +46,7 @@ interface SectionFormDialogProps {
 export function SectionFormDialog({
   projectId,
   section,
+  parent,
   open,
   onOpenChange,
 }: SectionFormDialogProps) {
@@ -64,7 +68,7 @@ export function SectionFormDialog({
       );
     } else {
       createMutation.mutate(
-        { name: values.name },
+        { name: values.name, parentId: parent?.id },
         {
           onSuccess: () => {
             form.reset();
@@ -85,7 +89,14 @@ export function SectionFormDialog({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{isEditing ? "Renomear coluna" : "Nova coluna"}</DialogTitle>
+          <DialogTitle>
+            {isEditing ? "Renomear coluna" : parent ? "Nova subseção" : "Nova coluna"}
+          </DialogTitle>
+          {!isEditing && parent ? (
+            <DialogDescription>
+              Subseção de “{parent.name}” (protótipo): aparece como um accordion dentro da coluna.
+            </DialogDescription>
+          ) : null}
         </DialogHeader>
 
         <Form {...form}>

@@ -7,6 +7,8 @@ export interface Project {
   workspaceId: string;
   name: string;
   description: string | null;
+  // null for a root project; otherwise the parent within the same workspace.
+  parentId: string | null;
   status: ProjectStatus;
   createdBy: string | null;
   version: number;
@@ -17,6 +19,12 @@ export interface Project {
 export interface CreateProjectRequest {
   name: string;
   description?: string;
+  parentId?: string;
+}
+
+export interface MoveProjectRequest {
+  // null promotes the project to a workspace root.
+  parentId: string | null;
 }
 
 export interface UpdateProjectRequest {

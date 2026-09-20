@@ -28,17 +28,22 @@ import {
   type CreateProjectFormValues,
 } from "@/features/projects/schemas";
 import { useCreateProjectMutation } from "@/features/projects/hooks/use-projects";
+import type { Project } from "@/types/project";
 
 interface CreateProjectDialogProps {
   workspaceId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  // When set, creates a sub-project of this project. The parent is fixed here —
+  // re-parenting later is a separate "Mover para…" action, not part of this form.
+  parent?: Project | null;
 }
 
 export function CreateProjectDialog({
   workspaceId,
   open,
   onOpenChange,
+  parent,
 }: CreateProjectDialogProps) {
   const router = useRouter();
   const createMutation = useCreateProjectMutation(workspaceId);
@@ -50,7 +55,11 @@ export function CreateProjectDialog({
 
   function onSubmit(values: CreateProjectFormValues) {
     createMutation.mutate(
-      { name: values.name, description: values.description || undefined },
+      {
+        name: values.name,
+        description: values.description || undefined,
+        parentId: parent?.id,
+      },
       {
         onSuccess: (project) => {
           form.reset();
@@ -71,9 +80,11 @@ export function CreateProjectDialog({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Novo projeto</DialogTitle>
+          <DialogTitle>{parent ? "Novo sub-projeto" : "Novo projeto"}</DialogTitle>
           <DialogDescription>
-            Crie um projeto dentro deste workspace.
+            {parent
+              ? `Crie um sub-projeto dentro de “${parent.name}”.`
+              : "Crie um projeto dentro deste workspace."}
           </DialogDescription>
         </DialogHeader>
 
@@ -110,7 +121,7 @@ export function CreateProjectDialog({
             <DialogFooter>
               <Button type="submit" disabled={createMutation.isPending}>
                 {createMutation.isPending ? <Loader2 className="animate-spin" /> : null}
-                Criar projeto
+                {parent ? "Criar sub-projeto" : "Criar projeto"}
               </Button>
             </DialogFooter>
           </form>
