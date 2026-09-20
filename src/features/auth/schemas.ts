@@ -6,10 +6,21 @@ export const newPasswordSchema = z
   .string()
   .min(8, "A senha precisa ter pelo menos 8 caracteres.");
 
-export const registerSchema = z.object({
-  email: z.email("Informe um e-mail válido."),
-  password: newPasswordSchema,
-});
+export const registerSchema = z
+  .object({
+    name: z
+      .string()
+      .trim()
+      .min(1, "Informe seu nome.")
+      .max(100, "O nome pode ter no máximo 100 caracteres."),
+    email: z.email("Informe um e-mail válido."),
+    password: newPasswordSchema,
+    confirmPassword: z.string().min(1, "Confirme a senha."),
+  })
+  .refine((values) => values.password === values.confirmPassword, {
+    message: "As senhas não conferem.",
+    path: ["confirmPassword"],
+  });
 
 export type RegisterFormValues = z.infer<typeof registerSchema>;
 

@@ -86,6 +86,27 @@ export function getInitialsFromId(id: string) {
   return id.replace(/-/g, "").slice(0, 2).toUpperCase();
 }
 
+// "Pablo Ferrari" -> "PF", "Pablo" -> "PA", "Ana Maria Souza" -> "AM".
+export function getInitialsFromName(name: string) {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return "?";
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return (words[0].charAt(0) + words[1].charAt(0)).toUpperCase();
+}
+
+// Fallback for accounts without a name (`name: null`): initials come from the
+// e-mail's local part: "pablo.ferrari@x.com" -> "PF", "pablo@x.com" -> "PA".
+export function getInitialsFromEmail(email: string) {
+  const words = email
+    .split("@")[0]
+    .split(/[._\-+]+/)
+    .map((word) => word.replace(/\d+$/, ""))
+    .filter(Boolean);
+  if (words.length === 0) return "?";
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return (words[0].charAt(0) + words[1].charAt(0)).toUpperCase();
+}
+
 export function shortenId(id: string, length = 8) {
   return id.slice(0, length);
 }

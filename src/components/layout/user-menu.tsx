@@ -12,11 +12,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/lib/auth/auth-context";
+import { useSelfIdentity } from "@/features/auth/hooks/use-current-user";
 import { useLogout } from "@/features/sessions/hooks/use-sessions";
 import { getInitialsFromId } from "@/lib/format";
 
 export function UserMenu() {
-  const { userId, email } = useAuth();
+  const { userId } = useAuth();
+  const { label, initials } = useSelfIdentity();
   const logout = useLogout();
 
   return (
@@ -25,14 +27,14 @@ export function UserMenu() {
         <Button variant="ghost" size="icon" className="rounded-full">
           <Avatar className="size-8">
             <AvatarFallback>
-              {userId ? getInitialsFromId(userId) : "?"}
+              {initials ?? (userId ? getInitialsFromId(userId) : "?")}
             </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel className="truncate">
-          {email ?? "Conta"}
+          {label ?? "Conta"}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem variant="destructive" onClick={() => logout()}>
