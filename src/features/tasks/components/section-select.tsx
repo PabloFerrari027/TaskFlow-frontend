@@ -16,11 +16,13 @@ export function SectionSelect({
   value,
   onChange,
   disabled,
+  placeholder = "Selecione uma coluna",
 }: {
   projectId: string;
   value: string | undefined;
   onChange: (value: string) => void;
   disabled?: boolean;
+  placeholder?: string;
 }) {
   const sectionsQuery = useSectionsQuery(projectId);
   // Sub-sections are listed right under their parent with the full path as the
@@ -36,7 +38,7 @@ export function SectionSelect({
   return (
     <Select value={value} onValueChange={onChange} disabled={disabled}>
       <SelectTrigger className="w-full">
-        <SelectValue placeholder="Selecione uma coluna" />
+        <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
         {options.map((option) => (

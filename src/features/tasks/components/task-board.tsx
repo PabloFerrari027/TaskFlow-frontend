@@ -11,11 +11,21 @@ import { SectionFormDialog } from "@/features/sections/components/section-form-d
 import { SectionColumn } from "@/features/tasks/components/section-column";
 import { TaskFiltersBar } from "@/features/tasks/components/task-filters-bar";
 import { TaskFormDialog } from "@/features/tasks/components/task-form-dialog";
+import { TaskSelectionBar } from "@/features/tasks/components/task-selection-bar";
+import { TaskSelectionProvider } from "@/features/tasks/context/task-selection-context";
 import { TaskViewToggle } from "@/features/tasks/components/task-view-toggle";
 import { useTaskFilters } from "@/features/tasks/hooks/use-task-filters";
 import { useTaskViewMode } from "@/features/tasks/hooks/use-task-view-mode";
 
-export function TaskBoard({
+export function TaskBoard(props: { projectId: string; canManage: boolean }) {
+  return (
+    <TaskSelectionProvider>
+      <TaskBoardContent {...props} />
+    </TaskSelectionProvider>
+  );
+}
+
+function TaskBoardContent({
   projectId,
   canManage,
 }: {
@@ -110,6 +120,8 @@ export function TaskBoard({
           onOpenChange={(open) => !open && setCreateTaskSectionId(null)}
         />
       ) : null}
+
+      <TaskSelectionBar projectId={projectId} />
     </div>
   );
 }
