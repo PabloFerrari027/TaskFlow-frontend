@@ -28,6 +28,7 @@ export function WorkspaceSwitcher() {
             variant="outline"
             className="h-9 max-w-[220px] justify-between"
             disabled={isLoading}
+            data-tour="workspace-switcher"
           >
             <span className="flex min-w-0 items-center gap-2">
               <Building2 className="size-4 shrink-0 text-muted-foreground" />
