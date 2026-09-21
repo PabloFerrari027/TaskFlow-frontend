@@ -1,5 +1,14 @@
-import type { QueryClient } from "@tanstack/react-query";
+import type { InvalidateQueryFilters, QueryClient } from "@tanstack/react-query";
+import { pendingTaskMutations } from "@/features/tasks/lib/task-list-refresh";
 import { queryKeys } from "@/lib/query-keys";
+
+// A refetch already in flight is left alone instead of cancelled and restarted
+// (the default). The change signals here often echo a write this client just
+// made, whose own `onSuccess` invalidation is mid-refetch — restarting it would
+// send the same request twice.
+function invalidate(queryClient: QueryClient, filters: InvalidateQueryFilters) {
+  return queryClient.invalidateQueries(filters, { cancelRefetch: false });
+}
 
 export interface EntityChange {
   // A plain string, not `SyncEntityType`: the realtime channel reports the
@@ -25,21 +34,21 @@ export function invalidateByEntityChange(
 ) {
   switch (entityType) {
     case "TASK":
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.detail(entityId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll() });
-      queryClient.invalidateQueries({
+      invalidate(queryClient, { queryKey: queryKeys.tasks.detail(entityId) });
+      invalidate(queryClient, { queryKey: queryKeys.tasks.bySectionAll() });
+      invalidate(queryClient, {
         queryKey: projectId
           ? queryKeys.tasks.all(projectId)
           : queryKeys.tasks.byProjectAll(),
       });
       return;
     case "PROJECT":
-      queryClient.invalidateQueries({ queryKey: queryKeys.projects.detail(entityId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.projects.all(workspaceId) });
+      invalidate(queryClient, { queryKey: queryKeys.projects.detail(entityId) });
+      invalidate(queryClient, { queryKey: queryKeys.projects.all(workspaceId) });
       return;
     case "SECTION":
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll() });
-      queryClient.invalidateQueries({
+      invalidate(queryClient, { queryKey: queryKeys.tasks.bySectionAll() });
+      invalidate(queryClient, {
         queryKey: projectId
           ? queryKeys.sections.all(projectId)
           : queryKeys.sections.byProjectAll(),
@@ -47,19 +56,19 @@ export function invalidateByEntityChange(
       return;
     case "CUSTOM_FIELD":
     case "CUSTOM_FIELD_DEFINITION":
-      queryClient.invalidateQueries({
+      invalidate(queryClient, {
         queryKey: projectId
           ? queryKeys.customFields.all(projectId)
           : queryKeys.customFields.byProjectAll(),
       });
       return;
     case "COMMENT":
-      queryClient.invalidateQueries({
+      invalidate(queryClient, {
         queryKey: taskId ? queryKeys.comments.all(taskId) : queryKeys.comments.byTaskAll(),
       });
       return;
     case "WORKSPACE":
-      queryClient.invalidateQueries({ queryKey: queryKeys.workspaces.all() });
+      invalidate(queryClient, { queryKey: queryKeys.workspaces.all() });
       return;
     default:
       // An entity type this client doesn't know about yet: don't guess a
@@ -71,19 +80,29 @@ export function invalidateByEntityChange(
 /** Activity feed and analytics are derived from every other entity, so any
  * change to one of them makes both stale. */
 export function invalidateDerivedData(queryClient: QueryClient) {
-  queryClient.invalidateQueries({ queryKey: queryKeys.activity.root() });
-  queryClient.invalidateQueries({ queryKey: queryKeys.analytics.root() });
+  invalidate(queryClient, { queryKey: queryKeys.activity.root() });
+  invalidate(queryClient, { queryKey: queryKeys.analytics.root() });
 }
 
 /** Coarse invalidation of every synced query group for a workspace — used
  * when a pull reports changes but their shape is opaque. */
 export function invalidateWorkspaceData(queryClient: QueryClient, workspaceId: string) {
-  queryClient.invalidateQueries({ queryKey: queryKeys.projects.all(workspaceId) });
-  queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll() });
-  queryClient.invalidateQueries({
+  // Task lists are left out while this client has task writes in flight: a
+  // refetch now could resurrect a task that is being deleted. Those writes
+  // refresh the lists themselves once they settle.
+  const skipTasks = pendingTaskMutations(queryClient) > 0;
+
+  invalidate(queryClient, { queryKey: queryKeys.projects.all(workspaceId) });
+  if (!skipTasks) invalidate(queryClient, { queryKey: queryKeys.tasks.bySectionAll() });
+  invalidate(queryClient, {
     predicate: (query) =>
-      ["tasks", "custom-fields", "sections", "comments", "activity", "analytics"].includes(
-        query.queryKey[0] as string
+      (["tasks", "custom-fields", "sections", "comments", "activity", "analytics"] as unknown[]).includes(
+        query.queryKey[0]
+      ) &&
+      !(
+        skipTasks &&
+        query.queryKey[0] === "tasks" &&
+        (query.queryKey[1] === "project" || query.queryKey[1] === "section")
       ),
   });
 }

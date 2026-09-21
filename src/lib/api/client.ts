@@ -5,6 +5,7 @@ import {
   getRefreshCredentials,
   setAccessToken,
 } from "@/lib/auth/token-store";
+import { afterResponse, beforeRequest, onRateLimited } from "@/lib/api/rate-limit";
 import type { RefreshTokenResponse } from "@/types/auth";
 
 const baseURL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
@@ -31,6 +32,11 @@ apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   }
   return config;
 });
+
+// Registered after the auth interceptor: axios runs request interceptors in
+// reverse order, so a request waits for its slot / rate-limit cooldown first
+// and only then reads the token — it can't go stale while queued.
+apiClient.interceptors.request.use(beforeRequest);
 
 let refreshPromise: Promise<string | null> | null = null;
 
@@ -67,9 +73,12 @@ async function performRefresh(): Promise<string | null> {
 }
 
 apiClient.interceptors.response.use(
-  (response) => response,
+  afterResponse,
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig | undefined;
+
+    const rateLimitRetry = onRateLimited(error, (config) => apiClient(config));
+    if (rateLimitRetry) return rateLimitRetry;
 
     if (
       error.response?.status === 401 &&

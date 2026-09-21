@@ -240,8 +240,17 @@ export async function flushOutbox(queryClient: QueryClient) {
  * schema to merge by hand, any non-empty pull just invalidates this
  * workspace's synced query groups (tasks, projects, sections, custom fields,
  * comments, activity, analytics) so they refetch from the REST endpoints,
- * which are the actual source of truth. */
-export async function pullChanges(queryClient: QueryClient, workspaceId: string) {
+ * which are the actual source of truth.
+ *
+ * `invalidate: false` only advances the cursor. The periodic poll uses it while
+ * the realtime channel is open, since that channel already invalidates on every
+ * change — and each pull otherwise re-reports this client's own writes, which
+ * would refetch every active query again. */
+export async function pullChanges(
+  queryClient: QueryClient,
+  workspaceId: string,
+  { invalidate = true }: { invalidate?: boolean } = {}
+) {
   let cursor = getCursor(workspaceId);
   let hasMore = true;
   let sawChanges = false;
@@ -254,5 +263,5 @@ export async function pullChanges(queryClient: QueryClient, workspaceId: string)
     hasMore = response.hasMore;
   }
 
-  if (sawChanges) invalidateWorkspaceData(queryClient, workspaceId);
+  if (sawChanges && invalidate) invalidateWorkspaceData(queryClient, workspaceId);
 }

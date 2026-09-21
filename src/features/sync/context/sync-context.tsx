@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useIsMutating, useQueryClient } from "@tanstack/react-query";
 import { useCurrentWorkspace } from "@/features/workspaces/context/current-workspace-context";
+import { isRealtimeConnected } from "@/features/realtime/lib/connection-state";
 import { useOnlineStatus } from "@/features/sync/hooks/use-online-status";
 import { useOutboxCount } from "@/features/sync/hooks/use-outbox-count";
 import { flushOutbox, pullChanges } from "@/features/sync/lib/sync-engine";
@@ -29,14 +30,18 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
   const [isSyncing, setIsSyncing] = React.useState(false);
   const syncingRef = React.useRef(false);
 
-  const runSync = React.useCallback(async () => {
+  const runSync = React.useCallback(async ({ background = false } = {}) => {
     if (!navigator.onLine || syncingRef.current) return;
     syncingRef.current = true;
     setIsSyncing(true);
     try {
       await flushOutbox(queryClient);
       if (workspaceId) {
-        await pullChanges(queryClient, workspaceId);
+        // While realtime is open it already invalidates on every change, so
+        // the background poll just keeps the cursor current.
+        await pullChanges(queryClient, workspaceId, {
+          invalidate: !(background && isRealtimeConnected()),
+        });
       }
     } finally {
       syncingRef.current = false;
@@ -50,9 +55,26 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
 
   React.useEffect(() => {
     if (!isOnline) return;
-    const id = setInterval(() => void runSync(), SYNC_INTERVAL_MS);
+    const id = setInterval(() => void runSync({ background: true }), SYNC_INTERVAL_MS);
     return () => clearInterval(id);
   }, [isOnline, runSync]);
+
+  // Ask for confirmation before a refresh/close/external navigation while
+  // writes are still queued in the outbox or in flight, so they aren't cut
+  // off mid-request. Browsers show their own generic text for this prompt.
+  const activeMutations = useIsMutating();
+  const hasPendingWork = pendingCount > 0 || activeMutations > 0;
+
+  React.useEffect(() => {
+    if (!hasPendingWork) return;
+    const handler = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      // Legacy browsers require returnValue to be set to trigger the prompt.
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [hasPendingWork]);
 
   const value = React.useMemo<SyncContextValue>(
     () => ({ isOnline, pendingCount, isSyncing, syncNow: () => void runSync() }),
