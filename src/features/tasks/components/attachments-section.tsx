@@ -2,15 +2,21 @@
 
 import * as React from "react";
 import { toast } from "sonner";
-import { Download, Loader2, Paperclip, Upload } from "lucide-react";
+import { Download, Loader2, Paperclip, Trash2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { EmptyState } from "@/components/shared/empty-state";
+import {
+  AttachmentPreviewDialog,
+  AttachmentThumbnail,
+} from "@/features/tasks/components/attachment-preview";
 import { formatFileSize, formatDateTime } from "@/lib/format";
 import {
   MAX_ATTACHMENT_SIZE_BYTES,
 } from "@/features/tasks/api/tasks-service";
 import {
   useDownloadAttachmentMutation,
+  useRemoveAttachmentMutation,
   useUploadAttachmentMutation,
 } from "@/features/tasks/hooks/use-tasks";
 import type { Attachment } from "@/types/task";
@@ -25,7 +31,31 @@ export function AttachmentsSection({
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const uploadMutation = useUploadAttachmentMutation(taskId);
   const downloadMutation = useDownloadAttachmentMutation(taskId);
+  const removeMutation = useRemoveAttachmentMutation(taskId);
   const [downloadingId, setDownloadingId] = React.useState<string | null>(null);
+  const [removingId, setRemovingId] = React.useState<string | null>(null);
+  const [previewIndex, setPreviewIndex] = React.useState<number | null>(null);
+
+  const isDownloading = (attachmentId: string | undefined) =>
+    downloadMutation.isPending && downloadingId === attachmentId;
+
+  const isRemoving = (attachmentId: string) =>
+    removeMutation.isPending && removingId === attachmentId;
+
+  function download(attachment: Attachment) {
+    setDownloadingId(attachment.id);
+    downloadMutation.mutate(
+      { attachmentId: attachment.id, fileName: attachment.fileName },
+      { onSettled: () => setDownloadingId(null) }
+    );
+  }
+
+  function remove(attachment: Attachment) {
+    setRemovingId(attachment.id);
+    removeMutation.mutate(attachment.id, {
+      onSettled: () => setRemovingId(null),
+    });
+  }
 
   function handleFileSelected(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -65,40 +95,73 @@ export function AttachmentsSection({
         <EmptyState icon={<Paperclip className="size-5" />} title="Nenhum anexo" />
       ) : (
         <div className="divide-y divide-border/60 rounded-lg border border-border/60">
-          {attachments.map((attachment) => (
+          {attachments.map((attachment, index) => (
             <div
               key={attachment.id}
               className="flex items-center gap-3 px-3 py-2.5 text-sm"
             >
-              <Paperclip className="size-4 shrink-0 text-muted-foreground" />
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-medium text-foreground">{attachment.fileName}</p>
-                <p className="text-xs text-muted-foreground">
-                  {formatFileSize(attachment.size)} · {formatDateTime(attachment.uploadedAt)}
-                </p>
-              </div>
+              <button
+                type="button"
+                aria-label={`Visualizar ${attachment.fileName}`}
+                className="flex min-w-0 flex-1 items-center gap-3 rounded-md text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                onClick={() => setPreviewIndex(index)}
+              >
+                <AttachmentThumbnail taskId={taskId} attachment={attachment} />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium text-foreground">{attachment.fileName}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatFileSize(attachment.size)} · {formatDateTime(attachment.uploadedAt)}
+                  </p>
+                </div>
+              </button>
               <Button
                 size="icon-sm"
                 variant="ghost"
-                disabled={downloadMutation.isPending && downloadingId === attachment.id}
-                onClick={() => {
-                  setDownloadingId(attachment.id);
-                  downloadMutation.mutate(
-                    { attachmentId: attachment.id, fileName: attachment.fileName },
-                    { onSettled: () => setDownloadingId(null) }
-                  );
-                }}
+                aria-label={`Baixar ${attachment.fileName}`}
+                disabled={isDownloading(attachment.id)}
+                onClick={() => download(attachment)}
               >
-                {downloadMutation.isPending && downloadingId === attachment.id ? (
+                {isDownloading(attachment.id) ? (
                   <Loader2 className="animate-spin" />
                 ) : (
                   <Download />
                 )}
               </Button>
+              <ConfirmDialog
+                trigger={
+                  <Button
+                    size="icon-sm"
+                    variant="ghost"
+                    aria-label={`Remover ${attachment.fileName}`}
+                    disabled={isRemoving(attachment.id)}
+                  >
+                    {isRemoving(attachment.id) ? (
+                      <Loader2 className="animate-spin" />
+                    ) : (
+                      <Trash2 className="text-destructive" />
+                    )}
+                  </Button>
+                }
+                title="Remover anexo"
+                description={`"${attachment.fileName}" será apagado permanentemente. Esta ação não pode ser desfeita.`}
+                confirmLabel="Remover"
+                isLoading={isRemoving(attachment.id)}
+                onConfirm={() => remove(attachment)}
+              />
             </div>
           ))}
         </div>
       )}
+
+      <AttachmentPreviewDialog
+        taskId={taskId}
+        attachments={attachments}
+        index={previewIndex}
+        onIndexChange={setPreviewIndex}
+        onClose={() => setPreviewIndex(null)}
+        onDownload={download}
+        isDownloading={previewIndex !== null && isDownloading(attachments[previewIndex]?.id)}
+      />
     </div>
   );
 }

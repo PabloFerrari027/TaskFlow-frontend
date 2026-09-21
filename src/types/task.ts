@@ -28,6 +28,10 @@ export interface Task {
   version: number;
   createdAt: string;
   updatedAt: string;
+  /** Se a task tem imagem de capa. */
+  hasCover: boolean;
+  /** Rota autenticada (binário) da capa — `null` sem capa. Não serve como `<img src>`, ver `useTaskCoverUrl`. */
+  coverUrl: string | null;
   attachments: Attachment[];
   /** Participantes aditivos da task — não inclui assigneeId automaticamente (conceitos independentes, sem hierarquia). */
   participantIds: string[];

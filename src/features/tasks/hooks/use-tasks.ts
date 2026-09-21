@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import {
   useMutation,
   useQuery,
@@ -25,6 +26,7 @@ import {
   queueEntityUpdate,
 } from "@/features/sync/lib/sync-engine";
 import type {
+  Attachment,
   BulkResult,
   ChangeTaskStatusRequest,
   CreateTaskRequest,
@@ -714,6 +716,135 @@ export function useUploadAttachmentMutation(taskId: string) {
     onSuccess: (task) => {
       queryClient.setQueryData(queryKeys.tasks.detail(taskId), task);
       toast.success("Anexo enviado.");
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+}
+
+export function useRemoveAttachmentMutation(taskId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (attachmentId: string) =>
+      tasksService.removeAttachment(taskId, attachmentId),
+    onSuccess: (task, attachmentId) => {
+      queryClient.setQueryData(queryKeys.tasks.detail(taskId), task);
+      queryClient.removeQueries({
+        queryKey: queryKeys.tasks.attachmentFile(taskId, attachmentId),
+      });
+      toast.success("Anexo removido.");
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+}
+
+function useObjectUrl(blob: Blob | null | undefined, mimeType: string) {
+  const [objectUrl, setObjectUrl] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (!blob) return;
+    // The API may answer with a generic content-type; browsers need the real
+    // one to render PDFs/videos inline.
+    const typed =
+      blob.type && blob.type !== "application/octet-stream"
+        ? blob
+        : new Blob([blob], { type: mimeType });
+    const url = URL.createObjectURL(typed);
+    // Object URLs are external resources that must be revoked, so they are
+    // created/cleaned up here rather than derived during render.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setObjectUrl(url);
+    return () => {
+      URL.revokeObjectURL(url);
+      setObjectUrl(null);
+    };
+  }, [blob, mimeType]);
+
+  return objectUrl;
+}
+
+/**
+ * Attachment binary as an object URL ready for `<img>`/`<video>`/`<iframe>`.
+ * The file endpoint is authenticated, so it can't be used as a plain `src`;
+ * the Blob is cached by react-query and the object URL is revoked on unmount.
+ */
+export function useAttachmentFileQuery(
+  taskId: string,
+  attachment: Pick<Attachment, "id" | "mimeType">,
+  { enabled = true }: { enabled?: boolean } = {}
+) {
+  const query = useQuery({
+    queryKey: queryKeys.tasks.attachmentFile(taskId, attachment.id),
+    queryFn: () => tasksService.downloadAttachment(taskId, attachment.id),
+    enabled,
+    staleTime: Infinity,
+    gcTime: 5 * 60_000,
+    retry: false,
+  });
+
+  const blob = query.data;
+  const objectUrl = useObjectUrl(blob, attachment.mimeType);
+
+  return {
+    blob: blob ?? null,
+    url: objectUrl,
+    isLoading: query.isLoading || (!!blob && !objectUrl),
+    isError: query.isError,
+  };
+}
+
+/**
+ * Cover image of a task as an object URL for `<img src>`, or `null` (no cover
+ * / still loading — callers just render nothing in that case).
+ *
+ * Same auth constraint as attachments, so it's fetched as a Blob. The cache is
+ * keyed by `task.version` because the URL never changes when a cover is
+ * replaced; `placeholderData` keeps the old image on screen while the new
+ * version's request is in flight instead of flashing empty.
+ */
+export function useTaskCoverUrl(task: Pick<Task, "id" | "version" | "hasCover">) {
+  const query = useQuery({
+    queryKey: queryKeys.tasks.cover(task.id, task.version),
+    queryFn: () => tasksService.getCover(task.id),
+    enabled: task.hasCover,
+    placeholderData: (previous) => previous,
+    staleTime: Infinity,
+    gcTime: 5 * 60_000,
+    retry: false,
+  });
+
+  // Blob URLs keep the mime the server detected (jpeg/png/webp); the fallback
+  // only matters if the response comes back as octet-stream.
+  const objectUrl = useObjectUrl(task.hasCover ? query.data : null, "image/jpeg");
+
+  return task.hasCover ? objectUrl : null;
+}
+
+export function useSetTaskCoverMutation(taskId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (file: File) => tasksService.setCover(taskId, file),
+    onSuccess: (task) => {
+      queryClient.setQueryData(queryKeys.tasks.detail(taskId), task);
+      // Cards show the cover too — patch them in place rather than refetching.
+      patchTaskInLists(queryClient, task);
+      toast.success("Capa atualizada.");
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+}
+
+export function useRemoveTaskCoverMutation(taskId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => tasksService.removeCover(taskId),
+    onSuccess: (task) => {
+      queryClient.setQueryData(queryKeys.tasks.detail(taskId), task);
+      patchTaskInLists(queryClient, task);
+      queryClient.removeQueries({ queryKey: queryKeys.tasks.cover(taskId) });
+      toast.success("Capa removida.");
     },
     onError: (error) => toast.error(getErrorMessage(error)),
   });

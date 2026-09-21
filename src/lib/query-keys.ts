@@ -50,6 +50,18 @@ export const queryKeys = {
     subtasks: (taskId: string) => ["tasks", taskId, "subtasks"] as const,
     customFieldValues: (taskId: string) =>
       ["tasks", taskId, "custom-field-values"] as const,
+    // Binary downloads (attachments, covers) deliberately live under their own
+    // root, not `["tasks", taskId, ...]`: the bulk `tasks` invalidations run on
+    // every realtime signal / non-empty pull, and would otherwise re-download
+    // every visible cover and attachment blob each time.
+    attachmentFile: (taskId: string, attachmentId: string) =>
+      ["task-files", taskId, "attachments", attachmentId] as const,
+    // `version` is part of the key: any edit bumps it, and that's the only
+    // signal a cover was replaced by someone else (the URL never changes).
+    cover: (taskId: string, version?: number) =>
+      version === undefined
+        ? (["task-files", taskId, "cover"] as const)
+        : (["task-files", taskId, "cover", version] as const),
     // Untyped `["tasks", "section"]` prefix (no sectionId) is used to
     // invalidate every column's task list at once when a task is created
     // or moved, since we don't always know which section(s) were affected.

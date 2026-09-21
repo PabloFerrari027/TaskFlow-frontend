@@ -17,6 +17,7 @@ import {
 } from "@/features/tasks/components/task-inline-text-fields";
 import { SubtaskList } from "@/features/tasks/components/subtask-list";
 import { AttachmentsSection } from "@/features/tasks/components/attachments-section";
+import { TaskCoverBanner } from "@/features/tasks/components/task-cover";
 import { ParticipantsSection } from "@/features/tasks/components/participants-section";
 import { CommentComposer } from "@/features/comments/components/comment-composer";
 import { CommentList } from "@/features/comments/components/comment-list";
@@ -66,6 +67,8 @@ export function TaskDetailView({
 
   return (
     <div className="space-y-6">
+      <TaskCoverBanner task={task} />
+
       <div className={cn("gap-6", layout === "grid" ? "grid lg:grid-cols-3" : "flex flex-col")}>
         <div className={cn("space-y-6", layout === "grid" ? "lg:col-span-2" : "")}>
           <Card className="p-5">

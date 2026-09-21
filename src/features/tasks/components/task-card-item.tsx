@@ -4,6 +4,7 @@ import { Paperclip } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MemberAvatar, MemberIdLabel } from "@/components/shared/member-avatar";
 import { TaskDueDateBadge, TaskPriorityBadge } from "@/components/shared/status-badge";
+import { TaskCardCover } from "@/features/tasks/components/task-cover";
 import { useTaskSelection } from "@/features/tasks/context/task-selection-context";
 import { TaskStatusSelect } from "@/features/tasks/components/task-status-select";
 import { useTaskPanel } from "@/features/tasks/hooks/use-task-panel";
@@ -80,6 +81,8 @@ export function TaskCardItem({ task, onReorder }: TaskCardItemProps) {
             "opacity-0 group-hover/card:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100"
         )}
       />
+
+      <TaskCardCover task={task} />
 
       <div className="flex items-start justify-between gap-2">
         <span className="text-sm font-medium text-foreground">{task.title}</span>
