@@ -6,6 +6,9 @@ export const queryKeys = {
   auth: {
     me: () => ["auth", "me"] as const,
   },
+  users: {
+    photo: (userId: string) => ["users", userId, "photo"] as const,
+  },
   sessions: {
     all: () => ["sessions"] as const,
   },

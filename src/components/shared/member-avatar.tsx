@@ -1,4 +1,4 @@
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Tooltip,
   TooltipContent,
@@ -8,6 +8,7 @@ import { getInitialsFromId, shortenId } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useSelfIdentity } from "@/features/auth/hooks/use-current-user";
+import { useUserPhotoUrl } from "@/features/auth/hooks/use-user-photo";
 
 /**
  * Member endpoints only return a `userId`, never a name — only the current
@@ -25,11 +26,13 @@ export function MemberAvatar({
   const { userId: currentUserId } = useAuth();
   const isSelf = currentUserId === userId;
   const { initials: selfInitials } = useSelfIdentity({ enabled: isSelf });
+  const photoUrl = useUserPhotoUrl(userId);
 
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <Avatar className={cn("size-7", className)}>
+          {photoUrl ? <AvatarImage src={photoUrl} alt="" /> : null}
           <AvatarFallback className="text-xs">
             {isSelf && selfInitials ? selfInitials : getInitialsFromId(userId)}
           </AvatarFallback>
