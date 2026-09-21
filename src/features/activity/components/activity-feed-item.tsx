@@ -7,7 +7,7 @@ import { describeActivityEntry } from "@/features/activity/components/activity-e
 import type { ActivityLogEntry } from "@/types/activity";
 
 export function ActivityFeedItem({ entry }: { entry: ActivityLogEntry }) {
-  const { label, detail } = describeActivityEntry(entry);
+  const { label, detail, assigneeChange } = describeActivityEntry(entry);
 
   return (
     <li className="flex items-start gap-2.5">
@@ -23,6 +23,14 @@ export function ActivityFeedItem({ entry }: { entry: ActivityLogEntry }) {
           {entry.actorId ? <MemberIdLabel userId={entry.actorId} /> : "Alguém"}{" "}
           <span className="text-muted-foreground">{label}</span>
           {detail ? <span className="text-foreground"> — {detail}</span> : null}
+          {assigneeChange ? (
+            <span className="text-foreground">
+              {" — "}
+              {assigneeChange.from ? <MemberIdLabel userId={assigneeChange.from} /> : "sem responsável"}
+              {" → "}
+              {assigneeChange.to ? <MemberIdLabel userId={assigneeChange.to} /> : "sem responsável"}
+            </span>
+          ) : null}
         </p>
         <p className="text-xs text-muted-foreground">{formatRelativeTime(entry.occurredAt)}</p>
       </div>

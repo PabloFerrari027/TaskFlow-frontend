@@ -15,6 +15,13 @@ function formatDateValue(value: unknown) {
   return typeof value === "string" ? formatDate(value) : null;
 }
 
+function formatCustomFieldValue(value: unknown) {
+  if (value === null || value === undefined || value === "") return "vazio";
+  if (Array.isArray(value)) return value.length ? value.join(", ") : "vazio";
+  if (typeof value === "boolean") return value ? "sim" : "não";
+  return String(value);
+}
+
 /**
  * Confirmed against the backend source (task.events.ts / comment.events.ts):
  * every `eventType` this handles is a fixed literal string returned by an
@@ -31,6 +38,8 @@ function formatDateValue(value: unknown) {
 export function describeActivityEntry(entry: ActivityLogEntry): {
   label: string;
   detail: string | null;
+  /** Set for assignee changes so the feed can render the user labels (names aren't resolvable here). */
+  assigneeChange?: { from: string | null; to: string | null };
 } {
   if (entry.entityType === "COMMENT") {
     return { label: "comentou nesta tarefa", detail: null };
@@ -80,9 +89,14 @@ export function describeActivityEntry(entry: ActivityLogEntry): {
 
   if (type.includes("assign")) {
     const to = payload.toAssigneeId ?? payload.assigneeId;
+    const from = payload.previousAssigneeId;
     return {
       label: "alterou o responsável",
-      detail: to === null ? "removeu o responsável" : null,
+      detail: null,
+      assigneeChange: {
+        from: typeof from === "string" ? from : null,
+        to: typeof to === "string" ? to : null,
+      },
     };
   }
 
@@ -91,15 +105,31 @@ export function describeActivityEntry(entry: ActivityLogEntry): {
   }
 
   if (type.includes("due_date") || type.includes("duedate")) {
-    const to = formatDateValue(payload.toDueDate ?? payload.dueDate);
-    return { label: "alterou o prazo", detail: to };
+    const to = formatDateValue(payload.toDueDate ?? payload.dueDate) ?? "sem prazo";
+    // Entries logged before the backend started sending `previousDueDate`
+    // don't have the key at all — only show the new value for those.
+    const from =
+      "previousDueDate" in payload ? (formatDateValue(payload.previousDueDate) ?? "sem prazo") : null;
+    return { label: "alterou o prazo", detail: from ? `${from} → ${to}` : to };
   }
 
   if (type.includes("priority")) {
-    const to = payload.toPriority ?? payload.priority;
+    const rawTo = payload.toPriority ?? payload.priority;
+    const to = isTaskPriority(rawTo) ? TASK_PRIORITY_LABEL[rawTo] : "sem prioridade";
+    const rawFrom = payload.previousPriority;
+    const from =
+      "previousPriority" in payload
+        ? isTaskPriority(rawFrom)
+          ? TASK_PRIORITY_LABEL[rawFrom]
+          : "sem prioridade"
+        : null;
+    return { label: "alterou a prioridade", detail: from ? `${from} → ${to}` : to };
+  }
+
+  if (type.includes("custom_field") && "newValue" in payload) {
     return {
-      label: "alterou a prioridade",
-      detail: isTaskPriority(to) ? TASK_PRIORITY_LABEL[to] : null,
+      label: "alterou um campo personalizado",
+      detail: `${formatCustomFieldValue(payload.previousValue)} → ${formatCustomFieldValue(payload.newValue)}`,
     };
   }
 
