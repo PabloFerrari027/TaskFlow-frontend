@@ -38,6 +38,8 @@ async function runInBatches<TItem, TData>(
 }
 
 export const MAX_ATTACHMENT_SIZE_BYTES = 20 * 1024 * 1024;
+export const MAX_COVER_SIZE_BYTES = 10 * 1024 * 1024;
+export const ACCEPTED_COVER_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 export const tasksService = {
   async listByProject(projectId: string, params?: PaginationParams) {
@@ -134,6 +136,33 @@ export const tasksService = {
       { responseType: "blob" }
     );
     return response.data as Blob;
+  },
+
+  async removeAttachment(taskId: string, attachmentId: string) {
+    const { data } = await apiClient.delete<Task>(
+      `/tasks/${taskId}/attachments/${attachmentId}`
+    );
+    return data;
+  },
+
+  async setCover(taskId: string, file: File) {
+    const formData = new FormData();
+    formData.append("file", file);
+    const { data } = await apiClient.put<Task>(`/tasks/${taskId}/cover`, formData);
+    return data;
+  },
+
+  async getCover(taskId: string) {
+    const response = await apiClient.get(`/tasks/${taskId}/cover`, {
+      responseType: "blob",
+    });
+    return response.data as Blob;
+  },
+
+  // Idempotent on the server: a task without a cover comes back unchanged.
+  async removeCover(taskId: string) {
+    const { data } = await apiClient.delete<Task>(`/tasks/${taskId}/cover`);
+    return data;
   },
 
   async addParticipant(taskId: string, userId: string) {

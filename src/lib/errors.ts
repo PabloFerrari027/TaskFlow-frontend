@@ -43,6 +43,8 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   TASK_NOT_FOUND: "Tarefa não encontrada.",
   BULK_BATCH_TOO_LARGE: "Muitas tarefas de uma vez. Faça a ação em grupos menores.",
   ATTACHMENT_NOT_FOUND: "Anexo não encontrado.",
+  INVALID_TASK_COVER: "Use uma imagem JPEG, PNG ou WebP de até 10MB.",
+  TASK_COVER_NOT_FOUND: "Esta tarefa não tem capa.",
   SUBTASK_PROJECT_MISMATCH: "A subtarefa precisa pertencer ao mesmo projeto da tarefa pai.",
   TASK_HAS_PENDING_SUBTASKS:
     "Conclua ou finalize as subtarefas pendentes antes de concluir esta tarefa.",
