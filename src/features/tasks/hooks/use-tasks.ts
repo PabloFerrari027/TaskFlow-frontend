@@ -9,6 +9,11 @@ import {
 } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { tasksService } from "@/features/tasks/api/tasks-service";
+import {
+  scheduleTaskListsRefresh,
+  shouldRestoreSnapshot,
+  TASK_MUTATION_KEY,
+} from "@/features/tasks/lib/task-list-refresh";
 import { queryKeys } from "@/lib/query-keys";
 import { getErrorMessage } from "@/lib/errors";
 import { MAX_PAGE_SIZE, type PaginatedResult } from "@/types/common";
@@ -31,6 +36,57 @@ function withCountAdjusted(result: PaginatedResult<Task>, delta: number): Pagina
       totalPages: Math.max(1, Math.ceil(total / result.meta.limit)),
     },
   };
+}
+
+type PreviousSectionEntries = Array<{ queryKey: QueryKey; data: PaginatedResult<Task> }>;
+
+function restoreSectionEntries(queryClient: QueryClient, entries?: PreviousSectionEntries) {
+  if (!shouldRestoreSnapshot(queryClient)) return;
+  entries?.forEach(({ queryKey, data }) => queryClient.setQueryData(queryKey, data));
+}
+
+// Each board column is its own paginated cache (tasks.bySection), so a
+// cross-column move has to touch the source and the destination directly.
+// Returns the entries it overwrote so the caller can roll back.
+function moveTaskBetweenSectionCaches(
+  queryClient: QueryClient,
+  taskId: string,
+  toSectionId: string
+): PreviousSectionEntries {
+  const previousEntries: PreviousSectionEntries = [];
+  let movedTask: Task | undefined;
+
+  for (const [key, data] of queryClient.getQueriesData<PaginatedResult<Task>>({
+    queryKey: queryKeys.tasks.bySectionAll(),
+  })) {
+    if (!data) continue;
+    const found = data.data.find((t) => t.id === taskId);
+    if (!found) continue;
+    movedTask = found;
+    previousEntries.push({ queryKey: key, data });
+    queryClient.setQueryData<PaginatedResult<Task>>(
+      key,
+      withCountAdjusted({ ...data, data: data.data.filter((t) => t.id !== taskId) }, -1)
+    );
+  }
+
+  if (movedTask) {
+    for (const [key, data] of queryClient.getQueriesData<PaginatedResult<Task>>({
+      queryKey: queryKeys.tasks.bySection(toSectionId),
+    })) {
+      if (!data) continue;
+      previousEntries.push({ queryKey: key, data });
+      queryClient.setQueryData<PaginatedResult<Task>>(
+        key,
+        withCountAdjusted(
+          { ...data, data: [...data.data, { ...movedTask, sectionId: toSectionId }] },
+          1
+        )
+      );
+    }
+  }
+
+  return previousEntries;
 }
 
 /** Options shared by the mutations that the spreadsheet-style table drives. */
@@ -115,15 +171,10 @@ export function useCreateTaskMutation(
   const queryClient = useQueryClient();
 
   return useMutation({
+    mutationKey: TASK_MUTATION_KEY,
     mutationFn: (payload: CreateTaskRequest) => tasksService.create(projectId, payload),
     onSuccess: (task) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all(projectId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll() });
-      if (task.parentTaskId) {
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.tasks.subtasks(task.parentTaskId),
-        });
-      }
+      scheduleTaskListsRefresh(queryClient, { subtaskParentIds: [task.parentTaskId] });
       if (!silent) toast.success("Tarefa criada.");
     },
     onError: (error) => toast.error(getErrorMessage(error)),
@@ -138,6 +189,7 @@ export function useUpdateTaskMutation(
   const { workspaceId } = useCurrentWorkspace();
 
   return useMutation({
+    mutationKey: TASK_MUTATION_KEY,
     mutationFn: (payload: UpdateTaskRequest) => {
       const current = findCachedTask(queryClient, taskId);
       if (isOffline() && workspaceId && current) {
@@ -172,10 +224,9 @@ export function useUpdateTaskMutation(
         patchTaskInLists(queryClient, task);
         return;
       }
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all(task.projectId) });
-      // `sectionId` may have changed, moving the task between columns —
-      // invalidate every column since we don't track the previous one here.
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll() });
+      // `sectionId` may have changed, moving the task between columns — the
+      // refresh covers every column since we don't track the previous one here.
+      scheduleTaskListsRefresh(queryClient);
       toast.success(
         isOffline()
           ? "Alteração salva offline — será sincronizada quando a conexão voltar."
@@ -202,6 +253,7 @@ export function useUnassignTaskMutation(
   const { workspaceId } = useCurrentWorkspace();
 
   return useMutation({
+    mutationKey: TASK_MUTATION_KEY,
     mutationFn: async () => {
       const current = findCachedTask(queryClient, taskId);
       if (!workspaceId || !current) {
@@ -237,10 +289,9 @@ export function useUnassignTaskMutation(
         applied: result?.status === "APPLIED",
       };
     },
-    onSuccess: ({ projectId, queuedOffline, applied }) => {
+    onSuccess: ({ queuedOffline, applied }) => {
       if (!applied) return;
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all(projectId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll() });
+      scheduleTaskListsRefresh(queryClient);
       if (silent) return;
       toast.success(
         queuedOffline
@@ -263,6 +314,7 @@ export function useMoveTaskToSectionMutation() {
   const { workspaceId } = useCurrentWorkspace();
 
   return useMutation({
+    mutationKey: TASK_MUTATION_KEY,
     mutationFn: ({
       taskId,
       sectionId,
@@ -300,45 +352,12 @@ export function useMoveTaskToSectionMutation() {
 
       await queryClient.cancelQueries({ queryKey: queryKeys.tasks.bySectionAll() });
 
-      const previousEntries: Array<{ queryKey: QueryKey; data: PaginatedResult<Task> }> = [];
-      let movedTask: Task | undefined;
-
-      for (const [key, data] of queryClient.getQueriesData<PaginatedResult<Task>>({
-        queryKey: queryKeys.tasks.bySectionAll(),
-      })) {
-        if (!data) continue;
-        const found = data.data.find((t) => t.id === taskId);
-        if (!found) continue;
-        movedTask = found;
-        previousEntries.push({ queryKey: key, data });
-        queryClient.setQueryData<PaginatedResult<Task>>(
-          key,
-          withCountAdjusted({ ...data, data: data.data.filter((t) => t.id !== taskId) }, -1)
-        );
-      }
-
-      if (movedTask) {
-        for (const [key, data] of queryClient.getQueriesData<PaginatedResult<Task>>({
-          queryKey: queryKeys.tasks.bySection(toSectionId),
-        })) {
-          if (!data) continue;
-          previousEntries.push({ queryKey: key, data });
-          queryClient.setQueryData<PaginatedResult<Task>>(
-            key,
-            withCountAdjusted(
-              { ...data, data: [...data.data, { ...movedTask, sectionId: toSectionId }] },
-              1
-            )
-          );
-        }
-      }
+      const previousEntries = moveTaskBetweenSectionCaches(queryClient, taskId, toSectionId);
 
       return { previousEntries };
     },
     onSuccess: (task) => {
       queryClient.setQueryData(queryKeys.tasks.detail(task.id), task);
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all(task.projectId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll() });
       toast.success(
         isOffline()
           ? "Movimentação salva offline — será sincronizada quando a conexão voltar."
@@ -346,11 +365,12 @@ export function useMoveTaskToSectionMutation() {
       );
     },
     onError: (error, _vars, context) => {
-      context?.previousEntries?.forEach(({ queryKey, data }) => {
-        queryClient.setQueryData(queryKey, data);
-      });
+      restoreSectionEntries(queryClient, context?.previousEntries);
       toast.error(getErrorMessage(error));
     },
+    // On failure too, so a rollback skipped because other task writes were in
+    // flight still ends up matching the server.
+    onSettled: () => scheduleTaskListsRefresh(queryClient),
   });
 }
 
@@ -362,6 +382,7 @@ export function useChangeTaskStatusMutation(
   const { workspaceId } = useCurrentWorkspace();
 
   return useMutation({
+    mutationKey: TASK_MUTATION_KEY,
     mutationFn: (payload: ChangeTaskStatusRequest) => {
       const current = findCachedTask(queryClient, taskId);
       if (isOffline() && workspaceId && current) {
@@ -390,7 +411,7 @@ export function useChangeTaskStatusMutation(
         patchTaskInLists(queryClient, task);
         return;
       }
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all(task.projectId) });
+      scheduleTaskListsRefresh(queryClient);
       toast.success(
         isOffline()
           ? "Status salvo offline — será sincronizado quando a conexão voltar."

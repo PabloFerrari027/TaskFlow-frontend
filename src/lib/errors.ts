@@ -111,6 +111,8 @@ const DEFAULT_MESSAGE = "Algo deu errado. Tente novamente em instantes.";
 const NETWORK_MESSAGE =
   "Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.";
 
+const RATE_LIMIT_MESSAGE = "Muitas requisições em pouco tempo. Aguarde alguns segundos e tente novamente.";
+
 export function getMessageForCode(code: ErrorCode): string {
   return ERROR_MESSAGES[code];
 }
@@ -118,6 +120,10 @@ export function getMessageForCode(code: ErrorCode): string {
 export function getErrorMessage(error: unknown): string {
   if (axios.isAxiosError(error)) {
     if (!error.response) return NETWORK_MESSAGE;
+
+    if (error.response.status === 429 && !isDomainError(error.response.data)) {
+      return RATE_LIMIT_MESSAGE;
+    }
 
     const data: unknown = error.response.data;
     if (isDomainError(data)) {
