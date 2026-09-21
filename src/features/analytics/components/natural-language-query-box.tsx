@@ -17,6 +17,7 @@ import {
   TASK_PRIORITY_LABEL,
 } from "@/components/shared/status-badge";
 import { formatDate, shortenId } from "@/lib/format";
+import { getErrorCode, getMessageForCode } from "@/lib/errors";
 import { DERIVED_METRIC_LABEL, formatDerivedMetricValue } from "@/features/analytics/lib/derived-metrics";
 import type {
   AnalyticsEntity,
@@ -209,11 +210,15 @@ function NaturalLanguageResult({
 export function NaturalLanguageQueryBox({ workspaceId }: { workspaceId: string }) {
   const [text, setText] = React.useState("");
   const mutation = useNaturalLanguageQueryMutation(workspaceId);
+  // Retrying can't help until the AI provider account is topped up, so the
+  // form stays locked (the error is only cleared by a new mutate call).
+  const creditsExhausted = getErrorCode(mutation.error) === "AI_INSUFFICIENT_CREDITS";
+  const formDisabled = mutation.isPending || creditsExhausted;
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     const trimmed = text.trim();
-    if (!trimmed || mutation.isPending) return;
+    if (!trimmed || formDisabled) return;
     mutation.mutate(trimmed);
   }
 
@@ -235,13 +240,22 @@ export function NaturalLanguageQueryBox({ workspaceId }: { workspaceId: string }
           onChange={(event) => setText(event.target.value.slice(0, MAX_QUESTION_LENGTH))}
           maxLength={MAX_QUESTION_LENGTH}
           placeholder="Faça uma pergunta sobre suas tarefas e projetos..."
-          disabled={mutation.isPending}
+          disabled={formDisabled}
         />
-        <Button type="submit" disabled={mutation.isPending || !text.trim()}>
+        <Button type="submit" disabled={formDisabled || !text.trim()}>
           {mutation.isPending ? <Loader2 className="animate-spin" /> : null}
           Perguntar
         </Button>
       </form>
+
+      {creditsExhausted ? (
+        <p
+          role="alert"
+          className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive"
+        >
+          {getMessageForCode("AI_INSUFFICIENT_CREDITS")}
+        </p>
+      ) : null}
 
       {mutation.data ? (
         <div className="space-y-3 border-t border-border pt-4">

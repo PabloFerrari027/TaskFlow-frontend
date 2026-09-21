@@ -11,6 +11,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { getErrorCode, getMessageForCode } from "@/lib/errors";
 import { useCurrentWorkspace } from "@/features/workspaces/context/current-workspace-context";
 import { useSendChatMessageMutation } from "@/features/assistant/hooks/use-assistant";
 import { AssistantMessage } from "@/features/assistant/components/assistant-message";
@@ -83,6 +84,9 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
 export function AssistantChat() {
   const [open, setOpen] = React.useState(false);
   const [showSummary, setShowSummary] = React.useState(false);
+  // The AI provider refused the call for lack of credits/quota: retrying is
+  // pointless, so the composer stays locked until the sheet is reopened.
+  const [creditsExhausted, setCreditsExhausted] = React.useState(false);
   const { workspace } = useCurrentWorkspace();
   const [text, setText] = React.useState("");
   const [state, dispatch] = React.useReducer(chatReducer, INITIAL_STATE);
@@ -90,6 +94,7 @@ export function AssistantChat() {
 
   const sendMutation = useSendChatMessageMutation(workspace?.id ?? "");
   const assistantEnabled = workspace?.assistantEnabled ?? false;
+  const composerDisabled = sendMutation.isPending || !assistantEnabled || creditsExhausted;
 
   React.useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
@@ -99,6 +104,7 @@ export function AssistantChat() {
     setOpen(next);
     if (!next) {
       setShowSummary(false);
+      setCreditsExhausted(false);
       dispatch({ type: "reset" });
     }
   }
@@ -106,7 +112,7 @@ export function AssistantChat() {
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     const trimmed = text.trim();
-    if (!trimmed || sendMutation.isPending || !workspace || !assistantEnabled) return;
+    if (!trimmed || composerDisabled || !workspace) return;
 
     const history: ChatMessage[] = state.transcript.map((message) => ({
       role: message.role,
@@ -136,6 +142,9 @@ export function AssistantChat() {
               })),
             },
           });
+        },
+        onError: (error) => {
+          if (getErrorCode(error) === "AI_INSUFFICIENT_CREDITS") setCreditsExhausted(true);
         },
       }
     );
@@ -212,6 +221,14 @@ export function AssistantChat() {
               {sendMutation.isPending ? (
                 <p className="text-sm text-muted-foreground">Digitando...</p>
               ) : null}
+              {creditsExhausted ? (
+                <p
+                  role="alert"
+                  className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive"
+                >
+                  {getMessageForCode("AI_INSUFFICIENT_CREDITS")}
+                </p>
+              ) : null}
             </div>
 
             <form onSubmit={handleSubmit} className="flex gap-2 border-t border-border/60 p-4">
@@ -220,12 +237,12 @@ export function AssistantChat() {
                 onChange={(event) => setText(event.target.value.slice(0, MAX_MESSAGE_LENGTH))}
                 maxLength={MAX_MESSAGE_LENGTH}
                 placeholder="Escreva uma mensagem..."
-                disabled={sendMutation.isPending || !assistantEnabled}
+                disabled={composerDisabled}
               />
               <Button
                 type="submit"
                 size="icon"
-                disabled={sendMutation.isPending || !text.trim() || !assistantEnabled}
+                disabled={composerDisabled || !text.trim()}
               >
                 <Send />
               </Button>

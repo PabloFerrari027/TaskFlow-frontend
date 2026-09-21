@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { assistantService } from "@/features/assistant/api/assistant-service";
 import { queryKeys } from "@/lib/query-keys";
-import { getErrorMessage } from "@/lib/errors";
+import { getErrorCode, getErrorMessage } from "@/lib/errors";
 import { clearSession } from "@/lib/auth/token-store";
 import type { ChatMessage } from "@/features/assistant/types";
 import type { Project } from "@/types/project";
@@ -21,7 +21,12 @@ export function useSendChatMessageMutation(workspaceId: string) {
   return useMutation({
     mutationFn: ({ message, history }: { message: string; history: ChatMessage[] }) =>
       assistantService.sendChatMessage(message, workspaceId, history),
-    onError: (error) => toast.error(getErrorMessage(error)),
+    onError: (error) => {
+      // The chat shows a persistent notice for this one (retrying can't help
+      // until the provider account is topped up), so no toast on top of it.
+      if (getErrorCode(error) === "AI_INSUFFICIENT_CREDITS") return;
+      toast.error(getErrorMessage(error));
+    },
   });
 }
 
