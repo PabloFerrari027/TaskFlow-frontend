@@ -1,11 +1,41 @@
 import { apiClient } from "@/lib/api/client";
 import type { PaginatedResult, PaginationParams } from "@/types/common";
 import type {
+  BulkResult,
+  BulkUpdateTaskItem,
   ChangeTaskStatusRequest,
   CreateTaskRequest,
+  DeletedTask,
   Task,
   UpdateTaskRequest,
 } from "@/types/task";
+
+// Server cap per bulk call (`MAX_BULK_TASKS_BATCH_SIZE`); a bigger batch is
+// rejected outright with `BULK_BATCH_TOO_LARGE` without processing any item.
+const MAX_BULK_BATCH_SIZE = 100;
+
+// Splits `items` into calls of at most `MAX_BULK_BATCH_SIZE` and stitches the
+// answers back into one result, as if it had been a single call: `index` is
+// rewritten to be relative to the whole array. Calls run one after the other so
+// the items keep being applied in the order given (positions depend on it).
+async function runInBatches<TItem, TData>(
+  items: TItem[],
+  send: (batch: TItem[]) => Promise<BulkResult<TData>>
+): Promise<BulkResult<TData>> {
+  const merged: BulkResult<TData> = { total: 0, succeeded: 0, failed: 0, results: [] };
+
+  for (let start = 0; start < items.length; start += MAX_BULK_BATCH_SIZE) {
+    const batch = await send(items.slice(start, start + MAX_BULK_BATCH_SIZE));
+    merged.total += batch.total;
+    merged.succeeded += batch.succeeded;
+    merged.failed += batch.failed;
+    for (const result of batch.results) {
+      merged.results.push({ ...result, index: result.index + start });
+    }
+  }
+
+  return merged;
+}
 
 export const MAX_ATTACHMENT_SIZE_BYTES = 20 * 1024 * 1024;
 
@@ -50,6 +80,34 @@ export const tasksService = {
   async update(taskId: string, payload: UpdateTaskRequest) {
     const { data } = await apiClient.patch<Task>(`/tasks/${taskId}`, payload);
     return data;
+  },
+
+  // The three bulk calls answer 200 even when every item fails: the outcome is
+  // per item (`results`), with no rollback of the ones that went through.
+  bulkCreate(projectId: string, tasks: CreateTaskRequest[]) {
+    return runInBatches(tasks, async (batch) => {
+      const { data } = await apiClient.post<BulkResult<Task>>(
+        `/projects/${projectId}/tasks/bulk`,
+        { tasks: batch }
+      );
+      return data;
+    });
+  },
+
+  bulkUpdate(tasks: BulkUpdateTaskItem[]) {
+    return runInBatches(tasks, async (batch) => {
+      const { data } = await apiClient.patch<BulkResult<Task>>("/tasks/bulk", { tasks: batch });
+      return data;
+    });
+  },
+
+  bulkDelete(taskIds: string[]) {
+    return runInBatches(taskIds, async (batch) => {
+      const { data } = await apiClient.post<BulkResult<DeletedTask>>("/tasks/bulk-delete", {
+        taskIds: batch,
+      });
+      return data;
+    });
   },
 
   async changeStatus(taskId: string, payload: ChangeTaskStatusRequest) {

@@ -255,7 +255,7 @@ A feature mais sofisticada do app. Implementa suporte a uso offline via o endpoi
 
 ### O que é suportado offline
 
-**Apenas edição/exclusão de entidades já existentes**: tarefa, projeto, seção e definição de custom field (edição), e exclusão de seção e comentário. **Criar** qualquer entidade nova permanece online-only — criar offline exigiria id gerado no cliente + renderização otimista de listas + reconciliação de id, uma feature maior e distinta. Valores de custom field em tarefas também ficam online-only: ao contrário de toda outra entidade do §13, não têm campo `version`, então não há `baseVersion` para chave de concorrência otimista.
+**Apenas edição/exclusão de entidades já existentes**: tarefa, projeto, seção e definição de custom field (edição), e exclusão de tarefa, seção e comentário. **Criar** qualquer entidade nova permanece online-only — criar offline exigiria id gerado no cliente + renderização otimista de listas + reconciliação de id, uma feature maior e distinta. Valores de custom field em tarefas também ficam online-only: ao contrário de toda outra entidade do §13, não têm campo `version`, então não há `baseVersion` para chave de concorrência otimista.
 
 ### Peças do motor (`features/sync/`)
 
@@ -275,7 +275,7 @@ A feature mais sofisticada do app. Implementa suporte a uso offline via o endpoi
 
 Cada mutação elegível (`useUpdateTaskMutation`, `useChangeTaskStatusMutation`, `useMoveTaskToSectionMutation`, `useUnassignTaskMutation`, `useUpdateSectionMutation`, `useDeleteSectionMutation`, `useUpdateProjectMutation`, `useArchiveProjectMutation`, `useUpdateCustomFieldOptionsMutation`, `useArchiveCustomFieldMutation`, `useDeleteCommentMutation`) segue o mesmo padrão: se `isOffline()` (checa `!navigator.onLine`) **e** há um workspace atual **e** a entidade já está em cache, chama `queueEntityUpdate`/`queueEntityDelete` em vez do service HTTP; senão, segue o caminho REST normal. O toast de sucesso também muda de texto ("salvo offline — será sincronizado...") para deixar claro ao usuário que a alteração ainda não chegou ao servidor.
 
-Apenas `SECTION` e `COMMENT` suportam exclusão via sync — `PROJECT` e `CUSTOM_FIELD_DEFINITION` sempre voltam `REJECTED` se uma `DELETE` for enfileirada para eles (por isso essas duas entidades só têm mutações de *edição* offline: arquivar, não apagar).
+`SECTION`, `COMMENT` e `TASK` suportam exclusão via sync (`TASK` é *soft delete*; online, tarefas são apagadas por `POST /tasks/bulk-delete`, então a exclusão de tarefa via sync só é usada pela fila offline de `useDeleteTasksMutation`) — `PROJECT` e `CUSTOM_FIELD_DEFINITION` sempre voltam `REJECTED` se uma `DELETE` for enfileirada para eles (por isso essas duas entidades só têm mutações de *edição* offline: arquivar, não apagar).
 
 ### Caso especial: mover tarefa entre colunas offline (`useMoveTaskToSectionMutation`)
 
@@ -319,6 +319,7 @@ Camada **aditiva** sobre o offline-first (`features/realtime/`): quando outro us
 - `useTaskDropTarget` / `useSectionDropTarget`: hooks reutilizáveis que decidem se o item solto entra acima/abaixo (tarefas) ou à esquerda/direita (seções) do alvo, com base na posição do cursor dentro do bounding box do elemento.
 - Colunas são redimensionáveis por arrasto (Pointer Events + `setPointerCapture`, para não perder eventos se o cursor sair da alça de 12px durante um arrasto rápido); a largura é persistida por seção em `localStorage`.
 - Reordenar/mover tarefas entre colunas passa por `useMoveTaskToSectionMutation`, que aceita `position` explícito para inserir entre vizinhos específicos, não só no fim da lista.
+- **Seleção múltipla** (`TaskSelectionProvider`, em `features/tasks/context/`): montado no `TaskBoard` e na página de coluna própria, guarda *snapshots* das tarefas marcadas (checkbox no cartão e na linha da tabela, "selecionar todas" no cabeçalho da coluna/tabela; com algo marcado, clicar num cartão alterna a seleção em vez de abrir a tarefa). A `TaskSelectionBar` flutuante move as marcadas para outra coluna (`useMoveTasksToSectionMutation`) ou as apaga (`useDeleteTasksMutation`). Arrastar uma tarefa marcada arrasta a seleção toda, com a mesma regra de "só entre colunas do mesmo nível" aplicada ao grupo (tudo ou nada). Mover e apagar usam as rotas em massa do backend (`PATCH /tasks/bulk`, `POST /tasks/bulk-delete`, até 100 itens por chamada — `tasksService` divide lotes maiores em chamadas sequenciais e reindexa os resultados). Elas respondem sempre `200` com sucesso parcial e sem rollback: cada item traz `SUCCESS`/`FAILED`, e as tarefas que falharam continuam marcadas. Apagar leva as subtarefas junto (`deletedSubtaskIds`) e trata `TASK_NOT_FOUND` como sucesso (a subtarefa pode já ter sumido em cascata). Criar em massa (`POST /projects/:id/tasks/bulk`) existe como `useBulkCreateTasksMutation`, ainda sem tela que o use. Offline, mover e apagar caem na fila do sync, uma operação por tarefa.
 
 ### Hierarquia (projetos, seções e comentários)
 

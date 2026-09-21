@@ -41,6 +41,7 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
     "Este convite foi enviado para outro e-mail. Entre com a conta correta.",
   PROJECT_NOT_FOUND: "Projeto não encontrado.",
   TASK_NOT_FOUND: "Tarefa não encontrada.",
+  BULK_BATCH_TOO_LARGE: "Muitas tarefas de uma vez. Faça a ação em grupos menores.",
   ATTACHMENT_NOT_FOUND: "Anexo não encontrado.",
   SUBTASK_PROJECT_MISMATCH: "A subtarefa precisa pertencer ao mesmo projeto da tarefa pai.",
   TASK_HAS_PENDING_SUBTASKS:
@@ -115,6 +116,13 @@ const RATE_LIMIT_MESSAGE = "Muitas requisições em pouco tempo. Aguarde alguns 
 
 export function getMessageForCode(code: ErrorCode): string {
   return ERROR_MESSAGES[code];
+}
+
+// A per-item error of a bulk call carries a plain `code` string, which may be
+// one this client doesn't know (e.g. `INTERNAL_ERROR`) — fall back to the
+// server's own message, then to the generic one.
+export function getBulkItemErrorMessage(error: { code: string; message?: string }): string {
+  return ERROR_MESSAGES[error.code as ErrorCode] ?? error.message ?? DEFAULT_MESSAGE;
 }
 
 export function getErrorMessage(error: unknown): string {

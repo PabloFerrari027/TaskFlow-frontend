@@ -7,13 +7,19 @@ import { ArrowLeft, ChevronDown, GripVertical, ListChecks, Maximize2, Plus } fro
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ErrorState } from "@/components/shared/error-state";
 import { RoleGate } from "@/components/shared/role-gate";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { Pager } from "@/components/shared/pager";
-import { useMoveTaskToSectionMutation, useTasksBySectionQuery } from "@/features/tasks/hooks/use-tasks";
+import {
+  useMoveTasksToSectionMutation,
+  useMoveTaskToSectionMutation,
+  useTasksBySectionQuery,
+} from "@/features/tasks/hooks/use-tasks";
+import { useTaskSelection } from "@/features/tasks/context/task-selection-context";
 import { useDeleteSectionMutation, useUpdateSectionMutation } from "@/features/sections/hooks/use-sections";
 import { useSectionDropTarget } from "@/features/sections/hooks/use-section-drop-target";
 import { useSectionColumnWidth } from "@/features/tasks/hooks/use-section-column-width";
@@ -33,16 +39,22 @@ import { setLiftedDragImage, TASK_DRAG_MIME, SECTION_DRAG_MIME } from "@/lib/dnd
 import { cn } from "@/lib/utils";
 import type { Section } from "@/types/section";
 
-// Must stay >= the auto-layout minimums below (`min-w-72`/`min-w-80`) — a
+// Must stay >= the auto-layout minimums below (`min-w-80`/`min-w-230`) — a
 // manually resized column skips those Tailwind classes entirely (see the
 // className logic below), so if this floor were lower than what a view
 // actually needs, dragging a column narrow would clip its own content.
-const MIN_COLUMN_WIDTH: Record<TaskViewMode, number> = { card: 320, table: 320 };
+// The table floor is the task table's `min-w-4xl` (896px) plus the column's
+// borders and padding: columns are wide enough that the table never scrolls
+// inside them, and the board's own scrollbar is the only horizontal one.
+const MIN_COLUMN_WIDTH: Record<TaskViewMode, number> = { card: 320, table: 920 };
 
 // Each section's root element carries `data-section-drop`. Nested sections
 // render inside their parent's DOM, so drag events bubble to the parent too —
 // each section only reacts to events whose nearest drop zone is its own.
 const DROP_ZONE_SELECTOR = "[data-section-drop]";
+
+const DIFFERENT_LEVEL_MESSAGE =
+  "Arrastar só funciona entre colunas do mesmo nível. Para mover entre uma coluna e uma subcoluna, abra a tarefa e troque a coluna nela.";
 
 interface SectionColumnProps {
   projectId: string;
@@ -90,6 +102,8 @@ export function SectionColumn({
   const deleteMutation = useDeleteSectionMutation(projectId);
   const moveMutation = useUpdateSectionMutation(projectId);
   const moveTaskMutation = useMoveTaskToSectionMutation();
+  const moveTasksMutation = useMoveTasksToSectionMutation();
+  const selection = useTaskSelection();
   const [renameOpen, setRenameOpen] = React.useState(false);
   const [subsectionOpen, setSubsectionOpen] = React.useState(false);
   const [moveOpen, setMoveOpen] = React.useState(false);
@@ -134,6 +148,11 @@ export function SectionColumn({
     fromSectionId: string;
     targetPosition: number;
   }) {
+    // Dragging one of several selected tasks drags the whole selection.
+    if (selection.count > 1 && selection.isSelected(taskId)) {
+      handleBulkDrop(targetPosition);
+      return;
+    }
     if (fromSectionId === section.id) {
       moveTaskMutation.mutate({ taskId, position: targetPosition });
       return;
@@ -141,14 +160,32 @@ export function SectionColumn({
     // Prototype limit: a task only moves between sections that share the same
     // parent (root columns with each other, sub-sections of one parent with
     // each other) — never across nesting levels or between different accordions.
-    const fromParentId = allSections.find((s) => s.id === fromSectionId)?.parentId ?? null;
-    if (fromParentId !== section.parentId) {
-      toast.info(
-        "Arrastar só funciona entre colunas do mesmo nível. Para mover entre uma coluna e uma subcoluna, abra a tarefa e troque a coluna nela."
-      );
+    if (parentIdOf(fromSectionId) !== section.parentId) {
+      toast.info(DIFFERENT_LEVEL_MESSAGE);
       return;
     }
     moveTaskMutation.mutate({ taskId, sectionId: section.id, position: targetPosition });
+  }
+
+  function parentIdOf(sectionId: string) {
+    return allSections.find((s) => s.id === sectionId)?.parentId ?? null;
+  }
+
+  // Same level rule as a single drag, applied to the whole selection: either
+  // every task can land here or none moves. Tasks already in this column stay
+  // put — a group can't be reordered within a column, only brought into it —
+  // and the rest keep their relative order starting at the drop position.
+  function handleBulkDrop(targetPosition: number) {
+    const toMove = selection.tasks.filter((task) => task.sectionId !== section.id);
+    if (toMove.some((task) => parentIdOf(task.sectionId) !== section.parentId)) {
+      toast.info(DIFFERENT_LEVEL_MESSAGE);
+      return;
+    }
+    if (toMove.length === 0) return;
+    moveTasksMutation.mutate(
+      { tasks: toMove, sectionId: section.id, position: targetPosition },
+      { onSuccess: ({ movedIds }) => selection.deselect(movedIds) }
+    );
   }
 
   function handleDrop(e: React.DragEvent) {
@@ -268,6 +305,23 @@ export function SectionColumn({
   const revealOnHover =
     "transition-opacity opacity-0 group-hover/header:opacity-100 group-focus-within/header:opacity-100 has-[[data-state=open]]:opacity-100 [@media(hover:none)]:opacity-100";
 
+  // Picks (or drops) every task this column currently shows. The table view has
+  // its own control in the table header, so this is the cards view's only.
+  const selectedHere = tasks.filter((task) => selection.isSelected(task.id)).length;
+  const selectAllCheckbox =
+    viewMode === "card" && tasks.length > 0 ? (
+      <Checkbox
+        checked={selectedHere === tasks.length ? true : selectedHere > 0 ? "indeterminate" : false}
+        aria-label={`Selecionar todas as tarefas de ${section.name}`}
+        onCheckedChange={() =>
+          selectedHere === tasks.length
+            ? selection.deselect(tasks.map((task) => task.id))
+            : selection.select(tasks)
+        }
+        className={cn("shrink-0", selection.count === 0 && revealOnHover)}
+      />
+    ) : null;
+
   return (
     <div
       data-section-drop=""
@@ -289,7 +343,9 @@ export function SectionColumn({
             ? "w-full min-w-0 flex-1"
             : effectiveWidth
               ? "shrink-0"
-              : "flex-1 min-w-80"),
+              : viewMode === "table"
+                ? "flex-1 min-w-230"
+                : "flex-1 min-w-80"),
         isDropTarget && (isNested ? "bg-primary/5 ring-1 ring-primary/50" : "border-primary bg-primary/5"),
         sectionDrop.dropEdge === "left" && "shadow-[inset_2px_0_0_0_var(--primary)]",
         sectionDrop.dropEdge === "right" && "shadow-[inset_-2px_0_0_0_var(--primary)]"
@@ -303,6 +359,7 @@ export function SectionColumn({
         )}
       >
         <div className="flex min-w-0 items-center gap-2">
+          {isNested ? selectAllCheckbox : null}
           {isNested ? (
             // The whole title is the toggle, not just the small chevron.
             <button
@@ -349,6 +406,7 @@ export function SectionColumn({
           )}
           {!isNested ? (
             <>
+              {selectAllCheckbox}
               <span className="truncate text-sm font-semibold text-foreground">
                 {section.name}
               </span>
@@ -448,6 +506,9 @@ export function SectionColumn({
                 tasks={tasks}
                 canManage={canManage}
                 emptyMessage={emptyMessage}
+                // On the board the column is always wide enough for the table
+                // and the board scrolls; the dedicated page has no such guarantee.
+                scrollable={expanded}
               />
             ) : tasks.length === 0 ? (
               <EmptyState

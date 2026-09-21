@@ -1,8 +1,10 @@
 "use client";
 
 import { Paperclip } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { MemberAvatar, MemberIdLabel } from "@/components/shared/member-avatar";
 import { TaskDueDateBadge, TaskPriorityBadge } from "@/components/shared/status-badge";
+import { useTaskSelection } from "@/features/tasks/context/task-selection-context";
 import { TaskStatusSelect } from "@/features/tasks/components/task-status-select";
 import { useTaskPanel } from "@/features/tasks/hooks/use-task-panel";
 import { useTaskDropTarget } from "@/features/tasks/hooks/use-task-drop-target";
@@ -18,6 +20,8 @@ interface TaskCardItemProps {
 
 export function TaskCardItem({ task, onReorder }: TaskCardItemProps) {
   const { openTask } = useTaskPanel();
+  const selection = useTaskSelection();
+  const isSelected = selection.isSelected(task.id);
   const { dropEdge, handleDragOver, handleDragLeave, handleDrop } = useTaskDropTarget(
     task,
     onReorder
@@ -39,7 +43,12 @@ export function TaskCardItem({ task, onReorder }: TaskCardItemProps) {
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      onClick={() => openTask(task.id)}
+      onClick={(e) => {
+        // With something already selected a click keeps picking (Ctrl/Shift
+        // always does); otherwise it opens the task like before.
+        if (selection.count > 0 || e.ctrlKey || e.metaKey || e.shiftKey) selection.toggle(task);
+        else openTask(task.id);
+      }}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
@@ -47,11 +56,31 @@ export function TaskCardItem({ task, onReorder }: TaskCardItemProps) {
         }
       }}
       className={cn(
-        "relative flex w-full cursor-grab flex-col gap-2.5 rounded-lg border border-border/60 bg-background p-3.5 text-left transition-colors hover:bg-muted/50 active:cursor-grabbing",
+        "group/card relative flex w-full cursor-grab flex-col gap-2.5 rounded-lg border border-border/60 bg-background p-3.5 text-left transition-colors hover:bg-muted/50 active:cursor-grabbing",
+        isSelected && "border-primary bg-primary/5 hover:bg-primary/10",
         dropEdge === "above" && "shadow-[inset_0_2px_0_0_var(--primary)]",
         dropEdge === "below" && "shadow-[inset_0_-2px_0_0_var(--primary)]"
       )}
     >
+      <Checkbox
+        checked={isSelected}
+        aria-label={`Selecionar a tarefa “${task.title}”`}
+        onCheckedChange={() => selection.toggle(task)}
+        // The card opens the task on click and on Enter/Space — neither should
+        // fire when the checkbox itself is used.
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
+        className={cn(
+          // Straddles the card's corner: the 14px padding keeps it off the text.
+          "absolute -top-1.5 -left-1.5 z-10 bg-background shadow-xs dark:bg-background",
+          // Hidden until hover/focus, but always there once anything is picked
+          // and on touch screens where there is no hover.
+          !isSelected &&
+            selection.count === 0 &&
+            "opacity-0 group-hover/card:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100"
+        )}
+      />
+
       <div className="flex items-start justify-between gap-2">
         <span className="text-sm font-medium text-foreground">{task.title}</span>
         {task.attachments.length > 0 ? (

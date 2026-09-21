@@ -13,6 +13,8 @@ import { SectionColumn } from "@/features/tasks/components/section-column";
 import { TaskDetailSheet } from "@/features/tasks/components/task-detail-sheet";
 import { TaskFiltersBar } from "@/features/tasks/components/task-filters-bar";
 import { TaskFormDialog } from "@/features/tasks/components/task-form-dialog";
+import { TaskSelectionBar } from "@/features/tasks/components/task-selection-bar";
+import { TaskSelectionProvider } from "@/features/tasks/context/task-selection-context";
 import { TaskViewToggle } from "@/features/tasks/components/task-view-toggle";
 import { useTaskFilters } from "@/features/tasks/hooks/use-task-filters";
 import { useTaskViewMode } from "@/features/tasks/hooks/use-task-view-mode";
@@ -86,8 +88,9 @@ export default function SectionPage(
   }
 
   return (
-    <>
+    <TaskSelectionProvider>
       {content}
+      <TaskSelectionBar projectId={projectId} />
       {createTaskSectionId ? (
         <TaskFormDialog
           projectId={projectId}
@@ -97,6 +100,6 @@ export default function SectionPage(
         />
       ) : null}
       <TaskDetailSheet projectId={projectId} />
-    </>
+    </TaskSelectionProvider>
   );
 }

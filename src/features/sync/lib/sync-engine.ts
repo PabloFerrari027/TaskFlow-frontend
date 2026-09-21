@@ -56,9 +56,10 @@ export function queueEntityUpdate<T extends { version: number }>({
   return { ...current, ...payload };
 }
 
-/** Queues an offline DELETE for an entity that supports a real hard delete
- * through sync (only `SECTION` and `COMMENT` do — `PROJECT` and
- * `CUSTOM_FIELD_DEFINITION` always come back `REJECTED` for DELETE). */
+/** Queues an offline DELETE for an entity that supports deletion through
+ * sync: `SECTION` and `COMMENT` (hard delete) and `TASK` (soft delete — only used
+ * offline; online, tasks are deleted through `POST /tasks/bulk-delete`). `PROJECT` and
+ * `CUSTOM_FIELD_DEFINITION` always come back `REJECTED` for DELETE. */
 export function queueEntityDelete({
   workspaceId,
   entityType,

@@ -15,11 +15,17 @@ import {
   TASK_MUTATION_KEY,
 } from "@/features/tasks/lib/task-list-refresh";
 import { queryKeys } from "@/lib/query-keys";
-import { getErrorMessage } from "@/lib/errors";
+import { getBulkItemErrorMessage, getErrorMessage } from "@/lib/errors";
 import { MAX_PAGE_SIZE, type PaginatedResult } from "@/types/common";
 import { useCurrentWorkspace } from "@/features/workspaces/context/current-workspace-context";
-import { isOffline, pushImmediate, queueEntityUpdate } from "@/features/sync/lib/sync-engine";
+import {
+  isOffline,
+  pushImmediate,
+  queueEntityDelete,
+  queueEntityUpdate,
+} from "@/features/sync/lib/sync-engine";
 import type {
+  BulkResult,
   ChangeTaskStatusRequest,
   CreateTaskRequest,
   Task,
@@ -84,6 +90,28 @@ function moveTaskBetweenSectionCaches(
         )
       );
     }
+  }
+
+  return previousEntries;
+}
+
+function removeTasksFromSectionCaches(
+  queryClient: QueryClient,
+  taskIds: Set<string>
+): PreviousSectionEntries {
+  const previousEntries: PreviousSectionEntries = [];
+
+  for (const [key, data] of queryClient.getQueriesData<PaginatedResult<Task>>({
+    queryKey: queryKeys.tasks.bySectionAll(),
+  })) {
+    if (!data) continue;
+    const remaining = data.data.filter((t) => !taskIds.has(t.id));
+    if (remaining.length === data.data.length) continue;
+    previousEntries.push({ queryKey: key, data });
+    queryClient.setQueryData<PaginatedResult<Task>>(
+      key,
+      withCountAdjusted({ ...data, data: remaining }, remaining.length - data.data.length)
+    );
   }
 
   return previousEntries;
@@ -371,6 +399,228 @@ export function useMoveTaskToSectionMutation() {
     // On failure too, so a rollback skipped because other task writes were in
     // flight still ends up matching the server.
     onSettled: () => scheduleTaskListsRefresh(queryClient),
+  });
+}
+
+function pluralizeTasks(count: number, one: string, many: string) {
+  return `${count} ${count === 1 ? one : many}`;
+}
+
+// Per-item failures of a bulk call, as messages a person can read.
+function collectBulkFailures<T>(bulk: BulkResult<T>) {
+  return bulk.results.flatMap((result) =>
+    result.status === "FAILED" ? [getBulkItemErrorMessage(result.error)] : []
+  );
+}
+
+/**
+ * Moves several tasks to one column with a single `PATCH /tasks/bulk`. With a
+ * `position` each task lands at `position + index` (keeping their relative
+ * order); without one they are appended to the column in the order given. The
+ * server applies the items one by one and a failure doesn't undo the others, so
+ * the result reports what actually moved — callers can keep just the failed
+ * ones selected.
+ */
+export function useMoveTasksToSectionMutation() {
+  const queryClient = useQueryClient();
+  const { workspaceId } = useCurrentWorkspace();
+
+  return useMutation({
+    mutationKey: TASK_MUTATION_KEY,
+    mutationFn: async ({
+      tasks,
+      sectionId,
+      position,
+    }: {
+      tasks: Task[];
+      sectionId: string;
+      position?: number;
+    }) => {
+      const payloadFor = (index: number) => ({
+        sectionId,
+        position: position === undefined ? undefined : position + index,
+      });
+
+      if (isOffline() && workspaceId) {
+        for (const [index, task] of tasks.entries()) {
+          const current = findCachedTask(queryClient, task.id) ?? task;
+          const queued = queueEntityUpdate({
+            workspaceId,
+            entityType: "TASK",
+            entityId: task.id,
+            payload: payloadFor(index),
+            current,
+            meta: { projectId: current.projectId },
+          });
+          queryClient.setQueryData(queryKeys.tasks.detail(task.id), queued);
+        }
+        return { movedIds: tasks.map((task) => task.id), failures: [], queuedOffline: true };
+      }
+
+      const bulk = await tasksService.bulkUpdate(
+        tasks.map((task, index) => ({ taskId: task.id, ...payloadFor(index) }))
+      );
+      const movedIds: string[] = [];
+      for (const result of bulk.results) {
+        if (result.status !== "SUCCESS") continue;
+        movedIds.push(result.data.id);
+        queryClient.setQueryData(queryKeys.tasks.detail(result.data.id), result.data);
+      }
+      return { movedIds, failures: collectBulkFailures(bulk), queuedOffline: false };
+    },
+    onMutate: async ({ tasks, sectionId }) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.tasks.bySectionAll() });
+      const previousEntries = tasks.flatMap((task) =>
+        moveTaskBetweenSectionCaches(queryClient, task.id, sectionId)
+      );
+      return { previousEntries };
+    },
+    onSuccess: ({ movedIds, failures, queuedOffline }) => {
+      if (failures.length === 0) {
+        toast.success(
+          queuedOffline
+            ? "Movimentação salva offline — será sincronizada quando a conexão voltar."
+            : `${pluralizeTasks(movedIds.length, "tarefa movida", "tarefas movidas")}.`
+        );
+      } else if (movedIds.length === 0) {
+        toast.error(failures[0]);
+      } else {
+        toast.warning(
+          `${pluralizeTasks(movedIds.length, "tarefa movida", "tarefas movidas")}, mas ${pluralizeTasks(failures.length, "falhou", "falharam")}: ${failures[0]}`
+        );
+      }
+    },
+    onError: (error, _vars, context) => {
+      restoreSectionEntries(queryClient, context?.previousEntries);
+      toast.error(getErrorMessage(error));
+    },
+    // Whatever happened per task, the server's view wins: this also puts back
+    // the ones that failed after the optimistic move above.
+    onSettled: () => scheduleTaskListsRefresh(queryClient),
+  });
+}
+
+/**
+ * Deletes several tasks with a single `POST /tasks/bulk-delete` (a soft delete
+ * that also takes every subtask along). Offline it queues one sync `DELETE` per
+ * task instead. A task that's already gone (`TASK_NOT_FOUND` — e.g. the
+ * subtask of another task in the same batch, removed by the cascade) counts as
+ * deleted: it's the outcome that was asked for.
+ */
+export function useDeleteTasksMutation() {
+  const queryClient = useQueryClient();
+  const { workspaceId } = useCurrentWorkspace();
+
+  return useMutation({
+    mutationKey: TASK_MUTATION_KEY,
+    mutationFn: async (tasks: Task[]) => {
+      if (isOffline()) {
+        if (!workspaceId) {
+          throw new Error("Não foi possível apagar as tarefas: workspace indisponível.");
+        }
+        for (const task of tasks) {
+          queueEntityDelete({
+            workspaceId,
+            entityType: "TASK",
+            entityId: task.id,
+            baseVersion: (findCachedTask(queryClient, task.id) ?? task).version,
+            meta: { projectId: task.projectId, taskId: task.id },
+          });
+        }
+        return {
+          deletedIds: tasks.map((task) => task.id),
+          deletedSubtaskIds: [] as string[],
+          failures: [] as string[],
+          queuedOffline: true,
+        };
+      }
+
+      const bulk = await tasksService.bulkDelete(tasks.map((task) => task.id));
+      const deletedIds: string[] = [];
+      const deletedSubtaskIds: string[] = [];
+      const failures: string[] = [];
+      for (const result of bulk.results) {
+        if (result.status === "SUCCESS") {
+          deletedIds.push(result.data.id);
+          deletedSubtaskIds.push(...result.data.deletedSubtaskIds);
+        } else if (result.error.code === "TASK_NOT_FOUND" && result.taskId) {
+          deletedIds.push(result.taskId);
+        } else {
+          failures.push(getBulkItemErrorMessage(result.error));
+        }
+      }
+      return { deletedIds, deletedSubtaskIds, failures, queuedOffline: false };
+    },
+    onMutate: async (tasks) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.tasks.bySectionAll() });
+      const previousEntries = removeTasksFromSectionCaches(
+        queryClient,
+        new Set(tasks.map((task) => task.id))
+      );
+      return { previousEntries };
+    },
+    onSuccess: ({ deletedIds, deletedSubtaskIds, failures, queuedOffline }) => {
+      for (const taskId of [...deletedIds, ...deletedSubtaskIds]) {
+        queryClient.removeQueries({ queryKey: queryKeys.tasks.detail(taskId) });
+      }
+      if (failures.length === 0) {
+        toast.success(
+          queuedOffline
+            ? "Exclusão salva offline — será sincronizada quando a conexão voltar."
+            : `${pluralizeTasks(deletedIds.length, "tarefa apagada", "tarefas apagadas")}.`
+        );
+      } else if (deletedIds.length === 0) {
+        toast.error(failures[0]);
+      } else {
+        toast.warning(
+          `${pluralizeTasks(deletedIds.length, "tarefa apagada", "tarefas apagadas")}, mas ${pluralizeTasks(failures.length, "falhou", "falharam")}: ${failures[0]}`
+        );
+      }
+    },
+    onError: (error, _tasks, context) => {
+      restoreSectionEntries(queryClient, context?.previousEntries);
+      toast.error(getErrorMessage(error));
+    },
+    // Puts back whatever the server didn't actually delete, and refreshes
+    // counts and the subtask lists of the parents that lost a child.
+    onSettled: (_data, _error, tasks) =>
+      scheduleTaskListsRefresh(queryClient, {
+        subtaskParentIds: tasks.map((task) => task.parentTaskId),
+      }),
+  });
+}
+
+/**
+ * Creates several tasks in one project with a single `POST .../tasks/bulk`.
+ * Inside one column they take their positions in the order given. Resolves with
+ * the raw per-item result so the caller can tell which items failed — a task
+ * that failed has no id, `index` is what matches it back to the input.
+ */
+export function useBulkCreateTasksMutation(projectId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationKey: TASK_MUTATION_KEY,
+    mutationFn: (tasks: CreateTaskRequest[]) => tasksService.bulkCreate(projectId, tasks),
+    onSuccess: (bulk) => {
+      const failures = collectBulkFailures(bulk);
+      if (failures.length === 0) {
+        toast.success(`${pluralizeTasks(bulk.succeeded, "tarefa criada", "tarefas criadas")}.`);
+      } else if (bulk.succeeded === 0) {
+        toast.error(failures[0]);
+      } else {
+        toast.warning(
+          `${pluralizeTasks(bulk.succeeded, "tarefa criada", "tarefas criadas")}, mas ${pluralizeTasks(failures.length, "falhou", "falharam")}: ${failures[0]}`
+        );
+      }
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+    onSettled: (bulk) =>
+      scheduleTaskListsRefresh(queryClient, {
+        subtaskParentIds: (bulk?.results ?? []).map((result) =>
+          result.status === "SUCCESS" ? result.data.parentTaskId : null
+        ),
+      }),
   });
 }
 
