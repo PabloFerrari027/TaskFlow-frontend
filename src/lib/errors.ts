@@ -81,6 +81,8 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   ASSISTANT_DISABLED_FOR_WORKSPACE:
     "O assistente está desligado neste workspace. Peça a um OWNER para habilitá-lo.",
   AI_TRANSLATION_FAILED: "Não consegui processar sua pergunta agora, tente novamente.",
+  AI_INSUFFICIENT_CREDITS:
+    "A IA está indisponível no momento por falta de créditos do serviço. Avise o administrador da plataforma.",
   AI_RATE_LIMIT_EXCEEDED:
     "Você atingiu o limite de perguntas por enquanto, tente novamente mais tarde.",
   ACCOUNT_HAS_NO_PASSWORD:
@@ -108,6 +110,10 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
 const DEFAULT_MESSAGE = "Algo deu errado. Tente novamente em instantes.";
 const NETWORK_MESSAGE =
   "Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.";
+
+export function getMessageForCode(code: ErrorCode): string {
+  return ERROR_MESSAGES[code];
+}
 
 export function getErrorMessage(error: unknown): string {
   if (axios.isAxiosError(error)) {

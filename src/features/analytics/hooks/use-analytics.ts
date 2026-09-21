@@ -258,6 +258,8 @@ export function useNaturalLanguageQueryMutation(workspaceId: string) {
         toast.error("Não entendi bem sua pergunta, tente reformular.");
         return;
       }
+      // The query box shows a persistent notice for this one instead.
+      if (getErrorCode(error) === "AI_INSUFFICIENT_CREDITS") return;
       toast.error(getErrorMessage(error));
     },
   });
