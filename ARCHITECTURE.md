@@ -64,7 +64,7 @@ src/
   types/                   # Tipos alinhados 1:1 aos DTOs da API
 ```
 
-Features existentes: `auth`, `sessions`, `workspaces`, `projects`, `tasks`, `sections`, `custom-fields`, `comments`, `activity`, `analytics`, `automations`, `assistant`, `admin`, `sync`, `realtime`.
+Features existentes: `auth`, `sessions`, `workspaces`, `projects`, `tasks`, `sections`, `custom-fields`, `comments`, `activity`, `analytics`, `automations`, `assistant`, `admin`, `sync`, `realtime`, `tutorial`.
 
 ## 3. Arquitetura em camadas
 
@@ -114,6 +114,7 @@ Regras que o código segue consistentemente:
   /analytics                               Dashboard analítico do workspace atual
   /settings/sessions                       Sessões ativas do usuário
   /settings/security                       Alterar senha / definir primeira senha (conta Google-only) / vincular Google (conta com senha)
+  /tutorial                                Guias por tema (accordion) + botão para refazer o tour guiado
   /admin/clients                           Gestão de clientes (apenas SUPER_ADMIN)
 ```
 
@@ -311,6 +312,7 @@ Camada **aditiva** sobre o offline-first (`features/realtime/`): quando outro us
 | **admin** | `/admin/clients`, `/suspend`, `/activate` (DELETE = encerrar) | Gestão de contas da plataforma, exclusiva de `SUPER_ADMIN`; ver [§6](#6-autorização-e-papéis) para como o acesso é inferido. |
 | **sync** | `/sync/push`, `/sync/pull` | Ver [§10](#10-sincronização-offline). |
 | **realtime** | `/workspaces/:id/realtime/ticket` (POST), `/realtime/stream?ticket=` (SSE) | Sinais de invalidação em tempo real — ver [Tempo real](#tempo-real-sse). |
+| **tutorial** | — (sem API) | Página `/tutorial` + tour guiado — ver [Tutorial](#tutorial). |
 
 ### Quadro Kanban (`features/tasks/components/task-board.tsx` + `section-column.tsx`)
 
@@ -355,6 +357,17 @@ Chat de IA (`features/assistant/`) acessível de qualquer tela via ícone fixo n
 - **Preview ao vivo** (`AutomationLivePreview`, fixo no topo do diálogo) mostra a frase completa a cada mudança; a mesma função (`describeDraft`) alimenta a lista de regras e o nome automático (nome em branco = a própria frase, cortada em 120).
 - **Nomes reais em vez de ids** (`useAutomationLookups`): seções não têm endpoint por workspace, então busca as seções de cada projeto (mesma `queryKey` do quadro — projeto já aberto vem do cache) e resolve projetos/membros pelo cache existente.
 - **Ainda não implementado** (o backend não expõe): teste/dry-run (`POST …/:id/test`), histórico de execuções (`GET …/activity?automationRuleId=`; hoje as entradas só trazem `triggeredByAutomationRuleId`, sem filtro) e `disabledReason`. Enquanto isso, a linha "Desativada" lista as causas possíveis num tooltip em vez de afirmar uma; religar é um `PATCH { enabled: true }` direto.
+
+### Tutorial
+
+`features/tutorial/` — sem chamadas à API; todo o estado é local.
+
+- **Página `/tutorial`**: 14 guias em 4 grupos (Comece por aqui, Trabalho do dia a dia, Recursos avançados, Conta e funcionamento), seguidos da matriz **Papéis e permissões** e de um **Glossário**. `TutorialGuides` é um accordion (`components/ui/accordion.tsx`, `type="multiple"`) com busca (ignora acentos; abre sozinha até 3 resultados), atalhos por guia e deep link por hash (`/tutorial#board` abre e rola até o guia).
+- **Conteúdo é dado, não JSX** (`lib/tutorial-guides.ts`): cada guia tem `sections` (`intro`, `steps`, `bullets`, `callouts` dos tipos `tip`/`note`/`warning`), `faq`, `audience`, `related` e `href`. `GuideBody` renderiza tudo; adicionar ou editar um guia não exige mexer em componente. A busca indexa todo esse texto. `lib/tutorial-reference.ts` guarda a matriz de papéis (espelha `src/lib/permissions.ts` — atualizar os dois juntos) e o glossário.
+- **Texto acompanha a interface**: os guias citam rótulos reais ("Novo projeto", "Mover para…", "Adicionar coluna", "Mais filtros") e chamam as seções do quadro de **colunas**, como a UI. Revisar quando o texto da interface mudar. O `AccordionContent` usa `h-auto` porque a primitiva fixa a altura medida na abertura, o que cortaria os `<details>` de dúvidas ao expandirem.
+- **Tour guiado** (`TutorialTour`, montado no layout do dashboard): overlay com spotlight sobre elementos marcados com `data-tour="<id>"` (seletor de workspace, sidebar, botão do assistente, menu do usuário) e um cartão de passos. Sem biblioteca externa. Os passos ficam em `lib/tour-steps.ts` e miram só o shell (topbar/sidebar), então funciona igual em qualquer página. Passos cujo alvo não está visível quando o tour abre (sidebar no mobile ou recolhida) são descartados; passos sem `target` aparecem centralizados. Teclado: `Esc` sai, `←`/`→` navegam, e o foco fica preso no cartão. O overlay só monta enquanto aberto, para resolver os alvos contra o DOM daquele momento.
+- **Persistência** (`context/tutorial-context.tsx`, `TutorialProvider`): `taskflow.tourSeen.<userId>` em `localStorage` (`completed` | `skipped`). Por usuário para que uma segunda conta no mesmo navegador também veja o tour; por navegador, como as demais preferências locais. Abre sozinho no primeiro acesso, depois que os workspaces carregam; sem `localStorage` disponível, não abre automaticamente (senão repetiria a cada carga). Pode ser refeito pelo menu do usuário ou pelo botão da página `/tutorial`.
+- **Novo alvo de tour**: basta adicionar `data-tour="<id>"` ao elemento (o botão precisa repassar props ao DOM, como o `Button`) e um passo em `TOUR_STEPS`.
 
 ## 12. UI, design system e tema
 

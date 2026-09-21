@@ -7,6 +7,8 @@ import {
   MonitorSmartphone,
   KeyRound,
   ShieldCheck,
+  BookOpen,
+  FileText,
   UserRound,
 } from "lucide-react";
 
@@ -25,6 +27,8 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/settings/profile", label: "Perfil", icon: UserRound },
   { href: "/settings/sessions", label: "Sessões", icon: MonitorSmartphone },
   { href: "/settings/security", label: "Segurança", icon: KeyRound },
+  { href: "/tutorial", label: "Tutorial", icon: BookOpen },
+  { href: "/privacy", label: "Privacidade e FAQ", icon: FileText },
   {
     href: "/admin/clients",
     label: "Clientes",

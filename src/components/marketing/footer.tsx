@@ -10,6 +10,9 @@ export function Footer() {
           © {new Date().getFullYear()} TaskFlow. Todos os direitos reservados.
         </p>
         <div className="flex items-center gap-6 text-sm text-muted-foreground">
+          <Link href="/privacy" className="hover:text-foreground">
+            Privacidade e FAQ
+          </Link>
           <Link href="/login" className="hover:text-foreground">
             Entrar
           </Link>

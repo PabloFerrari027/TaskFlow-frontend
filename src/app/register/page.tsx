@@ -27,6 +27,13 @@ export default function RegisterPage() {
           <div className="space-y-5">
             <RegisterForm />
             <GoogleSignInButton />
+            <p className="text-center text-xs text-muted-foreground">
+              Ao criar uma conta, você concorda com o tratamento dos seus dados descrito na nossa{" "}
+              <Link href="/privacy" className="font-medium text-primary hover:underline">
+                política de privacidade
+              </Link>
+              .
+            </p>
           </div>
         </AuthShell>
       </RequireGuest>

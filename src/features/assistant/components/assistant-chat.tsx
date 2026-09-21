@@ -163,7 +163,12 @@ export function AssistantChat() {
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label="Abrir assistente de IA">
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Abrir assistente de IA"
+          data-tour="assistant"
+        >
           <Sparkles />
         </Button>
       </SheetTrigger>

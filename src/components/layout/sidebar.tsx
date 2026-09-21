@@ -11,6 +11,7 @@ export function Sidebar() {
   return (
     <aside
       id="app-sidebar"
+      data-tour="sidebar"
       className={cn(
         "hidden w-60 shrink-0 border-r border-border/60 bg-card/40",
         !collapsed && "md:flex md:flex-col"
