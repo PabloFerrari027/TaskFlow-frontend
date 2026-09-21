@@ -14,6 +14,8 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   SESSION_EXPIRED: "Sua sessão expirou. Faça login novamente.",
   USER_NOT_FOUND: "Usuário não encontrado.",
   USER_ALREADY_CLOSED: "Esta conta já foi encerrada.",
+  INVALID_USER_PHOTO: "Use uma imagem JPEG, PNG ou WebP de até 5MB.",
+  USER_PHOTO_NOT_FOUND: "Este usuário não tem foto de perfil.",
   EMAIL_NOT_VERIFIED: "Confirme seu e-mail antes de entrar.",
   EMAIL_ALREADY_VERIFIED: "Este e-mail já foi verificado.",
   EMAIL_VERIFICATION_NOT_FOUND:

@@ -111,9 +111,16 @@ export interface CurrentUserResponse {
   // null on accounts created before the field existed (or Google without a
   // profile name) — callers fall back to the e-mail.
   name: string | null;
+  // When true the binary is at GET /users/:id/photo (using the user's own id).
+  hasPhoto: boolean;
   status: AccountStatus;
   hasPassword: boolean;
   googleLinked: boolean;
+}
+
+export interface UpdateProfilePhotoResponse {
+  id: string;
+  hasPhoto: boolean;
 }
 
 export interface AccessTokenPayload {

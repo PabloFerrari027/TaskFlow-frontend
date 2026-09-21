@@ -7,6 +7,7 @@ import {
   MonitorSmartphone,
   KeyRound,
   ShieldCheck,
+  UserRound,
 } from "lucide-react";
 
 export interface NavItem {
@@ -21,6 +22,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/projects", label: "Projetos", icon: FolderKanban },
   { href: "/analytics", label: "Análises", icon: BarChart3 },
   { href: "/workspaces", label: "Workspaces", icon: Building2 },
+  { href: "/settings/profile", label: "Perfil", icon: UserRound },
   { href: "/settings/sessions", label: "Sessões", icon: MonitorSmartphone },
   { href: "/settings/security", label: "Segurança", icon: KeyRound },
   {

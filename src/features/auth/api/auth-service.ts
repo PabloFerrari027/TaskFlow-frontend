@@ -1,3 +1,4 @@
+import axios from "axios";
 import { apiClient } from "@/lib/api/client";
 import type {
   AuthTokensResponse,
@@ -17,10 +18,25 @@ import type {
   ResendVerificationCodeRequest,
   ResendVerificationCodeResponse,
   SetFirstPasswordRequest,
+  UpdateProfilePhotoResponse,
   VerifyEmailRequest,
   VerifyEmailResponse,
   VerifyTwoFactorRequest,
 } from "@/types/auth";
+
+// A data URL (unlike an object URL) has no lifecycle to manage, so it can sit
+// in the query cache and be dropped by GC like any other value.
+function blobToDataUrl(blob: Blob) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}
+
+export const MAX_PHOTO_SIZE_BYTES = 5 * 1024 * 1024;
+export const ACCEPTED_PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 export const authService = {
   async register(payload: RegisterUserRequest) {
@@ -86,6 +102,32 @@ export const authService = {
   async getCurrentUser() {
     const { data } = await apiClient.get<CurrentUserResponse>("/auth/me");
     return data;
+  },
+
+  async uploadPhoto(file: File) {
+    const formData = new FormData();
+    formData.append("file", file);
+    const { data } = await apiClient.put<UpdateProfilePhotoResponse>(
+      "/auth/me/photo",
+      formData
+    );
+    return data;
+  },
+
+  // Protected by JWT, so it can't be an <img src> — fetch the blob and hand
+  // the caller a data URL. `null` means the user has no photo (404).
+  async getUserPhoto(userId: string) {
+    try {
+      const response = await apiClient.get<Blob>(`/users/${userId}/photo`, {
+        responseType: "blob",
+      });
+      return await blobToDataUrl(response.data);
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        return null;
+      }
+      throw error;
+    }
   },
 
   async changePassword(payload: ChangePasswordRequest) {
