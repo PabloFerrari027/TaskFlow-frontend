@@ -5,8 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Loader2, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { MentionPicker } from "@/components/shared/mention-picker";
+import { MentionTextarea } from "@/components/shared/mention-textarea";
 import {
   Form,
   FormControl,
@@ -16,6 +15,8 @@ import {
 } from "@/components/ui/form";
 import { commentFormSchema, type CommentFormValues } from "@/features/comments/schemas";
 import { useCreateCommentMutation } from "@/features/comments/hooks/use-comments";
+import { useAssignableMembers } from "@/features/tasks/hooks/use-assignable-members";
+import { extractMentionedUserIds } from "@/lib/mentions";
 
 interface CommentComposerProps {
   taskId: string;
@@ -36,7 +37,7 @@ export function CommentComposer({
 }: CommentComposerProps) {
   const createMutation = useCreateCommentMutation(taskId);
   const isReply = Boolean(parentId);
-  const [mentionedUserIds, setMentionedUserIds] = React.useState<string[]>([]);
+  const { userIds: memberIds } = useAssignableMembers(projectId);
 
   const form = useForm<CommentFormValues>({
     resolver: zodResolver(commentFormSchema),
@@ -44,6 +45,7 @@ export function CommentComposer({
   });
 
   function onSubmit(values: CommentFormValues) {
+    const mentionedUserIds = extractMentionedUserIds(values.content, memberIds);
     createMutation.mutate(
       {
         content: values.content,
@@ -53,7 +55,6 @@ export function CommentComposer({
       {
         onSuccess: () => {
           form.reset({ content: "" });
-          setMentionedUserIds([]);
           onSubmitted?.();
         },
       }
@@ -69,19 +70,18 @@ export function CommentComposer({
           render={({ field }) => (
             <FormItem className="flex-1">
               <FormControl>
-                <Textarea
+                <MentionTextarea
+                  projectId={projectId}
                   rows={2}
                   autoFocus={isReply}
-                  placeholder={isReply ? "Escreva uma resposta…" : "Escreva um comentário…"}
+                  placeholder={
+                    isReply
+                      ? "Escreva uma resposta… use @ para mencionar"
+                      : "Escreva um comentário… use @ para mencionar"
+                  }
                   {...field}
                 />
               </FormControl>
-              <MentionPicker
-                projectId={projectId}
-                value={mentionedUserIds}
-                onChange={setMentionedUserIds}
-                disabled={createMutation.isPending}
-              />
               <FormMessage />
             </FormItem>
           )}

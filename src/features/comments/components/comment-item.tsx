@@ -4,8 +4,8 @@ import { Reply, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { MemberAvatar, MemberIdLabel } from "@/components/shared/member-avatar";
-import { MentionedUsers } from "@/components/shared/mention-picker";
 import { formatRelativeTime } from "@/lib/format";
+import { splitMentions } from "@/lib/mentions";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useProjectPermission } from "@/features/projects/hooks/use-project-permission";
 import { useDeleteCommentMutation } from "@/features/comments/hooks/use-comments";
@@ -69,8 +69,17 @@ export function CommentItem({ comment, projectId, hasReplies, onReply }: Comment
             ) : null}
           </div>
         </div>
-        <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">{comment.content}</p>
-        <MentionedUsers userIds={comment.mentionedUserIds ?? []} className="mt-2" />
+        <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">
+          {splitMentions(comment.content, comment.mentionedUserIds ?? []).map((part, i) =>
+            part.mention ? (
+              <span key={i} className="rounded bg-primary/10 px-0.5 font-medium text-primary">
+                {part.text}
+              </span>
+            ) : (
+              part.text
+            ),
+          )}
+        </p>
       </div>
     </div>
   );
