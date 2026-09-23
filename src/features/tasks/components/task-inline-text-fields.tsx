@@ -3,9 +3,11 @@
 import * as React from "react";
 import { Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { MentionPicker } from "@/components/shared/mention-picker";
+import { MarkdownContent } from "@/components/shared/markdown-content";
+import { MarkdownTextarea } from "@/components/shared/markdown-textarea";
+import { useAssignableMembers } from "@/features/tasks/hooks/use-assignable-members";
 import { useUpdateTaskMutation } from "@/features/tasks/hooks/use-tasks";
+import { extractMentionedUserIds } from "@/lib/mentions";
 import { cn } from "@/lib/utils";
 
 // Look-alike-plain-text styling: the field reads like the static heading or
@@ -26,12 +28,15 @@ function useAutoSavedText({
   field,
   allowEmpty,
   silent,
+  mentionsOf,
 }: {
   taskId: string;
   serverValue: string;
   field: "title" | "description";
   allowEmpty: boolean;
   silent?: boolean;
+  // Saved together with the text: the mention set is derived from the `@` tokens in it.
+  mentionsOf?: (text: string) => string[];
 }) {
   const updateMutation = useUpdateTaskMutation(taskId, { silent });
   const [draft, setDraft] = React.useState<string | null>(null);
@@ -43,7 +48,10 @@ function useAutoSavedText({
       setDraft(null);
       return;
     }
-    updateMutation.mutate({ [field]: next }, { onSettled: () => setDraft(null) });
+    updateMutation.mutate(
+      { [field]: next, ...(mentionsOf ? { mentionedUserIds: mentionsOf(next) } : {}) },
+      { onSettled: () => setDraft(null) }
+    );
   }
 
   return {
@@ -150,47 +158,98 @@ export function TaskDescriptionField({
   projectId,
   taskId,
   description,
-  mentionedUserIds,
 }: {
   projectId: string;
   taskId: string;
   description: string | null;
-  mentionedUserIds: string[];
 }) {
+  const { userIds, names } = useAssignableMembers(projectId);
   const { value, isSaving, onChange, commit, revert } = useAutoSavedText({
     taskId,
     serverValue: description ?? "",
     field: "description",
     allowEmpty: true,
+    // The PATCH replaces the whole mention set, so it follows the text.
+    mentionsOf: (text) => extractMentionedUserIds(text, userIds, names),
   });
-  const mentionMutation = useUpdateTaskMutation(taskId);
+
+  const [editing, setEditing] = React.useState(false);
+  const textareaRef = React.useRef<HTMLTextAreaElement | null>(null);
+
+  // Entering edit mode puts the caret at the end, ready to keep typing.
+  React.useEffect(() => {
+    const el = textareaRef.current;
+    if (!editing || !el) return;
+    el.focus();
+    el.setSelectionRange(el.value.length, el.value.length);
+  }, [editing]);
+
+  function startEditing() {
+    // Dragging to select text to copy also ends in a click — don't hijack it.
+    if (window.getSelection()?.toString()) return;
+    setEditing(true);
+  }
+
+  if (!editing) {
+    const hasText = value.trim().length > 0;
+    return (
+      <div
+        role="button"
+        tabIndex={0}
+        aria-label="Editar descrição da tarefa"
+        onClick={startEditing}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setEditing(true);
+          }
+        }}
+        className={cn(
+          INLINE_FIELD_CLASS,
+          "mt-2 min-h-20 cursor-text rounded-lg border py-1.5 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+          isSaving && "opacity-60"
+        )}
+      >
+        {hasText ? (
+          <MarkdownContent
+            content={value}
+            mentionedUserIds={extractMentionedUserIds(value, userIds, names)}
+            names={names}
+          />
+        ) : (
+          <span className="text-muted-foreground">Adicionar descrição…</span>
+        )}
+      </div>
+    );
+  }
 
   return (
-    <>
-      <Textarea
+    <div className="mt-2">
+      <MarkdownTextarea
+        ref={textareaRef}
+        projectId={projectId}
         aria-label="Descrição da tarefa"
-        placeholder="Adicionar descrição…"
+        placeholder="Adicionar descrição… use @ para mencionar e a barra para formatar"
         value={value}
-        disabled={isSaving}
-        onChange={(e) => onChange(e.target.value)}
-        onBlur={commit}
+        onChange={onChange}
+        onBlur={() => {
+          commit();
+          setEditing(false);
+        }}
         onKeyDown={(e) => {
           if (e.key === "Escape") {
             revert();
-            e.currentTarget.blur();
+            setEditing(false);
+          } else if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+            e.preventDefault();
+            e.currentTarget.blur(); // blur saves and leaves edit mode
           }
         }}
-        className={cn(INLINE_FIELD_CLASS, "mt-2 min-h-20 text-muted-foreground focus:text-foreground")}
+        className={cn(INLINE_FIELD_CLASS, "min-h-28 border-input")}
       />
-      {/* Saved on each change (the PATCH replaces the whole mention set), not
-          on blur like the text — picking someone is a discrete action. */}
-      <MentionPicker
-        projectId={projectId}
-        value={mentionedUserIds}
-        disabled={mentionMutation.isPending}
-        onChange={(next) => mentionMutation.mutate({ mentionedUserIds: next })}
-        className="mt-1 px-2"
-      />
-    </>
+      <p className="mt-1 px-1 text-xs text-muted-foreground">
+        Ctrl+Enter salva · Esc cancela · Markdown suportado
+      </p>
+    </div>
   );
 }

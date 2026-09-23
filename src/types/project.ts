@@ -36,6 +36,8 @@ export type ProjectRole = "MEMBER" | "GUEST";
 
 export interface ProjectMember {
   userId: string;
+  // Display name, used for `@` mentions. Absent/null until the backend exposes it.
+  name?: string | null;
   role: ProjectRole;
   createdAt: string;
 }

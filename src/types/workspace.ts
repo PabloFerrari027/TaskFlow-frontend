@@ -4,6 +4,8 @@ export type WorkspaceRole = "OWNER" | "ADMIN" | "MEMBER" | "GUEST";
 
 export interface WorkspaceMember {
   userId: string;
+  // Display name, used for `@` mentions. Absent/null until the backend exposes it.
+  name?: string | null;
   role: WorkspaceRole;
   createdAt: string;
 }

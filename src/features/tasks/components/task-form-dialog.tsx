@@ -5,7 +5,6 @@ import { useForm } from "react-hook-form";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -29,7 +28,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MentionPicker } from "@/components/shared/mention-picker";
+import { MarkdownTextarea } from "@/components/shared/markdown-textarea";
+import { useAssignableMembers } from "@/features/tasks/hooks/use-assignable-members";
+import { extractMentionedUserIds } from "@/lib/mentions";
 import { AssigneeSelect } from "@/features/tasks/components/assignee-select";
 import { SectionSelect } from "@/features/tasks/components/section-select";
 import {
@@ -72,6 +73,7 @@ export function TaskFormDialog({
     createMutation.isPending || updateMutation.isPending || unassignMutation.isPending;
   const sectionsQuery = useSectionsQuery(projectId);
   const defaultSectionId = sectionsQuery.data?.find((s) => s.isDefault)?.id;
+  const { userIds: memberIds, names } = useAssignableMembers(projectId);
 
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskFormSchema),
@@ -87,6 +89,8 @@ export function TaskFormDialog({
   });
 
   function onSubmit(values: TaskFormValues) {
+    // The mention set follows the `@Name` tokens left in the description.
+    const mentionedUserIds = extractMentionedUserIds(values.description ?? "", memberIds, names);
     const dueDate = values.dueDate ? fromDateInputValue(values.dueDate) : undefined;
 
     if (isEditing && task) {
@@ -104,7 +108,7 @@ export function TaskFormDialog({
           dueDate,
           priority: values.priority,
           // Replaces the task's whole mention set, so sending it every time is safe.
-          mentionedUserIds: values.mentionedUserIds,
+          mentionedUserIds,
         },
         {
           onSuccess: () => {
@@ -126,7 +130,7 @@ export function TaskFormDialog({
           parentTaskId,
           dueDate,
           priority: values.priority,
-          mentionedUserIds: values.mentionedUserIds.length ? values.mentionedUserIds : undefined,
+          mentionedUserIds: mentionedUserIds.length ? mentionedUserIds : undefined,
         },
         {
           onSuccess: () => {
@@ -183,28 +187,15 @@ export function TaskFormDialog({
                 <FormItem>
                   <FormLabel>Descrição (opcional)</FormLabel>
                   <FormControl>
-                    <Textarea rows={3} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="mentionedUserIds"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Menções (opcional)</FormLabel>
-                  <FormControl>
-                    <MentionPicker
+                    <MarkdownTextarea
                       projectId={projectId}
-                      value={field.value}
-                      onChange={field.onChange}
+                      rows={4}
+                      {...field}
+                      value={field.value ?? ""}
                     />
                   </FormControl>
                   <p className="text-xs text-muted-foreground">
-                    Quem for mencionado recebe um aviso por e-mail.
+                    Aceita Markdown (use a barra acima). Use @ para mencionar alguém — quem for mencionado recebe um aviso por e-mail.
                   </p>
                   <FormMessage />
                 </FormItem>

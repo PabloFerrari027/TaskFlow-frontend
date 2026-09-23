@@ -7,6 +7,7 @@ import { MemberAvatar, MemberIdLabel } from "@/components/shared/member-avatar";
 import { formatRelativeTime } from "@/lib/format";
 import { splitMentions } from "@/lib/mentions";
 import { useAuth } from "@/lib/auth/auth-context";
+import { useAssignableMembers } from "@/features/tasks/hooks/use-assignable-members";
 import { useProjectPermission } from "@/features/projects/hooks/use-project-permission";
 import { useDeleteCommentMutation } from "@/features/comments/hooks/use-comments";
 import type { Comment } from "@/types/comment";
@@ -22,6 +23,7 @@ export function CommentItem({ comment, projectId, hasReplies, onReply }: Comment
   const { userId: currentUserId } = useAuth();
   const { canManage } = useProjectPermission(projectId);
   const deleteMutation = useDeleteCommentMutation(comment.taskId);
+  const { names } = useAssignableMembers(projectId);
 
   const canDelete = canManage || comment.authorId === currentUserId;
 
@@ -70,7 +72,7 @@ export function CommentItem({ comment, projectId, hasReplies, onReply }: Comment
           </div>
         </div>
         <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">
-          {splitMentions(comment.content, comment.mentionedUserIds ?? []).map((part, i) =>
+          {splitMentions(comment.content, comment.mentionedUserIds ?? [], names).map((part, i) =>
             part.mention ? (
               <span key={i} className="rounded bg-primary/10 px-0.5 font-medium text-primary">
                 {part.text}
