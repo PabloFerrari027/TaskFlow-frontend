@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQueryClient, type QueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { assistantService } from "@/features/assistant/api/assistant-service";
@@ -8,6 +8,7 @@ import { queryKeys } from "@/lib/query-keys";
 import { getErrorCode, getErrorMessage } from "@/lib/errors";
 import { clearSession } from "@/lib/auth/token-store";
 import type { ChatMessage } from "@/features/assistant/types";
+import { buildAiUsageDateRange, type AiUsageFeature } from "@/types/ai-usage";
 import type { Project } from "@/types/project";
 import type { Task } from "@/types/task";
 
@@ -17,10 +18,19 @@ import type { Task } from "@/types/task";
 // history in v1). These hooks only wrap the three HTTP calls + their
 // side effects.
 
+const AI_USAGE_PAGE_SIZE = 20;
+
 export function useSendChatMessageMutation(workspaceId: string) {
   return useMutation({
-    mutationFn: ({ message, history }: { message: string; history: ChatMessage[] }) =>
-      assistantService.sendChatMessage(message, workspaceId, history),
+    mutationFn: ({
+      message,
+      history,
+      files,
+    }: {
+      message: string;
+      history: ChatMessage[];
+      files?: File[];
+    }) => assistantService.sendChatMessage(message, workspaceId, history, files),
     onError: (error) => {
       // The chat shows a persistent notice for this one (retrying can't help
       // until the provider account is topped up), so no toast on top of it.
@@ -142,6 +152,32 @@ export function useConfirmPendingActionMutation(workspaceId: string) {
       toast.success("Ação confirmada.");
     },
     onError: (error) => toast.error(getErrorMessage(error)),
+  });
+}
+
+// The period is a "last N days" preset, not fixed dates: `from`/`to` are built
+// inside the queryFn so the key stays stable across renders. `from` is the
+// start of the local day (N-1 days back) and `to` is now, so the span is always
+// < N days and never trips the API's 90-day limit (API.md § 24).
+export function useMyAiUsageQuery(
+  params: {
+    days: number;
+    feature?: AiUsageFeature;
+    page: number;
+  },
+  options?: { enabled?: boolean }
+) {
+  return useQuery({
+    queryKey: queryKeys.aiUsage.me(params),
+    queryFn: () =>
+      assistantService.getMyAiUsage({
+        ...buildAiUsageDateRange(params.days),
+        feature: params.feature,
+        page: params.page,
+        limit: AI_USAGE_PAGE_SIZE,
+      }),
+    placeholderData: (previous) => previous,
+    enabled: options?.enabled,
   });
 }
 

@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { Send, Sparkles } from "lucide-react";
+import { Loader2, Mic, Paperclip, Send, Sparkles, Square, X } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -12,11 +13,17 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { getErrorCode, getMessageForCode } from "@/lib/errors";
+import { formatFileSize } from "@/lib/format";
 import { useCurrentWorkspace } from "@/features/workspaces/context/current-workspace-context";
-import { useSendChatMessageMutation } from "@/features/assistant/hooks/use-assistant";
+import { useMyAiUsageQuery, useSendChatMessageMutation } from "@/features/assistant/hooks/use-assistant";
+import { useAudioRecorder } from "@/features/assistant/hooks/use-audio-recorder";
+import { isAudioFile, validateNewFiles } from "@/features/assistant/lib/attachment-limits";
 import { AssistantMessage } from "@/features/assistant/components/assistant-message";
 import { AssistantSessionSummary } from "@/features/assistant/components/assistant-session-summary";
+import { AssistantUsageMeter } from "@/features/assistant/components/assistant-usage-meter";
+import { TypingIndicator } from "@/features/assistant/components/typing-indicator";
 import type {
+  ChatAttachment,
   ChatMessage,
   ChatTranscriptMessage,
   ConfirmedActionSummary,
@@ -24,6 +31,17 @@ import type {
 } from "@/features/assistant/types";
 
 const MAX_MESSAGE_LENGTH = 2000;
+
+// Attachments from earlier turns are never resent (API.md § 16) — only this
+// short filename note survives into `history`, matching the backend's own
+// suggested convention (`[anexo: relatorio.pdf]`). Audio isn't noted this
+// way since its transcription is already folded into `content`.
+function toHistoryContent(message: ChatTranscriptMessage): string {
+  const fileNotes = (message.attachments ?? [])
+    .filter((attachment) => !attachment.isAudio)
+    .map((attachment) => `[anexo: ${attachment.fileName}]`);
+  return [message.content, ...fileNotes].filter(Boolean).join("\n");
+}
 
 interface ChatState {
   transcript: ChatTranscriptMessage[];
@@ -34,6 +52,7 @@ const INITIAL_STATE: ChatState = { transcript: [], confirmedActions: [] };
 
 type ChatAction =
   | { type: "add"; message: ChatTranscriptMessage }
+  | { type: "set-content"; messageId: string; content: string }
   | { type: "set-pending-status"; messageId: string; actionId: string; status: PendingActionLocalStatus }
   | { type: "reset" };
 
@@ -41,6 +60,13 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
   switch (action.type) {
     case "add":
       return { ...state, transcript: [...state.transcript, action.message] };
+    case "set-content":
+      return {
+        ...state,
+        transcript: state.transcript.map((message) =>
+          message.id === action.messageId ? { ...message, content: action.content } : message
+        ),
+      };
     case "set-pending-status": {
       // Confirming an action appends it to the session's summary right here
       // — no backend call needed, everything the summary needs (tool,
@@ -89,12 +115,55 @@ export function AssistantChat() {
   const [creditsExhausted, setCreditsExhausted] = React.useState(false);
   const { workspace } = useCurrentWorkspace();
   const [text, setText] = React.useState("");
+  const [files, setFiles] = React.useState<File[]>([]);
   const [state, dispatch] = React.useReducer(chatReducer, INITIAL_STATE);
   const scrollRef = React.useRef<HTMLDivElement>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const sendMutation = useSendChatMessageMutation(workspace?.id ?? "");
   const assistantEnabled = workspace?.assistantEnabled ?? false;
   const composerDisabled = sendMutation.isPending || !assistantEnabled || creditsExhausted;
+
+  // Today's assistant-chat token usage (real number from `/ai-usage/me`,
+  // already used by the usage history screen). No endpoint exposes the
+  // user's plan/token cap or a real quota reset time (`GET /auth/me` never
+  // returns a planId — see plan-picker.tsx), so there's no "100%" to show;
+  // the meter below scales itself instead. Enabled only while the sheet is
+  // open, and refetched right after each reply so it tracks the running
+  // total as closely as this non-streaming API allows.
+  const usageQuery = useMyAiUsageQuery(
+    { days: 1, feature: "assistant-chat", page: 1 },
+    { enabled: open && assistantEnabled }
+  );
+  const tokensToday = usageQuery.data?.summary.totalTokens ?? null;
+
+  // Read inside the recorder's `onstop` handler, which closes over whatever
+  // `files`/`sendMessage` existed when recording *started* — these refs give
+  // it the latest values instead, since the composer can change while a
+  // recording is in progress (attach a file, type text) and the "stop mic →
+  // send" step should still use whatever is current at that moment.
+  const filesRef = React.useRef<File[]>(files);
+  filesRef.current = files;
+  const sendMessageRef = React.useRef<(filesToSend: File[]) => void>(() => {});
+
+  // Recording finishing is itself the send trigger (voice-message style: stop
+  // the mic and it's on its way) — no separate "click Send" step for audio.
+  const recorder = useAudioRecorder((file) => {
+    const { accepted, error } = validateNewFiles(filesRef.current, [file]);
+    if (error) {
+      toast.error(error);
+      return;
+    }
+    sendMessageRef.current([...filesRef.current, ...accepted]);
+  });
+
+  React.useEffect(() => {
+    if (recorder.status === "unsupported") {
+      toast.error("Este navegador não suporta gravação de áudio.");
+    } else if (recorder.status === "denied") {
+      toast.error("Não foi possível acessar o microfone. Verifique a permissão do navegador.");
+    }
+  }, [recorder.status]);
 
   React.useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
@@ -105,30 +174,67 @@ export function AssistantChat() {
     if (!next) {
       setShowSummary(false);
       setCreditsExhausted(false);
+      setFiles([]);
+      if (recorder.status === "recording") recorder.cancel();
       dispatch({ type: "reset" });
     }
   }
 
-  function handleSubmit(event: React.FormEvent) {
-    event.preventDefault();
+  function handleFilesSelected(event: React.ChangeEvent<HTMLInputElement>) {
+    const selected = Array.from(event.target.files ?? []);
+    event.target.value = "";
+    if (selected.length === 0) return;
+
+    const { accepted, error } = validateNewFiles(files, selected);
+    if (error) {
+      toast.error(error);
+      return;
+    }
+    setFiles((previous) => [...previous, ...accepted]);
+  }
+
+  function removeFile(index: number) {
+    setFiles((previous) => previous.filter((_, i) => i !== index));
+  }
+
+  const hasAudio = files.some(isAudioFile);
+
+  function sendMessage(filesToSend: File[]) {
     const trimmed = text.trim();
-    if (!trimmed || composerDisabled || !workspace) return;
+    const canSubmit = trimmed.length > 0 || filesToSend.some(isAudioFile);
+    if (!canSubmit || composerDisabled || !workspace) return;
 
     const history: ChatMessage[] = state.transcript.map((message) => ({
       role: message.role,
-      content: message.content,
+      content: toHistoryContent(message),
     }));
+
+    const attachments: ChatAttachment[] = filesToSend.map((file) => ({
+      fileName: file.name,
+      isAudio: isAudioFile(file),
+    }));
+    const messageId = crypto.randomUUID();
 
     dispatch({
       type: "add",
-      message: { id: crypto.randomUUID(), role: "user", content: trimmed },
+      message: { id: messageId, role: "user", content: trimmed, attachments },
     });
     setText("");
+    setFiles([]);
 
     sendMutation.mutate(
-      { message: trimmed, history },
+      { message: trimmed, history, files: filesToSend.length > 0 ? filesToSend : undefined },
       {
         onSuccess: (data) => {
+          // Audio-only turns leave the optimistic bubble empty — fill it in
+          // with what the backend actually understood once we know it.
+          if (!trimmed && data.transcriptions.length > 0) {
+            dispatch({
+              type: "set-content",
+              messageId,
+              content: data.transcriptions.map((transcription) => transcription.text).join("\n"),
+            });
+          }
           dispatch({
             type: "add",
             message: {
@@ -142,12 +248,20 @@ export function AssistantChat() {
               })),
             },
           });
+          usageQuery.refetch();
         },
         onError: (error) => {
           if (getErrorCode(error) === "AI_INSUFFICIENT_CREDITS") setCreditsExhausted(true);
         },
       }
     );
+  }
+  sendMessageRef.current = sendMessage;
+
+  function handleSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    if (recorder.status === "recording") return;
+    sendMessage(files);
   }
 
   function handlePendingActionStatusChange(
@@ -178,6 +292,9 @@ export function AssistantChat() {
             <Sparkles className="size-4 text-primary" />
             Assistente
           </SheetTitle>
+          {assistantEnabled && workspace ? (
+            <AssistantUsageMeter tokensToday={tokensToday} isUpdating={sendMutation.isPending} />
+          ) : null}
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs text-muted-foreground">
               {confirmedCount} ação(ões) confirmada(s) nesta conversa
@@ -223,9 +340,7 @@ export function AssistantChat() {
                   />
                 ))
               )}
-              {sendMutation.isPending ? (
-                <p className="text-sm text-muted-foreground">Digitando...</p>
-              ) : null}
+              {sendMutation.isPending ? <TypingIndicator /> : null}
               {creditsExhausted ? (
                 <p
                   role="alert"
@@ -236,21 +351,96 @@ export function AssistantChat() {
               ) : null}
             </div>
 
-            <form onSubmit={handleSubmit} className="flex gap-2 border-t border-border/60 p-4">
-              <Input
-                value={text}
-                onChange={(event) => setText(event.target.value.slice(0, MAX_MESSAGE_LENGTH))}
-                maxLength={MAX_MESSAGE_LENGTH}
-                placeholder="Escreva uma mensagem..."
-                disabled={composerDisabled}
-              />
-              <Button
-                type="submit"
-                size="icon"
-                disabled={composerDisabled || !text.trim()}
-              >
-                <Send />
-              </Button>
+            <form
+              onSubmit={handleSubmit}
+              className="space-y-2 border-t border-border/60 p-4"
+            >
+              {files.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5">
+                  {files.map((file, index) => (
+                    <span
+                      key={`${file.name}-${index}`}
+                      className="flex items-center gap-1.5 rounded-full border border-border/60 bg-muted px-2.5 py-1 text-xs text-foreground"
+                    >
+                      {isAudioFile(file) ? (
+                        <Mic className="size-3 text-muted-foreground" />
+                      ) : (
+                        <Paperclip className="size-3 text-muted-foreground" />
+                      )}
+                      <span className="max-w-35 truncate">{file.name}</span>
+                      <span className="text-muted-foreground">{formatFileSize(file.size)}</span>
+                      <button
+                        type="button"
+                        aria-label={`Remover ${file.name}`}
+                        className="text-muted-foreground hover:text-foreground"
+                        onClick={() => removeFile(index)}
+                      >
+                        <X className="size-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+
+              {recorder.status === "recording" ? (
+                <p className="flex items-center gap-1.5 text-xs text-destructive">
+                  <span className="size-2 animate-pulse rounded-full bg-destructive" />
+                  Gravando... {String(Math.floor(recorder.seconds / 60)).padStart(2, "0")}:
+                  {String(recorder.seconds % 60).padStart(2, "0")} — pare para enviar
+                </p>
+              ) : files.length > 0 && !hasAudio && !text.trim() ? (
+                <p className="text-xs text-muted-foreground">
+                  Escreva uma mensagem para enviar junto com o(s) arquivo(s).
+                </p>
+              ) : null}
+
+              <div className="flex gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  className="hidden"
+                  onChange={handleFilesSelected}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  aria-label="Anexar arquivo"
+                  disabled={composerDisabled || recorder.status === "recording"}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Paperclip />
+                </Button>
+                <Button
+                  type="button"
+                  variant={recorder.status === "recording" ? "destructive" : "outline"}
+                  size="icon"
+                  aria-label={recorder.status === "recording" ? "Parar gravação" : "Gravar áudio"}
+                  disabled={composerDisabled}
+                  onClick={() => (recorder.status === "recording" ? recorder.stop() : recorder.start())}
+                >
+                  {recorder.status === "recording" ? <Square /> : <Mic />}
+                </Button>
+                <Input
+                  value={text}
+                  onChange={(event) => setText(event.target.value.slice(0, MAX_MESSAGE_LENGTH))}
+                  maxLength={MAX_MESSAGE_LENGTH}
+                  placeholder="Escreva uma mensagem..."
+                  disabled={composerDisabled}
+                />
+                <Button
+                  type="submit"
+                  size="icon"
+                  disabled={
+                    composerDisabled ||
+                    recorder.status === "recording" ||
+                    (!text.trim() && !hasAudio)
+                  }
+                >
+                  {sendMutation.isPending ? <Loader2 className="animate-spin" /> : <Send />}
+                </Button>
+              </div>
             </form>
           </>
         )}

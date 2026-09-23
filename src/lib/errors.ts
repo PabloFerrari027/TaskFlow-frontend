@@ -83,6 +83,15 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   REAUTHENTICATION_REQUIRED: "Senha incorreta ou reautenticação necessária.",
   ASSISTANT_DISABLED_FOR_WORKSPACE:
     "O assistente está desligado neste workspace. Peça a um OWNER para habilitá-lo.",
+  ASSISTANT_ATTACHMENT_TOO_LARGE: "Um dos arquivos excede o limite de 20MB.",
+  ASSISTANT_ATTACHMENTS_TOO_LARGE:
+    "A soma dos anexos excede o limite permitido. Envie menos arquivos ou arquivos menores.",
+  ASSISTANT_TOO_MANY_ATTACHMENTS: "Você pode anexar no máximo 6 arquivos por mensagem.",
+  ASSISTANT_AUDIO_TOO_LONG: "O áudio é muito longo. Envie uma gravação de até 10 minutos.",
+  ASSISTANT_TRANSCRIPTION_FAILED:
+    "Não consegui transcrever o áudio agora. Tente enviar de novo.",
+  ASSISTANT_EMPTY_TRANSCRIPTION:
+    "Não entendi nenhuma fala no áudio. Grave de novo ou escreva sua mensagem.",
   AI_TRANSLATION_FAILED: "Não consegui processar sua pergunta agora, tente novamente.",
   AI_INSUFFICIENT_CREDITS:
     "A IA está indisponível no momento por falta de créditos do serviço. Avise o administrador da plataforma.",
@@ -108,6 +117,7 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   INVALID_AUTOMATION_ACTION:
     "A ação escolhida não pode rodar neste evento ou tem valores inválidos.",
   AUTOMATION_RULE_NOT_FOUND: "Automação não encontrada.",
+  AI_USAGE_INVALID_RANGE: "O período escolhido é inválido. Use no máximo 90 dias.",
 };
 
 const DEFAULT_MESSAGE = "Algo deu errado. Tente novamente em instantes.";
