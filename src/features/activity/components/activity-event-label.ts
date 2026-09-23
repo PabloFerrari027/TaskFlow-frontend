@@ -35,11 +35,43 @@ function formatCustomFieldValue(value: unknown) {
  * exact `Record<string, ...>` lookup thinking the substring matching is
  * leftover caution from an unconfirmed contract — it isn't.
  */
-export function describeActivityEntry(entry: ActivityLogEntry): {
+export interface ActivityFieldChange {
+  field: string;
+  from: string | null;
+  to: string | null;
+}
+
+export interface ActivityDescribeContext {
+  /** sectionId → name, so section moves can show "Coluna A → Coluna B". Only available where the project is known. */
+  sectionNames?: ReadonlyMap<string, string>;
+}
+
+function sectionLabel(value: unknown, context: ActivityDescribeContext | undefined) {
+  const names = context?.sectionNames;
+  if (typeof value !== "string" || !names) return null;
+  // Not in the loaded list = the section was deleted — never leak the raw id.
+  return names.get(value) ?? "coluna removida";
+}
+
+function readTextChange(value: unknown): { from: string | null; to: string | null } | null {
+  if (typeof value !== "object" || value === null) return null;
+  const { from, to } = value as { from?: unknown; to?: unknown };
+  return {
+    from: typeof from === "string" ? from : null,
+    to: typeof to === "string" ? to : null,
+  };
+}
+
+export function describeActivityEntry(
+  entry: ActivityLogEntry,
+  context?: ActivityDescribeContext
+): {
   label: string;
   detail: string | null;
   /** Set for assignee changes so the feed can render the user labels (names aren't resolvable here). */
   assigneeChange?: { from: string | null; to: string | null };
+  /** Set for title/description edits — long text, rendered as a before/after block instead of inline. */
+  fieldChanges?: ActivityFieldChange[];
 } {
   if (entry.entityType === "COMMENT") {
     return { label: "comentou nesta tarefa", detail: null };
@@ -55,8 +87,7 @@ export function describeActivityEntry(entry: ActivityLogEntry): {
   if (entry.entityType === "SECTION") {
     if (type.includes("moved")) {
       return { label: "moveu a seção", detail: null };
-    }
-    const name = typeof payload.name === "string" ? payload.name : null;
+    }    const name = typeof payload.name === "string" ? payload.name : null;
     return { label: "criou a seção", detail: name };
   }
 
@@ -73,6 +104,31 @@ export function describeActivityEntry(entry: ActivityLogEntry): {
     }
     const name = typeof payload.name === "string" ? payload.name : null;
     return { label: "criou um campo personalizado", detail: name };
+  }
+
+  // Before the generic substring matching for the same reason as SECTION above.
+  if (type.includes("fields_changed")) {
+    const title = readTextChange(payload.title);
+    const description = readTextChange(payload.description);
+    const fieldChanges: ActivityFieldChange[] = [
+      ...(title ? [{ field: "Título", ...title }] : []),
+      ...(description ? [{ field: "Descrição", ...description }] : []),
+    ];
+    const label =
+      title && description
+        ? "alterou o título e a descrição"
+        : title
+          ? "alterou o título"
+          : "alterou a descrição";
+    return { label, detail: null, fieldChanges };
+  }
+
+  if (type.includes("parent")) {
+    const to = payload.toParentId;
+    return {
+      label: typeof to === "string" ? "transformou a tarefa em subtarefa" : "promoveu a subtarefa a tarefa principal",
+      detail: null,
+    };
   }
 
   if (type.includes("status")) {
@@ -101,7 +157,9 @@ export function describeActivityEntry(entry: ActivityLogEntry): {
   }
 
   if (type.includes("moved") || type.includes("position") || type.includes("section")) {
-    return { label: "moveu a tarefa", detail: null };
+    const from = sectionLabel(payload.fromSectionId, context);
+    const to = sectionLabel(payload.toSectionId, context);
+    return { label: "moveu a tarefa", detail: from && to ? `${from} → ${to}` : null };
   }
 
   if (type.includes("due_date") || type.includes("duedate")) {

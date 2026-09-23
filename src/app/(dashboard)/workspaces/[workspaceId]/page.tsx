@@ -6,7 +6,6 @@ import { Pencil, Trash2, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageHeader } from "@/components/shared/page-header";
 import { ErrorState } from "@/components/shared/error-state";
 import { RoleGate } from "@/components/shared/role-gate";
@@ -17,17 +16,12 @@ import {
 } from "@/features/workspaces/hooks/use-workspaces";
 import { MembersTable } from "@/features/workspaces/components/members-table";
 import { WorkspaceInvitationsTable } from "@/features/workspaces/components/invitations-table";
-import { WorkspaceActivitySection } from "@/features/activity/components/workspace-activity-section";
 import { InviteMemberDialog } from "@/features/workspaces/components/invite-member-dialog";
 import { RenameWorkspaceDialog } from "@/features/workspaces/components/rename-workspace-dialog";
-import { WorkspaceAssistantSettingsPanel } from "@/features/workspaces/components/assistant-settings-panel";
-import { AutomationsSection } from "@/features/automations/components/automations-section";
 import { useAuth } from "@/lib/auth/auth-context";
 import {
   canDeleteWorkspace,
   canInviteWorkspaceMembers,
-  canManageAssistantSettings,
-  canManageAutomations,
   canManageWorkspace,
 } from "@/lib/permissions";
 import type { WorkspaceRole } from "@/types/workspace";
@@ -62,8 +56,6 @@ export default function WorkspaceDetailPage() {
   const canManage = canManageWorkspace(myRole);
   const canInvite = canInviteWorkspaceMembers(myRole);
   const canDelete = canDeleteWorkspace(myRole);
-  const canManageAssistant = canManageAssistantSettings(myRole);
-  const canManageAutomationRules = canManageAutomations(myRole);
   const isEmpty = workspace.members.length === 1;
 
   return (
@@ -109,54 +101,21 @@ export default function WorkspaceDetailPage() {
         }
       />
 
-      <Card className="p-0">
-        <Tabs defaultValue="members">
-          <div className="flex items-center justify-between border-b border-border/60 px-4 pt-2">
-            <TabsList>
-              <TabsTrigger value="members">Membros</TabsTrigger>
-              <TabsTrigger value="invitations">Convites</TabsTrigger>
-              <TabsTrigger value="activity">Atividade</TabsTrigger>
-              <TabsTrigger value="assistant">Assistente</TabsTrigger>
-              {canManageAutomationRules ? (
-                <TabsTrigger value="automations">Automações</TabsTrigger>
-              ) : null}
-            </TabsList>
-          </div>
+      <Card data-tour="workspace-members-section" className="space-y-4 p-4">
+        <h2 className="text-base font-semibold text-foreground">Membros</h2>
+        <MembersTable workspace={workspace} canManage={canManage} currentUserRole={myRole} />
+      </Card>
 
-          <TabsContent value="members" className="p-4">
-            <MembersTable workspace={workspace} canManage={canManage} currentUserRole={myRole} />
-          </TabsContent>
-
-          <TabsContent value="invitations" className="space-y-4 p-4">
-            <RoleGate allowed={canInvite}>
-              <div className="flex justify-end">
-                <Button size="sm" onClick={() => setInviteOpen(true)}>
-                  <UserPlus /> Convidar
-                </Button>
-              </div>
-            </RoleGate>
-            <WorkspaceInvitationsTable workspaceId={workspace.id} canManage={canInvite} />
-          </TabsContent>
-
-          <TabsContent value="activity" className="p-4">
-            {/* Keyed by workspace id: switching workspaces via the switcher
-                re-renders this page in place rather than remounting it, so
-                without this key the activity tab's local page number would
-                leak from the previous workspace instead of resetting. */}
-            <WorkspaceActivitySection key={workspace.id} workspaceId={workspace.id} />
-          </TabsContent>
-
-          <TabsContent value="assistant" className="p-4">
-            <WorkspaceAssistantSettingsPanel workspace={workspace} canManage={canManageAssistant} />
-          </TabsContent>
-
-          {canManageAutomationRules ? (
-            <TabsContent value="automations" className="p-4">
-              {/* Keyed by workspace id for the same reason as the activity tab. */}
-              <AutomationsSection key={workspace.id} workspaceId={workspace.id} />
-            </TabsContent>
-          ) : null}
-        </Tabs>
+      <Card data-tour="workspace-invitations-section" className="space-y-4 p-4">
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-base font-semibold text-foreground">Convites</h2>
+          <RoleGate allowed={canInvite}>
+            <Button size="sm" onClick={() => setInviteOpen(true)}>
+              <UserPlus /> Convidar
+            </Button>
+          </RoleGate>
+        </div>
+        <WorkspaceInvitationsTable workspaceId={workspace.id} canManage={canInvite} />
       </Card>
 
       <RenameWorkspaceDialog

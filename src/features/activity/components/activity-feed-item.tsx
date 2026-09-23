@@ -3,11 +3,20 @@
 import { MessageSquare } from "lucide-react";
 import { MemberAvatar, MemberIdLabel } from "@/components/shared/member-avatar";
 import { formatRelativeTime } from "@/lib/format";
-import { describeActivityEntry } from "@/features/activity/components/activity-event-label";
+import {
+  describeActivityEntry,
+  type ActivityDescribeContext,
+} from "@/features/activity/components/activity-event-label";
 import type { ActivityLogEntry } from "@/types/activity";
 
-export function ActivityFeedItem({ entry }: { entry: ActivityLogEntry }) {
-  const { label, detail, assigneeChange } = describeActivityEntry(entry);
+export function ActivityFeedItem({
+  entry,
+  context,
+}: {
+  entry: ActivityLogEntry;
+  context?: ActivityDescribeContext;
+}) {
+  const { label, detail, assigneeChange, fieldChanges } = describeActivityEntry(entry, context);
 
   return (
     <li className="flex items-start gap-2.5">
@@ -32,6 +41,21 @@ export function ActivityFeedItem({ entry }: { entry: ActivityLogEntry }) {
             </span>
           ) : null}
         </p>
+        {fieldChanges?.length ? (
+          <div className="mt-1.5 space-y-1.5">
+            {fieldChanges.map((change) => (
+              <div key={change.field} className="rounded-md border bg-muted/40 px-2.5 py-1.5 text-xs">
+                <p className="font-medium text-muted-foreground">{change.field}</p>
+                <p className="line-clamp-3 whitespace-pre-wrap break-words text-muted-foreground line-through">
+                  {change.from || "vazio"}
+                </p>
+                <p className="line-clamp-3 whitespace-pre-wrap break-words text-foreground">
+                  {change.to || "vazio"}
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : null}
         <p className="text-xs text-muted-foreground">{formatRelativeTime(entry.occurredAt)}</p>
       </div>
     </li>
