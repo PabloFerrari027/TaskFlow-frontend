@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { ErrorState } from "@/components/shared/error-state";
 import { Pager } from "@/components/shared/pager";
 import { ActivityFeedItem } from "@/features/activity/components/activity-feed-item";
+import type { ActivityDescribeContext } from "@/features/activity/components/activity-event-label";
 import type { PaginatedResult } from "@/types/common";
 import type { ActivityLogEntry } from "@/types/activity";
 
@@ -20,9 +21,10 @@ interface ActivityFeedProps {
   };
   onPageChange: (page: number) => void;
   emptyDescription: string;
+  context?: ActivityDescribeContext;
 }
 
-export function ActivityFeed({ query, onPageChange, emptyDescription }: ActivityFeedProps) {
+export function ActivityFeed({ query, onPageChange, emptyDescription, context }: ActivityFeedProps) {
   if (query.isLoading) {
     return (
       <div className="space-y-2">
@@ -53,7 +55,7 @@ export function ActivityFeed({ query, onPageChange, emptyDescription }: Activity
     <div className="space-y-3">
       <ol className="space-y-3">
         {entries.map((entry) => (
-          <ActivityFeedItem key={entry.id} entry={entry} />
+          <ActivityFeedItem key={entry.id} entry={entry} context={context} />
         ))}
       </ol>
 

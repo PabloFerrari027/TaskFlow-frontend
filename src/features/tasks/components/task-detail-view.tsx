@@ -71,14 +71,13 @@ export function TaskDetailView({
 
       <div className={cn("gap-6", layout === "grid" ? "grid lg:grid-cols-3" : "flex flex-col")}>
         <div className={cn("space-y-6", layout === "grid" ? "lg:col-span-2" : "")}>
-          <Card className="p-5">
+          <Card className="p-5" data-tour="task-main">
             {/* Both fields save on blur — no separate edit mode. */}
             <TaskTitleField taskId={task.id} title={task.title} />
             <TaskDescriptionField
               projectId={projectId}
               taskId={task.id}
               description={task.description}
-              mentionedUserIds={task.mentionedUserIds ?? []}
             />
           </Card>
 
@@ -86,7 +85,7 @@ export function TaskDetailView({
         </div>
 
         <div className="space-y-6">
-          <Card className="space-y-4 p-5">
+          <Card className="space-y-4 p-5" data-tour="task-fields">
             <div className="space-y-1.5">
               <p className="text-xs font-medium text-muted-foreground uppercase">Coluna</p>
               <TaskSectionSelect projectId={projectId} taskId={task.id} sectionId={task.sectionId} />
@@ -173,14 +172,14 @@ export function TaskDetailView({
       {/* Always the last sections on the page, regardless of `layout` — a
           comment thread and the change history read as the closing part of
           a task, after every other detail is already visible. */}
-      <Card className="space-y-3 p-5">
+      <Card className="space-y-3 p-5" data-tour="task-comments">
         <h3 className="text-sm font-medium text-foreground">Comentários</h3>
         <CommentList taskId={task.id} projectId={projectId} />
         <CommentComposer taskId={task.id} projectId={projectId} />
       </Card>
 
       <Card className="p-5">
-        <TaskActivitySection taskId={task.id} />
+        <TaskActivitySection taskId={task.id} projectId={task.projectId} />
       </Card>
     </div>
   );
