@@ -41,6 +41,7 @@ export function Topbar() {
           aria-label={collapsed ? "Mostrar menu lateral" : "Esconder menu lateral"}
           aria-expanded={!collapsed}
           aria-controls="app-sidebar"
+          data-tour="sidebar-toggle"
           title={collapsed ? "Mostrar menu lateral" : "Esconder menu lateral"}
           onClick={toggle}
         >

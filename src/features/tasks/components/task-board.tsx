@@ -52,7 +52,10 @@ function TaskBoardContent({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
+      <div
+        data-tour="board-toolbar"
+        className="flex flex-wrap items-center justify-between gap-2"
+      >
         <div className="flex flex-wrap items-center gap-2">
           {/* Quick-add: the per-column button can sit far below a long list. */}
           <Button
@@ -71,13 +74,15 @@ function TaskBoardContent({
         <TaskViewToggle value={viewMode} onChange={setViewMode} />
       </div>
 
-      <TaskFiltersBar
-        projectId={projectId}
-        filters={filters}
-        onChange={patchFilters}
-        onReset={resetFilters}
-        activeCount={activeCount}
-      />
+      <div data-tour="board-filters">
+        <TaskFiltersBar
+          projectId={projectId}
+          filters={filters}
+          onChange={patchFilters}
+          onReset={resetFilters}
+          activeCount={activeCount}
+        />
+      </div>
 
       {sectionsQuery.isLoading ? (
         <div className="flex gap-4">
@@ -88,7 +93,10 @@ function TaskBoardContent({
       ) : sectionsQuery.isError ? (
         <ErrorState error={sectionsQuery.error} onRetry={() => sectionsQuery.refetch()} />
       ) : (
-        <div className="flex items-start gap-4 overflow-x-auto pb-2">
+        <div
+          data-tour="board-columns"
+          className="flex items-start gap-4 overflow-x-auto pb-2"
+        >
           {rootSections.map((section, index) => (
             <SectionColumn
               key={section.id}

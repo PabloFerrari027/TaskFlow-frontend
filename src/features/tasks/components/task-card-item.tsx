@@ -33,6 +33,8 @@ export function TaskCardItem({ task, onReorder }: TaskCardItemProps) {
     <div
       role="button"
       tabIndex={0}
+      data-tour="task-card"
+      data-tour-href={`/projects/${task.projectId}/tasks/${task.id}`}
       draggable
       onDragStart={(e) => {
         e.dataTransfer.setData(

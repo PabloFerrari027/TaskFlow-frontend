@@ -234,9 +234,11 @@ export function AnalyticsDashboard({ workspaceId }: { workspaceId: string }) {
         </Select>
       </div>
 
-      <NaturalLanguageQueryBox workspaceId={workspaceId} />
+      <div data-tour="analytics-question">
+        <NaturalLanguageQueryBox workspaceId={workspaceId} />
+      </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div data-tour="analytics-stats" className="grid gap-4 sm:grid-cols-3">
         <StatCard
           label="Tarefas no total"
           value={taskCount.count}
@@ -257,7 +259,7 @@ export function AnalyticsDashboard({ workspaceId }: { workspaceId: string }) {
         />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div data-tour="analytics-charts" className="grid gap-4 lg:grid-cols-2">
         <Card className="space-y-3 p-5">
           <div>
             <h2 className="text-sm font-medium text-foreground">Tarefas por status</h2>

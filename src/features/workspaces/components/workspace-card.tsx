@@ -60,7 +60,11 @@ export function WorkspaceCard({
           </Button>
         ) : null}
         <Button size="sm" variant={isCurrent ? "outline" : "ghost"} asChild>
-          <Link href={`/workspaces/${workspace.id}`} onClick={(e) => e.stopPropagation()}>
+          <Link
+            href={`/workspaces/${workspace.id}`}
+            data-tour="workspace-settings"
+            onClick={(e) => e.stopPropagation()}
+          >
             Configurações
           </Link>
         </Button>

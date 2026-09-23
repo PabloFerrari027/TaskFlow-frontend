@@ -7,7 +7,7 @@ import type { Project } from "@/types/project";
 
 export function ProjectCard({ project }: { project: Project }) {
   return (
-    <Link href={`/projects/${project.id}`}>
+    <Link href={`/projects/${project.id}`} data-tour="project-card">
       <Card className="h-full gap-3 p-5 transition-shadow hover:shadow-md">
         <div className="flex items-start justify-between gap-2">
           <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">

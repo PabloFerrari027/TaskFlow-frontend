@@ -38,7 +38,7 @@ export default function WorkspacesPage() {
       ) : workspacesQuery.isError ? (
         <ErrorState error={workspacesQuery.error} onRetry={() => workspacesQuery.refetch()} />
       ) : workspacesQuery.data && workspacesQuery.data.length > 0 ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div data-tour="workspace-cards" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {workspacesQuery.data.map((workspace) => (
             <WorkspaceCard
               key={workspace.id}

@@ -55,7 +55,7 @@ export default function DashboardPage() {
         description="Visão geral dos projetos ativos deste workspace."
         actions={
           workspaceId ? (
-            <Button onClick={() => setCreateProjectOpen(true)}>
+            <Button data-tour="new-project" onClick={() => setCreateProjectOpen(true)}>
               <Plus /> Novo projeto
             </Button>
           ) : null

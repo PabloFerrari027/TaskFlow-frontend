@@ -36,7 +36,7 @@ export function ProjectTabsNav({ projectId }: { projectId: string }) {
   const activeTab = tabs.find((tab) => pathname.startsWith(tab.href));
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2" data-tour="project-tabs">
       <div className="flex gap-1 overflow-x-auto border-b border-border/60">
         {tabs.map((tab) => {
           const active = tab === activeTab;
