@@ -1,10 +1,13 @@
 "use client";
 
 import * as React from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   ChevronLeft,
   ChevronRight,
   Download,
+  ExternalLink,
   File as FileIcon,
   FileText,
   Film,
@@ -21,6 +24,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { formatDateTime, formatFileSize } from "@/lib/format";
+import { getErrorMessage } from "@/lib/errors";
+import { queryKeys } from "@/lib/query-keys";
+import { tasksService } from "@/features/tasks/api/tasks-service";
 import { useAttachmentFileQuery } from "@/features/tasks/hooks/use-tasks";
 import type { Attachment } from "@/types/task";
 
@@ -42,6 +48,63 @@ export function getPreviewKind(attachment: Pick<Attachment, "mimeType" | "fileNa
     return "text";
   }
   return "none";
+}
+
+/** Whether the file can be shown in a browser tab (same kinds as the in-app preview). */
+export function canOpenInNewTab(attachment: Pick<Attachment, "mimeType" | "fileName">) {
+  return getPreviewKind(attachment) !== "none";
+}
+
+/**
+ * Opens an attachment in a new browser tab.
+ *
+ * The file endpoint is authenticated, so the tab can't point at the API; the
+ * Blob is fetched (sharing the react-query cache with the in-app preview) and
+ * the tab navigates to an object URL. The tab is opened synchronously inside
+ * the click handler and navigated afterwards — `window.open` after an `await`
+ * is rejected by popup blockers.
+ *
+ * Object URLs are same-origin with the app, so the blob type is always derived
+ * from the already-vetted preview kind, never from what the server sent, and
+ * text is forced to `text/plain` so an uploaded `.html` can't run scripts.
+ * The URL is released when this document unloads.
+ */
+export function useOpenAttachmentInNewTab(taskId: string) {
+  const queryClient = useQueryClient();
+  const [openingId, setOpeningId] = React.useState<string | null>(null);
+
+  const open = React.useCallback(
+    async (attachment: Attachment) => {
+      const kind = getPreviewKind(attachment);
+      if (kind === "none") return;
+
+      const tab = window.open("", "_blank");
+      if (!tab) {
+        toast.error("O navegador bloqueou a nova aba. Permita pop-ups para este site.");
+        return;
+      }
+      tab.opener = null;
+
+      setOpeningId(attachment.id);
+      try {
+        const blob = await queryClient.fetchQuery({
+          queryKey: queryKeys.tasks.attachmentFile(taskId, attachment.id),
+          queryFn: () => tasksService.downloadAttachment(taskId, attachment.id),
+          staleTime: Infinity,
+        });
+        const type = kind === "text" ? "text/plain;charset=utf-8" : attachment.mimeType;
+        tab.location.href = URL.createObjectURL(new Blob([blob], { type }));
+      } catch (error) {
+        tab.close();
+        toast.error(getErrorMessage(error));
+      } finally {
+        setOpeningId(null);
+      }
+    },
+    [queryClient, taskId]
+  );
+
+  return { open, openingId };
 }
 
 const KIND_ICON = {
@@ -148,6 +211,8 @@ export function AttachmentPreviewDialog({
   onClose,
   onDownload,
   isDownloading,
+  onOpenInNewTab,
+  isOpeningInNewTab,
 }: {
   taskId: string;
   attachments: Attachment[];
@@ -157,6 +222,8 @@ export function AttachmentPreviewDialog({
   onClose: () => void;
   onDownload: (attachment: Attachment) => void;
   isDownloading: boolean;
+  onOpenInNewTab: (attachment: Attachment) => void;
+  isOpeningInNewTab: boolean;
 }) {
   const attachment = index !== null ? attachments[index] : undefined;
   const hasMultiple = attachments.length > 1;
@@ -208,15 +275,28 @@ export function AttachmentPreviewDialog({
                 </>
               ) : null}
             </div>
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={isDownloading}
-              onClick={() => onDownload(attachment)}
-            >
-              {isDownloading ? <Loader2 className="animate-spin" /> : <Download />}
-              Baixar
-            </Button>
+            <div className="flex gap-2">
+              {canOpenInNewTab(attachment) ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={isOpeningInNewTab}
+                  onClick={() => onOpenInNewTab(attachment)}
+                >
+                  {isOpeningInNewTab ? <Loader2 className="animate-spin" /> : <ExternalLink />}
+                  Abrir em nova aba
+                </Button>
+              ) : null}
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={isDownloading}
+                onClick={() => onDownload(attachment)}
+              >
+                {isDownloading ? <Loader2 className="animate-spin" /> : <Download />}
+                Baixar
+              </Button>
+            </div>
           </div>
         </DialogContent>
       ) : null}
