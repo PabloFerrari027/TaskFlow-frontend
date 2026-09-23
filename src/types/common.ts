@@ -84,7 +84,10 @@ export type ErrorCode =
   | "INVALID_AUTOMATION_TRIGGER"
   | "INVALID_AUTOMATION_ACTION"
   | "AUTOMATION_RULE_NOT_FOUND"
-  | "AI_USAGE_INVALID_RANGE";
+  | "AI_USAGE_INVALID_RANGE"
+  | "PLAN_NOT_FOUND"
+  | "PLAN_NAME_ALREADY_EXISTS"
+  | "TOKEN_QUOTA_EXCEEDED";
 
 export interface DomainErrorResponse {
   statusCode: number;

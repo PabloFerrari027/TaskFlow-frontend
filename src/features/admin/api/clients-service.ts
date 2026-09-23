@@ -1,6 +1,7 @@
 import { apiClient } from "@/lib/api/client";
 import type { PaginatedResult } from "@/types/common";
 import type { ClientDetail, ClientListItem, ListClientsParams } from "@/types/client";
+import type { AiUsageQuery, AiUsageResponse } from "@/types/ai-usage";
 
 export const clientsService = {
   async list(params?: ListClientsParams) {
@@ -33,6 +34,15 @@ export const clientsService = {
   async close(clientId: string) {
     const { data } = await apiClient.delete<ClientListItem>(
       `/admin/clients/${clientId}`
+    );
+    return data;
+  },
+
+  // Same shape/params as `GET /ai-usage/me`, for any user (API.md § 24).
+  async getAiUsage(clientId: string, params: AiUsageQuery) {
+    const { data } = await apiClient.get<AiUsageResponse>(
+      `/admin/ai-usage/users/${clientId}`,
+      { params }
     );
     return data;
   },

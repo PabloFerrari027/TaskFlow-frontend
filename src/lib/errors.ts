@@ -118,6 +118,10 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
     "A ação escolhida não pode rodar neste evento ou tem valores inválidos.",
   AUTOMATION_RULE_NOT_FOUND: "Automação não encontrada.",
   AI_USAGE_INVALID_RANGE: "O período escolhido é inválido. Use no máximo 90 dias.",
+  PLAN_NOT_FOUND: "Plano não encontrado.",
+  PLAN_NAME_ALREADY_EXISTS: "Já existe um plano com este nome.",
+  TOKEN_QUOTA_EXCEEDED:
+    "A cota de tokens de IA do seu plano foi atingida por enquanto. Tente novamente mais tarde ou troque de plano.",
 };
 
 const DEFAULT_MESSAGE = "Algo deu errado. Tente novamente em instantes.";
