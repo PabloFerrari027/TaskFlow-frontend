@@ -50,6 +50,12 @@ export function canManageAutomations(role: WorkspaceRole | null | undefined) {
   return canManageWorkspace(role);
 }
 
+// Every API key / webhook endpoint is OWNER/ADMIN only (API.md § 22) — even
+// listing — both grant long-lived access to the whole workspace.
+export function canManageDeveloperPlatform(role: WorkspaceRole | null | undefined) {
+  return canManageWorkspace(role);
+}
+
 // Only an OWNER can grant OWNER to someone else — or demote an existing
 // OWNER — even though ADMIN can otherwise manage members freely.
 export function canGrantOwnerRole(currentUserRole: WorkspaceRole | null | undefined) {

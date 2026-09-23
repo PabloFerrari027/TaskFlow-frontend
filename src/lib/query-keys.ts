@@ -118,6 +118,15 @@ export const queryKeys = {
   automations: {
     all: (workspaceId: string) => ["automations", "workspace", workspaceId] as const,
   },
+  developers: {
+    apiKeys: (workspaceId: string) => ["developers", "api-keys", workspaceId] as const,
+    webhookEndpoints: (workspaceId: string) =>
+      ["developers", "webhook-endpoints", workspaceId] as const,
+    webhookDeliveries: (webhookEndpointId: string, page?: number) =>
+      page
+        ? (["developers", "webhook-deliveries", webhookEndpointId, { page }] as const)
+        : (["developers", "webhook-deliveries", webhookEndpointId] as const),
+  },
   analytics: {
     root: () => ["analytics"] as const,
     // Requests are built with different property orders across the

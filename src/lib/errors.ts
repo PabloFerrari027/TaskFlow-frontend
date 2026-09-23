@@ -118,6 +118,13 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
     "A ação escolhida não pode rodar neste evento ou tem valores inválidos.",
   AUTOMATION_RULE_NOT_FOUND: "Automação não encontrada.",
   AI_USAGE_INVALID_RANGE: "O período escolhido é inválido. Use no máximo 90 dias.",
+  API_KEY_NOT_FOUND: "Chave de API não encontrada.",
+  INVALID_API_KEY_SCOPE: "Um dos escopos escolhidos não é válido.",
+  WEBHOOK_ENDPOINT_NOT_FOUND: "Endpoint de webhook não encontrado.",
+  WEBHOOK_DELIVERY_NOT_FOUND: "Entrega não encontrada.",
+  WEBHOOK_ENDPOINT_URL_NOT_ALLOWED:
+    "Essa URL não pode ser usada: precisa ser https:// e não pode apontar para um endereço privado ou local.",
+  INVALID_WEBHOOK_EVENT: "Um dos eventos escolhidos não é válido.",
   PLAN_NOT_FOUND: "Plano não encontrado.",
   PLAN_NAME_ALREADY_EXISTS: "Já existe um plano com este nome.",
   TOKEN_QUOTA_EXCEEDED:
