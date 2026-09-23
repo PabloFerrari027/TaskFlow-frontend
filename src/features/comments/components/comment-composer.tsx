@@ -37,7 +37,7 @@ export function CommentComposer({
 }: CommentComposerProps) {
   const createMutation = useCreateCommentMutation(taskId);
   const isReply = Boolean(parentId);
-  const { userIds: memberIds } = useAssignableMembers(projectId);
+  const { userIds: memberIds, names } = useAssignableMembers(projectId);
 
   const form = useForm<CommentFormValues>({
     resolver: zodResolver(commentFormSchema),
@@ -45,7 +45,7 @@ export function CommentComposer({
   });
 
   function onSubmit(values: CommentFormValues) {
-    const mentionedUserIds = extractMentionedUserIds(values.content, memberIds);
+    const mentionedUserIds = extractMentionedUserIds(values.content, memberIds, names);
     createMutation.mutate(
       {
         content: values.content,

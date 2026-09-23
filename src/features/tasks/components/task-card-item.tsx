@@ -10,6 +10,7 @@ import { TaskStatusSelect } from "@/features/tasks/components/task-status-select
 import { useTaskPanel } from "@/features/tasks/hooks/use-task-panel";
 import { useTaskDropTarget } from "@/features/tasks/hooks/use-task-drop-target";
 import { setLiftedDragImage, TASK_DRAG_MIME } from "@/lib/dnd";
+import { stripMarkdown } from "@/lib/markdown-format";
 import { formatRelativeTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Task } from "@/types/task";
@@ -95,7 +96,7 @@ export function TaskCardItem({ task, onReorder }: TaskCardItemProps) {
       </div>
 
       {task.description ? (
-        <p className="line-clamp-3 text-xs text-muted-foreground">{task.description}</p>
+        <p className="line-clamp-3 text-xs text-muted-foreground">{stripMarkdown(task.description)}</p>
       ) : null}
 
       {task.priority || task.dueDate ? (
