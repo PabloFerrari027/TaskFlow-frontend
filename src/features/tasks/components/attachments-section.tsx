@@ -2,13 +2,15 @@
 
 import * as React from "react";
 import { toast } from "sonner";
-import { Download, Loader2, Paperclip, Trash2, Upload } from "lucide-react";
+import { Download, ExternalLink, Loader2, Paperclip, Trash2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { EmptyState } from "@/components/shared/empty-state";
 import {
   AttachmentPreviewDialog,
   AttachmentThumbnail,
+  canOpenInNewTab,
+  useOpenAttachmentInNewTab,
 } from "@/features/tasks/components/attachment-preview";
 import { formatFileSize, formatDateTime } from "@/lib/format";
 import {
@@ -32,6 +34,7 @@ export function AttachmentsSection({
   const uploadMutation = useUploadAttachmentMutation(taskId);
   const downloadMutation = useDownloadAttachmentMutation(taskId);
   const removeMutation = useRemoveAttachmentMutation(taskId);
+  const { open: openInNewTab, openingId } = useOpenAttachmentInNewTab(taskId);
   const [downloadingId, setDownloadingId] = React.useState<string | null>(null);
   const [removingId, setRemovingId] = React.useState<string | null>(null);
   const [previewIndex, setPreviewIndex] = React.useState<number | null>(null);
@@ -114,6 +117,22 @@ export function AttachmentsSection({
                   </p>
                 </div>
               </button>
+              {canOpenInNewTab(attachment) ? (
+                <Button
+                  size="icon-sm"
+                  variant="ghost"
+                  aria-label={`Abrir ${attachment.fileName} em nova aba`}
+                  title="Abrir em nova aba"
+                  disabled={openingId === attachment.id}
+                  onClick={() => openInNewTab(attachment)}
+                >
+                  {openingId === attachment.id ? (
+                    <Loader2 className="animate-spin" />
+                  ) : (
+                    <ExternalLink />
+                  )}
+                </Button>
+              ) : null}
               <Button
                 size="icon-sm"
                 variant="ghost"
@@ -161,6 +180,8 @@ export function AttachmentsSection({
         onClose={() => setPreviewIndex(null)}
         onDownload={download}
         isDownloading={previewIndex !== null && isDownloading(attachments[previewIndex]?.id)}
+        onOpenInNewTab={openInNewTab}
+        isOpeningInNewTab={previewIndex !== null && openingId === attachments[previewIndex]?.id}
       />
     </div>
   );
