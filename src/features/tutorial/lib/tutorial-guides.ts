@@ -3,6 +3,7 @@ import {
   BarChart3,
   Bot,
   Building2,
+  Coins,
   Compass,
   CloudOff,
   FolderKanban,
@@ -13,6 +14,7 @@ import {
   Rocket,
   SlidersHorizontal,
   Table2,
+  Webhook,
   Workflow,
 } from "lucide-react";
 
@@ -105,7 +107,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
           "Entre no projeto. A aba Tarefas mostra o quadro. Clique em “Adicionar coluna” e crie as etapas do seu fluxo, por exemplo “A fazer”, “Em andamento” e “Concluído”.",
           "Clique em “Nova tarefa”, escreva o título e escolha coluna, responsável, prazo e prioridade. Só o título é obrigatório.",
           "Arraste a tarefa de uma coluna para outra conforme ela avança. Clique nela para abrir o detalhe.",
-          "Para trazer a equipe, abra Workspaces, entre no seu workspace e use a aba Convites.",
+          "Para trazer a equipe, abra Workspaces, entre no seu workspace e use a seção Convites.",
         ],
         callouts: [
           {
@@ -120,7 +122,11 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
           "Dashboard: os projetos ativos do workspace atual.",
           "Projetos: todos os projetos do workspace, ativos e arquivados, em árvore ou tabela.",
           "Análises: números e gráficos do workspace, com perguntas em texto livre.",
-          "Workspaces: seus workspaces, membros, convites, atividade, assistente e automações.",
+          "Atividade: linha do tempo de tudo que aconteceu no workspace atual.",
+          "Automações: regras automáticas do workspace atual (só Proprietário e Administrador veem este item).",
+          "Desenvolvedores: chaves de API e webhooks do workspace atual (só Proprietário e Administrador veem este item).",
+          "Assistente: liga ou desliga o assistente de IA do workspace atual.",
+          "Workspaces: seus workspaces, membros e convites.",
           "Sessões e Segurança: seus dispositivos conectados, senha e vínculo com o Google.",
         ],
       },
@@ -218,22 +224,26 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       },
       {
         heading: "A página do workspace",
-        intro: "Ao abrir um workspace você encontra abas:",
+        intro:
+          "Ao abrir um workspace você encontra duas seções, uma embaixo da outra:",
         bullets: [
           "Membros: quem faz parte, com o papel de cada um.",
           "Convites: convites enviados e o estado de cada um (pendente, aceito, revogado ou expirado), com a data de expiração.",
-          "Atividade: linha do tempo de tudo que aconteceu no workspace.",
-          "Assistente: liga ou desliga o assistente de IA (só o Proprietário).",
-          "Automações: regras automáticas (só Proprietário e Administrador; a aba nem aparece para os outros).",
+        ],
+        callouts: [
+          {
+            kind: "note",
+            text: "Atividade, Automações, Desenvolvedores e Assistente têm cada um sua própria página no menu lateral, sempre referentes ao workspace selecionado no topo — não ficam nesta página.",
+          },
         ],
       },
       {
         heading: "Convidar pessoas",
         steps: [
-          "Na aba Membros ou Convites, clique em “Convidar pessoa”.",
+          "Na seção Membros ou Convites da página do workspace, clique em “Convidar pessoa”.",
           "Informe o e-mail e escolha o papel: Administrador, Membro ou Convidado.",
           "A pessoa recebe um link. Ao abrir, ela vê um resumo do convite e precisa entrar (ou criar conta) para aceitar.",
-          "Acompanhe na aba Convites. Se enviou para o e-mail errado, use “Revogar” e convide de novo.",
+          "Acompanhe na seção Convites. Se enviou para o e-mail errado, use “Revogar” e convide de novo.",
         ],
         callouts: [
           {
@@ -628,7 +638,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Atividade do workspace",
         intro:
-          "Na aba Atividade do workspace você vê tudo que acontece nele, em ordem cronológica e paginado. É a melhor forma de responder “quem mudou isso e quando?”.",
+          "Na página Atividade, no menu lateral, você vê tudo que acontece no workspace atual, em ordem cronológica e paginado. É a melhor forma de responder “quem mudou isso e quando?”.",
       },
     ],
     faq: [
@@ -711,13 +721,13 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
     summary: "Regras “quando isso acontecer, faça aquilo” que rodam sozinhas.",
     icon: Workflow,
     audience: "Proprietário e Administrador",
-    href: "/workspaces",
-    hrefLabel: "Abrir workspaces",
+    href: "/automations",
+    hrefLabel: "Abrir automações",
     sections: [
       {
         heading: "O que são",
         intro:
-          "Uma automação observa um evento e executa uma ação, sem ninguém precisar confirmar. Ótimo para tirar trabalho repetitivo da equipe, e justamente por rodar sozinha exige cuidado. Fica na aba Automações do workspace.",
+          "Uma automação observa um evento e executa uma ação, sem ninguém precisar confirmar. Ótimo para tirar trabalho repetitivo da equipe, e justamente por rodar sozinha exige cuidado. Fica na página Automações, no menu lateral (só aparece para Proprietário e Administrador).",
       },
       {
         heading: "Comece por um template",
@@ -767,16 +777,16 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
           },
           {
             kind: "note",
-            text: "Ainda não existe um teste de regra nem um histórico de execuções. Comece com regras simples e observe o resultado na Atividade do workspace.",
+            text: "Ainda não existe um teste de regra nem um histórico de execuções. Comece com regras simples e observe o resultado na página Atividade.",
           },
         ],
       },
     ],
     faq: [
       {
-        question: "Não vejo a aba Automações.",
+        question: "Não vejo a página Automações no menu.",
         answer:
-          "Ela só aparece para Proprietários e Administradores do workspace.",
+          "Ela só aparece para Proprietários e Administradores do workspace atual.",
       },
       {
         question: "Uma regra parou de funcionar.",
@@ -789,7 +799,105 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
           "O servidor valida cada regra. Pode ser que um evento, uma condição ou uma ação escolhida deixou de ser suportado. Escolha outra combinação ou comece de um template.",
       },
     ],
-    related: ["board", "tasks", "workspaces"],
+    related: ["board", "tasks", "workspaces", "developers"],
+  },
+  {
+    id: "developers",
+    group: "advanced",
+    title: "Chaves de API e webhooks",
+    summary: "Conecte um sistema seu ao workspace: chaves de API e avisos automáticos por webhook.",
+    icon: Webhook,
+    audience: "Proprietário e Administrador",
+    href: "/developers",
+    hrefLabel: "Abrir desenvolvedores",
+    sections: [
+      {
+        heading: "Pra que serve, e quando ignorar",
+        intro:
+          "Isso é para quando existe (ou vai existir) um sistema seu — um site, uma planilha automatizada, um bot — que precisa conversar com o TaskFlow sem uma pessoa clicando na tela. Se sua equipe só usa a interface do TaskFlow no dia a dia, pode pular esta seção sem perder nada: nada aqui muda o funcionamento normal do workspace.",
+        bullets: [
+          "Chave de API: uma senha especial para um programa se identificar como o workspace, no lugar de uma pessoa.",
+          "Webhook: um aviso automático que o TaskFlow manda para um endereço seu toda vez que algo escolhido acontece — por exemplo, uma tarefa mudar de status.",
+        ],
+        callouts: [
+          {
+            kind: "note",
+            text: "As duas coisas ficam na página “Desenvolvedores”, no menu lateral, visível só para Proprietário e Administrador — os demais papéis nem veem o item no menu.",
+          },
+        ],
+      },
+      {
+        heading: "Chaves de API",
+        intro:
+          "Uma chave pertence ao workspace, não a uma pessoa: se quem criou sair do workspace, ela continua funcionando normalmente.",
+        steps: [
+          "Na página Desenvolvedores → Chaves de API, clique em “Nova chave”.",
+          "Dê um nome que ajude a lembrar pra que ela serve (por exemplo, “Integração com planilha de vendas”) e escolha os escopos: o que essa chave poderá fazer.",
+          "Copie o valor completo da chave imediatamente — ele só aparece uma vez, na tela de criação. Depois disso, nem você consegue vê-lo de novo, só um trecho mascarado para reconhecer qual é qual.",
+        ],
+        bullets: [
+          "Revogar uma chave é definitivo: não existe “reativar”, só criar outra.",
+          "Prefira uma chave por sistema conectado. Se um deles vazar ou precisar ser desligado, você revoga só aquela, sem afetar as demais integrações.",
+          "Uma chave também pode ter data de validade opcional, para expirar sozinha.",
+        ],
+        callouts: [
+          {
+            kind: "note",
+            text: "Uma chave já consegue chamar a API de verdade: seu sistema envia “Authorization: Bearer” com o valor completo da chave, no lugar do login de uma pessoa. Cada chave só consegue fazer o que os escopos escolhidos permitem — o resto é recusado.",
+          },
+          {
+            kind: "tip",
+            text: "Perdeu o valor de uma chave sem anotar? Não tem como recuperar — a saída é “girar” a chave (gera um valor novo e invalida o antigo na hora, sem aviso prévio) ou criar uma nova.",
+          },
+        ],
+      },
+      {
+        heading: "Webhooks",
+        intro:
+          "Um webhook é o oposto de ficar checando o TaskFlow toda hora: você cadastra um endereço seu (precisa ser https e público na internet — não funciona com endereços locais) e uma lista de eventos, e o TaskFlow avisa sozinho, na hora, sempre que um deles acontecer.",
+        steps: [
+          "Na página Desenvolvedores → Webhooks, clique em “Novo webhook”.",
+          "Informe a URL (https://…) que vai receber os avisos e escolha os eventos, como “tarefa mudou de status” ou “membro adicionado ao workspace”.",
+          "Use o botão de “ping” para mandar um evento de teste e confirmar que seu sistema está recebendo e respondendo corretamente, antes de contar com eventos de verdade.",
+        ],
+        bullets: [
+          "Cada tentativa de entrega falhada é repetida automaticamente algumas vezes, com um intervalo crescente entre elas.",
+          "Um histórico de entregas fica disponível por webhook, para conferir o que foi enviado e o que respondeu cada tentativa.",
+        ],
+        callouts: [
+          {
+            kind: "warning",
+            text: "Depois de muitas falhas seguidas, o TaskFlow pausa o webhook sozinho (proteção contra ficar tentando pra sempre num endereço quebrado) e avisa por e-mail quem o criou. Corrija o problema do seu lado e reative manualmente na lista de webhooks — reativar também zera o contador de falhas.",
+          },
+        ],
+      },
+      {
+        heading: "Segurança e histórico",
+        intro:
+          "Toda criação, edição, giro de segredo e remoção — de chaves e de webhooks — fica registrada na página Atividade, com quem fez e quando.",
+        bullets: [
+          "Só Proprietário e Administrador conseguem ver ou gerenciar qualquer uma das duas coisas, mesmo para apenas listar — mais restrito que a maioria das outras configurações, porque ambas dão acesso de longa duração ao workspace inteiro.",
+        ],
+      },
+    ],
+    faq: [
+      {
+        question: "Criei uma chave, mas minha chamada à API retorna 401 ou 403.",
+        answer:
+          "Confira se está enviando o valor completo da chave em “Authorization: Bearer …” (começa com tfk_live_ ou tfk_test_) e se ela não foi revogada nem expirou. Um erro de permissão costuma ser escopo insuficiente para aquela ação — revise os escopos da chave.",
+      },
+      {
+        question: "Meu webhook parou de receber eventos.",
+        answer:
+          "Confira se ele não foi pausado automaticamente por falhas repetidas (a lista mostra o status). Se estiver pausado, corrija o endereço/servidor do seu lado e reative manualmente.",
+      },
+      {
+        question: "Não vejo a página Desenvolvedores no menu.",
+        answer:
+          "Ela só aparece para Proprietário e Administrador do workspace atual — para os demais papéis, é esperado não existir.",
+      },
+    ],
+    related: ["workspaces", "automations", "plans"],
   },
   {
     id: "assistant",
@@ -798,11 +906,13 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
     summary: "Consulte e altere dados conversando, sempre com a sua confirmação.",
     icon: Bot,
     audience: "Ativação: Proprietário. Uso: quem estiver no workspace.",
+    href: "/assistant",
+    hrefLabel: "Abrir assistente",
     sections: [
       {
         heading: "Ativar",
         steps: [
-          "O Proprietário abre o workspace e vai para a aba Assistente.",
+          "O Proprietário abre a página Assistente, no menu lateral.",
           "Liga a opção. Todo workspace novo nasce com o assistente desligado.",
         ],
         callouts: [
@@ -871,12 +981,12 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         question: "O campo de mensagem está desabilitado.",
         answer:
-          "O assistente está desligado neste workspace. Peça a um Proprietário para ligá-lo na aba Assistente.",
+          "O assistente está desligado neste workspace. Peça a um Proprietário para ligá-lo na página Assistente.",
       },
       {
         question: "O assistente estava funcionando e parou.",
         answer:
-          "A proteção automática pode tê-lo desligado. Um Proprietário precisa ativar de novo na aba Assistente.",
+          "A proteção automática pode tê-lo desligado. Um Proprietário precisa ativar de novo na página Assistente.",
       },
       {
         question: "Uma ação pendente deixou de responder ao Confirmar.",
@@ -884,7 +994,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
           "Ações pendentes expiram depois de um tempo. Peça a alteração de novo ao assistente.",
       },
     ],
-    related: ["workspaces", "account"],
+    related: ["workspaces", "account", "plans"],
   },
   {
     id: "analytics",
@@ -946,7 +1056,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
           "Reformule de forma mais direta, com o que contar, o filtro e o agrupamento. Perguntas fora de tarefas e projetos não são suportadas.",
       },
     ],
-    related: ["board", "custom-fields"],
+    related: ["board", "custom-fields", "plans"],
   },
 
   // ----------------------------------------------------------- account
@@ -1077,7 +1187,94 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
           "Isso acontece se a sessão foi revogada (por você, em outro dispositivo, ou ao trocar a senha) ou expirou. Basta entrar de novo.",
       },
     ],
-    related: ["assistant", "navigation"],
+    related: ["assistant", "navigation", "plans"],
+  },
+  {
+    id: "plans",
+    group: "account",
+    title: "Plano e uso de IA",
+    summary: "O limite de uso do assistente e das análises em linguagem natural, e como trocar de plano.",
+    icon: Coins,
+    href: "/settings/plan",
+    hrefLabel: "Abrir Plano",
+    sections: [
+      {
+        heading: "O que é um plano",
+        intro:
+          "Um plano define quantos “tokens” — a unidade que mede o quanto o modelo de IA processou — você pode gastar por mês usando o chat do assistente e as perguntas em linguagem natural das Análises. É por pessoa, não por workspace: o mesmo plano vale em todos os workspaces em que você está.",
+        callouts: [
+          {
+            kind: "note",
+            text: "Nenhuma conta nasce com um plano. Enquanto você não escolher um, não existe limite algum — o assistente e as análises em linguagem natural funcionam livremente.",
+          },
+        ],
+      },
+      {
+        heading: "Escolher ou trocar de plano",
+        steps: [
+          "Abra Configurações → Plano.",
+          "Veja a lista de planos disponíveis, com o teto mensal de cada um.",
+          "Clique em “Assinar este plano” no que quiser.",
+        ],
+        callouts: [
+          {
+            kind: "warning",
+            text: "Não existe, hoje, uma tela que mostre qual é o seu plano atual — só é possível trocar. Se tiver dúvida se já escolheu algum antes, pode escolher de novo sem problema: a troca sempre substitui o que valia antes.",
+          },
+          {
+            kind: "note",
+            text: "Nesta versão não há cobrança: qualquer plano cadastrado pode ser escolhido livremente, mesmo o maior.",
+          },
+        ],
+      },
+      {
+        heading: "Como o limite é dividido",
+        intro:
+          "O único número de um plano é o teto por mês. Os tetos por dia e por semana são calculados a partir dele (aproximadamente 1/30 por dia e 1/4 por semana) — a ideia é evitar gastar o mês inteiro num dia só, e suavizar picos de uso na semana.",
+        bullets: [
+          "As três contagens (dia, semana, mês) resetam sozinhas, num horário fixo internacional — o \"dia\" do sistema pode começar um pouco antes ou depois da meia-noite do seu fuso local.",
+          "O que sobra de um dia (ou semana) não passa para o período seguinte — cada um reseta do zero.",
+        ],
+      },
+      {
+        heading: "O que acontece ao atingir o limite",
+        intro:
+          "Se você tentar usar o assistente ou perguntar algo em linguagem natural depois de atingir qualquer um dos tetos, a ação é recusada com um aviso de limite de tokens atingido. Não é uma falha do sistema — é o teto do seu plano funcionando como esperado.",
+        bullets: [
+          "O teto mais apertado (em geral o diário) costuma ser o primeiro a barrar.",
+          "Espere o próximo período (o reset é automático, sem ação sua) ou troque para um plano com teto maior.",
+        ],
+      },
+      {
+        heading: "Para administradores da plataforma",
+        intro:
+          "Administradores da plataforma (papel diferente de Administrador de workspace) têm uma área própria, em Administração → Planos, para criar planos e ajustar o teto de um existente, e podem corrigir manualmente o plano de um cliente específico pela página de detalhe dele.",
+        callouts: [
+          {
+            kind: "note",
+            text: "O nome de um plano só pode ser definido na criação — não é possível renomear um plano existente.",
+          },
+        ],
+      },
+    ],
+    faq: [
+      {
+        question: "Já escolhi um plano, por que não vejo qual é na tela?",
+        answer:
+          "É uma limitação de verdade, não um esquecimento da interface: não existe hoje uma forma de consultar o plano já escolhido, só de trocar.",
+      },
+      {
+        question: "Recebi um aviso de limite de tokens atingido.",
+        answer:
+          "Você atingiu o teto de tokens de IA do seu plano (dia, semana ou mês). Espere o próximo período resetar sozinho, ou troque para um plano com um teto maior em Configurações → Plano.",
+      },
+      {
+        question: "Preciso pagar para escolher um plano?",
+        answer:
+          "Não, nesta versão. Qualquer plano cadastrado pode ser escolhido livremente, sem cobrança.",
+      },
+    ],
+    related: ["assistant", "analytics", "account"],
   },
 ];
 

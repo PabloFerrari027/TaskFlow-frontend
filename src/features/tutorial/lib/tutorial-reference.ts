@@ -94,4 +94,20 @@ export const GLOSSARY: GlossaryTerm[] = [
     term: "Sincronização",
     definition: "O envio das alterações feitas offline para o servidor quando a conexão volta.",
   },
+  {
+    term: "Chave de API",
+    definition: "Uma senha especial para um sistema seu se identificar como o workspace, sem uma pessoa envolvida.",
+  },
+  {
+    term: "Webhook",
+    definition: "Um aviso automático que o TaskFlow manda para um endereço seu quando algo escolhido acontece.",
+  },
+  {
+    term: "Token",
+    definition: "A unidade que mede o quanto o modelo de IA processou numa chamada do assistente ou das análises.",
+  },
+  {
+    term: "Plano",
+    definition: "O teto de tokens de IA por mês de uma conta. Sem um plano escolhido, não há limite.",
+  },
 ];

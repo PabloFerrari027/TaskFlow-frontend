@@ -88,7 +88,10 @@ export default function ProjectsPage() {
           </p>
         ) : null}
         <Tabs defaultValue="active">
-          <div className="flex flex-wrap items-center justify-between gap-2">
+          <div
+            data-tour="project-list-controls"
+            className="flex flex-wrap items-center justify-between gap-2"
+          >
             <TabsList>
               <TabsTrigger value="active">Ativos ({activeProjects.length})</TabsTrigger>
               <TabsTrigger value="archived">
