@@ -18,6 +18,16 @@ export const queryKeys = {
       params ? (["clients", params] as const) : (["clients"] as const),
     detail: (clientId: string) => ["clients", clientId] as const,
     isSuperAdmin: () => ["clients", "is-super-admin"] as const,
+    aiUsage: (
+      clientId: string,
+      params: { days: number; feature?: AiUsageFeature; page: number }
+    ) => ["clients", clientId, "ai-usage", params] as const,
+  },
+  plans: {
+    all: () => ["plans"] as const,
+    admin: {
+      all: () => ["plans", "admin"] as const,
+    },
   },
   workspaces: {
     all: () => ["workspaces"] as const,

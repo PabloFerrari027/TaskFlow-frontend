@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { CheckCircle2, ShieldOff, Users, XCircle } from "lucide-react";
@@ -143,7 +144,9 @@ export function ClientsTable() {
                 return (
                   <TableRow key={client.id}>
                     <TableCell className="font-medium text-foreground">
-                      {client.email}
+                      <Link href={`/admin/clients/${client.id}`} className="hover:underline">
+                        {client.email}
+                      </Link>
                     </TableCell>
                     <TableCell>{client.role}</TableCell>
                     <TableCell>

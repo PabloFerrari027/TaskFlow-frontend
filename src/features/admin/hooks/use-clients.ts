@@ -5,12 +5,41 @@ import { toast } from "sonner";
 import { clientsService } from "@/features/admin/api/clients-service";
 import { queryKeys } from "@/lib/query-keys";
 import { getErrorMessage } from "@/lib/errors";
+import { buildAiUsageDateRange, type AiUsageFeature } from "@/types/ai-usage";
 import type { ListClientsParams } from "@/types/client";
+
+const AI_USAGE_PAGE_SIZE = 20;
 
 export function useClientsQuery(params: ListClientsParams) {
   return useQuery({
     queryKey: queryKeys.clients.all(params),
     queryFn: () => clientsService.list(params),
+    placeholderData: (previous) => previous,
+  });
+}
+
+export function useClientQuery(clientId: string) {
+  return useQuery({
+    queryKey: queryKeys.clients.detail(clientId),
+    queryFn: () => clientsService.get(clientId),
+  });
+}
+
+// Same "last N days" preset as `useMyAiUsageQuery`, pointed at the
+// SUPER_ADMIN-only `/admin/ai-usage/users/:userId` variant (API.md § 24).
+export function useClientAiUsageQuery(
+  clientId: string,
+  params: { days: number; feature?: AiUsageFeature; page: number }
+) {
+  return useQuery({
+    queryKey: queryKeys.clients.aiUsage(clientId, params),
+    queryFn: () =>
+      clientsService.getAiUsage(clientId, {
+        ...buildAiUsageDateRange(params.days),
+        feature: params.feature,
+        page: params.page,
+        limit: AI_USAGE_PAGE_SIZE,
+      }),
     placeholderData: (previous) => previous,
   });
 }
