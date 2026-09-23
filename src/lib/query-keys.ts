@@ -1,5 +1,6 @@
 import type { ClientStatus } from "@/types/client";
 import type { AnalyticsQuery } from "@/types/analytics";
+import type { AiUsageFeature } from "@/types/ai-usage";
 import { stableStringify } from "@/lib/utils";
 
 export const queryKeys = {
@@ -99,6 +100,10 @@ export const queryKeys = {
       page
         ? (["activity", "task", taskId, { page }] as const)
         : (["activity", "task", taskId] as const),
+  },
+  aiUsage: {
+    me: (params: { days: number; feature?: AiUsageFeature; page: number }) =>
+      ["ai-usage", "me", params] as const,
   },
   automations: {
     all: (workspaceId: string) => ["automations", "workspace", workspaceId] as const,

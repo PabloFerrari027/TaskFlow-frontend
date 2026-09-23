@@ -30,12 +30,20 @@ export interface ExecutedAction {
   result: unknown;
 }
 
+// One entry per audio attachment sent with the turn, in the order sent —
+// `[]` when the turn had no audio (API.md § 16, "Anexos de áudio").
+export interface Transcription {
+  fileName: string;
+  text: string;
+}
+
 export interface AssistantChatResponse {
   reply: string;
   // Always empty in v1 (no write tool executes inside /assistant/chat) —
   // kept in the shape for contract stability, per API.md § 16.
   executedActions: ExecutedAction[];
   pendingActions: PendingAction[];
+  transcriptions: Transcription[];
 }
 
 export interface ConfirmPendingActionResponse {
@@ -49,10 +57,19 @@ export interface PendingActionState extends PendingAction {
   status: PendingActionLocalStatus;
 }
 
+// Display-only record of what was attached to a turn — the file/audio itself
+// is never resent on later calls (API.md § 16: "Anexos de turnos anteriores
+// nunca são reenviados"), only this filename note survives in `history`.
+export interface ChatAttachment {
+  fileName: string;
+  isAudio: boolean;
+}
+
 export interface ChatTranscriptMessage {
   id: string;
   role: ChatRole;
   content: string;
+  attachments?: ChatAttachment[];
   executedActions?: ExecutedAction[];
   pendingActions?: PendingActionState[];
 }
