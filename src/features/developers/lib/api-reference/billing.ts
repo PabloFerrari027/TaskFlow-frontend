@@ -1,0 +1,132 @@
+import type { ApiEndpoint } from "@/features/developers/lib/api-reference-data";
+
+// API.md § 23-24 (Planos e cota de tokens de IA + Consumo de tokens de IA).
+export function buildBillingEndpoints(): ApiEndpoint[] {
+  return [
+    {
+      method: "GET",
+      path: "/plans",
+      summary: "Listar planos disponíveis",
+      description: "Sem paginação (poucos planos, cadastrados por admin) — array direto, não um `PaginatedResult`.",
+      requestExample: ['curl "$API_URL/plans" \\', '  -H "Authorization: Bearer $ACCESS_TOKEN"'].join("\n"),
+      responseStatus: "200 OK",
+      responseExample: '[ { "id": "uuid", "name": "PRO", "monthlyTokenBudget": 1000000, "createdAt": "...", "updatedAt": "..." } ]',
+    },
+    {
+      method: "PATCH",
+      path: "/plans/me",
+      summary: "Trocar meu próprio plano",
+      description:
+        "Sem checagem de pagamento nesta versão — qualquer usuário autenticado pode \"assinar\" qualquer plano cadastrado, de graça. Não implemente uma UI que prometa cobrança automática a partir daqui.",
+      bodyParams: [{ name: "planId", type: "string", required: true }],
+      requestExample: [
+        'curl -X PATCH "$API_URL/plans/me" \\',
+        '  -H "Authorization: Bearer $ACCESS_TOKEN" \\',
+        '  -H "Content-Type: application/json" \\',
+        "  -d '{ \"planId\": \"uuid\" }'",
+      ].join("\n"),
+      responseStatus: "200 OK",
+      responseExample: "(sem corpo)",
+      errorCodes: ["PLAN_NOT_FOUND"],
+    },
+    {
+      method: "GET",
+      path: "/admin/plans",
+      summary: "Listar planos (admin)",
+      description: "Exige `SUPER_ADMIN`. Mesmo formato de `GET /plans`.",
+      requestExample: ['curl "$API_URL/admin/plans" \\', '  -H "Authorization: Bearer $SUPER_ADMIN_TOKEN"'].join("\n"),
+      responseStatus: "200 OK",
+      responseExample: '[ { "id": "uuid", "name": "PRO", "monthlyTokenBudget": 1000000, "...": "..." } ]',
+    },
+    {
+      method: "POST",
+      path: "/admin/plans",
+      summary: "Criar um plano",
+      description: "Exige `SUPER_ADMIN`.",
+      bodyParams: [
+        { name: "name", type: "string", required: true, notes: "mín. 2 caracteres, único" },
+        { name: "monthlyTokenBudget", type: "number", required: true, notes: "inteiro ≥ 1" },
+      ],
+      requestExample: [
+        'curl -X POST "$API_URL/admin/plans" \\',
+        '  -H "Authorization: Bearer $SUPER_ADMIN_TOKEN" \\',
+        '  -H "Content-Type: application/json" \\',
+        "  -d '{ \"name\": \"PRO\", \"monthlyTokenBudget\": 1000000 }'",
+      ].join("\n"),
+      responseStatus: "201 Created",
+      responseExample: '{ "id": "uuid", "name": "PRO", "monthlyTokenBudget": 1000000, "createdAt": "...", "updatedAt": "..." }',
+      errorCodes: ["PLAN_NAME_ALREADY_EXISTS"],
+    },
+    {
+      method: "PATCH",
+      path: "/admin/plans/:planId",
+      summary: "Atualizar o teto de um plano",
+      description: "Exige `SUPER_ADMIN`. `name` não é editável — é a chave estável referenciada por integrações/seed.",
+      bodyParams: [{ name: "monthlyTokenBudget", type: "number", required: true }],
+      requestExample: [
+        'curl -X PATCH "$API_URL/admin/plans/PLAN_ID" \\',
+        '  -H "Authorization: Bearer $SUPER_ADMIN_TOKEN" \\',
+        '  -H "Content-Type: application/json" \\',
+        "  -d '{ \"monthlyTokenBudget\": 2000000 }'",
+      ].join("\n"),
+      responseStatus: "200 OK",
+      responseExample: '{ "id": "PLAN_ID", "monthlyTokenBudget": 2000000, "...": "..." }',
+      errorCodes: ["PLAN_NOT_FOUND"],
+    },
+    {
+      method: "PATCH",
+      path: "/admin/users/:userId/plan",
+      summary: "Forçar o plano de um usuário",
+      description: "Exige `SUPER_ADMIN`. O fluxo normal é o próprio usuário via `PATCH /plans/me` acima — isto é uma correção manual.",
+      bodyParams: [{ name: "planId", type: "string", required: true }],
+      requestExample: [
+        'curl -X PATCH "$API_URL/admin/users/USER_ID/plan" \\',
+        '  -H "Authorization: Bearer $SUPER_ADMIN_TOKEN" \\',
+        '  -H "Content-Type: application/json" \\',
+        "  -d '{ \"planId\": \"uuid\" }'",
+      ].join("\n"),
+      responseStatus: "200 OK",
+      responseExample: "(sem corpo)",
+      errorCodes: ["CLIENT_NOT_FOUND", "PLAN_NOT_FOUND"],
+    },
+    {
+      method: "GET",
+      path: "/ai-usage/me",
+      summary: "Meu histórico de consumo de tokens",
+      description:
+        "Um registro por chamada de IA bem-sucedida (nunca o texto enviado/recebido, só a contagem de tokens). Não é o envelope `PaginatedResult` padrão — soma um resumo geral e por feature além da página de itens.",
+      queryParams: [
+        { name: "page", type: "number", required: false },
+        { name: "limit", type: "number", required: false },
+        { name: "from", type: "string (ISO 8601)", required: false, notes: "padrão: to − 29 dias" },
+        { name: "to", type: "string (ISO 8601)", required: false, notes: "padrão: agora" },
+        { name: "feature", type: '"assistant-chat"|"content-safety"|"analytics-query"', required: false },
+      ],
+      requestExample: ['curl "$API_URL/ai-usage/me" \\', '  -H "Authorization: Bearer $ACCESS_TOKEN"'].join("\n"),
+      responseStatus: "200 OK",
+      responseExample: [
+        "{",
+        '  "summary": { "totalTokens": 15000, "promptTokens": 9000, "cachedTokens": 2000, "outputTokens": 3500, "thoughtsTokens": 500, "calls": 12 },',
+        '  "byFeature": [ { "feature": "assistant-chat", "totalTokens": 12000, "...": "..." } ],',
+        '  "items": [ { "id": "uuid", "feature": "assistant-chat", "operation": "converse", "model": "gemini-flash-latest", "totalTokens": 1500, "createdAt": "..." } ],',
+        '  "meta": { "page": 1, "limit": 20, "total": 12, "totalPages": 1 }',
+        "}",
+      ].join("\n"),
+      notes: ["Throttle mais apertado que o padrão global: 30 requisições / 60s (cada chamada agrega até 90 dias de histórico)."],
+      errorCodes: ["AI_USAGE_INVALID_RANGE"],
+    },
+    {
+      method: "GET",
+      path: "/admin/ai-usage/users/:userId",
+      summary: "Histórico de consumo de qualquer usuário (admin)",
+      description: "Exige `SUPER_ADMIN`. Mesmo formato e query params de `GET /ai-usage/me`.",
+      requestExample: [
+        'curl "$API_URL/admin/ai-usage/users/USER_ID" \\',
+        '  -H "Authorization: Bearer $SUPER_ADMIN_TOKEN"',
+      ].join("\n"),
+      responseStatus: "200 OK",
+      responseExample: '{ "summary": { "...": "..." }, "byFeature": [ "..." ], "items": [ "..." ], "meta": { "...": "..." } }',
+      errorCodes: ["CLIENT_NOT_FOUND", "AI_USAGE_INVALID_RANGE"],
+    },
+  ];
+}
