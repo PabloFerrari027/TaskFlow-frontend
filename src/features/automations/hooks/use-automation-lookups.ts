@@ -2,7 +2,11 @@
 
 import * as React from "react";
 import { useQueries } from "@tanstack/react-query";
-import { TASK_PRIORITY_LABEL, TASK_STATUS_LABEL } from "@/components/shared/status-badge";
+import {
+  PROJECT_STATUS_LABEL,
+  TASK_PRIORITY_LABEL,
+  TASK_STATUS_LABEL,
+} from "@/components/shared/status-badge";
 import { sectionsService } from "@/features/sections/api/sections-service";
 import { useProjectsQuery } from "@/features/projects/hooks/use-projects";
 import { useWorkspaceQuery } from "@/features/workspaces/hooks/use-workspaces";
@@ -33,6 +37,9 @@ const STATUS_OPTIONS: PickerOption[] = Object.entries(TASK_STATUS_LABEL).map(
   ([value, label]) => ({ value, label })
 );
 const PRIORITY_OPTIONS: PickerOption[] = Object.entries(TASK_PRIORITY_LABEL).map(
+  ([value, label]) => ({ value, label })
+);
+const PROJECT_STATUS_OPTIONS: PickerOption[] = Object.entries(PROJECT_STATUS_LABEL).map(
   ([value, label]) => ({ value, label })
 );
 
@@ -66,8 +73,13 @@ export function useAutomationLookups(workspaceId: string): AutomationLookups {
     workspaceQuery.isLoading || projectsQuery.isLoading || sectionsResult.isLoading;
 
   return React.useMemo(() => {
+    const memberNames = new Map(
+      (members ?? []).map((member) => [member.userId, member.name?.trim()])
+    );
     const memberLabel = (userId: string) =>
-      userId === currentUserId ? "Você" : `Usuário ${shortenId(userId)}…`;
+      userId === currentUserId
+        ? "Você"
+        : memberNames.get(userId) || `Usuário ${shortenId(userId)}…`;
 
     const projectLabels = new Map(
       projects.map((project) => [
@@ -119,6 +131,8 @@ export function useAutomationLookups(workspaceId: string): AutomationLookups {
             return STATUS_OPTIONS;
           case "taskPriority":
             return PRIORITY_OPTIONS;
+          case "projectStatus":
+            return PROJECT_STATUS_OPTIONS;
           case "member":
             return memberOptions;
           case "project":
@@ -135,6 +149,8 @@ export function useAutomationLookups(workspaceId: string): AutomationLookups {
             return (TASK_STATUS_LABEL as Record<string, string>)[value] ?? value;
           case "taskPriority":
             return (TASK_PRIORITY_LABEL as Record<string, string>)[value] ?? value;
+          case "projectStatus":
+            return (PROJECT_STATUS_LABEL as Record<string, string>)[value] ?? value;
           case "member":
             return memberLabel(value);
           case "project":

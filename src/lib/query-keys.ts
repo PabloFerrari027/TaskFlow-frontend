@@ -112,8 +112,13 @@ export const queryKeys = {
         : (["activity", "task", taskId] as const),
   },
   aiUsage: {
-    me: (params: { days: number; feature?: AiUsageFeature; page: number }) =>
+    meAll: () => ["ai-usage", "me"] as const,
+    me:(params: { days: number; feature?: AiUsageFeature; page: number }) =>
       ["ai-usage", "me", params] as const,
+    // Since the 1st of the current UTC month — the window TOKEN_QUOTA_GUARD's
+    // monthly cap counts from (API.md § 23). Nested under `["ai-usage", "me"]`
+    // so invalidating that prefix refreshes it too.
+    currentMonth: () => ["ai-usage", "me", "current-month"] as const,
   },
   automations: {
     all: (workspaceId: string) => ["automations", "workspace", workspaceId] as const,
@@ -126,6 +131,15 @@ export const queryKeys = {
       page
         ? (["developers", "webhook-deliveries", webhookEndpointId, { page }] as const)
         : (["developers", "webhook-deliveries", webhookEndpointId] as const),
+  },
+  dashboardPages: {
+    all: (workspaceId: string) => ["dashboard-pages", "workspace", workspaceId] as const,
+    detail: (pageId: string) => ["dashboard-pages", pageId] as const,
+    accessGrants: (pageId: string) => ["dashboard-pages", pageId, "access-grants"] as const,
+    // Anonymous views live under their own root: nothing authenticated ever
+    // invalidates or reuses them.
+    shared: (kind: "public" | "guest", token: string) =>
+      ["shared-dashboard-pages", kind, token] as const,
   },
   analytics: {
     root: () => ["analytics"] as const,

@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Pencil, Trash2, UserPlus } from "lucide-react";
+import Link from "next/link";
+import { PanelsTopLeft, Pencil, Trash2, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -65,6 +66,11 @@ export default function WorkspaceDetailPage() {
         description={`${workspace.members.length} membro(s)`}
         actions={
           <>
+            <Button variant="outline" asChild>
+              <Link href={`/workspaces/${workspace.id}/pages`}>
+                <PanelsTopLeft /> Páginas
+              </Link>
+            </Button>
             <RoleGate allowed={canManage}>
               <Button variant="outline" onClick={() => setRenameOpen(true)}>
                 <Pencil /> Renomear

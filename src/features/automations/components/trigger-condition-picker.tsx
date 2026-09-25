@@ -13,8 +13,7 @@ import type {
 import {
   COMMON_OPERATORS,
   OPERATOR_LABEL,
-  payloadFieldsOf,
-  type TriggerEventSpec,
+  type PayloadFieldSpec,
 } from "@/features/automations/lib/automation-catalog";
 import {
   coerceConditionValue,
@@ -25,13 +24,13 @@ import type { AnalyticsOperator } from "@/types/analytics";
 
 // One extra condition, on its own row in step 2: "Somente se o novo status
 // for Concluída". Uses the same filter shape/operators as analytics
-// (`AnalyticsFilter`) — that is what the API validates against — but there is
-// no analytics filter component to reuse: the analytics screens build their
-// queries in code, never from user-picked filters.
+// (`AnalyticsFilter`) — that is what the API validates against — so it is
+// also the filter picker of the dashboard-page chart builder: the one place
+// a user picks an `AnalyticsFilter` by hand, whatever screen they're on.
 export function TriggerConditionPicker({
   lead,
   condition,
-  event,
+  fields,
   lookups,
   onChange,
   onRemove,
@@ -39,12 +38,13 @@ export function TriggerConditionPicker({
   // Connector before the condition: "Somente se" for the first, "e" after.
   lead: string;
   condition: ConditionDraft;
-  event: TriggerEventSpec | undefined;
+  // The fields a condition can test — a trigger event's payload fields in
+  // automations, or a chart entity's filterable fields in dashboard pages.
+  fields: PayloadFieldSpec[];
   lookups: AutomationLookups;
   onChange: (next: ConditionDraft) => void;
   onRemove: () => void;
 }) {
-  const fields = payloadFieldsOf(event);
   const field = fields.find((spec) => spec.field === condition.field);
   const kind = field?.kind ?? "text";
 

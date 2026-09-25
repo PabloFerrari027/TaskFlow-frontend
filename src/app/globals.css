@@ -146,3 +146,73 @@
     @apply font-sans;
   }
 }
+/* Dashboard-page grid (react-grid-layout). The library's own stylesheet is
+   deliberately not imported: these are the same mechanics (positioning,
+   transitions, resize handle placement) redrawn with the app's tokens — a
+   dashed primary drop target instead of a red box, a muted corner grip that
+   only shows on hover/focus. */
+@layer components {
+  .react-grid-layout {
+    position: relative;
+    transition: height 200ms ease;
+  }
+  .react-grid-item {
+    transition: all 200ms ease;
+    transition-property: left, top, width, height;
+  }
+  .react-grid-item.cssTransforms {
+    transition-property: transform, width, height;
+  }
+  .react-grid-item.resizing {
+    z-index: 1;
+    transition: none;
+    will-change: width, height;
+  }
+  .react-grid-item.react-draggable-dragging {
+    z-index: 3;
+    transition: none;
+    will-change: transform;
+  }
+  .react-grid-item.react-draggable-dragging > * {
+    @apply shadow-lg ring-2 ring-primary/40;
+  }
+  .react-grid-item.react-grid-placeholder {
+    z-index: 2;
+    user-select: none;
+    transition-duration: 100ms;
+    @apply rounded-xl border-2 border-dashed border-primary/50 bg-primary/5;
+  }
+  .react-grid-item.react-grid-placeholder.placeholder-resizing {
+    transition: none;
+  }
+  .react-grid-item > .react-resizable-handle {
+    position: absolute;
+    right: 2px;
+    bottom: 2px;
+    z-index: 1;
+    width: 18px;
+    height: 18px;
+    cursor: se-resize;
+    opacity: 0;
+    transition: opacity 150ms ease;
+  }
+  .react-grid-item:hover > .react-resizable-handle,
+  .react-grid-item:focus-within > .react-resizable-handle,
+  .react-grid-item.resizing > .react-resizable-handle {
+    opacity: 1;
+  }
+  .react-grid-item > .react-resizable-handle::after {
+    content: "";
+    position: absolute;
+    right: 5px;
+    bottom: 5px;
+    width: 7px;
+    height: 7px;
+    border-right: 2px solid var(--muted-foreground);
+    border-bottom: 2px solid var(--muted-foreground);
+    border-bottom-right-radius: 2px;
+  }
+  .react-resizable-hide > .react-resizable-handle {
+    display: none;
+  }
+}
