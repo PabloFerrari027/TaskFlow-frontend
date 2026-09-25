@@ -16,6 +16,7 @@ import {
   eventsOfEntity,
   findAction,
   findTriggerEvent,
+  payloadFieldsOf,
 } from "@/features/automations/lib/automation-catalog";
 import {
   emptyParam,
@@ -141,7 +142,7 @@ export function AutomationSentenceBuilder({
             <TriggerConditionPicker
               lead={index === 0 ? "Somente se" : "e"}
               condition={condition}
-              event={event}
+              fields={payloadFieldsOf(event)}
               lookups={lookups}
               onChange={updateCondition}
               onRemove={() =>

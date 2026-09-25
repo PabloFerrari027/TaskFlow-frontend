@@ -19,6 +19,7 @@ export type FieldKind =
   | "section"
   | "taskStatus"
   | "taskPriority"
+  | "projectStatus"
   | "number"
   | "date"
   | "text";

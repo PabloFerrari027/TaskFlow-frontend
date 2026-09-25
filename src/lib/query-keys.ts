@@ -127,6 +127,15 @@ export const queryKeys = {
         ? (["developers", "webhook-deliveries", webhookEndpointId, { page }] as const)
         : (["developers", "webhook-deliveries", webhookEndpointId] as const),
   },
+  dashboardPages: {
+    all: (workspaceId: string) => ["dashboard-pages", "workspace", workspaceId] as const,
+    detail: (pageId: string) => ["dashboard-pages", pageId] as const,
+    accessGrants: (pageId: string) => ["dashboard-pages", pageId, "access-grants"] as const,
+    // Anonymous views live under their own root: nothing authenticated ever
+    // invalidates or reuses them.
+    shared: (kind: "public" | "guest", token: string) =>
+      ["shared-dashboard-pages", kind, token] as const,
+  },
   analytics: {
     root: () => ["analytics"] as const,
     // Requests are built with different property orders across the

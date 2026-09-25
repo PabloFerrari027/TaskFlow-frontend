@@ -129,6 +129,12 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   PLAN_NAME_ALREADY_EXISTS: "Já existe um plano com este nome.",
   TOKEN_QUOTA_EXCEEDED:
     "A cota de tokens de IA do seu plano foi atingida por enquanto. Tente novamente mais tarde ou troque de plano.",
+  DASHBOARD_PAGE_NOT_FOUND: "Página não encontrada.",
+  CHART_DEFINITION_NOT_FOUND: "Gráfico não encontrado.",
+  PAGE_ACCESS_GRANT_NOT_FOUND: "Este acesso não existe mais.",
+  INVALID_ACCESS_GRANT_TARGET: "Escolha um membro deste workspace ou informe um e-mail válido.",
+  PAGE_ACCESS_TOKEN_INVALID: "Este link não é válido ou foi revogado.",
+  INVALID_CHART_DEFINITION: "Este gráfico não pode ser montado com as opções escolhidas.",
 };
 
 const DEFAULT_MESSAGE = "Algo deu errado. Tente novamente em instantes.";

@@ -18,18 +18,28 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const items = NAV_ITEMS.filter((item) => {
     if (item.requiresSuperAdmin && !isSuperAdminQuery.isSuccess) return false;
     if (item.workspacePermission && !item.workspacePermission(myWorkspaceRole)) return false;
+    if (item.workspaceHref && !workspace) return false;
     return true;
-  });
+  }).map((item) => ({
+    ...item,
+    to: item.workspaceHref && workspace ? item.workspaceHref(workspace.id) : item.href,
+  }));
+
+  // Only the most specific match is highlighted: /workspaces/:id/pages is
+  // "Páginas", not also "Workspaces".
+  const activeHref = items
+    .map((item) => item.to)
+    .filter((to) => pathname === to || pathname.startsWith(`${to}/`))
+    .sort((a, b) => b.length - a.length)[0];
 
   return (
     <nav className="flex flex-col gap-1 p-3">
       {items.map((item) => {
-        const active =
-          pathname === item.href || pathname.startsWith(`${item.href}/`);
+        const active = item.to === activeHref;
         return (
           <Link
             key={item.href}
-            href={item.href}
+            href={item.to}
             onClick={onNavigate}
             className={cn(
               "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",

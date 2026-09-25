@@ -182,7 +182,7 @@ function parseScalar(value: string): string | number {
   return trimmed !== "" && Number.isFinite(Number(trimmed)) ? Number(trimmed) : trimmed;
 }
 
-function conditionValueForRequest(
+export function conditionValueForRequest(
   operator: AnalyticsOperator,
   value: string | string[],
   kind: FieldKind
@@ -238,7 +238,7 @@ export function toRequest(draft: RuleDraft, fallbackName: string): CreateAutomat
 
 // --------------------------------------------------------------- validation
 
-function isConditionComplete(condition: ConditionDraft) {
+export function isConditionComplete(condition: ConditionDraft) {
   if (!condition.field) return false;
   if (condition.operator === "between") {
     return Array.isArray(condition.value) && condition.value.length === 2 && condition.value.every((v) => v.trim() !== "");

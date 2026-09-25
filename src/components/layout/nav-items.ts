@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   LayoutDashboard,
+  PanelsTopLeft,
   FolderKanban,
   BarChart3,
   Building2,
@@ -29,6 +30,10 @@ export interface NavItem {
   // When set, the item only shows while the current workspace role passes
   // this check — mirrors the same gate the old workspace-page tab used.
   workspacePermission?: (role: WorkspaceRole | null | undefined) => boolean;
+  // For pages that live under the current workspace's URL: the link is
+  // built from its id (and the item hidden until there is one). `href` is
+  // then only the item's stable key.
+  workspaceHref?: (workspaceId: string) => string;
 }
 
 export const NAV_ITEMS: NavItem[] = [
@@ -38,6 +43,12 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/workspaces", label: "Workspaces", icon: Building2 },
   { href: "/activity", label: "Atividade", icon: History },
   { href: "/analytics", label: "Análises", icon: BarChart3 },
+  {
+    href: "/workspaces/pages",
+    label: "Páginas",
+    icon: PanelsTopLeft,
+    workspaceHref: (workspaceId) => `/workspaces/${workspaceId}/pages`,
+  },
 
   // Recursos avançados, usados com menos frequência.
   { href: "/assistant", label: "Assistente", icon: Bot },
