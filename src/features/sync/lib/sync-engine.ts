@@ -17,7 +17,7 @@ import type {
   SyncOperation,
   SyncOperationResult,
 } from "@/types/sync";
-import type { Task } from "@/types/task";
+import type { DeletedTask, Task } from "@/types/task";
 
 export function isOffline() {
   return typeof navigator !== "undefined" && !navigator.onLine;
@@ -115,6 +115,28 @@ function applyServerState(
 ) {
   switch (op.entityType) {
     case "TASK": {
+      // An applied DELETE answers with what's left of the task (the same
+      // `DeletedTask` as `POST /tasks/bulk-delete`), not the task itself — the
+      // cascade took every subtask along. A DELETE that hit a CONFLICT still
+      // carries the full, surviving task and falls through below.
+      if (op.operationType === "DELETE" && Array.isArray(state.deletedSubtaskIds)) {
+        const deleted = state as unknown as DeletedTask;
+        for (const taskId of [deleted.id, ...deleted.deletedSubtaskIds]) {
+          queryClient.removeQueries({ queryKey: queryKeys.tasks.detail(taskId) });
+        }
+        invalidateByEntityChange(queryClient, {
+          entityType: op.entityType,
+          entityId: deleted.id,
+          workspaceId: op.workspaceId,
+          projectId: deleted.projectId,
+        });
+        if (deleted.parentTaskId) {
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.tasks.subtasks(deleted.parentTaskId),
+          });
+        }
+        return;
+      }
       const task = state as unknown as Task;
       queryClient.setQueryData(queryKeys.tasks.detail(task.id), task);
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all(task.projectId) });
