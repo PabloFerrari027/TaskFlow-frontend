@@ -93,7 +93,8 @@ export type ErrorCode =
   | "INVALID_WEBHOOK_EVENT"
   | "PLAN_NOT_FOUND"
   | "PLAN_NAME_ALREADY_EXISTS"
-  | "TOKEN_QUOTA_EXCEEDED";
+  | "TOKEN_QUOTA_EXCEEDED"
+  | "NO_STRIPE_CUSTOMER";
 
 export interface DomainErrorResponse {
   statusCode: number;

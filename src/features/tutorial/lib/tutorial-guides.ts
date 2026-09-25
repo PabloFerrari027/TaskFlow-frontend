@@ -1195,8 +1195,8 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
     title: "Plano e uso de IA",
     summary: "O limite de uso do assistente e das análises em linguagem natural, e como trocar de plano.",
     icon: Coins,
-    href: "/settings/plan",
-    hrefLabel: "Abrir Plano",
+    href: "/settings/billing",
+    hrefLabel: "Abrir Plano e cobrança",
     sections: [
       {
         heading: "O que é um plano",
@@ -1205,27 +1205,38 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         callouts: [
           {
             kind: "note",
-            text: "Nenhuma conta nasce com um plano. Enquanto você não escolher um, não existe limite algum — o assistente e as análises em linguagem natural funcionam livremente.",
+            text: "Nenhuma conta nasce com um plano. Enquanto você não assinar um, vale o limite do plano gratuito (FREE), marcado como “Plano padrão” na tela.",
           },
         ],
       },
       {
-        heading: "Escolher ou trocar de plano",
+        heading: "Ver seu consumo",
+        intro:
+          "No topo de Configurações → Plano e cobrança, uma barra mostra quantos tokens você já usou este mês e quanto o seu plano permite. A contagem do mês recomeça sozinha no dia 1º.",
+      },
+      {
+        heading: "Assinar ou trocar de plano",
         steps: [
-          "Abra Configurações → Plano.",
-          "Veja a lista de planos disponíveis, com o teto mensal de cada um.",
-          "Clique em “Assinar este plano” no que quiser.",
+          "Abra Configurações → Plano e cobrança.",
+          "Seu plano atual aparece destacado. Nos demais, o botão diz “Assinar”, “Fazer upgrade” (plano maior) ou “Fazer downgrade” (plano menor).",
+          "Clique no botão do plano que quiser. Você vai para a página de pagamento segura do Stripe, nosso parceiro de cobrança.",
+          "Depois de pagar, você volta automaticamente para o TaskFlow. O novo plano pode levar alguns segundos para aparecer.",
         ],
         callouts: [
           {
-            kind: "warning",
-            text: "Não existe, hoje, uma tela que mostre qual é o seu plano atual — só é possível trocar. Se tiver dúvida se já escolheu algum antes, pode escolher de novo sem problema: a troca sempre substitui o que valia antes.",
+            kind: "note",
+            text: "O TaskFlow nunca vê nem guarda os dados do seu cartão: o pagamento acontece inteiramente na página do Stripe.",
           },
           {
             kind: "note",
-            text: "Nesta versão não há cobrança: qualquer plano cadastrado pode ser escolhido livremente, mesmo o maior.",
+            text: "Se desistir na página de pagamento, é só voltar: nada é cobrado e seu plano continua o mesmo.",
           },
         ],
+      },
+      {
+        heading: "Gerenciar sua assinatura",
+        intro:
+          "Depois de assinar, o seu plano atual mostra o botão “Gerenciar assinatura”. Ele abre o portal do Stripe, onde você pode atualizar o cartão, ver faturas ou cancelar a assinatura.",
       },
       {
         heading: "Como o limite é dividido",
@@ -1259,19 +1270,19 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
     ],
     faq: [
       {
-        question: "Já escolhi um plano, por que não vejo qual é na tela?",
+        question: "Paguei, mas meu plano ainda aparece como o antigo.",
         answer:
-          "É uma limitação de verdade, não um esquecimento da interface: não existe hoje uma forma de consultar o plano já escolhido, só de trocar.",
+          "A confirmação do pagamento pode levar alguns instantes para chegar. Aguarde um pouco e recarregue a página. Se continuar igual depois de alguns minutos, fale com o suporte.",
       },
       {
         question: "Recebi um aviso de limite de tokens atingido.",
         answer:
-          "Você atingiu o teto de tokens de IA do seu plano (dia, semana ou mês). Espere o próximo período resetar sozinho, ou troque para um plano com um teto maior em Configurações → Plano.",
+          "Você atingiu o teto de tokens de IA do seu plano (dia, semana ou mês). Espere o próximo período resetar sozinho, ou troque para um plano com um teto maior em Configurações → Plano e cobrança.",
       },
       {
-        question: "Preciso pagar para escolher um plano?",
+        question: "Como cancelo minha assinatura?",
         answer:
-          "Não, nesta versão. Qualquer plano cadastrado pode ser escolhido livremente, sem cobrança.",
+          "Em Configurações → Plano e cobrança, clique em “Gerenciar assinatura” no seu plano atual e cancele pelo portal do Stripe.",
       },
     ],
     related: ["assistant", "analytics", "account"],

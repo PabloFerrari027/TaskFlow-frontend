@@ -116,6 +116,11 @@ export interface CurrentUserResponse {
   status: AccountStatus;
   hasPassword: boolean;
   googleLinked: boolean;
+  // Billing fields (see features/billing). Optional until the backend ships
+  // them: a missing `planId` reads as "no plan" (FREE cap) and a missing
+  // `hasStripeCustomer` hides "Gerenciar assinatura".
+  planId?: string | null;
+  hasStripeCustomer?: boolean;
 }
 
 export interface UpdateProfilePhotoResponse {
