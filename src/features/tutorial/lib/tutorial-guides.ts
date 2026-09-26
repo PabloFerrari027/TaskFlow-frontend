@@ -1135,11 +1135,11 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "O que é um plano",
         intro:
-          "Um plano define quantos “tokens” — a unidade que mede o quanto o modelo de IA processou — você pode gastar por mês usando o chat do assistente. É por pessoa, não por workspace: o mesmo plano vale em todos os workspaces em que você está.",
+          "Um plano define quantos “tokens” — a unidade que mede o quanto o modelo de IA processou — você pode gastar usando a IA do TaskFlow, como o chat do assistente. É um limite de uso, não uma assinatura paga, e é por pessoa, não por workspace: o mesmo plano vale em todos os workspaces em que você está.",
         callouts: [
           {
             kind: "note",
-            text: "Nenhuma conta nasce com um plano. Enquanto você não escolher um, não existe limite algum — o assistente e as análises em linguagem natural funcionam livremente.",
+            text: "Nenhuma conta nasce com um plano escolhido. Enquanto você não escolher um, vale o limite do plano FREE, marcado como “Padrão” na lista — nunca fica sem limite.",
           },
         ],
       },
@@ -1147,36 +1147,39 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         heading: "Escolher ou trocar de plano",
         steps: [
           "Abra Configurações → Plano.",
-          "Veja a lista de planos disponíveis, com o teto mensal de cada um.",
-          "Clique em “Assinar este plano” no que quiser.",
+          "Veja a lista de planos disponíveis. Cada um mostra o limite por mês e, logo abaixo, quanto isso dá por semana e por dia.",
+          "Clique em “Escolher este plano” no que quiser e confirme.",
+          "O plano escolhido fica marcado como “Escolhido agora” enquanto a tela estiver aberta.",
         ],
         callouts: [
           {
             kind: "warning",
-            text: "Não existe, hoje, uma tela que mostre qual é o seu plano atual — só é possível trocar. Se tiver dúvida se já escolheu algum antes, pode escolher de novo sem problema: a troca sempre substitui o que valia antes.",
+            text: "Não existe, hoje, uma forma de consultar qual é o seu plano atual — só de trocar. Por isso a marcação “Escolhido agora” some ao sair da tela: ela lembra a escolha que você acabou de fazer, não é uma consulta ao sistema. Se tiver dúvida, pode escolher de novo sem problema: a troca sempre substitui o que valia antes.",
           },
           {
             kind: "note",
-            text: "Nesta versão não há cobrança: qualquer plano cadastrado pode ser escolhido livremente, mesmo o maior.",
+            text: "Trocar de plano não tem custo. Qualquer plano da lista pode ser escolhido livremente, mesmo o maior.",
           },
         ],
       },
       {
         heading: "Como o limite é dividido",
         intro:
-          "O único número de um plano é o teto por mês. Os tetos por dia e por semana são calculados a partir dele (aproximadamente 1/30 por dia e 1/4 por semana) — a ideia é evitar gastar o mês inteiro num dia só, e suavizar picos de uso na semana.",
+          "O único número de um plano é o limite por mês. Os limites por dia e por semana são calculados a partir dele: o mensal dividido por 30 dá o do dia, e dividido por 4 dá o da semana. A ideia é evitar gastar o mês inteiro num dia só e suavizar picos de uso na semana. Por exemplo, um plano de 1 milhão de tokens por mês permite cerca de 33 mil por dia e 250 mil por semana.",
         bullets: [
-          "As três contagens (dia, semana, mês) resetam sozinhas, num horário fixo internacional — o \"dia\" do sistema pode começar um pouco antes ou depois da meia-noite do seu fuso local.",
-          "O que sobra de um dia (ou semana) não passa para o período seguinte — cada um reseta do zero.",
+          "As três contagens recomeçam sozinhas no horário UTC, um relógio internacional fixo: a do dia à meia-noite UTC (21h no horário de Brasília), a da semana na segunda-feira às 00:00 UTC e a do mês no dia 1º às 00:00 UTC.",
+          "O que sobra de um dia, semana ou mês não passa para o período seguinte — cada um recomeça do zero.",
+          "Os três limites valem ao mesmo tempo: mesmo com saldo no mês, o limite do dia pode barrar primeiro.",
         ],
       },
       {
         heading: "O que acontece ao atingir o limite",
         intro:
-          "Se você tentar usar o assistente ou perguntar algo em linguagem natural depois de atingir qualquer um dos tetos, a ação é recusada com um aviso de limite de tokens atingido. Não é uma falha do sistema — é o teto do seu plano funcionando como esperado.",
+          "Se você tentar usar o assistente depois de atingir qualquer um dos limites (dia, semana ou mês), a mensagem é recusada com um aviso de que o limite de IA do seu plano foi atingido. Não é uma falha do sistema — é o limite funcionando como esperado, e nenhum token é gasto na tentativa.",
         bullets: [
-          "O teto mais apertado (em geral o diário) costuma ser o primeiro a barrar.",
-          "Espere o próximo período (o reset é automático, sem ação sua) ou troque para um plano com teto maior.",
+          "O aviso não diz qual dos três limites foi atingido — em geral é o do dia, o mais apertado.",
+          "O uso volta sozinho quando o período recomeçar, sem nenhuma ação sua. Se precisar de mais, troque para um plano com limite maior.",
+          "Um aviso diferente, de “muitas perguntas em pouco tempo”, não tem a ver com o plano: é um limite de frequência que protege o sistema. Basta esperar um pouco e tentar de novo.",
         ],
       },
       {
@@ -1200,12 +1203,17 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         question: "Recebi um aviso de limite de tokens atingido.",
         answer:
-          "Você atingiu o teto de tokens de IA do seu plano (dia, semana ou mês). Espere o próximo período resetar sozinho, ou troque para um plano com um teto maior em Configurações → Plano.",
+          "Você atingiu o limite de IA do seu plano (do dia, da semana ou do mês). Ele libera sozinho quando o período recomeçar; se precisar de mais, troque para um plano com limite maior em Configurações → Plano.",
       },
       {
         question: "Preciso pagar para escolher um plano?",
         answer:
-          "Não, nesta versão. Qualquer plano cadastrado pode ser escolhido livremente, sem cobrança.",
+          "Não. O plano é só um limite de uso de IA, e qualquer plano da lista pode ser escolhido livremente.",
+      },
+      {
+        question: "Por que o meu “dia” de uso não começa à meia-noite?",
+        answer:
+          "Os limites usam o horário UTC, igual para todo mundo, para que a virada seja previsível. No horário de Brasília, o dia de uso recomeça às 21h.",
       },
     ],
     related: ["assistant", "account"],

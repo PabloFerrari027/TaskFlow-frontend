@@ -13,11 +13,24 @@ export function usePlansQuery() {
   });
 }
 
+// `PATCH /plans/me` answers 200 with no body — there's nothing to write back
+// to the cache, and no endpoint to re-read the user's plan from (API.md § 23).
 export function useSetMyPlanMutation() {
+  const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: (planId: string) => plansService.setMine(planId),
-    onSuccess: () => toast.success("Plano atualizado."),
-    onError: (error) => toast.error(getErrorMessage(error)),
+    mutationFn: (plan: { id: string; name: string }) => plansService.setMine(plan.id),
+    onSuccess: (_data, plan) => toast.success(`Plano ${plan.name} escolhido.`),
+    onError: (error) => {
+      // A SUPER_ADMIN may have removed or changed the plan since the list
+      // loaded — refresh it so the user picks from what exists now.
+      if (getErrorCode(error) === "PLAN_NOT_FOUND") {
+        queryClient.invalidateQueries({ queryKey: queryKeys.plans.all() });
+        toast.error("Esse plano não está mais disponível. A lista foi atualizada.");
+        return;
+      }
+      toast.error(getErrorMessage(error));
+    },
   });
 }
 
