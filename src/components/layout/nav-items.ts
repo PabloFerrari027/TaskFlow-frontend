@@ -3,7 +3,6 @@ import {
   LayoutDashboard,
   PanelsTopLeft,
   FolderKanban,
-  BarChart3,
   Building2,
   MonitorSmartphone,
   KeyRound,
@@ -42,7 +41,6 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/projects", label: "Projetos", icon: FolderKanban },
   { href: "/workspaces", label: "Workspaces", icon: Building2 },
   { href: "/activity", label: "Atividade", icon: History },
-  { href: "/analytics", label: "Análises", icon: BarChart3 },
   {
     href: "/workspaces/pages",
     label: "Páginas",

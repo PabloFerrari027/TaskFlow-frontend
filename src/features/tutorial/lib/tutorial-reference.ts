@@ -104,7 +104,7 @@ export const GLOSSARY: GlossaryTerm[] = [
   },
   {
     term: "Token",
-    definition: "A unidade que mede o quanto o modelo de IA processou numa chamada do assistente ou das análises.",
+    definition: "A unidade que mede o quanto o modelo de IA processou numa chamada do assistente.",
   },
   {
     term: "Plano",

@@ -46,7 +46,7 @@ export const TOUR_STEPS: TourStep[] = [
     chapter: "Boas-vindas",
     title: "Bem-vindo ao TaskFlow!",
     description:
-      "Este tour leva cerca de 3 minutos e passa pelas telas reais do sistema: o menu, seus projetos, o quadro de tarefas, uma tarefa por dentro, as análises e os workspaces. Nada é criado ou alterado durante o tour.",
+      "Este tour leva cerca de 3 minutos e passa pelas telas reais do sistema: o menu, seus projetos, o quadro de tarefas, uma tarefa por dentro e os workspaces. Nada é criado ou alterado durante o tour.",
     details: [
       "Use as setas → e ← do teclado para avançar e voltar, ou Esc para sair.",
       "Ao terminar, você volta para a página em que estava.",
@@ -62,7 +62,7 @@ export const TOUR_STEPS: TourStep[] = [
     placement: "bottom",
     title: "Seu workspace",
     description:
-      "Um workspace é o espaço de uma equipe ou empresa: reúne projetos, tarefas e pessoas. Tudo o que você vê (projetos, análises, atividade) pertence ao workspace selecionado aqui.",
+      "Um workspace é o espaço de uma equipe ou empresa: reúne projetos, tarefas e pessoas. Tudo o que você vê (projetos, atividade) pertence ao workspace selecionado aqui.",
     details: [
       "Clique para trocar de workspace ou criar um novo.",
       "Se algo parecer ter sumido, confira primeiro se o workspace certo está selecionado.",
@@ -79,7 +79,6 @@ export const TOUR_STEPS: TourStep[] = [
     details: [
       "Dashboard: os projetos ativos do workspace.",
       "Projetos: todos os projetos, ativos e arquivados.",
-      "Análises: números e gráficos, com perguntas em texto livre.",
       "Workspaces: membros, convites, atividade e automações.",
       "Perfil, Sessões e Segurança: sua conta e seus dispositivos.",
     ],
@@ -310,40 +309,6 @@ export const TOUR_STEPS: TourStep[] = [
       "As abas separam projetos Ativos e Arquivados.",
       "O seletor à direita alterna entre a árvore de cartões e uma tabela, onde nome, descrição e status se editam na célula.",
       "No menu de ações de cada projeto: criar sub-projeto, mover para dentro de outro e arquivar.",
-    ],
-  },
-
-  // ------------------------------------------------------------- analytics
-  {
-    id: "analytics-question",
-    chapter: "Análises",
-    route: "/analytics",
-    target: "analytics-question",
-    placement: "bottom",
-    skipIfMissing: true,
-    title: "Pergunte em texto livre",
-    description:
-      "Escreva uma dúvida sobre as tarefas e os projetos e o sistema monta o resultado para você.",
-    details: [
-      "Exemplo: “Quantas tarefas atrasadas temos, agrupadas por projeto?”.",
-      "A linha “Entendi como: …” mostra como a pergunta foi interpretada. Se estiver errada, reescreva citando o que contar, o filtro e o agrupamento.",
-    ],
-  },
-  {
-    id: "analytics-charts",
-    chapter: "Análises",
-    route: "/analytics",
-    target: "analytics-charts",
-    placement: "top",
-    skipIfMissing: true,
-    title: "Os gráficos do workspace",
-    description:
-      "Três indicadores no topo (tarefas no total, concluídas e projetos ativos) e, aqui, os gráficos.",
-    details: [
-      "Tarefas por status, por responsável e por projeto.",
-      "Tarefas atrasadas, taxa de conclusão, taxa de atraso e tempo médio de conclusão por projeto.",
-      "O seletor “Mostrando dados de” limita parte deles a um projeto.",
-      "“Sem dados” significa que ainda não há informação suficiente, o que é diferente de zero.",
     ],
   },
 
