@@ -65,7 +65,7 @@ export const NAV_ITEMS: NavItem[] = [
 
   // Conta e configurações pessoais.
   { href: "/settings/profile", label: "Perfil", icon: UserRound },
-  { href: "/settings/billing", label: "Plano e cobrança", icon: CreditCard },
+  { href: "/settings/plan", label: "Plano", icon: CreditCard },
   { href: "/settings/ai-usage", label: "Uso de IA", icon: Sparkles },
   { href: "/settings/security", label: "Segurança", icon: KeyRound },
   { href: "/settings/sessions", label: "Sessões", icon: MonitorSmartphone },

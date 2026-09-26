@@ -13,6 +13,14 @@ export function usePlansQuery() {
   });
 }
 
+export function useSetMyPlanMutation() {
+  return useMutation({
+    mutationFn: (planId: string) => plansService.setMine(planId),
+    onSuccess: () => toast.success("Plano atualizado."),
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+}
+
 export function useAdminPlansQuery() {
   return useQuery({
     queryKey: queryKeys.plans.admin.all(),
