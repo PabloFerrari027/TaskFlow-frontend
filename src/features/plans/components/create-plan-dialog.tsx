@@ -15,6 +15,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -26,6 +27,7 @@ import {
   type CreatePlanFormValues,
 } from "@/features/plans/schemas";
 import { useCreatePlanMutation } from "@/features/plans/hooks/use-plans";
+import { DerivedCapsHint } from "@/features/plans/components/derived-caps-hint";
 import { getErrorCode, getErrorMessage } from "@/lib/errors";
 
 interface CreatePlanDialogProps {
@@ -79,6 +81,10 @@ export function CreatePlanDialog({ open, onOpenChange }: CreatePlanDialogProps) 
                   <FormControl>
                     <Input placeholder="PRO" autoFocus {...field} />
                   </FormControl>
+                  <FormDescription>
+                    Não dá para mudar depois: o nome é a chave fixa do plano, usada por
+                    integrações.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -99,6 +105,7 @@ export function CreatePlanDialog({ open, onOpenChange }: CreatePlanDialogProps) 
                       value={field.value as number}
                     />
                   </FormControl>
+                  <DerivedCapsHint value={field.value} />
                   <FormMessage />
                 </FormItem>
               )}

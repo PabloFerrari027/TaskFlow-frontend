@@ -27,6 +27,8 @@ import {
   type EditPlanFormValues,
 } from "@/features/plans/schemas";
 import { useUpdatePlanMutation } from "@/features/plans/hooks/use-plans";
+import { DerivedCapsHint } from "@/features/plans/components/derived-caps-hint";
+import { getErrorCode } from "@/lib/errors";
 import type { Plan } from "@/types/plan";
 
 interface EditPlanDialogProps {
@@ -48,7 +50,14 @@ export function EditPlanDialog({ plan, open, onOpenChange }: EditPlanDialogProps
   function onSubmit(values: EditPlanFormValues) {
     updateMutation.mutate(
       { planId: plan.id, monthlyTokenBudget: values.monthlyTokenBudget },
-      { onSuccess: () => onOpenChange(false) }
+      {
+        onSuccess: () => onOpenChange(false),
+        // The plan is gone — the hook already refreshed the list, so there's
+        // nothing left to edit here.
+        onError: (error) => {
+          if (getErrorCode(error) === "PLAN_NOT_FOUND") onOpenChange(false);
+        },
+      }
     );
   }
 
@@ -62,8 +71,12 @@ export function EditPlanDialog({ plan, open, onOpenChange }: EditPlanDialogProps
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label>Nome</Label>
-              <Input value={plan.name} disabled readOnly />
+              <Label htmlFor="plan-name">Nome</Label>
+              <Input id="plan-name" value={plan.name} disabled readOnly />
+              <p className="text-sm text-muted-foreground">
+                O nome não pode ser alterado: ele é a chave fixa do plano, usada por integrações e
+                pelo plano padrão da plataforma. Só o limite mensal é editável.
+              </p>
             </div>
 
             <FormField
@@ -82,6 +95,7 @@ export function EditPlanDialog({ plan, open, onOpenChange }: EditPlanDialogProps
                       value={field.value as number}
                     />
                   </FormControl>
+                  <DerivedCapsHint value={field.value} />
                   <FormMessage />
                 </FormItem>
               )}
