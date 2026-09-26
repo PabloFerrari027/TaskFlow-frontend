@@ -37,7 +37,7 @@ import {
 import { useWorkspaceQuery } from "@/features/workspaces/hooks/use-workspaces";
 import { useAuth } from "@/lib/auth/auth-context";
 import { formatDate } from "@/lib/format";
-import { canManageWorkspace } from "@/lib/permissions";
+import { canPublishDashboardPage } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
 import type { AuthenticatedDashboardPageView, DashboardPageVisibility } from "@/types/dashboard-page";
 
@@ -66,7 +66,7 @@ function VisibilitySection({
   const myRole = workspaceQuery.data?.members.find((m) => m.userId === userId)?.role;
   // Who may turn a page PUBLIC is a workspace-role rule (the backend enforces
   // it too) — this only decides whether the option is offered.
-  const canMakePublic = canManageWorkspace(myRole);
+  const canMakePublic = canPublishDashboardPage(myRole);
   const updateMutation = useUpdateDashboardPageMutation(workspaceId, page.id);
   const [pendingLeave, setPendingLeave] = React.useState<DashboardPageVisibility | null>(null);
 

@@ -77,11 +77,14 @@ export function invalidateByEntityChange(
   }
 }
 
-/** Activity feed and analytics are derived from every other entity, so any
- * change to one of them makes both stale. */
+/** Activity feed, analytics and dashboard pages (whose charts arrive already
+ * executed) are derived from every other entity, so any change to one of
+ * them makes all three stale. The server still caches a page for up to 60s,
+ * so a refetched page can lag behind the change that triggered it. */
 export function invalidateDerivedData(queryClient: QueryClient) {
   invalidate(queryClient, { queryKey: queryKeys.activity.root() });
   invalidate(queryClient, { queryKey: queryKeys.analytics.root() });
+  invalidate(queryClient, { queryKey: queryKeys.dashboardPages.details() });
 }
 
 /** Coarse invalidation of every synced query group for a workspace — used
@@ -93,6 +96,7 @@ export function invalidateWorkspaceData(queryClient: QueryClient, workspaceId: s
   const skipTasks = pendingTaskMutations(queryClient) > 0;
 
   invalidate(queryClient, { queryKey: queryKeys.projects.all(workspaceId) });
+  invalidate(queryClient, { queryKey: queryKeys.dashboardPages.details() });
   if (!skipTasks) invalidate(queryClient, { queryKey: queryKeys.tasks.bySectionAll() });
   invalidate(queryClient, {
     predicate: (query) =>

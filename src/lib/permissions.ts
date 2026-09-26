@@ -1,3 +1,4 @@
+import type { DashboardPageVisibility } from "@/types/dashboard-page";
 import type { WorkspaceRole } from "@/types/workspace";
 
 /**
@@ -53,6 +54,26 @@ export function canManageAutomations(role: WorkspaceRole | null | undefined) {
 // Every API key / webhook endpoint is OWNER/ADMIN only (API.md § 22) — even
 // listing — both grant long-lived access to the whole workspace.
 export function canManageDeveloperPlatform(role: WorkspaceRole | null | undefined) {
+  return canManageWorkspace(role);
+}
+
+// Mirrors the "who edits" column of API.md § 25.1 for the page list, which
+// has no `canEdit` of its own (the detail view does — prefer it there). A
+// PRIVATE page is its creator's alone: OWNER/ADMIN get no exception. The
+// seeded page (`createdBy: null`) has no creator, so only managers edit it.
+export function canEditDashboardPage(
+  page: { createdBy: string | null; visibility: DashboardPageVisibility },
+  userId: string | null | undefined,
+  role: WorkspaceRole | null | undefined
+) {
+  const isCreator = page.createdBy !== null && page.createdBy === userId;
+  if (page.visibility === "PRIVATE") return isCreator;
+  return isCreator || canManageWorkspace(role);
+}
+
+// Making a page PUBLIC (or minting its link) is OWNER/ADMIN only — even for
+// the page's own creator (API.md § 25.1).
+export function canPublishDashboardPage(role: WorkspaceRole | null | undefined) {
   return canManageWorkspace(role);
 }
 
