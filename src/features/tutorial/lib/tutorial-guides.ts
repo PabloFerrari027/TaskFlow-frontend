@@ -1173,6 +1173,17 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         ],
       },
       {
+        heading: "Ver seu consumo",
+        intro:
+          "Em Configurações → Plano, abaixo da lista de planos, você vê quantos tokens já gastou hoje, nesta semana e neste mês, contados das mesmas viradas em UTC que o limite usa. Logo depois vem o histórico detalhado de cada uso, que também está em Configurações → Uso de IA.",
+        callouts: [
+          {
+            kind: "note",
+            text: "Esses números não aparecem como porcentagem do limite porque não é possível consultar qual é o seu plano atual. Eles se atualizam a cada poucos minutos; use o botão “Atualizar” para ver na hora.",
+          },
+        ],
+      },
+      {
         heading: "O que acontece ao atingir o limite",
         intro:
           "Se você tentar usar o assistente depois de atingir qualquer um dos limites (dia, semana ou mês), a mensagem é recusada com um aviso de que o limite de IA do seu plano foi atingido. Não é uma falha do sistema — é o limite funcionando como esperado, e nenhum token é gasto na tentativa.",

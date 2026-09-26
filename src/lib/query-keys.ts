@@ -114,6 +114,11 @@ export const queryKeys = {
   aiUsage: {
     me: (params: { days: number; feature?: AiUsageFeature; page: number }) =>
       ["ai-usage", "me", params] as const,
+    // Total since the start of a quota window (API.md § 23). Keyed on the
+    // window's start, so crossing a UTC boundary starts a fresh entry.
+    // Nested under `["ai-usage", "me"]` so invalidating that prefix refreshes it too.
+    window: (window: "day" | "week" | "month", from: string) =>
+      ["ai-usage", "me", "window", window, from] as const,
   },
   automations: {
     all: (workspaceId: string) => ["automations", "workspace", workspaceId] as const,
