@@ -8,7 +8,11 @@ import { queryKeys } from "@/lib/query-keys";
 import { getErrorCode, getErrorMessage } from "@/lib/errors";
 import { clearSession } from "@/lib/auth/token-store";
 import type { ChatMessage } from "@/features/assistant/types";
-import { buildAiUsageDateRange, type AiUsageFeature } from "@/types/ai-usage";
+import {
+  AI_USAGE_QUERY_CACHE,
+  buildAiUsageDateRange,
+  type AiUsageFeature,
+} from "@/types/ai-usage";
 import type { Project } from "@/types/project";
 import type { Task } from "@/types/task";
 
@@ -177,6 +181,7 @@ export function useMyAiUsageQuery(
         limit: AI_USAGE_PAGE_SIZE,
       }),
     placeholderData: (previous) => previous,
+    ...AI_USAGE_QUERY_CACHE,
     enabled: options?.enabled,
   });
 }

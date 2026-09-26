@@ -2,9 +2,10 @@
 
 import * as React from "react";
 import type { UseQueryResult } from "@tanstack/react-query";
-import { Sparkles } from "lucide-react";
+import { Info, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Select,
   SelectContent,
@@ -47,10 +48,22 @@ const PERIOD_OPTIONS = [
 ] as const;
 
 const FEATURE_LABELS: Record<AiUsageFeature, string> = {
-  "assistant-chat": "Chat do assistente",
+  "assistant-chat": "Assistente",
+  "analytics-query": "Perguntas em dashboards",
   "content-safety": "Verificação de segurança",
-  "analytics-query": "Consulta de análises",
 };
+
+// Plain-language hints for the terms that aren't self-explanatory. `cached`
+// is already inside `promptTokens`; `thoughts` is not inside `outputTokens`
+// (see AiUsageTokens).
+const HINTS = {
+  contentSafety:
+    "Uma checagem automática que o assistente faz no conteúdo da conversa antes de responder. Ela também usa a IA, então gasta tokens e conta para o limite do plano.",
+  cached:
+    "Parte da entrada que a IA já tinha lido há pouco e reaproveitou. Esse número já está incluído em Entrada, não é um gasto a mais.",
+  thoughts:
+    "Tokens que a IA usou para pensar antes de responder. Não aparecem no texto da resposta, mas contam no total.",
+} as const;
 
 const OPERATION_LABELS: Record<AiUsageOperation, string> = {
   converse: "Conversa",
@@ -155,29 +168,49 @@ export function AiUsageHistory({
         />
       ) : (
         <>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-            <SummaryCard label="Total de tokens" value={usage.summary.totalTokens} />
-            <SummaryCard label="Chamadas" value={usage.summary.calls} />
-            <SummaryCard
-              label="Entrada"
-              value={usage.summary.promptTokens}
-              hint={`${formatTokens(usage.summary.cachedTokens)} em cache`}
-            />
-            <SummaryCard label="Saída" value={usage.summary.outputTokens} />
-            <SummaryCard label="Raciocínio" value={usage.summary.thoughtsTokens} />
+          {/* `summary`/`byFeature` aggregate the whole from–to range; `items`
+              is only one page of it (API.md § 24). */}
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Totais do período inteiro escolhido acima, somando todas as páginas.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+              <SummaryCard label="Total de tokens" value={usage.summary.totalTokens} />
+              <SummaryCard label="Chamadas" value={usage.summary.calls} />
+              <SummaryCard
+                label="Entrada"
+                value={usage.summary.promptTokens}
+                hint={`${formatTokens(usage.summary.cachedTokens)} reaproveitados`}
+                tooltip={HINTS.cached}
+              />
+              <SummaryCard label="Saída" value={usage.summary.outputTokens} />
+              <SummaryCard
+                label="Raciocínio"
+                value={usage.summary.thoughtsTokens}
+                tooltip={HINTS.thoughts}
+              />
+            </div>
+
+            {usage.byFeature.length > 1 ? (
+              <div className="flex flex-wrap gap-2">
+                {usage.byFeature.map((item) => (
+                  <Badge key={item.feature} variant="secondary">
+                    <FeatureLabel feature={item.feature} />:{" "}
+                    {formatTokens(item.totalTokens)} tokens · {formatTokens(item.calls)}{" "}
+                    {item.calls === 1 ? "chamada" : "chamadas"}
+                  </Badge>
+                ))}
+              </div>
+            ) : null}
           </div>
 
-          {usage.byFeature.length > 1 ? (
-            <div className="flex flex-wrap gap-2">
-              {usage.byFeature.map((item) => (
-                <Badge key={item.feature} variant="secondary">
-                  {FEATURE_LABELS[item.feature] ?? item.feature}:{" "}
-                  {formatTokens(item.totalTokens)} tokens · {formatTokens(item.calls)}{" "}
-                  {item.calls === 1 ? "chamada" : "chamadas"}
-                </Badge>
-              ))}
-            </div>
-          ) : null}
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium text-foreground">Cada uso, do mais recente</h3>
+            <p className="text-xs text-muted-foreground">
+              A lista é dividida em páginas. Para saber o total, use os números acima — somar só
+              esta página dá um valor menor.
+            </p>
+          </div>
 
           <Card className="gap-0 p-0">
             <Table>
@@ -187,9 +220,13 @@ export function AiUsageHistory({
                   <TableHead>Origem</TableHead>
                   <TableHead>Workspace</TableHead>
                   <TableHead className="text-right">Entrada</TableHead>
-                  <TableHead className="text-right">Em cache</TableHead>
+                  <TableHead className="text-right">
+                    <HeadWithHint label="Reaproveitado" hint={HINTS.cached} />
+                  </TableHead>
                   <TableHead className="text-right">Saída</TableHead>
-                  <TableHead className="text-right">Raciocínio</TableHead>
+                  <TableHead className="text-right">
+                    <HeadWithHint label="Raciocínio" hint={HINTS.thoughts} />
+                  </TableHead>
                   <TableHead className="text-right">Total</TableHead>
                 </TableRow>
               </TableHeader>
@@ -201,7 +238,7 @@ export function AiUsageHistory({
                     </TableCell>
                     <TableCell>
                       <p className="font-medium">
-                        {FEATURE_LABELS[item.feature] ?? item.feature}
+                        <FeatureLabel feature={item.feature} />
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {OPERATION_LABELS[item.operation] ?? item.operation} · {item.model}
@@ -236,10 +273,60 @@ export function AiUsageHistory({
   );
 }
 
-function SummaryCard({ label, value, hint }: { label: string; value: number; hint?: string }) {
+function InfoHint({ text, label }: { text: string; label: string }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          aria-label={`O que é ${label}?`}
+          className="inline-flex text-muted-foreground hover:text-foreground"
+        >
+          <Info className="size-3.5" />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent className="max-w-xs">{text}</TooltipContent>
+    </Tooltip>
+  );
+}
+
+function FeatureLabel({ feature }: { feature: AiUsageFeature }) {
+  const label = FEATURE_LABELS[feature] ?? feature;
+  if (feature !== "content-safety") return <>{label}</>;
+  return (
+    <span className="inline-flex items-center gap-1">
+      {label}
+      <InfoHint text={HINTS.contentSafety} label={label} />
+    </span>
+  );
+}
+
+function HeadWithHint({ label, hint }: { label: string; hint: string }) {
+  return (
+    <span className="inline-flex items-center justify-end gap-1">
+      {label}
+      <InfoHint text={hint} label={label} />
+    </span>
+  );
+}
+
+function SummaryCard({
+  label,
+  value,
+  hint,
+  tooltip,
+}: {
+  label: string;
+  value: number;
+  hint?: string;
+  tooltip?: string;
+}) {
   return (
     <Card className="gap-1 p-4">
-      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="flex items-center gap-1 text-xs text-muted-foreground">
+        {label}
+        {tooltip ? <InfoHint text={tooltip} label={label} /> : null}
+      </p>
       <p className="text-xl font-semibold tabular-nums text-foreground">{formatTokens(value)}</p>
       {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
     </Card>

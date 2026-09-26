@@ -5,7 +5,11 @@ import { toast } from "sonner";
 import { clientsService } from "@/features/admin/api/clients-service";
 import { queryKeys } from "@/lib/query-keys";
 import { getErrorMessage } from "@/lib/errors";
-import { buildAiUsageDateRange, type AiUsageFeature } from "@/types/ai-usage";
+import {
+  AI_USAGE_QUERY_CACHE,
+  buildAiUsageDateRange,
+  type AiUsageFeature,
+} from "@/types/ai-usage";
 import type { ListClientsParams } from "@/types/client";
 
 const AI_USAGE_PAGE_SIZE = 20;
@@ -41,6 +45,7 @@ export function useClientAiUsageQuery(
         limit: AI_USAGE_PAGE_SIZE,
       }),
     placeholderData: (previous) => previous,
+    ...AI_USAGE_QUERY_CACHE,
   });
 }
 

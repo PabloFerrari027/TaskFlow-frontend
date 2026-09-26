@@ -1181,6 +1181,14 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
             kind: "note",
             text: "Esses números não aparecem como porcentagem do limite porque não é possível consultar qual é o seu plano atual. Eles se atualizam a cada poucos minutos; use o botão “Atualizar” para ver na hora.",
           },
+          {
+            kind: "note",
+            text: "No histórico, os totais do topo somam o período inteiro escolhido. A lista abaixo deles é dividida em páginas — somar só uma página dá menos do que o total.",
+          },
+          {
+            kind: "note",
+            text: "“Verificação de segurança” é uma checagem automática que o assistente faz no conteúdo da conversa. Ela também usa a IA, então aparece no histórico e conta para o limite.",
+          },
         ],
       },
       {
