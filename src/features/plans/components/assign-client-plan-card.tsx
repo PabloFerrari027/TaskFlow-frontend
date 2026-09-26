@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAdminPlansQuery, useAssignUserPlanMutation } from "@/features/plans/hooks/use-plans";
+import { DEFAULT_PLAN_NAME, formatTokensHuman } from "@/features/plans/lib/plan-caps";
+import { getErrorCode } from "@/lib/errors";
 
 interface AssignClientPlanCardProps {
   clientId: string;
@@ -34,6 +36,7 @@ export function AssignClientPlanCard({ clientId }: AssignClientPlanCardProps) {
         <p className="font-medium text-foreground">Plano de tokens de IA</p>
         <p className="text-sm text-muted-foreground">
           Não é possível confirmar aqui qual é o plano atual deste cliente — apenas atribuir um novo.
+          Quem nunca recebeu nem escolheu um plano usa o limite do plano {DEFAULT_PLAN_NAME}.
         </p>
       </div>
 
@@ -42,13 +45,14 @@ export function AssignClientPlanCard({ clientId }: AssignClientPlanCardProps) {
       ) : (
         <div className="flex flex-wrap items-center gap-2">
           <Select value={selectedPlanId} onValueChange={setSelectedPlanId}>
-            <SelectTrigger className="w-56">
+            <SelectTrigger className="w-72">
               <SelectValue placeholder="Selecione um plano" />
             </SelectTrigger>
             <SelectContent>
               {plans.map((plan) => (
                 <SelectItem key={plan.id} value={plan.id}>
-                  {plan.name}
+                  {plan.name} · {formatTokensHuman(plan.monthlyTokenBudget)}/mês
+                  {plan.name === DEFAULT_PLAN_NAME ? " (padrão)" : ""}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -59,7 +63,13 @@ export function AssignClientPlanCard({ clientId }: AssignClientPlanCardProps) {
             onClick={() =>
               assignMutation.mutate(
                 { userId: clientId, planId: selectedPlanId },
-                { onSuccess: () => setSelectedPlanId("") }
+                {
+                  onSuccess: () => setSelectedPlanId(""),
+                  // The selected plan no longer exists; the list is refetched.
+                  onError: (error) => {
+                    if (getErrorCode(error) === "PLAN_NOT_FOUND") setSelectedPlanId("");
+                  },
+                }
               )
             }
           >

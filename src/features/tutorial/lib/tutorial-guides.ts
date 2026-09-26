@@ -1208,7 +1208,15 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         callouts: [
           {
             kind: "note",
-            text: "O nome de um plano só pode ser definido na criação — não é possível renomear um plano existente.",
+            text: "O nome de um plano só pode ser definido na criação — não é possível renomear um plano existente. Ao digitar o limite mensal, a tela já mostra quanto ele dá por semana e por dia.",
+          },
+          {
+            kind: "warning",
+            text: "O plano FREE, marcado como “Padrão da plataforma”, é o que vale para toda conta que nunca escolheu nem recebeu um plano. Mudar o limite dele afeta todas essas contas de uma vez.",
+          },
+          {
+            kind: "note",
+            text: "Na página do cliente, dá para atribuir um plano e ver o histórico de uso de IA dele, mas não qual plano está valendo hoje — pelo mesmo motivo de a própria pessoa não conseguir ver o dela.",
           },
         ],
       },

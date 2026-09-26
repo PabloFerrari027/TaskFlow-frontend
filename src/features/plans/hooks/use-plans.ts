@@ -112,15 +112,33 @@ export function useUpdatePlanMutation() {
       queryClient.invalidateQueries({ queryKey: queryKeys.plans.admin.all() });
       toast.success("Plano atualizado.");
     },
-    onError: (error) => toast.error(getErrorMessage(error)),
+    onError: (error) => {
+      if (getErrorCode(error) === "PLAN_NOT_FOUND") {
+        queryClient.invalidateQueries({ queryKey: queryKeys.plans.admin.all() });
+        toast.error("Esse plano não existe mais. A lista foi atualizada.");
+        return;
+      }
+      toast.error(getErrorMessage(error));
+    },
   });
 }
 
+// CLIENT_NOT_FOUND falls through to its generic message; PLAN_NOT_FOUND also
+// refreshes the options so the admin picks from what exists now.
 export function useAssignUserPlanMutation() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: ({ userId, planId }: { userId: string; planId: string }) =>
       plansService.assignToUser(userId, planId),
     onSuccess: () => toast.success("Plano do cliente atualizado."),
-    onError: (error) => toast.error(getErrorMessage(error)),
+    onError: (error) => {
+      if (getErrorCode(error) === "PLAN_NOT_FOUND") {
+        queryClient.invalidateQueries({ queryKey: queryKeys.plans.admin.all() });
+        toast.error("Esse plano não existe mais. A lista foi atualizada.");
+        return;
+      }
+      toast.error(getErrorMessage(error));
+    },
   });
 }
