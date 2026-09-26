@@ -100,8 +100,7 @@ export type ErrorCode =
   | "INVALID_ACCESS_GRANT_TARGET"
   | "ACCESS_GRANT_EMAIL_RATE_LIMIT"
   | "PAGE_ACCESS_TOKEN_INVALID"
-  | "INVALID_CHART_DEFINITION"
-  | "NO_STRIPE_CUSTOMER";
+  | "INVALID_CHART_DEFINITION";
 
 export interface DomainErrorResponse {
   statusCode: number;

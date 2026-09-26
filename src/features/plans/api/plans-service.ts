@@ -8,6 +8,10 @@ export const plansService = {
     return data;
   },
 
+  async setMine(planId: string) {
+    await apiClient.patch("/plans/me", { planId });
+  },
+
   async adminList() {
     const { data } = await apiClient.get<Plan[]>("/admin/plans");
     return data;

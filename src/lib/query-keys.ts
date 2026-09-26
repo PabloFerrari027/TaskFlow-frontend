@@ -112,13 +112,8 @@ export const queryKeys = {
         : (["activity", "task", taskId] as const),
   },
   aiUsage: {
-    meAll: () => ["ai-usage", "me"] as const,
     me: (params: { days: number; feature?: AiUsageFeature; page: number }) =>
       ["ai-usage", "me", params] as const,
-    // Since the 1st of the current UTC month — the window TOKEN_QUOTA_GUARD's
-    // monthly cap counts from (API.md § 23). Nested under `["ai-usage", "me"]`
-    // so invalidating that prefix refreshes it too.
-    currentMonth: () => ["ai-usage", "me", "current-month"] as const,
   },
   automations: {
     all: (workspaceId: string) => ["automations", "workspace", workspaceId] as const,
