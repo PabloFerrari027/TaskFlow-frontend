@@ -75,8 +75,10 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   COMMENT_CONTENT_INVALID: "Escreva um comentário de até 5000 caracteres.",
   COMMENT_AUTHOR_MISMATCH: "Você só pode apagar os seus próprios comentários.",
   INVALID_ANALYTICS_QUERY: "Não foi possível montar este gráfico com os dados disponíveis.",
+  // Frequency limits, not the plan's token quota (API.md § 1.4) — the wording
+  // keeps the two apart.
   AI_ASSISTANT_RATE_LIMIT_EXCEEDED:
-    "Você atingiu o limite de mensagens por enquanto, tente novamente mais tarde.",
+    "Muitas perguntas em pouco tempo. Aguarde um pouco e tente de novo — isso não tem a ver com o limite do seu plano.",
   AI_ASSISTANT_TRANSLATION_FAILED: "Não consegui falar com o assistente agora, tente novamente.",
   PENDING_ACTION_NOT_FOUND: "Essa ação não está mais disponível.",
   PENDING_ACTION_EXPIRED: "Essa ação expirou. Peça de novo pelo chat.",
@@ -96,7 +98,7 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   AI_INSUFFICIENT_CREDITS:
     "A IA está indisponível no momento por falta de créditos do serviço. Avise o administrador da plataforma.",
   AI_RATE_LIMIT_EXCEEDED:
-    "Você atingiu o limite de perguntas por enquanto, tente novamente mais tarde.",
+    "Muitas perguntas em pouco tempo. Aguarde um pouco e tente de novo — isso não tem a ver com o limite do seu plano.",
   ACCOUNT_HAS_NO_PASSWORD:
     "Sua conta ainda não tem senha. Defina uma senha em vez de alterá-la.",
   CURRENT_PASSWORD_INCORRECT: "A senha atual está incorreta.",
@@ -127,8 +129,10 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   INVALID_WEBHOOK_EVENT: "Um dos eventos escolhidos não é válido.",
   PLAN_NOT_FOUND: "Plano não encontrado.",
   PLAN_NAME_ALREADY_EXISTS: "Já existe um plano com este nome.",
+  // The API doesn't say whether the day, week or month cap was hit (§ 23), so
+  // the message doesn't name one.
   TOKEN_QUOTA_EXCEEDED:
-    "A cota de tokens de IA do seu plano foi atingida por enquanto. Tente novamente mais tarde ou troque de plano.",
+    "O limite de uso de IA do seu plano foi atingido. Ele libera sozinho quando o período de uso reiniciar; se precisar de mais, dá para trocar de plano em Configurações → Plano.",
   DASHBOARD_PAGE_NOT_FOUND: "Página não encontrada.",
   CHART_DEFINITION_NOT_FOUND: "Gráfico não encontrado.",
   PAGE_ACCESS_GRANT_NOT_FOUND: "Este acesso não existe mais.",

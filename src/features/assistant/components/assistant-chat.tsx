@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { Loader2, Mic, Paperclip, Send, Sparkles, Square, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,8 @@ import {
 import { getErrorCode, getMessageForCode } from "@/lib/errors";
 import { formatFileSize } from "@/lib/format";
 import { useCurrentWorkspace } from "@/features/workspaces/context/current-workspace-context";
-import { useMyAiUsageQuery, useSendChatMessageMutation } from "@/features/assistant/hooks/use-assistant";
+import { useSendChatMessageMutation } from "@/features/assistant/hooks/use-assistant";
+import { useQuotaWindowUsageQuery } from "@/features/plans/hooks/use-plans";
 import { useAudioRecorder } from "@/features/assistant/hooks/use-audio-recorder";
 import { isAudioFile, validateNewFiles } from "@/features/assistant/lib/attachment-limits";
 import { AssistantMessage } from "@/features/assistant/components/assistant-message";
@@ -113,6 +115,10 @@ export function AssistantChat() {
   // The AI provider refused the call for lack of credits/quota: retrying is
   // pointless, so the composer stays locked until the sheet is reopened.
   const [creditsExhausted, setCreditsExhausted] = React.useState(false);
+  // TOKEN_QUOTA_EXCEEDED: the plan's cap for the day, week or month was hit
+  // (API.md § 23 doesn't say which). Unlike the credits case it clears on its
+  // own when the window resets, so the composer stays usable.
+  const [quotaExceeded, setQuotaExceeded] = React.useState(false);
   const { workspace } = useCurrentWorkspace();
   const [text, setText] = React.useState("");
   const [files, setFiles] = React.useState<File[]>([]);
@@ -124,18 +130,16 @@ export function AssistantChat() {
   const assistantEnabled = workspace?.assistantEnabled ?? false;
   const composerDisabled = sendMutation.isPending || !assistantEnabled || creditsExhausted;
 
-  // Today's assistant-chat token usage (real number from `/ai-usage/me`,
-  // already used by the usage history screen). No endpoint exposes the
-  // user's plan/token cap or a real quota reset time (`GET /auth/me` never
-  // returns a planId — see plan-picker.tsx), so there's no "100%" to show;
-  // the meter below scales itself instead. Enabled only while the sheet is
-  // open, and refetched right after each reply so it tracks the running
-  // total as closely as this non-streaming API allows.
-  const usageQuery = useMyAiUsageQuery(
-    { days: 1, feature: "assistant-chat", page: 1 },
-    { enabled: open && assistantEnabled }
-  );
-  const tokensToday = usageQuery.data?.summary.totalTokens ?? null;
+  // Tokens spent in the current quota day (since 00:00 UTC, every feature —
+  // content-safety checks on chat messages count too), the same total
+  // TOKEN_QUOTA_GUARD's daily cap checks (API.md § 23). No endpoint exposes
+  // the user's plan/token cap (`GET /auth/me` never returns a planId — see
+  // plan-picker.tsx), so there's no "100%" to show; the meter below scales
+  // itself instead. Enabled only while the sheet is open, and refetched right
+  // after each reply so it tracks the running total as closely as this
+  // non-streaming API allows.
+  const usageQuery = useQuotaWindowUsageQuery("day", { enabled: open && assistantEnabled });
+  const tokensToday = usageQuery.data ?? null;
 
   // Read inside the recorder's `onstop` handler, which closes over whatever
   // `files`/`sendMessage` existed when recording *started* — these refs give
@@ -174,6 +178,7 @@ export function AssistantChat() {
     if (!next) {
       setShowSummary(false);
       setCreditsExhausted(false);
+      setQuotaExceeded(false);
       setFiles([]);
       if (recorder.status === "recording") recorder.cancel();
       dispatch({ type: "reset" });
@@ -226,6 +231,7 @@ export function AssistantChat() {
       { message: trimmed, history, files: filesToSend.length > 0 ? filesToSend : undefined },
       {
         onSuccess: (data) => {
+          setQuotaExceeded(false);
           // Audio-only turns leave the optimistic bubble empty — fill it in
           // with what the backend actually understood once we know it.
           if (!trimmed && data.transcriptions.length > 0) {
@@ -252,6 +258,7 @@ export function AssistantChat() {
         },
         onError: (error) => {
           if (getErrorCode(error) === "AI_INSUFFICIENT_CREDITS") setCreditsExhausted(true);
+          if (getErrorCode(error) === "TOKEN_QUOTA_EXCEEDED") setQuotaExceeded(true);
         },
       }
     );
@@ -348,6 +355,21 @@ export function AssistantChat() {
                 >
                   {getMessageForCode("AI_INSUFFICIENT_CREDITS")}
                 </p>
+              ) : null}
+              {quotaExceeded && !creditsExhausted ? (
+                <div
+                  role="alert"
+                  className="space-y-1 rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-foreground"
+                >
+                  <p>{getMessageForCode("TOKEN_QUOTA_EXCEEDED")}</p>
+                  <Link
+                    href="/settings/plan"
+                    onClick={() => handleOpenChange(false)}
+                    className="font-medium text-primary hover:underline"
+                  >
+                    Ver consumo e planos
+                  </Link>
+                </div>
               ) : null}
             </div>
 
