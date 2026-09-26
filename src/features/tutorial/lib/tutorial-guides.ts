@@ -1,6 +1,5 @@
 import type { LucideIcon } from "lucide-react";
 import {
-  BarChart3,
   Bot,
   Building2,
   Coins,
@@ -121,7 +120,6 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         bullets: [
           "Dashboard: os projetos ativos do workspace atual.",
           "Projetos: todos os projetos do workspace, ativos e arquivados, em árvore ou tabela.",
-          "Análises: números e gráficos do workspace, com perguntas em texto livre.",
           "Atividade: linha do tempo de tudo que aconteceu no workspace atual.",
           "Automações: regras automáticas do workspace atual (só Proprietário e Administrador veem este item).",
           "Desenvolvedores: chaves de API e webhooks do workspace atual (só Proprietário e Administrador veem este item).",
@@ -158,7 +156,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         heading: "Barra superior",
         bullets: [
           "Botão de menu: esconde ou mostra o menu lateral no computador. No celular, o menu abre como uma gaveta.",
-          "Seletor de workspace: troca o workspace atual. Tudo que você vê (projetos, análises, atividade) é do workspace selecionado.",
+          "Seletor de workspace: troca o workspace atual. Tudo que você vê (projetos, atividade) é do workspace selecionado.",
           "Ícone do assistente: abre o chat de IA (precisa estar ativado no workspace).",
           "Ícone de sincronização: só aparece quando você está offline, sincronizando ou com alterações pendentes.",
           "Tema: alterna entre claro, escuro e o padrão do sistema.",
@@ -712,7 +710,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
           "Os campos são por projeto. Confira se a tarefa é do mesmo projeto em que o campo foi criado.",
       },
     ],
-    related: ["tasks", "analytics"],
+    related: ["tasks"],
   },
   {
     id: "automations",
@@ -997,70 +995,6 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
     related: ["workspaces", "account", "plans"],
   },
   {
-    id: "analytics",
-    group: "advanced",
-    title: "Análises e perguntas em texto livre",
-    summary: "Entenda os números do workspace e pergunte o que quiser sobre eles.",
-    icon: BarChart3,
-    href: "/analytics",
-    hrefLabel: "Abrir análises",
-    sections: [
-      {
-        heading: "O painel",
-        intro:
-          "Tudo vale para o workspace atual. No topo, três indicadores: Tarefas no total, Tarefas concluídas e Projetos ativos. Abaixo, os gráficos:",
-        bullets: [
-          "Tarefas por status, por responsável e por projeto.",
-          "Projetos por status.",
-          "Tarefas atrasadas por projeto.",
-          "Taxa de conclusão por projeto e Taxa de atraso por projeto (em porcentagem).",
-          "Tempo médio de conclusão por projeto (em dias e horas).",
-        ],
-        callouts: [
-          {
-            kind: "note",
-            text: "Onde não há dado suficiente, o painel mostra “Sem dados” em vez de zero. Zero e “sem informação” não são a mesma coisa.",
-          },
-        ],
-      },
-      {
-        heading: "Perguntar em linguagem natural",
-        steps: [
-          "No campo “Pergunte em linguagem natural”, escreva sua dúvida, com até 500 caracteres. Por exemplo: “Quantas tarefas atrasadas temos, agrupadas por projeto?”.",
-          "Clique em “Perguntar”.",
-          "Leia a linha “Entendi como: …”. Ela mostra como o sistema interpretou a pergunta.",
-          "O resultado aparece abaixo: cartões de número quando a pergunta não agrupa nada, ou um gráfico de barras (as 10 maiores) quando agrupa.",
-        ],
-        callouts: [
-          {
-            kind: "tip",
-            text: "Se a interpretação estiver errada, reescreva com mais detalhe: cite o que contar (tarefas ou projetos), o filtro (atrasadas, concluídas) e o agrupamento (por projeto, por responsável).",
-          },
-        ],
-      },
-    ],
-    faq: [
-      {
-        question: "Aparece “Sem dados” num gráfico.",
-        answer:
-          "Ainda não há informação suficiente para calcular aquele valor, por exemplo, taxas em projetos sem tarefas com prazo.",
-      },
-      {
-        question: "Recebi uma mensagem de limite de uso ao perguntar.",
-        answer:
-          "As perguntas em texto livre têm um limite de uso. Aguarde um pouco e tente de novo.",
-      },
-      {
-        question: "O sistema não conseguiu entender minha pergunta.",
-        answer:
-          "Reformule de forma mais direta, com o que contar, o filtro e o agrupamento. Perguntas fora de tarefas e projetos não são suportadas.",
-      },
-    ],
-    related: ["board", "custom-fields", "plans"],
-  },
-
-  // ----------------------------------------------------------- account
-  {
     id: "offline",
     group: "account",
     title: "Offline e tempo real",
@@ -1193,7 +1127,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
     id: "plans",
     group: "account",
     title: "Plano e uso de IA",
-    summary: "O limite de uso do assistente e das análises em linguagem natural, e como trocar de plano.",
+    summary: "O limite de uso do assistente e como trocar de plano.",
     icon: Coins,
     href: "/settings/plan",
     hrefLabel: "Abrir Plano",
@@ -1201,11 +1135,11 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "O que é um plano",
         intro:
-          "Um plano define quantos “tokens” — a unidade que mede o quanto o modelo de IA processou — você pode gastar por mês usando o chat do assistente e as perguntas em linguagem natural das Análises. É por pessoa, não por workspace: o mesmo plano vale em todos os workspaces em que você está.",
+          "Um plano define quantos “tokens” — a unidade que mede o quanto o modelo de IA processou — você pode gastar por mês usando o chat do assistente. É por pessoa, não por workspace: o mesmo plano vale em todos os workspaces em que você está.",
         callouts: [
           {
             kind: "note",
-            text: "Nenhuma conta nasce com um plano. Enquanto você não escolher um, não existe limite algum — o assistente e as análises em linguagem natural funcionam livremente.",
+            text: "Nenhuma conta nasce com um plano. Enquanto você não escolher um, não existe limite algum — o assistente funciona livremente.",
           },
         ],
       },
@@ -1274,7 +1208,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
           "Não, nesta versão. Qualquer plano cadastrado pode ser escolhido livremente, sem cobrança.",
       },
     ],
-    related: ["assistant", "analytics", "account"],
+    related: ["assistant", "account"],
   },
 ];
 

@@ -58,11 +58,3 @@ export interface AnalyticsResult {
   // cycle_time) can be null for a group with insufficient data.
   data: Record<string, string | number | null>[];
 }
-
-// Response of POST /analytics/query/natural-language — `query` is the
-// AnalyticsQuery the AI derived from the question, returned alongside
-// `result` so the UI can show what it understood, never just the numbers.
-export interface NaturalLanguageQueryResponse {
-  query: AnalyticsQuery;
-  result: AnalyticsResult;
-}
