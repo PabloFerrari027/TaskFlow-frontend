@@ -23,25 +23,30 @@ export type QuotaWindow = (typeof QUOTA_WINDOWS)[number];
 // refresh on demand — not on focus, not on every mount.
 const WINDOW_USAGE_STALE_TIME = 5 * 60 * 1000;
 
-// Tokens spent since the start of each quota window, read from
+// Tokens spent since the start of a quota window, read from
 // `summary.totalTokens` with the smallest page of `items`. Deliberately not
 // compared to a cap: the user's current plan can't be read (API.md § 23).
-export function useQuotaWindowsUsageQueries() {
-  const starts = quotaWindowStarts(new Date());
+function quotaWindowUsageOptions(window: QuotaWindow, now: Date) {
+  const from = quotaWindowStarts(now)[window].toISOString();
+  return {
+    queryKey: queryKeys.aiUsage.window(window, from),
+    queryFn: async () => {
+      const { summary } = await assistantService.getMyAiUsage({ from, page: 1, limit: 1 });
+      return summary.totalTokens;
+    },
+    staleTime: WINDOW_USAGE_STALE_TIME,
+    refetchOnWindowFocus: false,
+  };
+}
 
+export function useQuotaWindowUsageQuery(window: QuotaWindow, options?: { enabled?: boolean }) {
+  return useQuery({ ...quotaWindowUsageOptions(window, new Date()), enabled: options?.enabled });
+}
+
+export function useQuotaWindowsUsageQueries() {
+  const now = new Date();
   return useQueries({
-    queries: QUOTA_WINDOWS.map((window) => {
-      const from = starts[window].toISOString();
-      return {
-        queryKey: queryKeys.aiUsage.window(window, from),
-        queryFn: async () => {
-          const { summary } = await assistantService.getMyAiUsage({ from, page: 1, limit: 1 });
-          return summary.totalTokens;
-        },
-        staleTime: WINDOW_USAGE_STALE_TIME,
-        refetchOnWindowFocus: false,
-      };
-    }),
+    queries: QUOTA_WINDOWS.map((window) => quotaWindowUsageOptions(window, now)),
   });
 }
 

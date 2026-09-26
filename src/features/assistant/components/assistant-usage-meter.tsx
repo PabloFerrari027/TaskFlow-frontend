@@ -4,13 +4,13 @@ import * as React from "react";
 import { Coins } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// No endpoint exposes the user's actual plan/token cap or a real quota reset
-// time — `GET /auth/me` never returns a planId, so there's no number to treat
-// as "100%" (see plan-picker.tsx). This meter shows today's real usage from
-// `/ai-usage/me` on a bar that scales itself to a round number just above the
-// current value (like an auto-ranging chart axis), and counts down to local
-// midnight — the one reset boundary that *is* real, since `/ai-usage/me?days=1`
-// always windows from the start of the local day.
+// No endpoint exposes the user's actual plan/token cap — `GET /auth/me` never
+// returns a planId, so there's no number to treat as "100%" (see
+// plan-picker.tsx). This meter shows the real usage of the current quota day
+// (since 00:00 UTC, every feature — the same count TOKEN_QUOTA_GUARD checks,
+// API.md § 23) on a bar that scales itself to a round number just above the
+// current value (like an auto-ranging chart axis), and counts down to the
+// next 00:00 UTC, when the daily cap resets.
 const NICE_SCALE_STEPS = [
   500, 1_000, 2_500, 5_000, 10_000, 25_000, 50_000, 100_000, 250_000, 500_000, 1_000_000,
 ];
@@ -20,10 +20,9 @@ function niceScaleFor(value: number): number {
   return NICE_SCALE_STEPS.find((step) => step >= withHeadroom) ?? withHeadroom;
 }
 
-function msUntilNextLocalMidnight(from: Date): number {
-  const next = new Date(from);
-  next.setHours(24, 0, 0, 0);
-  return next.getTime() - from.getTime();
+function msUntilNextUtcMidnight(from: Date): number {
+  const next = Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate() + 1);
+  return next - from.getTime();
 }
 
 function formatCountdown(ms: number): string {
@@ -54,7 +53,7 @@ export function AssistantUsageMeter({
 
   const scale = niceScaleFor(tokensToday);
   const percent = Math.min(100, (tokensToday / scale) * 100);
-  const countdown = formatCountdown(msUntilNextLocalMidnight(now));
+  const countdown = formatCountdown(msUntilNextUtcMidnight(now));
 
   return (
     <div className="space-y-1">

@@ -36,9 +36,11 @@ export function useSendChatMessageMutation(workspaceId: string) {
       files?: File[];
     }) => assistantService.sendChatMessage(message, workspaceId, history, files),
     onError: (error) => {
-      // The chat shows a persistent notice for this one (retrying can't help
-      // until the provider account is topped up), so no toast on top of it.
-      if (getErrorCode(error) === "AI_INSUFFICIENT_CREDITS") return;
+      // The chat shows a persistent notice for these (retrying can't help
+      // until the provider account is topped up / the quota window resets),
+      // so no toast on top of it.
+      const code = getErrorCode(error);
+      if (code === "AI_INSUFFICIENT_CREDITS" || code === "TOKEN_QUOTA_EXCEEDED") return;
       toast.error(getErrorMessage(error));
     },
   });
