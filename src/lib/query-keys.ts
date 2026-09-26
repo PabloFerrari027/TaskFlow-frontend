@@ -129,8 +129,12 @@ export const queryKeys = {
   },
   dashboardPages: {
     all: (workspaceId: string) => ["dashboard-pages", "workspace", workspaceId] as const,
-    detail: (pageId: string) => ["dashboard-pages", pageId] as const,
-    accessGrants: (pageId: string) => ["dashboard-pages", pageId, "access-grants"] as const,
+    // Every page detail shares this prefix (and nothing else does): their
+    // charts come back already executed, so any task/project/section change
+    // makes all of them stale at once.
+    details: () => ["dashboard-pages", "detail"] as const,
+    detail: (pageId: string) => ["dashboard-pages", "detail", pageId] as const,
+    accessGrants: (pageId: string) => ["dashboard-pages", "access-grants", pageId] as const,
     // Anonymous views live under their own root: nothing authenticated ever
     // invalidates or reuses them.
     shared: (kind: "public" | "guest", token: string) =>

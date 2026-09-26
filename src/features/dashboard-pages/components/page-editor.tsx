@@ -13,6 +13,7 @@ import {
   Plus,
   Share2,
   Trash2,
+  WifiOff,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,7 @@ import { ChartBuilderDialog } from "@/features/dashboard-pages/components/chart-
 import { DashboardGrid } from "@/features/dashboard-pages/components/dashboard-grid";
 import { PageNameDialog } from "@/features/dashboard-pages/components/page-name-dialog";
 import { pagesHref } from "@/features/dashboard-pages/components/page-list";
+import { OFFLINE_HINT, OnlineOnly } from "@/features/dashboard-pages/components/online-only";
 import { PageSharingPanel } from "@/features/dashboard-pages/components/page-sharing-panel";
 import { VisibilityBadge } from "@/features/dashboard-pages/components/visibility-badge";
 import {
@@ -45,6 +47,7 @@ import {
   useDuplicateDashboardPageMutation,
   useUpdateDashboardPageMutation,
 } from "@/features/dashboard-pages/hooks/use-dashboard-pages";
+import { useSync } from "@/features/sync/context/sync-context";
 import type { ChartWithResult } from "@/types/dashboard-page";
 
 type BuilderState = { open: false } | { open: true; chart?: ChartWithResult; session: number };
@@ -58,6 +61,7 @@ type BuilderState = { open: false } | { open: true; chart?: ChartWithResult; ses
 export function PageEditor({ workspaceId, pageId }: { workspaceId: string; pageId: string }) {
   const router = useRouter();
   const pageQuery = useDashboardPageQuery(workspaceId, pageId);
+  const { isOnline } = useSync();
   const lookups = useAutomationLookups(workspaceId);
   const savePositions = useChartPositionSaver(pageId);
   const deleteChartMutation = useDeleteChartMutation(pageId);
@@ -101,6 +105,8 @@ export function PageEditor({ workspaceId, pageId }: { workspaceId: string; pageI
 
   const page = pageQuery.data;
   const { canEdit } = page;
+  // Online-only feature: offline, editors get the read-only page.
+  const canWrite = canEdit && isOnline;
 
   return (
     <div className="space-y-6">
@@ -112,12 +118,16 @@ export function PageEditor({ workspaceId, pageId }: { workspaceId: string; pageI
             <>
               {canEdit ? (
                 <>
-                  <Button variant="outline" onClick={() => setSharingOpen(true)}>
-                    <Share2 /> Compartilhar
-                  </Button>
-                  <Button onClick={() => openBuilder()}>
-                    <Plus /> Adicionar gráfico
-                  </Button>
+                  <OnlineOnly isOnline={isOnline}>
+                    <Button variant="outline" onClick={() => setSharingOpen(true)}>
+                      <Share2 /> Compartilhar
+                    </Button>
+                  </OnlineOnly>
+                  <OnlineOnly isOnline={isOnline}>
+                    <Button onClick={() => openBuilder()}>
+                      <Plus /> Adicionar gráfico
+                    </Button>
+                  </OnlineOnly>
                 </>
               ) : null}
               <DropdownMenu>
@@ -128,12 +138,12 @@ export function PageEditor({ workspaceId, pageId }: { workspaceId: string; pageI
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   {canEdit ? (
-                    <DropdownMenuItem onSelect={() => setRenaming(true)}>
+                    <DropdownMenuItem disabled={!isOnline} onSelect={() => setRenaming(true)}>
                       <Pencil /> Renomear
                     </DropdownMenuItem>
                   ) : null}
                   <DropdownMenuItem
-                    disabled={duplicateMutation.isPending}
+                    disabled={!isOnline || duplicateMutation.isPending}
                     onSelect={() =>
                       duplicateMutation.mutate(page.id, {
                         onSuccess: (copy) => router.push(pagesHref(workspaceId, copy.id)),
@@ -145,7 +155,11 @@ export function PageEditor({ workspaceId, pageId }: { workspaceId: string; pageI
                   {canEdit ? (
                     <>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem variant="destructive" onSelect={() => setConfirmDelete(true)}>
+                      <DropdownMenuItem
+                        variant="destructive"
+                        disabled={!isOnline}
+                        onSelect={() => setConfirmDelete(true)}
+                      >
                         <Trash2 /> Excluir página
                       </DropdownMenuItem>
                     </>
@@ -162,6 +176,11 @@ export function PageEditor({ workspaceId, pageId }: { workspaceId: string; pageI
               <Eye className="size-3" /> Somente leitura
             </Badge>
           ) : null}
+          {canEdit && !isOnline ? (
+            <Badge variant="outline" className="gap-1 font-normal text-muted-foreground">
+              <WifiOff className="size-3" /> Você está offline · {OFFLINE_HINT}
+            </Badge>
+          ) : null}
         </div>
       </div>
 
@@ -176,20 +195,22 @@ export function PageEditor({ workspaceId, pageId }: { workspaceId: string; pageI
           }
           action={
             canEdit ? (
-              <Button onClick={() => openBuilder()}>
-                <Plus /> Adicionar gráfico
-              </Button>
+              <OnlineOnly isOnline={isOnline}>
+                <Button onClick={() => openBuilder()}>
+                  <Plus /> Adicionar gráfico
+                </Button>
+              </OnlineOnly>
             ) : undefined
           }
         />
       ) : (
         <DashboardGrid
           charts={page.charts}
-          editable={canEdit}
+          editable={canWrite}
           lookups={lookups}
-          onPositionsChange={canEdit ? savePositions : undefined}
-          onEditChart={canEdit ? (chart) => openBuilder(chart) : undefined}
-          onRemoveChart={canEdit ? setRemovingChart : undefined}
+          onPositionsChange={canWrite ? savePositions : undefined}
+          onEditChart={canWrite ? (chart) => openBuilder(chart) : undefined}
+          onRemoveChart={canWrite ? setRemovingChart : undefined}
         />
       )}
 

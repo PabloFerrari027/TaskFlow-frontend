@@ -133,6 +133,8 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   CHART_DEFINITION_NOT_FOUND: "Gráfico não encontrado.",
   PAGE_ACCESS_GRANT_NOT_FOUND: "Este acesso não existe mais.",
   INVALID_ACCESS_GRANT_TARGET: "Escolha um membro deste workspace ou informe um e-mail válido.",
+  ACCESS_GRANT_EMAIL_RATE_LIMIT:
+    "Você convidou muitas pessoas por e-mail em pouco tempo. Tente novamente em 1 hora.",
   PAGE_ACCESS_TOKEN_INVALID: "Este link não é válido ou foi revogado.",
   INVALID_CHART_DEFINITION: "Este gráfico não pode ser montado com as opções escolhidas.",
 };

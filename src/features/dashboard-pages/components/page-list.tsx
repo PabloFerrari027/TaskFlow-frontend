@@ -10,12 +10,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ErrorState } from "@/components/shared/error-state";
 import { PageHeader } from "@/components/shared/page-header";
+import { OnlineOnly } from "@/features/dashboard-pages/components/online-only";
 import { PageNameDialog } from "@/features/dashboard-pages/components/page-name-dialog";
 import { VisibilityBadge } from "@/features/dashboard-pages/components/visibility-badge";
 import {
   useCreateDashboardPageMutation,
   useDashboardPagesQuery,
 } from "@/features/dashboard-pages/hooks/use-dashboard-pages";
+import { useSync } from "@/features/sync/context/sync-context";
 import { useWorkspaceQuery } from "@/features/workspaces/hooks/use-workspaces";
 import { useAuth } from "@/lib/auth/auth-context";
 import { formatRelativeTime, shortenId } from "@/lib/format";
@@ -36,6 +38,7 @@ export function PageList({ workspaceId }: { workspaceId: string }) {
   const router = useRouter();
   const { userId } = useAuth();
   const pagesQuery = useDashboardPagesQuery(workspaceId);
+  const { isOnline } = useSync();
   const workspaceQuery = useWorkspaceQuery(workspaceId);
   const createMutation = useCreateDashboardPageMutation(workspaceId);
   const [creating, setCreating] = React.useState(false);
@@ -57,9 +60,11 @@ export function PageList({ workspaceId }: { workspaceId: string }) {
         title="Páginas de dashboard"
         description="Monte páginas com os gráficos que importam para você e compartilhe quando quiser."
         actions={
-          <Button onClick={() => setCreating(true)}>
-            <Plus /> Nova página
-          </Button>
+          <OnlineOnly isOnline={isOnline}>
+            <Button onClick={() => setCreating(true)}>
+              <Plus /> Nova página
+            </Button>
+          </OnlineOnly>
         }
       />
 
@@ -77,9 +82,11 @@ export function PageList({ workspaceId }: { workspaceId: string }) {
           title="Nenhuma página ainda"
           description="Crie uma página e adicione gráficos das tarefas e projetos deste workspace."
           action={
-            <Button onClick={() => setCreating(true)}>
-              <Plus /> Nova página
-            </Button>
+            <OnlineOnly isOnline={isOnline}>
+              <Button onClick={() => setCreating(true)}>
+                <Plus /> Nova página
+              </Button>
+            </OnlineOnly>
           }
         />
       ) : (
