@@ -5,7 +5,7 @@ import { CHART_TYPE_SPECS } from "@/features/dashboard-pages/lib/chart-catalog";
 import { cn } from "@/lib/utils";
 import type { DashboardChartType } from "@/types/dashboard-page";
 
-const ICON: Record<DashboardChartType, LucideIcon> = {
+export const CHART_TYPE_ICON: Record<DashboardChartType, LucideIcon> = {
   BAR: BarChart3,
   PIE: PieChart,
   LINE: LineChart,
@@ -28,7 +28,7 @@ export function ChartTypePicker({
   return (
     <div role="radiogroup" aria-label="Tipo de gráfico" className="grid grid-cols-2 gap-2 sm:grid-cols-4">
       {CHART_TYPE_SPECS.map((spec) => {
-        const Icon = ICON[spec.type];
+        const Icon = CHART_TYPE_ICON[spec.type];
         const selected = value === spec.type;
         return (
           <button
