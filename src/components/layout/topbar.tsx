@@ -28,7 +28,7 @@ export function Topbar() {
           </SheetTrigger>
           <SheetContent side="left" className="w-64 p-0">
             <div className="flex h-16 items-center border-b border-border/60 px-4">
-              <Logo href="/dashboard" />
+              <Logo href="/projects" />
             </div>
             <SidebarNav onNavigate={() => setMobileOpen(false)} />
           </SheetContent>

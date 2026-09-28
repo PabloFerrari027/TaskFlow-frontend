@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { Building2, Check, Users } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -53,22 +52,13 @@ export function WorkspaceCard({
         </div>
       </div>
 
-      <div className="flex gap-2 pt-1">
-        {!isCurrent ? (
+      {!isCurrent ? (
+        <div className="pt-1">
           <Button size="sm" variant="outline">
             Selecionar
           </Button>
-        ) : null}
-        <Button size="sm" variant={isCurrent ? "outline" : "ghost"} asChild>
-          <Link
-            href={`/workspaces/${workspace.id}`}
-            data-tour="workspace-settings"
-            onClick={(e) => e.stopPropagation()}
-          >
-            Configurações
-          </Link>
-        </Button>
-      </div>
+        </div>
+      ) : null}
     </Card>
   );
 }
