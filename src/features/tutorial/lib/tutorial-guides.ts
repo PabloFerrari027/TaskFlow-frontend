@@ -8,6 +8,7 @@ import {
   FolderKanban,
   KeyRound,
   Kanban,
+  LayoutTemplate,
   ListChecks,
   MessageSquare,
   Rocket,
@@ -101,7 +102,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Do zero à primeira tarefa",
         steps: [
-          "Se você ainda não tem workspace, o Dashboard mostra “Você ainda não tem um workspace”. Crie um pelo seletor no topo, em “Novo workspace”.",
+          "Se você ainda não tem workspace, a página Projetos mostra “Você ainda não tem um workspace”. Crie um pelo seletor no topo, em “Novo workspace”.",
           "Abra Projetos no menu lateral e clique em “Novo projeto”. Dê um nome e, se quiser, uma descrição.",
           "Entre no projeto. A aba Tarefas mostra o quadro. Clique em “Adicionar coluna” e crie as etapas do seu fluxo, por exemplo “A fazer”, “Em andamento” e “Concluído”.",
           "Clique em “Nova tarefa”, escreva o título e escolha coluna, responsável, prazo e prioridade. Só o título é obrigatório.",
@@ -118,14 +119,13 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "O que cada item do menu mostra",
         bullets: [
-          "Dashboard: os projetos ativos do workspace atual.",
           "Projetos: todos os projetos do workspace, ativos e arquivados, em árvore ou tabela.",
           "Atividade: linha do tempo de tudo que aconteceu no workspace atual.",
           "Automações: regras automáticas do workspace atual (só Proprietário e Administrador veem este item).",
           "Desenvolvedores: chaves de API e webhooks do workspace atual (só Proprietário e Administrador veem este item).",
           "Assistente: liga ou desliga o assistente de IA do workspace atual.",
           "Workspaces: seus workspaces, membros e convites.",
-          "Sessões e Segurança: seus dispositivos conectados, senha e vínculo com o Google.",
+          "Segurança: senha, vínculo com o Google e dispositivos conectados.",
         ],
       },
     ],
@@ -133,7 +133,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         question: "Criei um projeto mas ele não aparece.",
         answer:
-          "Confira o workspace selecionado no topo: cada workspace tem seus próprios projetos. Projetos arquivados saem do Dashboard, mas continuam na página Projetos.",
+          "Confira o workspace selecionado no topo: cada workspace tem seus próprios projetos. Projetos arquivados ficam na aba Arquivados da página Projetos.",
       },
       {
         question: "Preciso criar as colunas antes das tarefas?",
@@ -218,12 +218,13 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
           "No seletor do topo, escolha “Novo workspace” e dê um nome.",
           "Para trocar de workspace, abra o mesmo seletor e clique no desejado. O item marcado é o atual.",
           "Em Workspaces, cada card é um workspace. Clicar num card também o define como atual.",
+          "As configurações mostradas abaixo dos cards são sempre as do workspace atual: ao trocar no seletor, elas mudam junto.",
         ],
       },
       {
-        heading: "A página do workspace",
+        heading: "Configurações do workspace",
         intro:
-          "Ao abrir um workspace você encontra duas seções, uma embaixo da outra:",
+          "Na página Workspaces, abaixo dos cards, ficam duas seções do workspace atual, uma embaixo da outra:",
         bullets: [
           "Membros: quem faz parte, com o papel de cada um.",
           "Convites: convites enviados e o estado de cada um (pendente, aceito, revogado ou expirado), com a data de expiração.",
@@ -238,7 +239,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Convidar pessoas",
         steps: [
-          "Na seção Membros ou Convites da página do workspace, clique em “Convidar pessoa”.",
+          "Na seção Membros ou Convites da página Workspaces, clique em “Convidar pessoa”.",
           "Informe o e-mail e escolha o papel: Administrador, Membro ou Convidado.",
           "A pessoa recebe um link. Ao abrir, ela vê um resumo do convite e precisa entrar (ou criar conta) para aceitar.",
           "Acompanhe na seção Convites. Se enviou para o e-mail errado, use “Revogar” e convide de novo.",
@@ -302,7 +303,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Criar e editar",
         steps: [
-          "Em Projetos (ou no Dashboard), clique em “Novo projeto”.",
+          "Em Projetos, clique em “Novo projeto”.",
           "Para mudar nome e descrição depois, abra o projeto e use “Editar nome e descrição”.",
         ],
       },
@@ -339,7 +340,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Arquivar",
         intro:
-          "Projetos não são excluídos, apenas arquivados: eles saem do Dashboard e ficam marcados como Arquivado na página Projetos. Use “Arquivar projeto” no cabeçalho e confirme.",
+          "Projetos não são excluídos, apenas arquivados: eles passam para a aba Arquivados da página Projetos. Use “Arquivar projeto” no cabeçalho e confirme.",
         callouts: [
           {
             kind: "warning",
@@ -361,6 +362,137 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       },
     ],
     related: ["board", "workspaces", "custom-fields"],
+  },
+  {
+    id: "templates",
+    group: "daily",
+    title: "Modelos de projeto",
+    summary: "Começar um projeto já organizado, comprar modelos e publicar os seus.",
+    icon: LayoutTemplate,
+    audience:
+      "Qualquer pessoa pode ver os modelos. Para usar um modelo ou publicar um projeto como modelo, é preciso ser Proprietário ou Administrador do workspace.",
+    href: "/templates",
+    hrefLabel: "Abrir modelos",
+    sections: [
+      {
+        heading: "O que é um modelo",
+        intro:
+          "Um modelo é um projeto pronto para copiar. Em vez de montar colunas e campos do zero, você escolhe um modelo e o TaskFlow cria o projeto já organizado. Existem modelos feitos pelo TaskFlow (sempre grátis) e modelos publicados por outras pessoas (grátis ou pagos).",
+      },
+      {
+        heading: "Usar um modelo",
+        steps: [
+          "Abra Modelos no menu lateral (ou “Começar de um modelo”, na página Projetos).",
+          "Busque pelo nome ou filtre por categoria, preço e origem.",
+          "Abra um modelo para ver a prévia: as colunas, os campos extras e as tarefas de exemplo.",
+          "Clique em “Usar este modelo”, dê um nome ao projeto e confirme.",
+        ],
+        callouts: [
+          {
+            kind: "note",
+            text: "O projeto é criado no workspace que estiver selecionado no topo da tela. Só Proprietário e Administrador desse workspace podem usar modelos, porque o modelo cria campos extras. Se o botão aparecer desativado, troque de workspace ou peça a um administrador.",
+          },
+          {
+            kind: "tip",
+            text: "Se algo der errado no meio da criação, nada fica pela metade: ou o projeto é criado inteiro, ou nada é criado.",
+          },
+        ],
+      },
+      {
+        heading: "O que vem no projeto criado",
+        bullets: [
+          "As colunas do modelo, inclusive as subcolunas, além da coluna padrão que todo projeto tem.",
+          "Os campos extras, com as opções já preenchidas.",
+          "As tarefas de exemplo, com subtarefas e prioridade. Os prazos são contados a partir do dia em que você usa o modelo: “prazo: 3 dias após criar” vira uma data 3 dias depois de hoje.",
+        ],
+        callouts: [
+          {
+            kind: "note",
+            text: "Depois de criado, o projeto é todo seu: dá para mudar qualquer coisa. Mudar o projeto não muda o modelo, e mudanças no modelo não mudam projetos já criados.",
+          },
+        ],
+      },
+      {
+        heading: "Comprar um modelo pago",
+        steps: [
+          "Num modelo pago, clique em “Comprar por R$ …”. Antes da compra, a prévia mostra só quantas colunas, campos e tarefas ele tem.",
+          "Você vai para uma página segura de pagamento. Pague por lá.",
+          "Ao voltar, a página mostra “Confirmando pagamento…” até a confirmação chegar.",
+          "Confirmado, o conteúdo completo aparece e o botão “Usar este modelo” fica liberado. O modelo também passa a aparecer em Meus modelos → Comprados.",
+        ],
+        callouts: [
+          {
+            kind: "warning",
+            text: "A liberação acontece quando o serviço de pagamento avisa o TaskFlow, não quando você volta para a página. Com cartão, costuma levar poucos segundos. Com boleto, pode levar alguns dias. Se a página parar de esperar, o modelo aparece em Comprados assim que o pagamento for confirmado. Não compre de novo.",
+          },
+          {
+            kind: "tip",
+            text: "Você paga uma vez e pode usar o modelo quantas vezes quiser, mesmo que o autor tire o modelo do hub depois.",
+          },
+        ],
+      },
+      {
+        heading: "Publicar um projeto seu como modelo",
+        steps: [
+          "Abra o projeto e clique em “Publicar como modelo”, no cabeçalho.",
+          "Dê um nome, uma descrição e escolha a categoria.",
+          "Escolha se ele é grátis ou pago. Se for pago, o preço fica entre R$ 1,00 e R$ 1.000,00.",
+          "Clique em “Publicar no hub”. O modelo já aparece em Modelos e em Meus modelos.",
+        ],
+        bullets: [
+          "Vão para o hub: as colunas (com as subcolunas) e os campos extras.",
+          "Não vão: tarefas, comentários, anexos, valores preenchidos e as pessoas do projeto.",
+          "O limite é de 100 colunas e 50 campos extras por projeto.",
+        ],
+        callouts: [
+          {
+            kind: "note",
+            text: "O modelo é uma cópia congelada do projeto no momento em que foi publicado. Para atualizar, publique o projeto de novo (vira um modelo novo) e tire o antigo do hub.",
+          },
+        ],
+      },
+      {
+        heading: "Tirar do hub e excluir",
+        intro: "Em Modelos → Meus modelos, cada modelo que você publicou tem estas ações:",
+        bullets: [
+          "“Editar anúncio” muda nome, descrição, categoria e preço. Um preço novo só vale para as próximas compras.",
+          "“Tirar do hub” esconde o modelo de quem ainda não tem. Quem já comprou continua usando. “Devolver ao hub” mostra de novo.",
+          "“Excluir” apaga o modelo. Projetos já criados com ele continuam iguais.",
+        ],
+        callouts: [
+          {
+            kind: "warning",
+            text: "Se alguém já comprou o modelo, ele não pode ser excluído, porque quem pagou tem direito de continuar usando. Nesse caso, tire do hub.",
+          },
+          {
+            kind: "note",
+            text: "A moderação do TaskFlow pode tirar do hub um modelo que não deveria estar lá. Um modelo removido pela moderação não pode ser usado nem devolvido ao hub.",
+          },
+        ],
+      },
+    ],
+    faq: [
+      {
+        question: "O botão “Usar este modelo” está desativado.",
+        answer:
+          "No workspace selecionado você não é Proprietário nem Administrador. Troque de workspace no topo da tela ou peça a um administrador para usar o modelo.",
+      },
+      {
+        question: "Paguei, mas o modelo ainda pede para comprar.",
+        answer:
+          "A confirmação do pagamento pode demorar, principalmente no boleto. Assim que chegar, o modelo aparece em Meus modelos → Comprados. Não é preciso pagar de novo.",
+      },
+      {
+        question: "Mudei meu projeto. O modelo que publiquei muda junto?",
+        answer:
+          "Não. O modelo guarda a estrutura do dia em que foi publicado. Publique de novo para criar uma versão atualizada.",
+      },
+      {
+        question: "Dá para aplicar um modelo num projeto que já existe?",
+        answer: "Não. Um modelo sempre cria um projeto novo.",
+      },
+    ],
+    related: ["projects", "custom-fields", "board"],
   },
   {
     id: "board",
@@ -1096,7 +1228,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Sessões",
         intro:
-          "Em Sessões você vê cada dispositivo conectado, com o atual marcado como “Sessão atual”.",
+          "Na seção Sessões, em Segurança, você vê cada dispositivo conectado, com o atual marcado como “Sessão atual”.",
         bullets: [
           "“Revogar” encerra uma sessão específica.",
           "“Encerrar todas” desconecta você de todos os dispositivos, inclusive este.",

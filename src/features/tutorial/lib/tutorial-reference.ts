@@ -20,6 +20,8 @@ export const ROLE_PERMISSIONS: RolePermission[] = [
   { action: "Convidar pessoas e gerenciar membros do workspace", roles: MANAGERS },
   { action: "Gerenciar pessoas e convites de um projeto", roles: MANAGERS },
   { action: "Criar, editar e arquivar campos extras", roles: MANAGERS },
+  { action: "Criar projetos a partir de um modelo", roles: MANAGERS },
+  { action: "Publicar um projeto como modelo", roles: MANAGERS },
   { action: "Arquivar projetos", roles: MANAGERS },
   { action: "Criar e gerenciar automações", roles: MANAGERS },
   { action: "Apagar comentários de outras pessoas", roles: MANAGERS },
@@ -41,6 +43,11 @@ export const GLOSSARY: GlossaryTerm[] = [
   {
     term: "Projeto e sub-projeto",
     definition: "Um conjunto de trabalho com seu próprio quadro. Um projeto pode conter sub-projetos.",
+  },
+  {
+    term: "Modelo",
+    definition:
+      "Um projeto pronto para copiar: já vem com colunas, campos extras e, às vezes, tarefas de exemplo. Pode ser grátis ou pago.",
   },
   {
     term: "Coluna e subcoluna",

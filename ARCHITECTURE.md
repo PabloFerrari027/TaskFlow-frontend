@@ -64,7 +64,7 @@ src/
   types/                   # Tipos alinhados 1:1 aos DTOs da API
 ```
 
-Features existentes: `auth`, `sessions`, `workspaces`, `projects`, `tasks`, `sections`, `custom-fields`, `comments`, `activity`, `analytics`, `automations`, `assistant`, `admin`, `sync`, `realtime`, `tutorial`.
+Features existentes: `auth`, `sessions`, `workspaces`, `projects`, `project-templates`, `tasks`, `sections`, `custom-fields`, `comments`, `activity`, `analytics`, `automations`, `assistant`, `admin`, `sync`, `realtime`, `tutorial`.
 
 ## 3. Arquitetura em camadas
 
@@ -97,17 +97,17 @@ Regras que o código segue consistentemente:
 /verify-email                              Confirmação de e-mail pós-cadastro
 /403                                       Acesso negado (estático)
 /invite/workspace/[token]                  Preview + aceite de convite de workspace (público, aceite exige login)
-/invite/project/[token]                    Preview + aceite de convite de projeto (idem)
+/invite/project/[token]                    Preview + aceite de convite de projeto (idem; os dois usam `InvitationAcceptPage`)
 
 (dashboard)/                               Layout protegido — RequireAuth + CurrentWorkspaceProvider + SyncProvider
-  /dashboard                               Home: projetos ativos do workspace atual
+  /dashboard                               Redirect para /projects (antiga home, fundida em Projetos)
   /workspaces                              Lista de workspaces do usuário (destino padrão pós-login); clicar num card o define como workspace atual
   /workspaces/[workspaceId]                Detalhe: apenas membros + convites, como duas seções empilhadas (sem tabs)
   /activity                                Atividade do workspace atual (linha do tempo paginada)
   /automations                             Automações do workspace atual (item da sidebar só para OWNER/ADMIN; a própria página também bloqueia acesso direto por URL)
   /developers                              Chaves de API + webhooks do workspace atual (mesmo gate OWNER/ADMIN que /automations)
   /assistant                               Liga/desliga o assistente de IA do workspace atual (toggle só para OWNER; página visível a todos)
-  /projects                                Todos os projetos do workspace (ativos + arquivados)
+  /projects                                Home: todos os projetos do workspace (ativos + arquivados); sem workspace, oferece criar um; "Começar de um modelo" leva a /templates
   /projects/[projectId]/                   Layout do projeto: header, tabs, TaskDetailSheet global
     (index)                                Redirect → /tasks
     /tasks                                 Quadro Kanban (TaskBoard)
@@ -115,15 +115,19 @@ Regras que o código segue consistentemente:
     /members                               Membros do projeto
     /invitations                           Convites do projeto
     /custom-fields                         Campos personalizados do projeto
+  /templates                               Hub de modelos (vitrine): busca + filtros de categoria/preço/origem, tudo na query string
+  /templates/[templateId]                  Detalhe do modelo: prévia, usar/comprar, ações do autor; destino de volta do Stripe (?checkout=success|cancel) — URL fixa
+  /templates/mine                          "Meus modelos": publicados por mim + comprados, em duas seções empilhadas (linkado da vitrine, não da sidebar)
   /analytics                               Dashboard analítico do workspace atual
-  /settings/sessions                       Sessões ativas do usuário
-  /settings/security                       Alterar senha / definir primeira senha (conta Google-only) / vincular Google (conta com senha)
+  /settings/sessions                       Redirect para /settings/security#sessoes
+  /settings/security                       Alterar senha / definir primeira senha (conta Google-only) / vincular Google (conta com senha) + sessões ativas, em seções empilhadas
   /settings/plan                           Escolher/trocar o próprio plano de tokens de IA (PATCH /plans/me) + consumo de hoje/semana/mês (UTC) + histórico de consumo
   /settings/ai-usage                       Só o histórico de consumo de IA (`AiUsageHistory` sobre GET /ai-usage/me), atalho próprio na sidebar
   /tutorial                                Guias por tema (accordion) + botão para refazer o tour guiado
   /admin/clients                           Gestão de clientes (apenas SUPER_ADMIN)
   /admin/clients/[clientId]                Detalhe do cliente: dados básicos, atribuição de plano, histórico de uso de IA (apenas SUPER_ADMIN)
   /admin/plans                             CRUD de planos de tokens de IA — criar, editar teto, listar (apenas SUPER_ADMIN)
+  /admin/templates                         Moderação de modelos: remover/restaurar/excluir (apenas SUPER_ADMIN)
 ```
 
 ### Guards
@@ -131,7 +135,8 @@ Regras que o código segue consistentemente:
 - **`RequireAuth`** (`features/auth/components/require-auth.tsx`): redireciona para `/login?next=<path>` se não autenticado; mostra spinner enquanto `isLoading`. Envolve todo o grupo `(dashboard)`.
 - **`RequireGuest`** (`require-guest.tsx`): o inverso — usado em `/login` e `/register`; redireciona usuários já autenticados para `getSafeRedirectPath(next)`.
 - **`/admin/clients`**: não tem guard próprio de rota — a proteção acontece via `useIsSuperAdminQuery` (ver [§6](#6-autorização-e-papéis)) e o item de navegação só aparece na sidebar se a query tiver sucesso; se o usuário acessar a URL diretamente sem ser super admin, `ClientsTable` detecta o 403 da API e redireciona para `/403`.
-- **`/admin/plans`** e **`/admin/clients/[clientId]`**: mesmo padrão — sem `useIsSuperAdminQuery` própria, cada página detecta o 403 do próprio endpoint que já usa (`GET /admin/plans`, `GET /admin/clients/:id` — ambos SUPER_ADMIN-only) e redireciona para `/403`.
+- **`/admin/plans`**, **`/admin/templates`** e **`/admin/clients/[clientId]`**: mesmo padrão — sem `useIsSuperAdminQuery` própria, cada página detecta o 403 do próprio endpoint que já usa (`GET /admin/plans`, `GET /admin/project-templates`, `GET /admin/clients/:id` — todos SUPER_ADMIN-only) e redireciona para `/403`. `useAdminProjectTemplatesQuery` usa `retry: false` para o redirecionamento não esperar uma segunda tentativa.
+- **Usar um modelo** (`/templates/[templateId]`): a página é aberta a todos, mas o botão "Usar este modelo" fica desabilitado, com explicação, se o papel no workspace atual não passar em `canInstantiateProjectTemplate` (OWNER/ADMIN). "Publicar como modelo", no header do projeto, fica dentro do mesmo `RoleGate` (`canManageWorkspace` no workspace do projeto) das outras ações de gestão.
 - **`/automations`** e **`/developers`**: o item de sidebar já filtra por `workspacePermission` (`nav-items.ts`, avaliado contra o papel do usuário no workspace atual), mas isso só esconde o link — quem acessa a URL direto sem ser OWNER/ADMIN vê um `EmptyState` de "Acesso restrito" renderizado pela própria página, sem round-trip à API (a checagem usa o mesmo `workspace.members` já carregado por `useCurrentWorkspace`).
 
 ### Padrões notáveis de rota
@@ -311,6 +316,7 @@ Camada **aditiva** sobre o offline-first (`features/realtime/`): quando outro us
 | **sessions** | `/auth/sessions` | Lista/revoga sessões (dispositivos); `useLogout` revoga a sessão atual (best-effort) e sempre limpa o estado local mesmo se a chamada falhar. |
 | **workspaces** | `/workspaces`, `/workspaces/:id`, `/members`, `/invitations`, `/assistant-settings` | CRUD + membros + convites; exclusão exige workspace vazio (só o `OWNER` sozinho) e papel `OWNER`. `assistantEnabled` (`PATCH /workspaces/:id/assistant-settings`, só `OWNER`) liga/desliga o [assistente de IA](#assistente-de-ia-com-ações) para o workspace — nasce `false` em todo workspace novo, e o backend também pode desligar sozinho (kill switch, ver abaixo); reativar sempre exige um `OWNER` de novo, nunca é automático. UI: página própria `/assistant` (`WorkspaceAssistantSettingsPanel`), visível a todos os papéis (o toggle em si só fica habilitado para `OWNER`). O seletor de papel de membro existente (`MembersTable`) só lista/permite `OWNER` quando quem está agindo já é `OWNER` (`canGrantOwnerRole` em `src/lib/permissions.ts`) — vale tanto para promover quanto para rebaixar um `OWNER` existente, espelhando a mesma regra do backend. |
 | **projects** | `/workspaces/:id/projects`, `/projects/:id`, `/archive`, `/move` (PATCH), `/members`, `/invitations` | Sem exclusão — só arquivamento (`ProjectStatus: ACTIVE \| ARCHIVED`). Papel de gestão herdado do workspace ([§6](#6-autorização-e-papéis)). Hierárquico (`parentId`) — ver [Hierarquia](#hierarquia-projetos-seções-e-comentários). |
+| **project-templates** | `/project-templates` (+ `/categories`, `/mine`, `/purchased`, `/:id`, `/:id/checkout`, `/:id/publish`, `/:id/unpublish`), `/workspaces/:id/project-templates/:id/instantiate`, `/projects/:id/publish-as-template`, `/admin/project-templates` (+ `/remove`, `/restore`) | Hub de modelos de projeto, globais (sem workspace) — ver [subseção dedicada](#hub-de-modelos-de-projeto). |
 | **sections** | `/projects/:id/sections`, `/sections/:id`, `/sections/:id/move` (PATCH) | Colunas do quadro Kanban; uma seção "padrão" (`isDefault`) não pode ser apagada; exclusão exige seção vazia (sem tarefas nem subseções — `SECTION_HAS_CHILDREN`). Hierárquica (`parentId`) — **protótipo**, ver [Hierarquia](#hierarquia-projetos-seções-e-comentários). |
 | **tasks** | `/projects/:id/tasks`, `/tasks/:id`, `/tasks/:id/status`, `/tasks/:id/subtasks`, `/tasks/:id/attachments`, `/tasks/:id/cover` | Entidade central. Suporta subtarefas (`parentTaskId`), anexos (upload multipart, limite de 20MB, download via blob), capa (imagem JPEG/PNG/WebP até 10MB, `PUT/GET/DELETE`; o binário é autenticado, então é buscado como blob e o cache é chaveado por `version`), prioridade e prazo (uma vez definidos, só podem ser trocados por outro valor — não removidos pela API). |
 | **custom-fields** | `/projects/:id/custom-fields`, `/custom-fields/:id/options`, `/archive`, `/tasks/:id/custom-field-values` | Tipos: `TEXT`, `NUMBER`, `DATE`, `SINGLE_SELECT`, `MULTI_SELECT`, `CHECKBOX`, `PEOPLE`. Arquivamento em vez de exclusão. |
@@ -378,6 +384,19 @@ Chat de IA (`features/assistant/`) acessível de qualquer tela via ícone fixo n
 - **Importante, e destacado na própria UI**: uma chave de API criada aqui já autentica chamadas normais da API (`GET /tasks`, etc.) via `Authorization: Bearer <chave>`, respeitando o escopo concedido — deixou de ser só a fundação da plataforma. Webhooks continuam entregando eventos de ponta a ponta, como antes.
 - **Webhooks** (`WebhooksPanel`/`webhook-endpoint-list.tsx`/`webhook-endpoint-form-dialog.tsx`): endpoint HTTPS do workspace que recebe um `POST` assinado (`X-TaskFlow-Signature`, HMAC-SHA256 do corpo cru) a cada evento de uma whitelist fechada (`WEBHOOK_EVENTS` em `src/types/developer.ts`, mesmos identificadores de atividade/automações). `url` precisa ser `https://` e é validada contra SSRF no backend — `webhook-endpoint-list.tsx` mostra esse aviso antes de a chamada nem acontecer. Entrega tem retry automático (até 5 tentativas) e kill switch (10 falhas terminais seguidas desativa o endpoint sozinho); religar manualmente zera o contador. `WebhookDeliveriesSheet` lista o histórico de entregas de um endpoint (`GET …/deliveries`), com "reenviar" (`POST …/:id/redeliver`) por entrega. Um botão de "ping" dispara um evento sintético pelo mesmo caminho de uma entrega real, para validar a URL/assinatura sem esperar um evento de verdade.
 - **Documentação da API** (`ApiReferenceSection`): referência técnica de **todo o API.md**, não só a § 22 — parâmetros de cada endpoint, exemplos de request/response em JSON e `curl`, o exemplo de verificação de assinatura HMAC em Node e uma tabela única com todos os códigos de erro de negócio (`GENERAL_ERRORS`, espelhando a § 1.2 inteira). Renderizada como UI real (`Table`/`Accordion`/`Badge`, não uma string Markdown) a partir de dados estruturados: `lib/api-reference-data.ts` traz os tipos (`ApiEndpoint`/`ApiParam`/`ApiErrorCode`), a tabela de erros e as rotas de chaves de API/webhooks (§ 22, o único recurso que uma API key gerencia sobre si mesma); cada outro recurso (auth/sessões, workspaces, projetos/seções, tasks/campos/comentários, analytics/sync/atividade, tempo real/automações, assistente, planos/uso de IA) tem seu próprio arquivo em `lib/api-reference/`, importando esses tipos. A página abre com um índice (`TOC`) de âncoras para os grupos de rotas — a lista é longa (espelha boa parte do backend), mas cada endpoint some por trás de um accordion colapsado, então só os títulos ficam visíveis por padrão. Fora do ar de propósito: administração da plataforma (`/admin/clients`, role `SUPER_ADMIN`) — não é algo que quem gerencia chaves/webhooks de um workspace (`OWNER`/`ADMIN` normal) precisa ou deveria ver aqui. `lib/developer-catalog.ts` continua reaproveitado só para os catálogos de escopos/eventos (não duplicados à mão). Antes disso, um `DeveloperDocs` embutido na feature havia sido substituído por um guia em `/tutorial`, com o racional de que uma aba de documentação "enterra" a informação para o público leigo do app; esta referência aqui é diferente por natureza — conteúdo puramente técnico (JSON, `curl`, códigos HTTP) que só interessa a quem já está integrando nesta página gated a `OWNER`/`ADMIN`. O guia "Chaves de API e webhooks" de `/tutorial` continua existindo para a parte conceitual (pra que serve, quando ignorar, como usar a UI), linkado no topo da página (`TutorialGuideLink`, `/tutorial#developers`); os dois se complementam em vez de duplicar. O mesmo racional de manter o explicador conceitual fora da feature levou o guia "Plano e uso de IA" para `/tutorial` em vez de uma seção em `/settings/plan`/`/admin/plans` (ver **plans** na tabela acima) — essa decisão não muda, só a de referência técnica pura como esta.
+
+### Hub de modelos de projeto
+
+`features/project-templates/` — contrato em `API.md` § 26 do backend. Na interface, sempre "modelo" (nunca "template").
+
+- **Globais, não por workspace**: nenhuma chave de `queryKeys.projectTemplates` leva `workspaceId`. O workspace só entra ao **usar** um modelo (`useInstantiateProjectTemplateMutation(workspaceId)`, que invalida `projects.all` desse workspace e navega para `/projects/{id}/tasks`).
+- **O detalhe depende de quem pede** (`access: FREE | AUTHOR | PURCHASED | PURCHASE_REQUIRED`, `canInstantiate`, `skeleton` `null` sem compra): por isso nunca é semeado a partir do cache da lista, e respostas de admin (template completo, outro formato) só invalidam o detalhe em vez de escrevê-lo. As mutações de autor devolvem o próprio detalhe e usam `setQueryData`.
+- **Vitrine com filtros na URL** (`useTemplateUrlFilters`): `search`, `category`, `pricing`, `origin`, `status` (só admin) e `page` ficam na query string. Chips e busca usam `router.push`, e a busca (com debounce) usa `router.replace`, para o voltar não refazer cada tecla. A caixa de busca só aceita o valor da URL quando ele não é o eco do que ela mesma enviou, para um `replace` atrasado não apagar as últimas teclas. As páginas envolvem o conteúdo em `<Suspense>` por causa do `useSearchParams`. A mesma barra de filtros serve à tabela de `/admin/templates`, com o seletor de situação.
+- **Rótulos de categoria** vêm de `GET /project-templates/categories` (com `templateCount`); `lib/categories.ts` tem uma cópia local só para antes da resposta chegar.
+- **Instanciar não é idempotente**: o dialog bloqueia o reenvio enquanto a mutação está pendente **e** depois do sucesso, até a navegação. Como a API é tudo ou nada, toda mensagem de erro diz "nada foi criado". `402 NOT_PURCHASED` refaz o detalhe (o botão vira "Comprar"), e `409 REMOVED`/`404` tiram o modelo do cache.
+- **Checkout e polling pós-pagamento**: "Comprar" chama `POST …/checkout` e faz `window.location.assign(checkoutUrl)`. O Stripe devolve para `/templates/{id}?checkout=success|cancel`, por isso essa URL é fixa. O acesso só é liberado pelo webhook do Stripe, nunca pelo retorno do navegador. Com `success`, `TemplateDetailView` guarda a fase `confirming` em estado (lido uma vez da URL) e passa um `refetchInterval` de 3 s ao `useProjectTemplateQuery` enquanto `access` for `PURCHASE_REQUIRED`. Quando `access` muda, mostra um toast, invalida "Comprados" e tira o parâmetro com `router.replace`. Depois de 2 min, para de consultar e explica que boleto pode levar dias e que o modelo aparecerá em "Comprados". Com `cancel`, mostra um toast informativo e tira o parâmetro. Os toasts têm `id` fixo para o StrictMode não duplicá-los.
+- **`409 HAS_PURCHASES`** (excluir, autor ou admin) não vira toast no hook: a tela explica e oferece "Tirar do hub" (autor) ou "Remover do hub" (admin).
+- **Fora do escopo**: não há editor visual de skeleton para modelos de sistema. `adminCreate`/`adminUpdate` e os hooks correspondentes existem, sem tela.
 
 ### Tutorial
 

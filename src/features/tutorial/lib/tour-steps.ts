@@ -77,10 +77,9 @@ export const TOUR_STEPS: TourStep[] = [
     title: "Menu de navegação",
     description: "É por aqui que você circula entre as áreas do sistema:",
     details: [
-      "Dashboard: os projetos ativos do workspace.",
-      "Projetos: todos os projetos, ativos e arquivados.",
+      "Projetos: a página inicial, com todos os projetos do workspace, ativos e arquivados.",
       "Workspaces: membros, convites, atividade e automações.",
-      "Perfil, Sessões e Segurança: sua conta e seus dispositivos.",
+      "Perfil e Segurança: sua conta, sua senha e seus dispositivos.",
     ],
   },
   {
@@ -132,17 +131,17 @@ export const TOUR_STEPS: TourStep[] = [
     ],
   },
 
-  // ------------------------------------------------------------- dashboard
+  // ------------------------------------------------------------ new project
   {
     id: "new-project",
     chapter: "Projetos",
-    route: "/dashboard",
+    route: "/projects",
     target: "new-project",
     placement: "bottom",
     skipIfMissing: true,
     title: "Crie um projeto",
     description:
-      "Um projeto é um trabalho com começo e fim, ou uma área contínua da equipe. O Dashboard mostra os projetos ativos do workspace, e é daqui que você cria o primeiro.",
+      "Um projeto é um trabalho com começo e fim, ou uma área contínua da equipe. A página Projetos mostra todos os projetos do workspace, e é daqui que você cria o primeiro.",
     details: [
       "Clique em “Novo projeto”, dê um nome e, se quiser, uma descrição.",
       "Um projeto pode ter sub-projetos, para separar fases ou frentes de trabalho.",
@@ -152,7 +151,7 @@ export const TOUR_STEPS: TourStep[] = [
   {
     id: "project-card",
     chapter: "Projetos",
-    route: "/dashboard",
+    route: "/projects",
     section: "project",
     target: "project-card",
     placement: "bottom",
@@ -160,7 +159,7 @@ export const TOUR_STEPS: TourStep[] = [
     advance: "open",
     title: "Abra um projeto",
     description:
-      "Cada cartão é um projeto ativo. Clicar num cartão abre o quadro de tarefas dele. Ao avançar, o tour abre este primeiro projeto para você ver o quadro por dentro.",
+      "Cada cartão é um projeto. Clicar num cartão abre o quadro de tarefas dele. Ao avançar, o tour abre este primeiro projeto para você ver o quadro por dentro.",
   },
 
   // ----------------------------------------------------------------- board
@@ -304,7 +303,7 @@ export const TOUR_STEPS: TourStep[] = [
     skipIfMissing: true,
     title: "Todos os projetos",
     description:
-      "A página Projetos lista tudo do workspace, inclusive o que já saiu do Dashboard.",
+      "Os projetos arquivados continuam aqui, numa aba própria.",
     details: [
       "As abas separam projetos Ativos e Arquivados.",
       "O seletor à direita alterna entre a árvore de cartões e uma tabela, onde nome, descrição e status se editam na célula.",
@@ -318,13 +317,12 @@ export const TOUR_STEPS: TourStep[] = [
     chapter: "Workspaces",
     route: "/workspaces",
     section: "workspace",
-    target: "workspace-settings",
+    target: "workspace-cards",
     placement: "bottom",
     skipIfMissing: true,
-    advance: "open",
     title: "Seus workspaces",
     description:
-      "Cada cartão é um workspace do qual você faz parte, com o seu papel nele. Clicar no cartão o define como o atual, e “Configurações” abre a página dele. Ao avançar, o tour abre a do primeiro.",
+      "Cada cartão é um workspace do qual você faz parte, com o seu papel nele. Clicar no cartão o define como o atual — o mesmo que trocar no seletor do topo — e as configurações logo abaixo passam a ser as dele.",
   },
   {
     id: "workspace-members-section",
@@ -335,7 +333,7 @@ export const TOUR_STEPS: TourStep[] = [
     skipIfMissing: true,
     title: "Membros e convites",
     description:
-      "A página do workspace mostra direto quem faz parte (com o papel de cada um: Proprietário, Administrador, Membro ou Convidado) e, logo abaixo, os convites por e-mail, com o status de cada um (pendente, aceito, revogado ou expirado).",
+      "Abaixo dos cartões ficam as configurações do workspace atual: quem faz parte (com o papel de cada um: Proprietário, Administrador, Membro ou Convidado) e, logo abaixo, os convites por e-mail, com o status de cada um (pendente, aceito, revogado ou expirado).",
   },
   {
     id: "workspace-more-in-sidebar",
