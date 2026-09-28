@@ -16,6 +16,7 @@ import { ProjectTable } from "@/features/projects/components/project-table";
 import { ProjectViewToggle } from "@/features/projects/components/project-view-toggle";
 import { ProjectGridSkeleton } from "@/features/projects/components/project-grid-skeleton";
 import { CreateProjectDialog } from "@/features/projects/components/create-project-dialog";
+import { CreateWorkspaceDialog } from "@/features/workspaces/components/create-workspace-dialog";
 import {
   useProjectViewMode,
   type ProjectViewMode,
@@ -40,6 +41,7 @@ export default function ProjectsPage() {
   const { userId } = useAuth();
   const { viewMode, setViewMode } = useProjectViewMode();
   const [createOpen, setCreateOpen] = React.useState(false);
+  const [createWorkspaceOpen, setCreateWorkspaceOpen] = React.useState(false);
   const projectsQuery = useProjectsQuery(workspaceId);
 
   const projects = projectsQuery.data?.data ?? [];
@@ -50,14 +52,41 @@ export default function ProjectsPage() {
   const archivedProjects = projects.filter((p) => p.status === "ARCHIVED");
   const isTruncated = (projectsQuery.data?.meta.totalPages ?? 0) > 1;
 
+  if (!workspaceLoading && !workspace) {
+    return (
+      <>
+        <PageHeader title="Projetos" />
+        <EmptyState
+          className="mt-6"
+          icon={<FolderKanban className="size-6" />}
+          title="Você ainda não tem um workspace"
+          description="Crie um workspace para começar a organizar projetos e tarefas."
+          action={
+            <Button onClick={() => setCreateWorkspaceOpen(true)}>
+              <Plus /> Criar workspace
+            </Button>
+          }
+        />
+        <CreateWorkspaceDialog
+          open={createWorkspaceOpen}
+          onOpenChange={setCreateWorkspaceOpen}
+        />
+      </>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Projetos"
-        description="Todos os projetos deste workspace."
+        description={
+          workspace
+            ? `Todos os projetos de ${workspace.name}.`
+            : "Todos os projetos deste workspace."
+        }
         actions={
           workspaceId ? (
-            <Button onClick={() => setCreateOpen(true)}>
+            <Button data-tour="new-project" onClick={() => setCreateOpen(true)}>
               <Plus /> Novo projeto
             </Button>
           ) : null

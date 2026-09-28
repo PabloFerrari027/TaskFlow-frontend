@@ -2,139 +2,20 @@
 
 import * as React from "react";
 import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
-import { PanelsTopLeft, Pencil, Trash2, UserPlus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PageHeader } from "@/components/shared/page-header";
-import { ErrorState } from "@/components/shared/error-state";
-import { RoleGate } from "@/components/shared/role-gate";
-import { ConfirmDialog } from "@/components/shared/confirm-dialog";
-import {
-  useDeleteWorkspaceMutation,
-  useWorkspaceQuery,
-} from "@/features/workspaces/hooks/use-workspaces";
-import { MembersTable } from "@/features/workspaces/components/members-table";
-import { WorkspaceInvitationsTable } from "@/features/workspaces/components/invitations-table";
-import { InviteMemberDialog } from "@/features/workspaces/components/invite-member-dialog";
-import { RenameWorkspaceDialog } from "@/features/workspaces/components/rename-workspace-dialog";
-import { useAuth } from "@/lib/auth/auth-context";
-import {
-  canDeleteWorkspace,
-  canInviteWorkspaceMembers,
-  canManageWorkspace,
-} from "@/lib/permissions";
-import type { WorkspaceRole } from "@/types/workspace";
+import { useCurrentWorkspace } from "@/features/workspaces/context/current-workspace-context";
 
-export default function WorkspaceDetailPage() {
+// Workspace settings now live on /workspaces and follow the current workspace.
+// Kept so old links and bookmarks still land on the right workspace.
+export default function WorkspaceDetailRedirect() {
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const router = useRouter();
-  const { userId } = useAuth();
-  const [renameOpen, setRenameOpen] = React.useState(false);
-  const [inviteOpen, setInviteOpen] = React.useState(false);
+  const { setWorkspaceId } = useCurrentWorkspace();
 
-  const workspaceQuery = useWorkspaceQuery(workspaceId);
-  const deleteMutation = useDeleteWorkspaceMutation(workspaceId);
+  React.useEffect(() => {
+    setWorkspaceId(workspaceId);
+    router.replace("/workspaces");
+  }, [workspaceId, setWorkspaceId, router]);
 
-  if (workspaceQuery.isLoading) {
-    return (
-      <div className="space-y-4">
-        <Skeleton className="h-9 w-64" />
-        <Skeleton className="h-64 w-full" />
-      </div>
-    );
-  }
-
-  if (workspaceQuery.isError || !workspaceQuery.data) {
-    return <ErrorState error={workspaceQuery.error} onRetry={() => workspaceQuery.refetch()} />;
-  }
-
-  const workspace = workspaceQuery.data;
-  const myRole = workspace.members.find((m) => m.userId === userId)?.role as
-    | WorkspaceRole
-    | undefined;
-  const canManage = canManageWorkspace(myRole);
-  const canInvite = canInviteWorkspaceMembers(myRole);
-  const canDelete = canDeleteWorkspace(myRole);
-  const isEmpty = workspace.members.length === 1;
-
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        title={workspace.name}
-        description={`${workspace.members.length} membro(s)`}
-        actions={
-          <>
-            <Button variant="outline" asChild>
-              <Link href={`/workspaces/${workspace.id}/pages`}>
-                <PanelsTopLeft /> Páginas
-              </Link>
-            </Button>
-            <RoleGate allowed={canManage}>
-              <Button variant="outline" onClick={() => setRenameOpen(true)}>
-                <Pencil /> Renomear
-              </Button>
-            </RoleGate>
-            <RoleGate allowed={canDelete}>
-              <ConfirmDialog
-                trigger={
-                  <Button
-                    variant="outline"
-                    className="text-destructive hover:text-destructive"
-                    disabled={!isEmpty}
-                    title={
-                      isEmpty
-                        ? undefined
-                        : "Remova os demais membros antes de excluir o workspace."
-                    }
-                  >
-                    <Trash2 /> Excluir
-                  </Button>
-                }
-                title="Excluir workspace"
-                description="Esta ação é irreversível e não pode ser desfeita pela plataforma. O workspace deixará de aparecer para todos os membros."
-                confirmLabel="Excluir"
-                isLoading={deleteMutation.isPending}
-                onConfirm={() =>
-                  deleteMutation.mutate(undefined, {
-                    onSuccess: () => router.push("/workspaces"),
-                  })
-                }
-              />
-            </RoleGate>
-          </>
-        }
-      />
-
-      <Card data-tour="workspace-members-section" className="space-y-4 p-4">
-        <h2 className="text-base font-semibold text-foreground">Membros</h2>
-        <MembersTable workspace={workspace} canManage={canManage} currentUserRole={myRole} />
-      </Card>
-
-      <Card data-tour="workspace-invitations-section" className="space-y-4 p-4">
-        <div className="flex items-center justify-between gap-2">
-          <h2 className="text-base font-semibold text-foreground">Convites</h2>
-          <RoleGate allowed={canInvite}>
-            <Button size="sm" onClick={() => setInviteOpen(true)}>
-              <UserPlus /> Convidar
-            </Button>
-          </RoleGate>
-        </div>
-        <WorkspaceInvitationsTable workspaceId={workspace.id} canManage={canInvite} />
-      </Card>
-
-      <RenameWorkspaceDialog
-        workspaceId={workspace.id}
-        currentName={workspace.name}
-        open={renameOpen}
-        onOpenChange={setRenameOpen}
-      />
-      <InviteMemberDialog
-        workspaceId={workspace.id}
-        open={inviteOpen}
-        onOpenChange={setInviteOpen}
-      />
-    </div>
-  );
+  return <Skeleton className="h-64 w-full" />;
 }

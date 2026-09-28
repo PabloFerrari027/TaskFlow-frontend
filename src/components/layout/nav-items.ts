@@ -1,6 +1,5 @@
 import type { LucideIcon } from "lucide-react";
 import {
-  LayoutDashboard,
   PanelsTopLeft,
   FolderKanban,
   Building2,
@@ -36,7 +35,6 @@ export interface NavItem {
 
 export const NAV_ITEMS: NavItem[] = [
   // Uso diário: onde o trabalho acontece.
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/projects", label: "Projetos", icon: FolderKanban },
   { href: "/workspaces", label: "Workspaces", icon: Building2 },
   { href: "/activity", label: "Atividade", icon: History },

@@ -18,7 +18,7 @@ export function Sidebar() {
       )}
     >
       <div className="flex h-16 items-center border-b border-border/60 px-4">
-        <Logo href="/dashboard" />
+        <Logo href="/projects" />
       </div>
       <div className="flex-1 overflow-y-auto">
         <SidebarNav />
