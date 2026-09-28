@@ -121,6 +121,17 @@ export function formatRatio(value: number): string {
   return percentFormatter.format(value);
 }
 
+const priceFormatter = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+});
+
+// Template prices come in cents, always BRL (API.md § 26.1).
+export function formatPriceCents(cents: number): string {
+  if (cents === 0) return "Grátis";
+  return priceFormatter.format(cents / 100);
+}
+
 const HOURS_PER_DAY = 24;
 
 // average_completion_time/cycle_time come back as a raw hour count — shown

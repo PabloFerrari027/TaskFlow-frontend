@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { use } from "react";
-import { Archive, FolderInput, FolderPlus, Pencil } from "lucide-react";
+import { Archive, FolderInput, FolderPlus, LayoutTemplate, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/shared/page-header";
@@ -15,6 +15,7 @@ import { EditProjectDialog } from "@/features/projects/components/edit-project-d
 import { CreateProjectDialog } from "@/features/projects/components/create-project-dialog";
 import { MoveProjectDialog } from "@/features/projects/components/move-project-dialog";
 import { ProjectBreadcrumb } from "@/features/projects/components/project-breadcrumb";
+import { PublishAsTemplateDialog } from "@/features/project-templates/components/publish-as-template-dialog";
 import { TaskDetailSheet } from "@/features/tasks/components/task-detail-sheet";
 import {
   useArchiveProjectMutation,
@@ -32,6 +33,7 @@ export default function ProjectDetailLayout(
   const [subprojectOpen, setSubprojectOpen] = React.useState(false);
   const [moveOpen, setMoveOpen] = React.useState(false);
   const [archiveOpen, setArchiveOpen] = React.useState(false);
+  const [publishOpen, setPublishOpen] = React.useState(false);
 
   const { userId } = useAuth();
   const projectQuery = useProjectQuery(projectId);
@@ -77,6 +79,9 @@ export default function ProjectDetailLayout(
               ) : null}
               <Button variant="outline" size="sm" onClick={() => setMoveOpen(true)}>
                 <FolderInput /> Mover para outro projeto
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setPublishOpen(true)}>
+                <LayoutTemplate /> Publicar como modelo
               </Button>
               {project.status === "ACTIVE" ? (
                 <Button
@@ -132,6 +137,9 @@ export default function ProjectDetailLayout(
           open
           onOpenChange={setMoveOpen}
         />
+      ) : null}
+      {publishOpen ? (
+        <PublishAsTemplateDialog project={project} open onOpenChange={setPublishOpen} />
       ) : null}
       <TaskDetailSheet projectId={project.id} />
     </div>

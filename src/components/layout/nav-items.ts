@@ -15,6 +15,8 @@ import {
   Bot,
   Zap,
   Code2,
+  LayoutTemplate,
+  ShieldAlert,
 } from "lucide-react";
 import { canManageAutomations, canManageDeveloperPlatform } from "@/lib/permissions";
 import type { WorkspaceRole } from "@/types/workspace";
@@ -36,6 +38,7 @@ export interface NavItem {
 export const NAV_ITEMS: NavItem[] = [
   // Uso diário: onde o trabalho acontece.
   { href: "/projects", label: "Projetos", icon: FolderKanban },
+  { href: "/templates", label: "Modelos", icon: LayoutTemplate },
   { href: "/workspaces", label: "Workspaces", icon: Building2 },
   { href: "/activity", label: "Atividade", icon: History },
   {
@@ -81,6 +84,12 @@ export const NAV_ITEMS: NavItem[] = [
     href: "/admin/plans",
     label: "Planos",
     icon: Coins,
+    requiresSuperAdmin: true,
+  },
+  {
+    href: "/admin/templates",
+    label: "Modelos",
+    icon: ShieldAlert,
     requiresSuperAdmin: true,
   },
 ];

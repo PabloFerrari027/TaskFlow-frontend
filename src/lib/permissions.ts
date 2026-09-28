@@ -77,6 +77,13 @@ export function canPublishDashboardPage(role: WorkspaceRole | null | undefined) 
   return canManageWorkspace(role);
 }
 
+// Stricter than creating a blank project (which MEMBER can do): a template
+// creates custom fields, which are OWNER/ADMIN only. The API applies the rule
+// even to templates without fields (API.md § 26.3), and so does this.
+export function canInstantiateProjectTemplate(role: WorkspaceRole | null | undefined) {
+  return canManageWorkspace(role);
+}
+
 // Only an OWNER can grant OWNER to someone else — or demote an existing
 // OWNER — even though ADMIN can otherwise manage members freely.
 export function canGrantOwnerRole(currentUserRole: WorkspaceRole | null | undefined) {
