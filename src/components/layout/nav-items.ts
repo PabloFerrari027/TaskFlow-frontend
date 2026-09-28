@@ -4,7 +4,6 @@ import {
   PanelsTopLeft,
   FolderKanban,
   Building2,
-  MonitorSmartphone,
   KeyRound,
   ShieldCheck,
   BookOpen,
@@ -68,7 +67,6 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/settings/plan", label: "Plano", icon: CreditCard },
   { href: "/settings/ai-usage", label: "Uso de IA", icon: Sparkles },
   { href: "/settings/security", label: "Segurança", icon: KeyRound },
-  { href: "/settings/sessions", label: "Sessões", icon: MonitorSmartphone },
 
   // Ajuda.
   { href: "/tutorial", label: "Tutorial", icon: BookOpen },
