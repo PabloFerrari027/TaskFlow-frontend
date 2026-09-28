@@ -1,9 +1,10 @@
 "use client";
 
+import * as React from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { Loader2 } from "lucide-react";
+import { useForm, useWatch } from "react-hook-form";
+import { Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,12 +24,20 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { useAuth } from "@/lib/auth/auth-context";
+import { canInstantiateProjectTemplate } from "@/lib/permissions";
 import {
   createProjectSchema,
   type CreateProjectFormValues,
 } from "@/features/projects/schemas";
 import { useCreateProjectMutation } from "@/features/projects/hooks/use-projects";
+import { useCurrentWorkspace } from "@/features/workspaces/context/current-workspace-context";
+import { useInstantiateProjectTemplateMutation } from "@/features/project-templates/hooks/use-project-templates";
+import { TemplateSuggestions } from "@/features/project-templates/components/template-suggestions";
+import { getCategoryInfo } from "@/features/project-templates/lib/categories";
+import { formatTemplateCounts } from "@/features/project-templates/lib/template-labels";
 import type { Project } from "@/types/project";
+import type { ProjectTemplateSummary } from "@/types/project-template";
 
 interface CreateProjectDialogProps {
   workspaceId: string;
@@ -46,14 +55,67 @@ export function CreateProjectDialog({
   parent,
 }: CreateProjectDialogProps) {
   const router = useRouter();
+  const { workspace } = useCurrentWorkspace();
+  const { userId } = useAuth();
   const createMutation = useCreateProjectMutation(workspaceId);
+  const instantiateMutation = useInstantiateProjectTemplateMutation(workspaceId);
+  const [template, setTemplate] = React.useState<ProjectTemplateSummary | null>(null);
 
   const form = useForm<CreateProjectFormValues>({
     resolver: zodResolver(createProjectSchema),
     defaultValues: { name: "", description: "" },
   });
+  const name = useWatch({ control: form.control, name: "name" });
+
+  // A template always creates a top-level project, and using one takes
+  // OWNER/ADMIN (stricter than a blank project) — otherwise no suggestions.
+  const myRole =
+    workspace?.id === workspaceId
+      ? workspace.members.find((member) => member.userId === userId)?.role
+      : undefined;
+  const showSuggestions = !parent && canInstantiateProjectTemplate(myRole);
+  // Stays locked after success too, until the navigation replaces the page:
+  // a second submit would create a second project.
+  const isLocked =
+    createMutation.isPending || instantiateMutation.isPending || instantiateMutation.isSuccess;
+
+  function reset() {
+    form.reset();
+    setTemplate(null);
+    instantiateMutation.reset();
+  }
+
+  function selectTemplate(next: ProjectTemplateSummary) {
+    if (template?.id === next.id) {
+      setTemplate(null);
+      return;
+    }
+    // Only fill the name when the user hasn't typed one, or it was the
+    // previous template's.
+    const current = form.getValues("name").trim();
+    if (!current || current === template?.name) {
+      form.setValue("name", next.name, { shouldValidate: form.formState.isSubmitted });
+    }
+    setTemplate(next);
+  }
 
   function onSubmit(values: CreateProjectFormValues) {
+    if (isLocked) return;
+
+    if (template) {
+      instantiateMutation.mutate(
+        { templateId: template.id, name: values.name.trim() },
+        {
+          onSuccess: ({ projectId }) => {
+            reset();
+            onOpenChange(false);
+            router.push(`/projects/${projectId}/tasks`);
+          },
+        }
+      );
+      return;
+    }
+
     createMutation.mutate(
       {
         name: values.name,
@@ -62,7 +124,7 @@ export function CreateProjectDialog({
       },
       {
         onSuccess: (project) => {
-          form.reset();
+          reset();
           onOpenChange(false);
           router.push(`/projects/${project.id}`);
         },
@@ -70,58 +132,121 @@ export function CreateProjectDialog({
     );
   }
 
+  const category = template ? getCategoryInfo(template.category) : null;
+
   return (
     <Dialog
       open={open}
       onOpenChange={(next) => {
-        if (!next) form.reset();
+        // Closing mid-request would hide the outcome of a non-idempotent call.
+        if (instantiateMutation.isPending) return;
+        if (!next) reset();
         onOpenChange(next);
       }}
     >
-      <DialogContent>
+      <DialogContent className={showSuggestions ? "sm:max-w-xl" : undefined}>
         <DialogHeader>
           <DialogTitle>{parent ? "Novo sub-projeto" : "Novo projeto"}</DialogTitle>
           <DialogDescription>
             {parent
               ? `Crie um sub-projeto dentro de “${parent.name}”.`
-              : "Crie um projeto dentro deste workspace."}
+              : showSuggestions
+                ? "Comece do zero ou escolha um modelo com colunas e tarefas já organizadas."
+                : "Crie um projeto dentro deste workspace."}
           </DialogDescription>
         </DialogHeader>
 
+        {showSuggestions ? (
+          <TemplateSuggestions
+            query={template ? "" : name}
+            selectedId={template?.id ?? null}
+            onSelect={selectTemplate}
+            onNavigate={() => {
+              reset();
+              onOpenChange(false);
+            }}
+          />
+        ) : null}
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {template && category ? (
+              <div className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 p-3 animate-in fade-in-0 slide-in-from-top-1">
+                <span
+                  aria-hidden
+                  className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-lg"
+                >
+                  {category.icon}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">Usando “{template.name}”</p>
+                  <p className="text-xs text-muted-foreground">
+                    Já vem com {formatTemplateCounts(template)}.
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  disabled={isLocked}
+                  onClick={() => setTemplate(null)}
+                >
+                  <X /> Começar do zero
+                </Button>
+              </div>
+            ) : null}
+
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nome</FormLabel>
+                  <FormLabel>{template ? "Nome do projeto" : "Nome"}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Website Redesign" autoFocus {...field} />
+                    <Input
+                      placeholder="Website Redesign"
+                      autoFocus
+                      disabled={isLocked}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Descrição (opcional)</FormLabel>
-                  <FormControl>
-                    <Textarea rows={3} placeholder="Do que se trata este projeto?" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Instantiating only takes a name — the template brings the rest. */}
+            {!template ? (
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Descrição (opcional)</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        rows={3}
+                        placeholder="Do que se trata este projeto?"
+                        disabled={isLocked}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ) : null}
 
             <DialogFooter>
-              <Button type="submit" disabled={createMutation.isPending}>
-                {createMutation.isPending ? <Loader2 className="animate-spin" /> : null}
-                {parent ? "Criar sub-projeto" : "Criar projeto"}
+              <Button type="submit" disabled={isLocked}>
+                {isLocked ? <Loader2 className="animate-spin" /> : null}
+                {parent
+                  ? "Criar sub-projeto"
+                  : template
+                    ? isLocked
+                      ? "Criando projeto…"
+                      : "Criar a partir do modelo"
+                    : "Criar projeto"}
               </Button>
             </DialogFooter>
           </form>

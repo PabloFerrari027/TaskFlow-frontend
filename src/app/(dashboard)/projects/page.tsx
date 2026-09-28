@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { FolderKanban, Plus } from "lucide-react";
+import Link from "next/link";
+import { FolderKanban, LayoutTemplate, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageHeader } from "@/components/shared/page-header";
@@ -86,9 +87,16 @@ export default function ProjectsPage() {
         }
         actions={
           workspaceId ? (
-            <Button data-tour="new-project" onClick={() => setCreateOpen(true)}>
-              <Plus /> Novo projeto
-            </Button>
+            <>
+              <Button asChild variant="outline">
+                <Link href="/templates">
+                  <LayoutTemplate /> Começar de um modelo
+                </Link>
+              </Button>
+              <Button data-tour="new-project" onClick={() => setCreateOpen(true)}>
+                <Plus /> Novo projeto
+              </Button>
+            </>
           ) : null
         }
       />
@@ -101,11 +109,18 @@ export default function ProjectsPage() {
         <EmptyState
           icon={<FolderKanban className="size-6" />}
           title="Nenhum projeto neste workspace"
-          description="Crie o primeiro projeto para começar a organizar tarefas."
+          description="Crie o primeiro projeto do zero ou comece de um modelo já organizado."
           action={
-            <Button onClick={() => setCreateOpen(true)}>
-              <Plus /> Novo projeto
-            </Button>
+            <div className="flex flex-wrap justify-center gap-2">
+              <Button onClick={() => setCreateOpen(true)}>
+                <Plus /> Novo projeto
+              </Button>
+              <Button asChild variant="outline">
+                <Link href="/templates">
+                  <LayoutTemplate /> Começar de um modelo
+                </Link>
+              </Button>
+            </div>
           }
         />
       ) : (

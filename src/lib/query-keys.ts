@@ -1,6 +1,10 @@
 import type { ClientStatus } from "@/types/client";
 import type { AnalyticsQuery } from "@/types/analytics";
 import type { AiUsageFeature } from "@/types/ai-usage";
+import type {
+  AdminProjectTemplateFilters,
+  ProjectTemplateFilters,
+} from "@/types/project-template";
 import { stableStringify } from "@/lib/utils";
 
 export const queryKeys = {
@@ -119,6 +123,24 @@ export const queryKeys = {
     // Nested under `["ai-usage", "me"]` so invalidating that prefix refreshes it too.
     window: (window: "day" | "week" | "month", from: string) =>
       ["ai-usage", "me", "window", window, from] as const,
+  },
+  // Templates are global (API.md § 26): no workspaceId in the key, so
+  // switching workspace never refetches them. The filter objects go in as is —
+  // TanStack hashes object keys sorted, and drops `undefined` fields.
+  projectTemplates: {
+    all: () => ["project-templates"] as const,
+    lists: () => ["project-templates", "list"] as const,
+    list: (filters: ProjectTemplateFilters) =>
+      ["project-templates", "list", filters] as const,
+    categories: () => ["project-templates", "categories"] as const,
+    // Answers differ per user (`access`, `canInstantiate`, `skeleton`), so it
+    // is never seeded from the list cache.
+    detail: (templateId: string) => ["project-templates", "detail", templateId] as const,
+    mine: () => ["project-templates", "mine"] as const,
+    purchased: () => ["project-templates", "purchased"] as const,
+    adminLists: () => ["project-templates", "admin"] as const,
+    adminList: (filters: AdminProjectTemplateFilters) =>
+      ["project-templates", "admin", filters] as const,
   },
   automations: {
     all: (workspaceId: string) => ["automations", "workspace", workspaceId] as const,

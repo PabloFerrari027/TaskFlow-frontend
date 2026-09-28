@@ -1,5 +1,6 @@
 import { TASK_PRIORITY_LABEL, TASK_STATUS_LABEL } from "@/components/shared/status-badge";
 import { formatDate } from "@/lib/format";
+import { formatCustomFieldValue } from "@/features/custom-fields/lib/format-custom-field-value";
 import type { ActivityLogEntry } from "@/types/activity";
 import type { TaskPriority, TaskStatus } from "@/types/task";
 
@@ -13,13 +14,6 @@ function isTaskPriority(value: unknown): value is TaskPriority {
 
 function formatDateValue(value: unknown) {
   return typeof value === "string" ? formatDate(value) : null;
-}
-
-function formatCustomFieldValue(value: unknown) {
-  if (value === null || value === undefined || value === "") return "vazio";
-  if (Array.isArray(value)) return value.length ? value.join(", ") : "vazio";
-  if (typeof value === "boolean") return value ? "sim" : "não";
-  return String(value);
 }
 
 /**

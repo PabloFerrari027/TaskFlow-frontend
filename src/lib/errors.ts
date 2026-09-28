@@ -141,6 +141,18 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
     "Você convidou muitas pessoas por e-mail em pouco tempo. Tente novamente em 1 hora.",
   PAGE_ACCESS_TOKEN_INVALID: "Este link não é válido ou foi revogado.",
   INVALID_CHART_DEFINITION: "Este gráfico não pode ser montado com as opções escolhidas.",
+  PROJECT_TEMPLATE_NOT_FOUND: "Este modelo não está mais disponível.",
+  INVALID_PROJECT_TEMPLATE_SKELETON: "O modelo tem um problema que impede salvá-lo.",
+  INVALID_PROJECT_TEMPLATE_CATEGORY: "Escolha uma das categorias da lista.",
+  INVALID_PROJECT_TEMPLATE_PRICE:
+    "O preço precisa ser grátis ou ficar entre R$ 1,00 e R$ 1.000,00.",
+  PROJECT_TEMPLATE_NOT_PURCHASED: "Este modelo é pago. Compre-o antes de usar.",
+  PROJECT_TEMPLATE_ALREADY_ACCESSIBLE: "Você já pode usar este modelo, não precisa comprar.",
+  PROJECT_TEMPLATE_REMOVED:
+    "Este modelo foi tirado do hub pela moderação e não pode mais ser usado.",
+  PROJECT_TEMPLATE_HAS_PURCHASES:
+    "Alguém já comprou este modelo, por isso ele não pode ser excluído. Você pode tirá-lo do hub.",
+  PAYMENTS_NOT_CONFIGURED: "As compras estão indisponíveis no momento. Tente mais tarde.",
 };
 
 const DEFAULT_MESSAGE = "Algo deu errado. Tente novamente em instantes.";
@@ -187,6 +199,15 @@ export function getErrorMessage(error: unknown): string {
 
   if (error instanceof Error) return error.message;
   return DEFAULT_MESSAGE;
+}
+
+// The server's own text, untranslated — for the few errors whose message
+// carries detail no pt-BR mapping can (e.g. which skeleton item is invalid).
+export function getServerErrorMessage(error: unknown): string | null {
+  if (axios.isAxiosError(error) && isDomainError(error.response?.data)) {
+    return error.response.data.message || null;
+  }
+  return null;
 }
 
 export function getErrorCode(error: unknown): ErrorCode | null {
