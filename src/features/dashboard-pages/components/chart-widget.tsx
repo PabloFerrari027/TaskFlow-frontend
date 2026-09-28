@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { ValueLabeler } from "@/features/automations/lib/automation-draft";
+import { CHART_TYPE_ICON } from "@/features/dashboard-pages/components/chart-type-picker";
 import { ChartRenderer } from "@/features/dashboard-pages/components/renderers/chart-renderer";
 import { cn } from "@/lib/utils";
 import type { ChartWithResult } from "@/types/dashboard-page";
@@ -37,18 +38,22 @@ export function ChartWidget({
   onRemove?: () => void;
 }) {
   const hasMenu = Boolean(onEdit || onRemove);
+  const TypeIcon = CHART_TYPE_ICON[chart.chartType];
 
   return (
-    <Card size="sm" className="h-full gap-2 px-3">
+    <Card size="sm" className="h-full gap-3 px-4 transition-shadow hover:shadow-md">
       <div
         className={cn(
-          "flex min-h-7 items-center gap-1.5",
+          "flex min-h-7 items-center gap-2",
           draggable && `${WIDGET_DRAG_HANDLE} cursor-grab active:cursor-grabbing`
         )}
       >
         {draggable ? (
-          <GripVertical aria-hidden className="size-4 shrink-0 text-muted-foreground" />
+          <GripVertical aria-hidden className="-ml-1.5 size-4 shrink-0 text-muted-foreground/60" />
         ) : null}
+        <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+          <TypeIcon aria-hidden className="size-3.5" />
+        </span>
         <h3 className="min-w-0 flex-1 truncate text-sm font-medium text-foreground" title={chart.name}>
           {chart.name}
         </h3>

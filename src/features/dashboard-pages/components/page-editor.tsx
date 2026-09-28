@@ -81,10 +81,14 @@ export function PageEditor({ workspaceId, pageId }: { workspaceId: string; pageI
   if (pageQuery.isLoading) {
     return (
       <div className="space-y-6">
-        <Skeleton className="h-9 w-72" />
+        <div className="space-y-3">
+          <Skeleton className="h-4 w-20" />
+          <Skeleton className="h-8 w-72" />
+          <Skeleton className="h-5 w-40" />
+        </div>
         <div className="grid gap-4 md:grid-cols-2">
-          <Skeleton className="h-64 w-full" />
-          <Skeleton className="h-64 w-full" />
+          <Skeleton className="h-64 w-full rounded-xl" />
+          <Skeleton className="h-64 w-full rounded-xl" />
         </div>
       </div>
     );
@@ -171,6 +175,12 @@ export function PageEditor({ workspaceId, pageId }: { workspaceId: string; pageI
         />
         <div className="flex flex-wrap items-center gap-2">
           <VisibilityBadge visibility={page.visibility} />
+          {page.charts.length > 0 ? (
+            <Badge variant="outline" className="gap-1 font-normal text-muted-foreground">
+              <BarChart3 className="size-3" />
+              {page.charts.length === 1 ? "1 gráfico" : `${page.charts.length} gráficos`}
+            </Badge>
+          ) : null}
           {!canEdit ? (
             <Badge variant="outline" className="gap-1 font-normal text-muted-foreground">
               <Eye className="size-3" /> Somente leitura
