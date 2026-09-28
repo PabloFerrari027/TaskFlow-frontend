@@ -15,17 +15,35 @@ export default function PlanPage() {
         actions={<TutorialGuideLink guideId="plans" />}
       />
 
-      <PlanPicker />
+      <section className="space-y-4">
+        <div className="space-y-1">
+          <h2 className="text-lg font-medium text-foreground">Planos disponíveis</h2>
+          <p className="text-sm text-muted-foreground">
+            Compare os limites e troque de plano quando quiser.
+          </p>
+        </div>
+        <PlanPicker />
+      </section>
 
-      <div className="space-y-3">
-        <h2 className="text-lg font-medium text-foreground">Seu consumo</h2>
+      <section className="space-y-4">
+        <div className="space-y-1">
+          <h2 className="text-lg font-medium text-foreground">Seu consumo</h2>
+          <p className="text-sm text-muted-foreground">
+            Quanto da sua cota de IA você já usou hoje, nesta semana e neste mês.
+          </p>
+        </div>
         <UsageWindowsSummary />
-      </div>
+      </section>
 
-      <div className="space-y-3">
-        <h2 className="text-lg font-medium text-foreground">Histórico</h2>
+      <section className="space-y-4">
+        <div className="space-y-1">
+          <h2 className="text-lg font-medium text-foreground">Histórico</h2>
+          <p className="text-sm text-muted-foreground">
+            Quantos tokens de IA você gastou recentemente.
+          </p>
+        </div>
         <AiUsageHistory />
-      </div>
+      </section>
     </div>
   );
 }
