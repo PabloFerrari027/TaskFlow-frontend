@@ -17,6 +17,8 @@ import {
 import { CUSTOM_FIELD_TYPE_LABEL } from "@/features/custom-fields/schemas";
 import { CreateCustomFieldDialog } from "@/features/custom-fields/components/create-custom-field-dialog";
 import { EditOptionsDialog } from "@/features/custom-fields/components/edit-options-dialog";
+import { OptionChip } from "@/features/custom-fields/components/option-chip";
+import { getOptionColor } from "@/features/custom-fields/lib/option-colors";
 import type { CustomFieldDefinition } from "@/types/custom-field";
 
 const SELECT_TYPES = ["SINGLE_SELECT", "MULTI_SELECT"];
@@ -75,10 +77,16 @@ export function CustomFieldsList({
                   {definition.archived ? <Badge variant="outline">Arquivado</Badge> : null}
                 </div>
                 {definition.options && definition.options.length > 0 ? (
-                  <p className="mt-1 flex items-center gap-1 truncate text-xs text-muted-foreground">
-                    <ListTree className="size-3.5 shrink-0" />
-                    {definition.options.join(", ")}
-                  </p>
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                    <ListTree className="size-3.5 shrink-0 text-muted-foreground" />
+                    {definition.options.map((option) => (
+                      <OptionChip
+                        key={option}
+                        label={option}
+                        color={getOptionColor(definition, option)}
+                      />
+                    ))}
+                  </div>
                 ) : null}
               </div>
 
@@ -88,8 +96,8 @@ export function CustomFieldsList({
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      aria-label="Editar opções"
-                      title="Editar opções"
+                      aria-label="Editar opções e cores"
+                      title="Editar opções e cores"
                       onClick={() => setEditingField(definition)}
                     >
                       <Pencil />

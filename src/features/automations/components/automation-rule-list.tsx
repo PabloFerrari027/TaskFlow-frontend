@@ -32,7 +32,8 @@ export function AutomationRuleList({
   workspaceId: string;
   rules: AutomationRule[];
   lookups: AutomationLookups;
-  onEdit: (rule: AutomationRule) => void;
+  // Omitted for rules the builder can no longer express: pause/delete only.
+  onEdit?: (rule: AutomationRule) => void;
 }) {
   const toggleMutation = useToggleAutomationRuleMutation(workspaceId);
   const deleteMutation = useDeleteAutomationRuleMutation(workspaceId);
@@ -84,14 +85,16 @@ export function AutomationRuleList({
               aria-label={rule.enabled ? "Pausar automação" : "Ligar automação"}
               onCheckedChange={(enabled) => toggleMutation.mutate({ ruleId: rule.id, enabled })}
             />
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              aria-label="Editar automação"
-              onClick={() => onEdit(rule)}
-            >
-              <Pencil />
-            </Button>
+            {onEdit ? (
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label="Editar automação"
+                onClick={() => onEdit(rule)}
+              >
+                <Pencil />
+              </Button>
+            ) : null}
             <ConfirmDialog
               trigger={
                 <Button variant="ghost" size="icon-sm" aria-label="Excluir automação">

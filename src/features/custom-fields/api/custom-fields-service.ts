@@ -5,6 +5,7 @@ import type {
   CustomFieldDefinition,
   SetTaskCustomFieldValueRequest,
   TaskCustomFieldValue,
+  UpdateCustomFieldDetailsRequest,
   UpdateCustomFieldOptionsRequest,
 } from "@/types/custom-field";
 
@@ -28,6 +29,14 @@ export const customFieldsService = {
   async updateOptions(definitionId: string, payload: UpdateCustomFieldOptionsRequest) {
     const { data } = await apiClient.patch<CustomFieldDefinition>(
       `/custom-fields/${definitionId}/options`,
+      payload
+    );
+    return data;
+  },
+
+  async updateDetails(definitionId: string, payload: UpdateCustomFieldDetailsRequest) {
+    const { data } = await apiClient.patch<CustomFieldDefinition>(
+      `/custom-fields/${definitionId}/details`,
       payload
     );
     return data;

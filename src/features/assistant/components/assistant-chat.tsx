@@ -24,6 +24,10 @@ import { AssistantMessage } from "@/features/assistant/components/assistant-mess
 import { AssistantSessionSummary } from "@/features/assistant/components/assistant-session-summary";
 import { AssistantUsageMeter } from "@/features/assistant/components/assistant-usage-meter";
 import { TypingIndicator } from "@/features/assistant/components/typing-indicator";
+import { WorkspaceAssistantSettingsPanel } from "@/features/workspaces/components/assistant-settings-panel";
+import { useAuth } from "@/lib/auth/auth-context";
+import { canManageAssistantSettings } from "@/lib/permissions";
+import type { WorkspaceRole } from "@/types/workspace";
 import type {
   ChatAttachment,
   ChatMessage,
@@ -120,6 +124,10 @@ export function AssistantChat() {
   // own when the window resets, so the composer stays usable.
   const [quotaExceeded, setQuotaExceeded] = React.useState(false);
   const { workspace } = useCurrentWorkspace();
+  const { userId } = useAuth();
+  const myRole = workspace?.members.find((m) => m.userId === userId)?.role as
+    | WorkspaceRole
+    | undefined;
   const [text, setText] = React.useState("");
   const [files, setFiles] = React.useState<File[]>([]);
   const [state, dispatch] = React.useReducer(chatReducer, INITIAL_STATE);
@@ -326,10 +334,12 @@ export function AssistantChat() {
           <>
             <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto p-4">
               {!workspace ? null : !assistantEnabled ? (
-                <p className="text-sm text-muted-foreground">
-                  O assistente está desligado neste workspace. Peça a um OWNER para
-                  habilitá-lo na aba &quot;Assistente&quot; das configurações do workspace.
-                </p>
+                <div className="rounded-lg border border-border/60 p-4">
+                  <WorkspaceAssistantSettingsPanel
+                    workspace={workspace}
+                    canManage={canManageAssistantSettings(myRole)}
+                  />
+                </div>
               ) : state.transcript.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
                   Pergunte algo ou peça uma ação sobre este workspace — toda alteração pede

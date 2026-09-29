@@ -13,6 +13,8 @@ export interface CustomFieldDefinition {
   name: string;
   type: CustomFieldType;
   options: string[] | null;
+  /** Color (#RRGGBB) per select option; options without an entry have none. */
+  optionColors?: Record<string, string> | null;
   archived: boolean;
   version: number;
 }
@@ -21,10 +23,17 @@ export interface CreateCustomFieldDefinitionRequest {
   name: string;
   type: CustomFieldType;
   options?: string[];
+  optionColors?: Record<string, string> | null;
 }
 
 export interface UpdateCustomFieldOptionsRequest {
   options: string[];
+  /** Applied after the options, so renamed options keep their colors. */
+  optionColors?: Record<string, string> | null;
+}
+
+export interface UpdateCustomFieldDetailsRequest {
+  optionColors?: Record<string, string> | null;
 }
 
 export type CustomFieldValue =

@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { workspacesService } from "@/features/workspaces/api/workspaces-service";
 import { queryKeys } from "@/lib/query-keys";
 import { getErrorMessage } from "@/lib/errors";
-import { MAX_PAGE_SIZE } from "@/types/common";
+import { MAX_PAGE_SIZE, type PaginatedResult } from "@/types/common";
 import type {
   AddWorkspaceMemberRequest,
   ChangeWorkspaceMemberRoleRequest,
@@ -169,7 +169,8 @@ export function useWorkspaceInvitationPreviewQuery(token: string) {
 }
 
 // Response is only `{ enabled }`, not a full WorkspaceDto — merge into the
-// cached workspace instead of replacing it.
+// cached workspace instead of replacing it. The list is patched too: the
+// current-workspace context (and so the chat) reads from it.
 export function useUpdateAssistantSettingsMutation(workspaceId: string) {
   const queryClient = useQueryClient();
 
@@ -178,6 +179,16 @@ export function useUpdateAssistantSettingsMutation(workspaceId: string) {
     onSuccess: ({ enabled }) => {
       queryClient.setQueryData<Workspace>(queryKeys.workspaces.detail(workspaceId), (current) =>
         current ? { ...current, assistantEnabled: enabled } : current
+      );
+      queryClient.setQueryData<PaginatedResult<Workspace>>(queryKeys.workspaces.all(), (current) =>
+        current
+          ? {
+              ...current,
+              data: current.data.map((w) =>
+                w.id === workspaceId ? { ...w, assistantEnabled: enabled } : w
+              ),
+            }
+          : current
       );
       toast.success(enabled ? "Assistente habilitado." : "Assistente desabilitado.");
     },

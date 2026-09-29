@@ -215,6 +215,7 @@ export function PageEditor({ workspaceId, pageId }: { workspaceId: string; pageI
         />
       ) : (
         <DashboardGrid
+          pageId={page.id}
           charts={page.charts}
           editable={canWrite}
           lookups={lookups}

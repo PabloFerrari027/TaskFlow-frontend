@@ -4,8 +4,6 @@ import { Suspense, use } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TemplateDetailView } from "@/features/project-templates/components/template-detail-view";
 
-// Fixed URL: it is also Stripe's return address (`?checkout=success|cancel`,
-// API.md § 26.6), so it must not move.
 export default function TemplateDetailPage(props: PageProps<"/templates/[templateId]">) {
   const { templateId } = use(props.params);
 

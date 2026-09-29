@@ -3,22 +3,18 @@ import {
   PanelsTopLeft,
   FolderKanban,
   Building2,
-  KeyRound,
   ShieldCheck,
   BookOpen,
   FileText,
   UserRound,
-  Sparkles,
   CreditCard,
   Coins,
-  History,
   Bot,
-  Zap,
   Code2,
   LayoutTemplate,
   ShieldAlert,
 } from "lucide-react";
-import { canManageAutomations, canManageDeveloperPlatform } from "@/lib/permissions";
+import { canManageDeveloperPlatform } from "@/lib/permissions";
 import type { WorkspaceRole } from "@/types/workspace";
 
 export interface NavItem {
@@ -40,7 +36,6 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/projects", label: "Projetos", icon: FolderKanban },
   { href: "/templates", label: "Modelos", icon: LayoutTemplate },
   { href: "/workspaces", label: "Workspaces", icon: Building2 },
-  { href: "/activity", label: "Atividade", icon: History },
   {
     href: "/workspaces/pages",
     label: "Páginas",
@@ -51,12 +46,6 @@ export const NAV_ITEMS: NavItem[] = [
   // Recursos avançados, usados com menos frequência.
   { href: "/assistant", label: "Assistente", icon: Bot },
   {
-    href: "/automations",
-    label: "Automações",
-    icon: Zap,
-    workspacePermission: canManageAutomations,
-  },
-  {
     href: "/developers",
     label: "Desenvolvedores",
     icon: Code2,
@@ -66,8 +55,6 @@ export const NAV_ITEMS: NavItem[] = [
   // Conta e configurações pessoais.
   { href: "/settings/profile", label: "Perfil", icon: UserRound },
   { href: "/settings/plan", label: "Plano", icon: CreditCard },
-  { href: "/settings/ai-usage", label: "Uso de IA", icon: Sparkles },
-  { href: "/settings/security", label: "Segurança", icon: KeyRound },
 
   // Ajuda.
   { href: "/tutorial", label: "Tutorial", icon: BookOpen },

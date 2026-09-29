@@ -103,7 +103,14 @@ export function useUpdateCustomFieldOptionsMutation(projectId: string) {
         });
         return Promise.resolve();
       }
-      return customFieldsService.updateOptions(definitionId, payload).then(() => undefined);
+      // Colors live on a separate endpoint and are validated against the
+      // saved options, so they go second — after any rename has landed.
+      const { optionColors, ...options } = payload;
+      return customFieldsService.updateOptions(definitionId, options).then(() =>
+        optionColors !== undefined
+          ? customFieldsService.updateDetails(definitionId, { optionColors }).then(() => undefined)
+          : undefined
+      );
     },
     onMutate: ({ definitionId, payload }) =>
       patchCachedDefinition(queryClient, projectId, definitionId, payload),

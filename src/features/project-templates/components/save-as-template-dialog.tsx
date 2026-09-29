@@ -4,16 +4,16 @@ import { useRouter } from "next/navigation";
 import { Check, X } from "lucide-react";
 import { toast } from "sonner";
 import { TemplateListingDialog } from "@/features/project-templates/components/template-listing-dialog";
-import { usePublishProjectAsTemplateMutation } from "@/features/project-templates/hooks/use-project-templates";
+import { useSaveProjectAsTemplateMutation } from "@/features/project-templates/hooks/use-project-templates";
 import { toListingRequest } from "@/features/project-templates/schemas";
 import type { Project } from "@/types/project";
 
-// Mirrors API.md § 26.4: only the structure goes, frozen at publish time.
+// Mirrors API.md § 26.6: only the structure goes, frozen at save time.
 function WhatGoesNotice() {
   return (
     <div className="grid gap-3 rounded-lg border border-border/60 bg-muted/40 p-3 text-sm sm:grid-cols-2">
       <div className="space-y-1">
-        <p className="font-medium text-foreground">Vai para o hub</p>
+        <p className="font-medium text-foreground">Vai para o modelo</p>
         <ul className="space-y-1 text-muted-foreground">
           {["As colunas (com as subcolunas)", "Os campos extras"].map((item) => (
             <li key={item} className="flex items-start gap-1.5">
@@ -36,13 +36,13 @@ function WhatGoesNotice() {
       </div>
       <p className="text-xs text-muted-foreground sm:col-span-2">
         O modelo é uma cópia congelada: mudar o projeto depois não muda o modelo. Para atualizar,
-        publique de novo.
+        salve de novo.
       </p>
     </div>
   );
 }
 
-export function PublishAsTemplateDialog({
+export function SaveAsTemplateDialog({
   project,
   open,
   onOpenChange,
@@ -52,32 +52,30 @@ export function PublishAsTemplateDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const router = useRouter();
-  const publishMutation = usePublishProjectAsTemplateMutation(project.id);
+  const saveMutation = useSaveProjectAsTemplateMutation(project.id);
 
   return (
     <TemplateListingDialog
       open={open}
       onOpenChange={onOpenChange}
-      title="Publicar como modelo"
-      description="Outras pessoas vão poder criar projetos com a mesma organização deste."
+      title="Salvar como modelo"
+      description="Crie projetos novos com a mesma organização deste. O modelo fica disponível só para as pessoas deste workspace."
       notice={<WhatGoesNotice />}
-      submitLabel="Publicar no hub"
-      isPending={publishMutation.isPending}
+      submitLabel="Salvar modelo"
+      isPending={saveMutation.isPending}
       defaultValues={{
         name: project.name,
         description: project.description ?? "",
-        // No category: there is no sensible default, the author picks one.
-        isPaid: false,
-        price: "",
+        // No category: there is no sensible default, the user picks one.
       }}
       onSubmit={(values) => {
-        const request = toListingRequest(values, "publish");
-        publishMutation.mutate(
+        const request = toListingRequest(values, "save");
+        saveMutation.mutate(
           { ...request, description: request.description ?? undefined },
           {
             onSuccess: (template) => {
               onOpenChange(false);
-              toast.success("Modelo publicado no hub.", {
+              toast.success("Modelo salvo.", {
                 action: {
                   label: "Ver modelo",
                   onClick: () => router.push(`/templates/${template.id}`),

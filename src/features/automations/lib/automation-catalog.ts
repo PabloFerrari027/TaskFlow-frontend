@@ -51,7 +51,14 @@ export const ENTITY_LABEL: Record<AutomationEntityType, string> = {
   WORKSPACE: "o workspace",
 };
 
-export const ENTITY_TYPES = Object.keys(ENTITY_LABEL) as AutomationEntityType[];
+// What the builder offers: things that happen *inside* a project, since
+// automations are only managed from a project's tab. PROJECT and WORKSPACE
+// events stay in TRIGGER_EVENTS so older rules on them can still be read.
+export const ENTITY_TYPES: AutomationEntityType[] = ["TASK", "COMMENT", "SECTION", "CUSTOM_FIELD"];
+
+export function isInProjectEntity(entityType: string) {
+  return (ENTITY_TYPES as string[]).includes(entityType);
+}
 
 // Carried by every event; usable both as a condition and as an event value
 // ("quem fez a alteração").

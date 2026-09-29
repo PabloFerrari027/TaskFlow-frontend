@@ -4,7 +4,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
-export function ProjectTabsNav({ projectId }: { projectId: string }) {
+export function ProjectTabsNav({
+  projectId,
+  showAutomations,
+}: {
+  projectId: string;
+  // Hidden like the sidebar's "Automações": the API is OWNER/ADMIN only.
+  showAutomations: boolean;
+}) {
   const pathname = usePathname();
   const base = `/projects/${projectId}`;
 
@@ -31,6 +38,20 @@ export function ProjectTabsNav({ projectId }: { projectId: string }) {
       label: "Campos extras",
       hint: "Crie campos próprios para guardar mais informações em cada tarefa, como cliente ou valor.",
     },
+    {
+      href: `${base}/activity`,
+      label: "Atividade",
+      hint: "A linha do tempo de tudo que mudou neste projeto: quem fez e quando.",
+    },
+    ...(showAutomations
+      ? [
+          {
+            href: `${base}/automations`,
+            label: "Automações",
+            hint: "Deixe o TaskFlow fazer sozinho o que se repete neste projeto, como mover tarefas concluídas de seção.",
+          },
+        ]
+      : []),
   ];
 
   const activeTab = tabs.find((tab) => pathname.startsWith(tab.href));

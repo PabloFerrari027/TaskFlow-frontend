@@ -8,17 +8,17 @@ import type {
   ModerateProjectTemplateRequest,
   ProjectTemplate,
   ProjectTemplateCategoryInfo,
-  ProjectTemplateCheckoutResponse,
   ProjectTemplateDetail,
   ProjectTemplateFilters,
   ProjectTemplateSummary,
-  PublishProjectAsTemplateRequest,
+  SaveProjectAsTemplateRequest,
   UpdateProjectTemplateListingRequest,
   UpdateProjectTemplateRequest,
 } from "@/types/project-template";
 
 export const projectTemplatesService = {
-  // Hub (API.md § 26.2): only PUBLISHED templates, no skeleton — just counts.
+  // System catalog (API.md § 26.2): the API only ever lists system templates
+  // here, no skeleton — just counts. It rejects unknown query params (400).
   async list(filters: ProjectTemplateFilters = {}) {
     const { data } = await apiClient.get<PaginatedResult<ProjectTemplateSummary>>(
       "/project-templates",
@@ -41,19 +41,6 @@ export const projectTemplatesService = {
     return data;
   },
 
-  // Every status, newest first.
-  async mine() {
-    const { data } = await apiClient.get<ProjectTemplateDetail[]>("/project-templates/mine");
-    return data;
-  },
-
-  async purchased() {
-    const { data } = await apiClient.get<ProjectTemplateDetail[]>(
-      "/project-templates/purchased"
-    );
-    return data;
-  },
-
   async instantiate(
     workspaceId: string,
     templateId: string,
@@ -66,16 +53,23 @@ export const projectTemplatesService = {
     return data;
   },
 
-  // Author (API.md § 26.4–26.5). Someone else's template answers 404.
-  async publishFromProject(projectId: string, input: PublishProjectAsTemplateRequest) {
+  // Workspace templates (API.md § 26.7): private, visible to members only.
+  async listForWorkspace(workspaceId: string) {
+    const { data } = await apiClient.get<ProjectTemplateDetail[]>(
+      `/workspaces/${workspaceId}/project-templates`
+    );
+    return data;
+  },
+
+  async saveFromProject(projectId: string, input: SaveProjectAsTemplateRequest) {
     const { data } = await apiClient.post<ProjectTemplateDetail>(
-      `/projects/${projectId}/publish-as-template`,
+      `/projects/${projectId}/save-as-workspace-template`,
       input
     );
     return data;
   },
 
-  // The skeleton is never editable here — only the listing.
+  // Name/description/category only — the skeleton is never editable here.
   async update(templateId: string, input: UpdateProjectTemplateListingRequest) {
     const { data } = await apiClient.patch<ProjectTemplateDetail>(
       `/project-templates/${templateId}`,
@@ -84,32 +78,9 @@ export const projectTemplatesService = {
     return data;
   },
 
-  async publish(templateId: string) {
-    const { data } = await apiClient.post<ProjectTemplateDetail>(
-      `/project-templates/${templateId}/publish`
-    );
-    return data;
-  },
-
-  async unpublish(templateId: string) {
-    const { data } = await apiClient.post<ProjectTemplateDetail>(
-      `/project-templates/${templateId}/unpublish`
-    );
-    return data;
-  },
-
   // 204 with no body.
   async delete(templateId: string) {
     await apiClient.delete(`/project-templates/${templateId}`);
-  },
-
-  // Calling it again while a checkout is still open returns the same session,
-  // so a double click never charges twice (API.md § 26.6).
-  async checkout(templateId: string) {
-    const { data } = await apiClient.post<ProjectTemplateCheckoutResponse>(
-      `/project-templates/${templateId}/checkout`
-    );
-    return data;
   },
 
   // Admin (SUPER_ADMIN only, API.md § 26.7).

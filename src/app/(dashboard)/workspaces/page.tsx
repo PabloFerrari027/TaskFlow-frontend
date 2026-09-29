@@ -23,10 +23,13 @@ import { MembersTable } from "@/features/workspaces/components/members-table";
 import { WorkspaceInvitationsTable } from "@/features/workspaces/components/invitations-table";
 import { InviteMemberDialog } from "@/features/workspaces/components/invite-member-dialog";
 import { RenameWorkspaceDialog } from "@/features/workspaces/components/rename-workspace-dialog";
+import { WorkspaceAssistantSettingsPanel } from "@/features/workspaces/components/assistant-settings-panel";
+import { WorkspaceActivitySection } from "@/features/activity/components/workspace-activity-section";
 import { useAuth } from "@/lib/auth/auth-context";
 import {
   canDeleteWorkspace,
   canInviteWorkspaceMembers,
+  canManageAssistantSettings,
   canManageWorkspace,
 } from "@/lib/permissions";
 import type { WorkspaceRole } from "@/types/workspace";
@@ -185,6 +188,24 @@ function CurrentWorkspaceSettings({ workspaceId }: { workspaceId: string }) {
           </RoleGate>
         </div>
         <WorkspaceInvitationsTable workspaceId={workspace.id} canManage={canInvite} />
+      </Card>
+
+      <Card id="assistente" data-tour="workspace-assistant-section" className="p-4">
+        <WorkspaceAssistantSettingsPanel
+          workspace={workspace}
+          canManage={canManageAssistantSettings(myRole)}
+        />
+      </Card>
+
+      <Card id="atividade" data-tour="workspace-activity-section" className="space-y-4 p-4">
+        <div>
+          <h3 className="text-base font-semibold text-foreground">Atividade</h3>
+          <p className="text-sm text-muted-foreground">
+            A linha do tempo de tudo que aconteceu neste workspace. Para ver só um projeto, abra a
+            aba Atividade dentro dele.
+          </p>
+        </div>
+        <WorkspaceActivitySection workspaceId={workspace.id} />
       </Card>
 
       <RenameWorkspaceDialog

@@ -79,7 +79,7 @@ export const TOUR_STEPS: TourStep[] = [
     details: [
       "Projetos: a página inicial, com todos os projetos do workspace, ativos e arquivados.",
       "Workspaces: membros, convites, atividade e automações.",
-      "Perfil e Segurança: sua conta, sua senha e seus dispositivos.",
+      "Perfil: sua conta, sua senha e seus dispositivos.",
     ],
   },
   {
@@ -178,6 +178,7 @@ export const TOUR_STEPS: TourStep[] = [
       "Pessoas: quem tem acesso ao projeto.",
       "Convites: convide alguém por e-mail e acompanhe o aceite.",
       "Campos extras: campos próprios em cada tarefa, como cliente ou valor.",
+      "Atividade: tudo que mudou no projeto, com quem fez e quando.",
     ],
   },
   {
@@ -344,10 +345,8 @@ export const TOUR_STEPS: TourStep[] = [
     skipIfMissing: true,
     title: "O resto fica no menu lateral",
     description:
-      "Atividade, Automações, Desenvolvedores e Assistente têm cada um a própria página no menu lateral, sempre falando do workspace atual (o que está selecionado no topo).",
+      "Desenvolvedores e Assistente têm cada um a própria página no menu lateral, sempre falando do workspace atual (o que está selecionado no topo). A atividade do workspace fica nesta página, logo abaixo dos convites.",
     details: [
-      "Atividade: a linha do tempo de tudo o que aconteceu no workspace.",
-      "Automações: regras “quando isso acontecer, faça aquilo” (só Proprietário e Administrador veem esta página).",
       "Desenvolvedores: chaves de API e webhooks (só Proprietário e Administrador veem esta página).",
       "Assistente: liga ou desliga a IA (só o Proprietário pode alterar).",
     ],

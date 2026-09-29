@@ -14,6 +14,7 @@ import {
   EmptyChart,
   SeriesLegend,
   SeriesTooltipContent,
+  type LegendMode,
 } from "@/features/dashboard-pages/components/renderers/renderer-parts";
 import type { AnalyticsResult } from "@/types/analytics";
 
@@ -29,9 +30,11 @@ const MAX_LABELLED_BARS = 12;
 export function BarChartRenderer({
   result,
   lookups,
+  legend,
 }: {
   result: AnalyticsResult;
   lookups?: ValueLabeler;
+  legend?: LegendMode;
 }) {
   const series = buildSeries(result);
   const rows = buildRows(result, lookups);
@@ -112,7 +115,7 @@ export function BarChartRenderer({
           </BarChart>
         )}
       </ChartContainer>
-      <SeriesLegend series={series} />
+      <SeriesLegend series={series} mode={legend} />
     </div>
   );
 }

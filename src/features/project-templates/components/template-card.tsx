@@ -4,11 +4,9 @@ import { getCategoryInfo } from "@/features/project-templates/lib/categories";
 import {
   formatTemplateCounts,
   getAuthorLabel,
+  isWorkspaceTemplate,
 } from "@/features/project-templates/lib/template-labels";
-import {
-  TemplatePriceBadge,
-  TemplateStatusBadge,
-} from "@/features/project-templates/components/template-badges";
+import { WorkspaceTemplateBadge } from "@/features/project-templates/components/template-badges";
 import type {
   ProjectTemplateCategoryInfo,
   ProjectTemplateSummary,
@@ -17,11 +15,9 @@ import type {
 interface TemplateCardProps {
   template: ProjectTemplateSummary;
   categories?: ProjectTemplateCategoryInfo[];
-  // "Meus modelos" shows the status; the hub only lists PUBLISHED ones.
-  showStatus?: boolean;
 }
 
-export function TemplateCard({ template, categories, showStatus }: TemplateCardProps) {
+export function TemplateCard({ template, categories }: TemplateCardProps) {
   const category = getCategoryInfo(template.category, categories);
 
   return (
@@ -35,10 +31,7 @@ export function TemplateCard({ template, categories, showStatus }: TemplateCardP
             <p className="text-xs text-muted-foreground">
               <span aria-hidden>{category.icon}</span> {category.label}
             </p>
-            <div className="flex shrink-0 flex-wrap justify-end gap-1">
-              {showStatus ? <TemplateStatusBadge status={template.status} /> : null}
-              <TemplatePriceBadge priceCents={template.priceCents} />
-            </div>
+            {isWorkspaceTemplate(template) ? <WorkspaceTemplateBadge /> : null}
           </div>
           <CardTitle className="leading-snug">{template.name}</CardTitle>
           {template.description ? (
@@ -47,7 +40,7 @@ export function TemplateCard({ template, categories, showStatus }: TemplateCardP
         </CardHeader>
         <CardContent className="mt-auto space-y-1 text-xs text-muted-foreground">
           <p>{formatTemplateCounts(template)}</p>
-          <p>Por {getAuthorLabel(template)}</p>
+          <p>{getAuthorLabel(template)}</p>
         </CardContent>
       </Card>
     </Link>

@@ -23,12 +23,6 @@ export type ProjectTemplateCategory = (typeof PROJECT_TEMPLATE_CATEGORIES)[numbe
 
 export type ProjectTemplateStatus = "PUBLISHED" | "UNPUBLISHED" | "REMOVED";
 
-export type ProjectTemplateAccess = "FREE" | "AUTHOR" | "PURCHASED" | "PURCHASE_REQUIRED";
-
-export type ProjectTemplatePricing = "free" | "paid";
-
-export type ProjectTemplateOrigin = "system" | "community";
-
 export interface ProjectTemplateAuthor {
   id: string;
   name: string | null;
@@ -40,11 +34,10 @@ export interface ProjectTemplateSummary {
   description: string | null;
   category: ProjectTemplateCategory;
   isSystemDefault: boolean;
-  // `null` on system templates.
+  // Set on workspace templates, `null` on system ones.
+  workspaceId?: string | null;
+  // Who saved it; `null` on system templates.
   author: ProjectTemplateAuthor | null;
-  // Cents; 0 = free. `currency` is always "BRL".
-  priceCents: number;
-  currency: string;
   status: ProjectTemplateStatus;
   sectionCount: number;
   customFieldCount: number;
@@ -86,12 +79,10 @@ export interface ProjectTemplateSkeleton {
   tasks: ProjectTemplateSkeletonTask[];
 }
 
-// Depends on who asks — never derive it from the (shared, cached) list.
+// Only answered for templates the requester may see (404 otherwise), and
+// never cached by the API — so never derive it from the (shared, cached) list.
 export interface ProjectTemplateDetail extends ProjectTemplateSummary {
-  access: ProjectTemplateAccess;
-  canInstantiate: boolean;
-  // `null` with `access: "PURCHASE_REQUIRED"`.
-  skeleton: ProjectTemplateSkeleton | null;
+  skeleton: ProjectTemplateSkeleton;
 }
 
 // Admin responses (API.md § 26.7).
@@ -104,13 +95,10 @@ export interface ProjectTemplateCategoryInfo {
   slug: ProjectTemplateCategory;
   label: string;
   icon: string;
-  templateCount: number;
 }
 
 export interface ProjectTemplateFilters extends PaginationParams {
   category?: ProjectTemplateCategory;
-  pricing?: ProjectTemplatePricing;
-  origin?: ProjectTemplateOrigin;
   search?: string;
 }
 
@@ -127,25 +115,16 @@ export interface InstantiateProjectTemplateResponse {
   projectId: string;
 }
 
-export interface PublishProjectAsTemplateRequest {
+export interface SaveProjectAsTemplateRequest {
   name: string;
   description?: string;
   category: ProjectTemplateCategory;
-  // 0 (free) or 100–100000.
-  priceCents?: number;
 }
 
 export interface UpdateProjectTemplateListingRequest {
   name?: string;
   description?: string | null; // null clears it
   category?: ProjectTemplateCategory;
-  priceCents?: number;
-}
-
-export interface ProjectTemplateCheckoutResponse {
-  purchaseId: string;
-  checkoutUrl: string;
-  expiresAt: string;
 }
 
 export interface CreateProjectTemplateRequest {

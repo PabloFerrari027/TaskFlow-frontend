@@ -5,16 +5,12 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   PROJECT_TEMPLATE_CATEGORIES,
   type ProjectTemplateCategory,
-  type ProjectTemplateOrigin,
-  type ProjectTemplatePricing,
   type ProjectTemplateStatus,
 } from "@/types/project-template";
 
 export interface TemplateUrlFilters {
   page: number;
   category?: ProjectTemplateCategory;
-  pricing?: ProjectTemplatePricing;
-  origin?: ProjectTemplateOrigin;
   search?: string;
   status?: ProjectTemplateStatus;
 }
@@ -28,8 +24,6 @@ function parse(params: URLSearchParams): TemplateUrlFilters {
   return {
     page: Number.isInteger(page) && page > 0 ? page : 1,
     category: pick(params.get("category"), PROJECT_TEMPLATE_CATEGORIES),
-    pricing: pick(params.get("pricing"), ["free", "paid"] as const),
-    origin: pick(params.get("origin"), ["system", "community"] as const),
     // The API caps `search` at 100 characters.
     search: params.get("search")?.trim().slice(0, 100) || undefined,
     status: pick(params.get("status"), ["PUBLISHED", "UNPUBLISHED", "REMOVED"] as const),
@@ -38,7 +32,7 @@ function parse(params: URLSearchParams): TemplateUrlFilters {
 
 /**
  * Filters and page live in the query string — not in state — so a filtered
- * hub link can be shared and the back button walks through filter changes.
+ * link can be shared and the back button walks through filter changes.
  * Unknown values in a hand-edited URL are simply ignored.
  */
 export function useTemplateUrlFilters() {
@@ -55,8 +49,6 @@ export function useTemplateUrlFilters() {
       const params = new URLSearchParams();
       if (next.search) params.set("search", next.search);
       if (next.category) params.set("category", next.category);
-      if (next.pricing) params.set("pricing", next.pricing);
-      if (next.origin) params.set("origin", next.origin);
       if (next.status) params.set("status", next.status);
       if (next.page > 1) params.set("page", String(next.page));
       const query = params.toString();
@@ -67,19 +59,10 @@ export function useTemplateUrlFilters() {
     [filters, pathname, router]
   );
 
-  const hasActiveFilters = Boolean(
-    filters.search || filters.category || filters.pricing || filters.origin || filters.status
-  );
+  const hasActiveFilters = Boolean(filters.search || filters.category || filters.status);
 
   const clearFilters = React.useCallback(
-    () =>
-      setFilters({
-        search: undefined,
-        category: undefined,
-        pricing: undefined,
-        origin: undefined,
-        status: undefined,
-      }),
+    () => setFilters({ search: undefined, category: undefined, status: undefined }),
     [setFilters]
   );
 

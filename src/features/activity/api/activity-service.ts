@@ -10,6 +10,14 @@ export async function getWorkspaceActivity(workspaceId: string, params?: Paginat
   return data;
 }
 
+export async function getProjectActivity(projectId: string, params?: PaginationParams) {
+  const { data } = await apiClient.get<PaginatedResult<ActivityLogEntry>>(
+    `/projects/${projectId}/activity`,
+    { params }
+  );
+  return data;
+}
+
 export async function getTaskActivity(taskId: string, params?: PaginationParams) {
   const { data } = await apiClient.get<PaginatedResult<ActivityLogEntry>>(
     `/tasks/${taskId}/activity`,

@@ -85,7 +85,7 @@ export function SharedPageViewer({ kind, token }: { kind: SharedPageLinkKind; to
           Esta página ainda não tem gráficos.
         </p>
       ) : (
-        <DashboardGrid charts={page.charts} editable={false} />
+        <DashboardGrid pageId={page.id} charts={page.charts} editable={false} />
       )}
     </div>
   );

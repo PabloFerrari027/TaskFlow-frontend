@@ -36,6 +36,11 @@ import {
   type CreateCustomFieldFormValues,
 } from "@/features/custom-fields/schemas";
 import { useCreateCustomFieldMutation } from "@/features/custom-fields/hooks/use-custom-fields";
+import { OptionColorPicker } from "@/features/custom-fields/components/option-color-picker";
+import {
+  buildOptionColors,
+  suggestOptionColor,
+} from "@/features/custom-fields/lib/option-colors";
 
 interface CreateCustomFieldDialogProps {
   projectId: string;
@@ -52,7 +57,11 @@ export function CreateCustomFieldDialog({
 
   const form = useForm<CreateCustomFieldFormValues>({
     resolver: zodResolver(createCustomFieldSchema),
-    defaultValues: { name: "", type: "TEXT", options: [{ value: "" }] },
+    defaultValues: {
+      name: "",
+      type: "TEXT",
+      options: [{ value: "", color: suggestOptionColor(0) }],
+    },
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -69,6 +78,7 @@ export function CreateCustomFieldDialog({
         name: values.name,
         type: values.type,
         options: needsOptions ? sanitizeOptions(values.options) : undefined,
+        optionColors: needsOptions ? buildOptionColors(values.options ?? []) : undefined,
       },
       {
         onSuccess: () => {
@@ -145,6 +155,16 @@ export function CreateCustomFieldDialog({
                       render={({ field }) => (
                         <FormItem>
                           <div className="flex items-center gap-2">
+                            <FormField
+                              control={form.control}
+                              name={`options.${index}.color`}
+                              render={({ field: colorField }) => (
+                                <OptionColorPicker
+                                  value={colorField.value ?? null}
+                                  onChange={colorField.onChange}
+                                />
+                              )}
+                            />
                             <FormControl>
                               <Input placeholder={`Opção ${index + 1}`} {...field} />
                             </FormControl>
@@ -168,7 +188,7 @@ export function CreateCustomFieldDialog({
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => append({ value: "" })}
+                  onClick={() => append({ value: "", color: suggestOptionColor(fields.length) })}
                 >
                   <Plus /> Adicionar opção
                 </Button>

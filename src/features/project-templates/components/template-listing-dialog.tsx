@@ -2,18 +2,11 @@
 
 import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useWatch, type DefaultValues } from "react-hook-form";
+import { useForm, type DefaultValues } from "react-hook-form";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-  InputGroupText,
-} from "@/components/ui/input-group";
 import {
   Select,
   SelectContent,
@@ -32,7 +25,6 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -51,7 +43,7 @@ interface TemplateListingDialogProps {
   onOpenChange: (open: boolean) => void;
   title: string;
   description?: string;
-  // Shown above the fields (e.g. what does and doesn't go to the hub).
+  // Shown above the fields (e.g. what does and doesn't go into the template).
   notice?: React.ReactNode;
   submitLabel: string;
   defaultValues: DefaultValues<TemplateListingFormValues>;
@@ -75,7 +67,6 @@ export function TemplateListingDialog({
     resolver: zodResolver(templateListingSchema),
     defaultValues,
   });
-  const isPaid = useWatch({ control: form.control, name: "isPaid" });
 
   return (
     <Dialog
@@ -160,52 +151,6 @@ export function TemplateListingDialog({
                 </FormItem>
               )}
             />
-
-            <FormField
-              control={form.control}
-              name="isPaid"
-              render={({ field }) => (
-                <FormItem className="flex items-center justify-between gap-4 rounded-lg border border-border/60 p-3">
-                  <div className="space-y-0.5">
-                    <FormLabel>{field.value ? "Pago" : "Grátis"}</FormLabel>
-                    <FormDescription>
-                      {field.value
-                        ? "Quem quiser usar paga uma única vez."
-                        : "Qualquer pessoa pode usar sem pagar."}
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      aria-label="Cobrar pelo modelo"
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-
-            {isPaid ? (
-              <FormField
-                control={form.control}
-                name="price"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Preço</FormLabel>
-                    <InputGroup>
-                      <InputGroupAddon>
-                        <InputGroupText>R$</InputGroupText>
-                      </InputGroupAddon>
-                      <FormControl>
-                        <InputGroupInput inputMode="decimal" placeholder="19,90" {...field} />
-                      </FormControl>
-                    </InputGroup>
-                    <FormDescription>Entre R$ 1,00 e R$ 1.000,00.</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            ) : null}
 
             <DialogFooter>
               <Button type="submit" disabled={isPending}>

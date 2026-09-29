@@ -9,6 +9,7 @@ import {
   EmptyChart,
   SeriesLegend,
   SeriesTooltipContent,
+  type LegendMode,
 } from "@/features/dashboard-pages/components/renderers/renderer-parts";
 import type { AnalyticsResult } from "@/types/analytics";
 
@@ -20,9 +21,11 @@ const MAX_DOTTED_POINTS = 16;
 export function LineChartRenderer({
   result,
   lookups,
+  legend,
 }: {
   result: AnalyticsResult;
   lookups?: ValueLabeler;
+  legend?: LegendMode;
 }) {
   const series = buildSeries(result);
   const rows = buildRows(result, lookups);
@@ -63,7 +66,7 @@ export function LineChartRenderer({
           ))}
         </LineChart>
       </ChartContainer>
-      <SeriesLegend series={series} />
+      <SeriesLegend series={series} mode={legend} />
     </div>
   );
 }
