@@ -22,15 +22,20 @@ export function formatTemplateCounts(
   return parts.join(" · ");
 }
 
+// "Por TaskFlow" on system templates, "Salvo por Ana" on workspace ones.
 export function getAuthorLabel(template: Pick<ProjectTemplateSummary, "isSystemDefault" | "author">) {
-  if (template.isSystemDefault || !template.author) return "TaskFlow";
-  return template.author.name ?? "Usuário da comunidade";
+  if (template.isSystemDefault || !template.author) return "Por TaskFlow";
+  return `Salvo por ${template.author.name ?? "alguém do workspace"}`;
+}
+
+export function isWorkspaceTemplate(template: Pick<ProjectTemplateSummary, "isSystemDefault">) {
+  return !template.isSystemDefault;
 }
 
 export const TEMPLATE_STATUS_LABEL: Record<ProjectTemplateStatus, string> = {
-  PUBLISHED: "No hub",
-  UNPUBLISHED: "Fora do hub",
-  REMOVED: "Removido pela moderação",
+  PUBLISHED: "Disponível",
+  UNPUBLISHED: "Oculto",
+  REMOVED: "Tirado da lista",
 };
 
 export function formatDueInDays(days: number) {

@@ -9,8 +9,8 @@ export default function AdminTemplatesPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Modelos"
-        description="Modere os modelos do hub: remova o que não deve estar lá e restaure quando for o caso."
+        title="Modelos do sistema"
+        description="Gerencie os modelos que o TaskFlow oferece a todos: tire da lista, restaure ou exclua."
       />
       <Suspense fallback={<Skeleton className="h-64 w-full" />}>
         <AdminTemplatesTable />

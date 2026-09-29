@@ -144,15 +144,8 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   PROJECT_TEMPLATE_NOT_FOUND: "Este modelo não está mais disponível.",
   INVALID_PROJECT_TEMPLATE_SKELETON: "O modelo tem um problema que impede salvá-lo.",
   INVALID_PROJECT_TEMPLATE_CATEGORY: "Escolha uma das categorias da lista.",
-  INVALID_PROJECT_TEMPLATE_PRICE:
-    "O preço precisa ser grátis ou ficar entre R$ 1,00 e R$ 1.000,00.",
-  PROJECT_TEMPLATE_NOT_PURCHASED: "Este modelo é pago. Compre-o antes de usar.",
-  PROJECT_TEMPLATE_ALREADY_ACCESSIBLE: "Você já pode usar este modelo, não precisa comprar.",
   PROJECT_TEMPLATE_REMOVED:
-    "Este modelo foi tirado do hub pela moderação e não pode mais ser usado.",
-  PROJECT_TEMPLATE_HAS_PURCHASES:
-    "Alguém já comprou este modelo, por isso ele não pode ser excluído. Você pode tirá-lo do hub.",
-  PAYMENTS_NOT_CONFIGURED: "As compras estão indisponíveis no momento. Tente mais tarde.",
+    "Este modelo foi tirado da lista e não pode mais ser usado.",
 };
 
 const DEFAULT_MESSAGE = "Algo deu errado. Tente novamente em instantes.";

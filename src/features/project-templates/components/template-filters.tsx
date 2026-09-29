@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { Search } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { cn } from "@/lib/utils";
 import { getCategoryInfo } from "@/features/project-templates/lib/categories";
@@ -18,9 +17,6 @@ interface TemplateFiltersProps {
   filters: TemplateUrlFilters;
   setFilters: (patch: Partial<TemplateUrlFilters>, options?: { replace?: boolean }) => void;
   categories?: ProjectTemplateCategoryInfo[];
-  // Per-category counts only describe the hub (PUBLISHED); the admin table
-  // hides them since it also lists other statuses.
-  showCategoryCounts?: boolean;
   extra?: React.ReactNode;
 }
 
@@ -100,42 +96,7 @@ function Chip({
   );
 }
 
-function Segmented<T extends string>({
-  label,
-  value,
-  options,
-  onChange,
-}: {
-  label: string;
-  value: T | undefined;
-  options: { value: T | undefined; label: string }[];
-  onChange: (value: T | undefined) => void;
-}) {
-  return (
-    <div role="group" aria-label={label} className="inline-flex rounded-lg border border-border p-0.5">
-      {options.map((option) => (
-        <Button
-          key={option.label}
-          type="button"
-          size="sm"
-          variant={option.value === value ? "secondary" : "ghost"}
-          aria-pressed={option.value === value}
-          onClick={() => onChange(option.value)}
-        >
-          {option.label}
-        </Button>
-      ))}
-    </div>
-  );
-}
-
-export function TemplateFilters({
-  filters,
-  setFilters,
-  categories,
-  showCategoryCounts = true,
-  extra,
-}: TemplateFiltersProps) {
+export function TemplateFilters({ filters, setFilters, categories, extra }: TemplateFiltersProps) {
   const onSearch = React.useCallback(
     (search: string) => setFilters({ search: search || undefined }, { replace: true }),
     [setFilters]
@@ -145,26 +106,6 @@ export function TemplateFilters({
     <div className="space-y-3">
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
         <SearchBox value={filters.search ?? ""} onDebouncedChange={onSearch} />
-        <Segmented
-          label="Preço"
-          value={filters.pricing}
-          onChange={(pricing) => setFilters({ pricing })}
-          options={[
-            { value: undefined, label: "Todos os preços" },
-            { value: "free", label: "Grátis" },
-            { value: "paid", label: "Pagos" },
-          ]}
-        />
-        <Segmented
-          label="Origem"
-          value={filters.origin}
-          onChange={(origin) => setFilters({ origin })}
-          options={[
-            { value: undefined, label: "Todas as origens" },
-            { value: "system", label: "TaskFlow" },
-            { value: "community", label: "Comunidade" },
-          ]}
-        />
         {extra}
       </div>
 
@@ -174,7 +115,6 @@ export function TemplateFilters({
         </Chip>
         {PROJECT_TEMPLATE_CATEGORIES.map((slug) => {
           const info = getCategoryInfo(slug, categories);
-          const count = categories?.find((category) => category.slug === slug)?.templateCount;
           return (
             <Chip
               key={slug}
@@ -185,9 +125,6 @@ export function TemplateFilters({
             >
               <span aria-hidden>{info.icon}</span>
               {info.label}
-              {showCategoryCounts && count !== undefined ? (
-                <span className="tabular-nums opacity-70">{count}</span>
-              ) : null}
             </Chip>
           );
         })}

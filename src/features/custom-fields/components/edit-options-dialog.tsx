@@ -12,6 +12,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useUpdateCustomFieldOptionsMutation } from "@/features/custom-fields/hooks/use-custom-fields";
+import { OptionColorPicker } from "@/features/custom-fields/components/option-color-picker";
+import {
+  buildOptionColors,
+  getOptionColor,
+  suggestOptionColor,
+} from "@/features/custom-fields/lib/option-colors";
 import type { CustomFieldDefinition } from "@/types/custom-field";
 
 interface EditOptionsDialogProps {
@@ -19,6 +25,11 @@ interface EditOptionsDialogProps {
   definition: CustomFieldDefinition;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+}
+
+interface OptionRow {
+  value: string;
+  color: string | null;
 }
 
 export function EditOptionsDialog({
@@ -30,16 +41,19 @@ export function EditOptionsDialog({
   const updateMutation = useUpdateCustomFieldOptionsMutation(projectId);
   // Parent remounts this component (via `key={definition.id}`) whenever a
   // different definition is being edited, so a lazy initializer is enough —
-  // no effect needed to resync `options` when `definition` changes.
-  const [options, setOptions] = React.useState(() => {
+  // no effect needed to resync `options` when `definition` changes. Each row
+  // carries its color, so renaming an option keeps it.
+  const [options, setOptions] = React.useState<OptionRow[]>(() => {
     const initial = definition.options ?? [];
-    return initial.length > 0 ? initial : [""];
+    return initial.length > 0
+      ? initial.map((value) => ({ value, color: getOptionColor(definition, value) }))
+      : [{ value: "", color: suggestOptionColor(0) }];
   });
 
-  const sanitized = options.map((option) => option.trim()).filter(Boolean);
+  const sanitized = options.map((option) => option.value.trim()).filter(Boolean);
 
-  function updateOption(index: number, value: string) {
-    setOptions((prev) => prev.map((option, i) => (i === index ? value : option)));
+  function updateOption(index: number, patch: Partial<OptionRow>) {
+    setOptions((prev) => prev.map((option, i) => (i === index ? { ...option, ...patch } : option)));
   }
 
   function removeOption(index: number) {
@@ -49,7 +63,10 @@ export function EditOptionsDialog({
   function handleSave() {
     if (sanitized.length === 0) return;
     updateMutation.mutate(
-      { definitionId: definition.id, payload: { options: sanitized } },
+      {
+        definitionId: definition.id,
+        payload: { options: sanitized, optionColors: buildOptionColors(options) },
+      },
       { onSuccess: () => onOpenChange(false) }
     );
   }
@@ -64,9 +81,13 @@ export function EditOptionsDialog({
         <div className="space-y-2">
           {options.map((option, index) => (
             <div key={index} className="flex items-center gap-2">
+              <OptionColorPicker
+                value={option.color}
+                onChange={(color) => updateOption(index, { color })}
+              />
               <Input
-                value={option}
-                onChange={(event) => updateOption(index, event.target.value)}
+                value={option.value}
+                onChange={(event) => updateOption(index, { value: event.target.value })}
                 placeholder={`Opção ${index + 1}`}
               />
               <Button
@@ -85,7 +106,9 @@ export function EditOptionsDialog({
           type="button"
           variant="outline"
           size="sm"
-          onClick={() => setOptions((prev) => [...prev, ""])}
+          onClick={() =>
+            setOptions((prev) => [...prev, { value: "", color: suggestOptionColor(prev.length) }])
+          }
         >
           <Plus /> Adicionar opção
         </Button>

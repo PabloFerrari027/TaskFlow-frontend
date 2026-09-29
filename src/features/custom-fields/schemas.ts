@@ -26,7 +26,7 @@ export const createCustomFieldSchema = z
   .object({
     name: z.string().min(2, "O nome precisa ter pelo menos 2 caracteres."),
     type: z.enum(CUSTOM_FIELD_TYPES),
-    options: z.array(z.object({ value: z.string() })).optional(),
+    options: z.array(z.object({ value: z.string(), color: z.string().nullable() })).optional(),
   })
   .refine(
     (data) =>

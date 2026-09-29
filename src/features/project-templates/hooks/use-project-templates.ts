@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import {
   keepPreviousData,
   useMutation,
@@ -18,7 +17,7 @@ import type {
   ModerateProjectTemplateRequest,
   ProjectTemplateDetail,
   ProjectTemplateFilters,
-  PublishProjectAsTemplateRequest,
+  SaveProjectAsTemplateRequest,
   UpdateProjectTemplateListingRequest,
   UpdateProjectTemplateRequest,
 } from "@/types/project-template";
@@ -37,80 +36,56 @@ export function useProjectTemplateCategoriesQuery() {
   return useQuery({
     queryKey: queryKeys.projectTemplates.categories(),
     queryFn: () => projectTemplatesService.categories(),
-    // Fixed list; only the counts move, and slowly.
+    // Fixed list.
     staleTime: 5 * 60_000,
   });
 }
 
-export function useProjectTemplateQuery(
-  templateId: string | null | undefined,
-  options: {
-    // Decided from the latest answer — e.g. keep polling after a checkout
-    // until `access` flips. Never polls while the query is in error.
-    refetchInterval?: (template: ProjectTemplateDetail | undefined) => number | false;
-  } = {}
-) {
-  const { refetchInterval } = options;
+export function useProjectTemplateQuery(templateId: string | null | undefined) {
   return useQuery({
     queryKey: queryKeys.projectTemplates.detail(templateId ?? ""),
     queryFn: () => projectTemplatesService.get(templateId as string),
     enabled: Boolean(templateId),
-    refetchInterval: refetchInterval
-      ? (query) => (query.state.status === "error" ? false : refetchInterval(query.state.data))
-      : undefined,
-    // A 404 here is a real answer ("not in the hub for you"), not a blip.
+    // A 404 here is a real answer ("not available to you"), not a blip.
     retry: (failureCount, error) =>
       getErrorCode(error) !== "PROJECT_TEMPLATE_NOT_FOUND" && failureCount < 1,
   });
 }
 
-export function useMyProjectTemplatesQuery() {
+export function useWorkspaceProjectTemplatesQuery(workspaceId: string | null | undefined) {
   return useQuery({
-    queryKey: queryKeys.projectTemplates.mine(),
-    queryFn: () => projectTemplatesService.mine(),
+    queryKey: queryKeys.projectTemplates.workspace(workspaceId ?? ""),
+    queryFn: () => projectTemplatesService.listForWorkspace(workspaceId as string),
+    enabled: Boolean(workspaceId),
   });
 }
 
-export function usePurchasedProjectTemplatesQuery() {
-  return useQuery({
-    queryKey: queryKeys.projectTemplates.purchased(),
-    queryFn: () => projectTemplatesService.purchased(),
-  });
-}
-
-// A purchase is confirmed by Stripe's webhook, not by any request of ours,
-// so the page that sees `access` flip is the one that refreshes "Comprados".
-export function useInvalidatePurchasedProjectTemplates() {
-  const queryClient = useQueryClient();
-  return React.useCallback(
-    () => queryClient.invalidateQueries({ queryKey: queryKeys.projectTemplates.purchased() }),
-    [queryClient]
-  );
-}
-
-// Anything that changes what the hub shows (a template entering/leaving it,
-// or its name/category/price) — the lists and the per-category counts.
-function invalidateHub(queryClient: QueryClient) {
+// Anything that changes what the system catalog shows — the public lists and
+// the admin table.
+function invalidateCatalog(queryClient: QueryClient) {
   queryClient.invalidateQueries({ queryKey: queryKeys.projectTemplates.lists() });
-  queryClient.invalidateQueries({ queryKey: queryKeys.projectTemplates.categories() });
   queryClient.invalidateQueries({ queryKey: queryKeys.projectTemplates.adminLists() });
 }
 
-// An author write answers with the fresh detail (`access: "AUTHOR"`), which
-// is exactly what the author's own detail query holds.
-function cacheAuthorTemplate(queryClient: QueryClient, template: ProjectTemplateDetail) {
+// A workspace-template write answers with the fresh detail, which is exactly
+// what that template's detail query holds.
+function cacheWorkspaceTemplate(queryClient: QueryClient, template: ProjectTemplateDetail) {
   queryClient.setQueryData(queryKeys.projectTemplates.detail(template.id), template);
-  queryClient.invalidateQueries({ queryKey: queryKeys.projectTemplates.mine() });
-  invalidateHub(queryClient);
+  if (template.workspaceId) {
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.projectTemplates.workspace(template.workspaceId),
+    });
+  }
 }
 
-// The template left the hub (or never existed for this user) after a screen
+// The template is gone (or never existed for this user) after a screen
 // loaded: drop it so nothing keeps offering it.
 function forgetTemplate(queryClient: QueryClient, templateId: string) {
   queryClient.removeQueries({ queryKey: queryKeys.projectTemplates.detail(templateId) });
-  queryClient.invalidateQueries({ queryKey: queryKeys.projectTemplates.mine() });
-  queryClient.invalidateQueries({ queryKey: queryKeys.projectTemplates.purchased() });
-  invalidateHub(queryClient);
+  queryClient.invalidateQueries({
+    queryKey: [...queryKeys.projectTemplates.all(), "workspace"],
+  });
+  invalidateCatalog(queryClient);
 }
 
 /**
@@ -138,16 +113,7 @@ export function useInstantiateProjectTemplateMutation(workspaceId: string) {
       }
       if (code === "PROJECT_TEMPLATE_REMOVED") {
         forgetTemplate(queryClient, templateId);
-        toast.error("Este modelo foi tirado do hub pela moderação. Nada foi criado.");
-        return;
-      }
-      // 402: the local `access` was stale (e.g. a refund) — refetch it so the
-      // page swaps the button for "Comprar".
-      if (code === "PROJECT_TEMPLATE_NOT_PURCHASED") {
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.projectTemplates.detail(templateId),
-        });
-        toast.error("Este modelo é pago e ainda não foi comprado. Nada foi criado.");
+        toast.error("Este modelo não está mais disponível. Nada foi criado.");
         return;
       }
       if (code === "FORBIDDEN_WORKSPACE_ACTION") {
@@ -161,15 +127,15 @@ export function useInstantiateProjectTemplateMutation(workspaceId: string) {
   });
 }
 
-export function usePublishProjectAsTemplateMutation(projectId: string) {
+export function useSaveProjectAsTemplateMutation(projectId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: PublishProjectAsTemplateRequest) =>
-      projectTemplatesService.publishFromProject(projectId, input),
-    onSuccess: (template) => cacheAuthorTemplate(queryClient, template),
+    mutationFn: (input: SaveProjectAsTemplateRequest) =>
+      projectTemplatesService.saveFromProject(projectId, input),
+    onSuccess: (template) => cacheWorkspaceTemplate(queryClient, template),
     onError: (error) => {
-      // On publish this code only means "too big" — the skeleton is built by
+      // On save this code only means "too big" — the skeleton is built by
       // the server from the project, never by the user.
       if (getErrorCode(error) === "INVALID_PROJECT_TEMPLATE_SKELETON") {
         toast.error(
@@ -182,7 +148,7 @@ export function usePublishProjectAsTemplateMutation(projectId: string) {
   });
 }
 
-export function useUpdateProjectTemplateListingMutation() {
+export function useUpdateProjectTemplateMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -194,8 +160,8 @@ export function useUpdateProjectTemplateListingMutation() {
       input: UpdateProjectTemplateListingRequest;
     }) => projectTemplatesService.update(templateId, input),
     onSuccess: (template) => {
-      cacheAuthorTemplate(queryClient, template);
-      toast.success("Anúncio atualizado.");
+      cacheWorkspaceTemplate(queryClient, template);
+      toast.success("Modelo atualizado.");
     },
     onError: (error, { templateId }) => {
       if (getErrorCode(error) === "PROJECT_TEMPLATE_NOT_FOUND") forgetTemplate(queryClient, templateId);
@@ -204,48 +170,6 @@ export function useUpdateProjectTemplateListingMutation() {
   });
 }
 
-export function usePublishProjectTemplateMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (templateId: string) => projectTemplatesService.publish(templateId),
-    onSuccess: (template) => {
-      cacheAuthorTemplate(queryClient, template);
-      toast.success("Modelo de volta ao hub.");
-    },
-    onError: (error, templateId) => {
-      const code = getErrorCode(error);
-      if (code === "PROJECT_TEMPLATE_NOT_FOUND" || code === "PROJECT_TEMPLATE_REMOVED") {
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.projectTemplates.detail(templateId),
-        });
-        queryClient.invalidateQueries({ queryKey: queryKeys.projectTemplates.mine() });
-      }
-      toast.error(getErrorMessage(error));
-    },
-  });
-}
-
-export function useUnpublishProjectTemplateMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (templateId: string) => projectTemplatesService.unpublish(templateId),
-    onSuccess: (template) => {
-      cacheAuthorTemplate(queryClient, template);
-      toast.success("Modelo tirado do hub. Quem já comprou continua usando.");
-    },
-    onError: (error, templateId) => {
-      if (getErrorCode(error) === "PROJECT_TEMPLATE_NOT_FOUND") forgetTemplate(queryClient, templateId);
-      toast.error(getErrorMessage(error));
-    },
-  });
-}
-
-/**
- * `PROJECT_TEMPLATE_HAS_PURCHASES` gets no toast: the caller explains it and
- * offers "Tirar do hub" instead, the only way out (API.md § 26.5).
- */
 export function useDeleteProjectTemplateMutation() {
   const queryClient = useQueryClient();
 
@@ -256,10 +180,8 @@ export function useDeleteProjectTemplateMutation() {
       toast.success("Modelo excluído.");
     },
     onError: (error, templateId) => {
-      const code = getErrorCode(error);
-      if (code === "PROJECT_TEMPLATE_HAS_PURCHASES") return;
-      // Already gone — the outcome the author wanted.
-      if (code === "PROJECT_TEMPLATE_NOT_FOUND") {
+      // Already gone — the outcome the user wanted.
+      if (getErrorCode(error) === "PROJECT_TEMPLATE_NOT_FOUND") {
         forgetTemplate(queryClient, templateId);
         toast.success("Modelo excluído.");
         return;
@@ -269,37 +191,9 @@ export function useDeleteProjectTemplateMutation() {
   });
 }
 
-/**
- * Sends the browser to Stripe. Access is only granted by Stripe's webhook,
- * never by the return trip — the detail page polls for it (API.md § 26.6).
- */
-export function useCheckoutProjectTemplateMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (templateId: string) => projectTemplatesService.checkout(templateId),
-    onSuccess: ({ checkoutUrl }) => {
-      window.location.assign(checkoutUrl);
-    },
-    onError: (error, templateId) => {
-      const code = getErrorCode(error);
-      if (code === "PROJECT_TEMPLATE_ALREADY_ACCESSIBLE") {
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.projectTemplates.detail(templateId),
-        });
-        queryClient.invalidateQueries({ queryKey: queryKeys.projectTemplates.purchased() });
-        toast.info(getErrorMessage(error));
-        return;
-      }
-      if (code === "PROJECT_TEMPLATE_NOT_FOUND") forgetTemplate(queryClient, templateId);
-      toast.error(getErrorMessage(error));
-    },
-  });
-}
-
 // ---------------------------------------------------------------------------
-// Admin (SUPER_ADMIN). There's no screen for creating/editing system
-// templates yet; the create/update hooks exist for when there is.
+// Admin (SUPER_ADMIN): the system catalog. There's no screen for creating or
+// editing system templates yet; the create/update hooks exist for when there is.
 
 export function useAdminProjectTemplatesQuery(filters: AdminProjectTemplateFilters) {
   return useQuery({
@@ -327,9 +221,7 @@ function toastTemplateWriteError(error: unknown) {
 // never go into the detail cache; the detail is refetched instead.
 function invalidateAfterAdminWrite(queryClient: QueryClient, templateId: string) {
   queryClient.invalidateQueries({ queryKey: queryKeys.projectTemplates.detail(templateId) });
-  queryClient.invalidateQueries({ queryKey: queryKeys.projectTemplates.mine() });
-  queryClient.invalidateQueries({ queryKey: queryKeys.projectTemplates.purchased() });
-  invalidateHub(queryClient);
+  invalidateCatalog(queryClient);
 }
 
 export function useAdminCreateProjectTemplateMutation() {
@@ -338,7 +230,7 @@ export function useAdminCreateProjectTemplateMutation() {
   return useMutation({
     mutationFn: (input: CreateProjectTemplateRequest) => projectTemplatesService.adminCreate(input),
     onSuccess: () => {
-      invalidateHub(queryClient);
+      invalidateCatalog(queryClient);
       toast.success("Modelo criado.");
     },
     onError: toastTemplateWriteError,
@@ -367,7 +259,6 @@ export function useAdminUpdateProjectTemplateMutation() {
   });
 }
 
-/** Same HAS_PURCHASES contract as `useDeleteProjectTemplateMutation`. */
 export function useAdminDeleteProjectTemplateMutation() {
   const queryClient = useQueryClient();
 
@@ -378,9 +269,7 @@ export function useAdminDeleteProjectTemplateMutation() {
       toast.success("Modelo excluído.");
     },
     onError: (error, templateId) => {
-      const code = getErrorCode(error);
-      if (code === "PROJECT_TEMPLATE_HAS_PURCHASES") return;
-      if (code === "PROJECT_TEMPLATE_NOT_FOUND") {
+      if (getErrorCode(error) === "PROJECT_TEMPLATE_NOT_FOUND") {
         forgetTemplate(queryClient, templateId);
         toast.success("Modelo excluído.");
         return;
@@ -403,7 +292,7 @@ export function useAdminRemoveProjectTemplateMutation() {
     }) => projectTemplatesService.adminRemove(templateId, input),
     onSuccess: (template) => {
       invalidateAfterAdminWrite(queryClient, template.id);
-      toast.success("Modelo removido do hub.");
+      toast.success("Modelo tirado da lista.");
     },
     onError: (error) => toast.error(getErrorMessage(error)),
   });
@@ -422,7 +311,7 @@ export function useAdminRestoreProjectTemplateMutation() {
     }) => projectTemplatesService.adminRestore(templateId, input),
     onSuccess: (template) => {
       invalidateAfterAdminWrite(queryClient, template.id);
-      toast.success("Modelo restaurado e de volta ao hub.");
+      toast.success("Modelo restaurado e de volta à lista.");
     },
     onError: (error) => toast.error(getErrorMessage(error)),
   });

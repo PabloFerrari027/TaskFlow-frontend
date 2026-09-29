@@ -158,6 +158,7 @@ export function CreateProjectDialog({
 
         {showSuggestions ? (
           <TemplateSuggestions
+            workspaceId={workspaceId}
             query={template ? "" : name}
             selectedId={template?.id ?? null}
             onSelect={selectTemplate}

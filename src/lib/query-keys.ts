@@ -110,6 +110,10 @@ export const queryKeys = {
       page
         ? (["activity", "workspace", workspaceId, { page }] as const)
         : (["activity", "workspace", workspaceId] as const),
+    project: (projectId: string, page?: number) =>
+      page
+        ? (["activity", "project", projectId, { page }] as const)
+        : (["activity", "project", projectId] as const),
     task: (taskId: string, page?: number) =>
       page
         ? (["activity", "task", taskId, { page }] as const)
@@ -124,20 +128,21 @@ export const queryKeys = {
     window: (window: "day" | "week" | "month", from: string) =>
       ["ai-usage", "me", "window", window, from] as const,
   },
-  // Templates are global (API.md § 26): no workspaceId in the key, so
-  // switching workspace never refetches them. The filter objects go in as is —
-  // TanStack hashes object keys sorted, and drops `undefined` fields.
+  // The system catalog is global (API.md § 26): no workspaceId in its key, so
+  // switching workspace never refetches it — only `workspace` depends on one.
+  // The filter objects go in as is — TanStack hashes object keys sorted, and
+  // drops `undefined` fields.
   projectTemplates: {
     all: () => ["project-templates"] as const,
     lists: () => ["project-templates", "list"] as const,
     list: (filters: ProjectTemplateFilters) =>
       ["project-templates", "list", filters] as const,
     categories: () => ["project-templates", "categories"] as const,
-    // Answers differ per user (`access`, `canInstantiate`, `skeleton`), so it
-    // is never seeded from the list cache.
+    // Answers differ per user (private templates 404 for non-members), so it is never
+    // seeded from a list cache.
     detail: (templateId: string) => ["project-templates", "detail", templateId] as const,
-    mine: () => ["project-templates", "mine"] as const,
-    purchased: () => ["project-templates", "purchased"] as const,
+    workspace: (workspaceId: string) =>
+      ["project-templates", "workspace", workspaceId] as const,
     adminLists: () => ["project-templates", "admin"] as const,
     adminList: (filters: AdminProjectTemplateFilters) =>
       ["project-templates", "admin", filters] as const,

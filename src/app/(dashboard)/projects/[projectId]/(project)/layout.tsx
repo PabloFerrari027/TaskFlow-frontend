@@ -15,7 +15,7 @@ import { EditProjectDialog } from "@/features/projects/components/edit-project-d
 import { CreateProjectDialog } from "@/features/projects/components/create-project-dialog";
 import { MoveProjectDialog } from "@/features/projects/components/move-project-dialog";
 import { ProjectBreadcrumb } from "@/features/projects/components/project-breadcrumb";
-import { PublishAsTemplateDialog } from "@/features/project-templates/components/publish-as-template-dialog";
+import { SaveAsTemplateDialog } from "@/features/project-templates/components/save-as-template-dialog";
 import { TaskDetailSheet } from "@/features/tasks/components/task-detail-sheet";
 import {
   useArchiveProjectMutation,
@@ -33,7 +33,7 @@ export default function ProjectDetailLayout(
   const [subprojectOpen, setSubprojectOpen] = React.useState(false);
   const [moveOpen, setMoveOpen] = React.useState(false);
   const [archiveOpen, setArchiveOpen] = React.useState(false);
-  const [publishOpen, setPublishOpen] = React.useState(false);
+  const [saveTemplateOpen, setSaveTemplateOpen] = React.useState(false);
 
   const { userId } = useAuth();
   const projectQuery = useProjectQuery(projectId);
@@ -80,8 +80,8 @@ export default function ProjectDetailLayout(
               <Button variant="outline" size="sm" onClick={() => setMoveOpen(true)}>
                 <FolderInput /> Mover para outro projeto
               </Button>
-              <Button variant="outline" size="sm" onClick={() => setPublishOpen(true)}>
-                <LayoutTemplate /> Publicar como modelo
+              <Button variant="outline" size="sm" onClick={() => setSaveTemplateOpen(true)}>
+                <LayoutTemplate /> Salvar como modelo
               </Button>
               {project.status === "ACTIVE" ? (
                 <Button
@@ -109,7 +109,7 @@ export default function ProjectDetailLayout(
         <p className="-mt-4 text-xs text-muted-foreground">Criado por você</p>
       ) : null}
 
-      <ProjectTabsNav projectId={project.id} />
+      <ProjectTabsNav projectId={project.id} showAutomations={canManage} />
 
       {props.children}
 
@@ -138,8 +138,8 @@ export default function ProjectDetailLayout(
           onOpenChange={setMoveOpen}
         />
       ) : null}
-      {publishOpen ? (
-        <PublishAsTemplateDialog project={project} open onOpenChange={setPublishOpen} />
+      {saveTemplateOpen ? (
+        <SaveAsTemplateDialog project={project} open onOpenChange={setSaveTemplateOpen} />
       ) : null}
       <TaskDetailSheet projectId={project.id} />
     </div>

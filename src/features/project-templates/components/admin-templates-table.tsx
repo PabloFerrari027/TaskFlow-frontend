@@ -15,16 +15,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -36,16 +26,9 @@ import { ErrorState } from "@/components/shared/error-state";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { Pager } from "@/components/shared/pager";
 import { formatDate } from "@/lib/format";
-import { getErrorCode } from "@/lib/errors";
 import { getCategoryInfo } from "@/features/project-templates/lib/categories";
-import {
-  getAuthorLabel,
-  TEMPLATE_STATUS_LABEL,
-} from "@/features/project-templates/lib/template-labels";
-import {
-  TemplatePriceBadge,
-  TemplateStatusBadge,
-} from "@/features/project-templates/components/template-badges";
+import { TEMPLATE_STATUS_LABEL } from "@/features/project-templates/lib/template-labels";
+import { TemplateStatusBadge } from "@/features/project-templates/components/template-badges";
 import { TemplateFilters } from "@/features/project-templates/components/template-filters";
 import { ModerationReasonDialog } from "@/features/project-templates/components/moderation-reason-dialog";
 import { useTemplateUrlFilters } from "@/features/project-templates/hooks/use-template-url-filters";
@@ -62,9 +45,10 @@ const PAGE_SIZE = 20;
 const STATUSES: ProjectTemplateStatus[] = ["PUBLISHED", "UNPUBLISHED", "REMOVED"];
 
 type PendingAction =
-  | { kind: "remove" | "restore" | "delete" | "has-purchases"; template: ProjectTemplateSummary }
+  | { kind: "remove" | "restore" | "delete"; template: ProjectTemplateSummary }
   | null;
 
+// The system catalog only — the service pins every admin listing to it.
 export function AdminTemplatesTable() {
   const router = useRouter();
   const { filters, setFilters, clearFilters, hasActiveFilters } = useTemplateUrlFilters();
@@ -73,8 +57,6 @@ export function AdminTemplatesTable() {
     page: filters.page,
     limit: PAGE_SIZE,
     category: filters.category,
-    pricing: filters.pricing,
-    origin: filters.origin,
     search: filters.search,
     status: filters.status,
   });
@@ -104,7 +86,6 @@ export function AdminTemplatesTable() {
         filters={filters}
         setFilters={setFilters}
         categories={categoriesQuery.data}
-        showCategoryCounts={false}
         extra={
           <Select
             // The API lists PUBLISHED when `status` is omitted.
@@ -149,7 +130,7 @@ export function AdminTemplatesTable() {
             }
           />
         ) : (
-          <EmptyState icon={<LayoutTemplate className="size-6" />} title="Nenhum modelo no hub" />
+          <EmptyState icon={<LayoutTemplate className="size-6" />} title="Nenhum modelo do sistema" />
         )
       ) : (
         <div className={templatesQuery.isPlaceholderData ? "space-y-3 opacity-60" : "space-y-3"}>
@@ -158,8 +139,6 @@ export function AdminTemplatesTable() {
               <TableRow>
                 <TableHead>Nome</TableHead>
                 <TableHead>Categoria</TableHead>
-                <TableHead>Autor</TableHead>
-                <TableHead>Preço</TableHead>
                 <TableHead>Situação</TableHead>
                 <TableHead>Atualizado</TableHead>
                 <TableHead className="w-32" />
@@ -175,10 +154,6 @@ export function AdminTemplatesTable() {
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       <span aria-hidden>{category.icon}</span> {category.label}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{getAuthorLabel(template)}</TableCell>
-                    <TableCell>
-                      <TemplatePriceBadge priceCents={template.priceCents} />
                     </TableCell>
                     <TableCell>
                       <TemplateStatusBadge status={template.status} />
@@ -202,8 +177,8 @@ export function AdminTemplatesTable() {
                           <Button
                             variant="ghost"
                             size="icon-sm"
-                            aria-label="Remover do hub"
-                            title="Remover do hub"
+                            aria-label="Tirar da lista"
+                            title="Tirar da lista"
                             onClick={() => setPending({ kind: "remove", template })}
                           >
                             <Ban />
@@ -238,9 +213,9 @@ export function AdminTemplatesTable() {
         <ModerationReasonDialog
           open
           onOpenChange={(open) => !open && close()}
-          title={`Remover “${pending.template.name}” do hub?`}
-          description="Ele some do hub para todos. Ninguém consegue usá-lo, nem quem comprou nem o autor, e o autor não consegue publicá-lo de novo. Dá para restaurar depois."
-          confirmLabel="Remover do hub"
+          title={`Tirar “${pending.template.name}” da lista?`}
+          description="Ele some da lista de modelos para todos e ninguém mais consegue usá-lo. Projetos já criados com ele não mudam. Dá para restaurar depois."
+          confirmLabel="Tirar da lista"
           variant="destructive"
           isPending={removeMutation.isPending}
           onConfirm={(reason) =>
@@ -257,7 +232,7 @@ export function AdminTemplatesTable() {
           open
           onOpenChange={(open) => !open && close()}
           title={`Restaurar “${pending.template.name}”?`}
-          description="O modelo volta para o hub e pode ser usado de novo."
+          description="O modelo volta para a lista e pode ser usado de novo."
           confirmLabel="Restaurar"
           isPending={restoreMutation.isPending}
           onConfirm={(reason) =>
@@ -279,48 +254,9 @@ export function AdminTemplatesTable() {
         isLoading={deleteMutation.isPending}
         onConfirm={() => {
           if (!pending) return;
-          const { template } = pending;
-          deleteMutation.mutate(template.id, {
-            onSuccess: close,
-            onError: (error) => {
-              if (getErrorCode(error) === "PROJECT_TEMPLATE_HAS_PURCHASES") {
-                setPending({ kind: "has-purchases", template });
-              } else {
-                close();
-              }
-            },
-          });
+          deleteMutation.mutate(pending.template.id, { onSettled: close });
         }}
       />
-
-      <AlertDialog
-        open={pending?.kind === "has-purchases"}
-        onOpenChange={(open) => !open && close()}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Este modelo não pode ser excluído</AlertDialogTitle>
-            <AlertDialogDescription>
-              Alguém já pagou por ele. Para tirá-lo do ar, remova do hub: ninguém mais consegue
-              usá-lo, e o histórico de compras fica preservado.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Fechar</AlertDialogCancel>
-            {pending?.kind === "has-purchases" && pending.template.status !== "REMOVED" ? (
-              <AlertDialogAction
-                onClick={(event) => {
-                  // Swap to the remove dialog instead of just closing.
-                  event.preventDefault();
-                  setPending({ kind: "remove", template: pending.template });
-                }}
-              >
-                <Ban /> Remover do hub
-              </AlertDialogAction>
-            ) : null}
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

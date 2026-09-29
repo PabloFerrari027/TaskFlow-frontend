@@ -63,9 +63,19 @@ export function SeriesTooltipContent({
   );
 }
 
+// "auto" keeps a card quiet: a single series is already named by the card's
+// subtitle and the tooltip. "always" is for the expanded view, with room to spare.
+export type LegendMode = "auto" | "always";
+
 /** Colour key for charts with 2+ series — identity is never colour alone. */
-export function SeriesLegend({ series }: { series: ChartSeries[] }) {
-  if (series.length < 2) return null;
+export function SeriesLegend({
+  series,
+  mode = "auto",
+}: {
+  series: ChartSeries[];
+  mode?: LegendMode;
+}) {
+  if (series.length === 0 || (mode === "auto" && series.length < 2)) return null;
   return (
     <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 pt-2 text-xs text-muted-foreground">
       {series.map((s) => (

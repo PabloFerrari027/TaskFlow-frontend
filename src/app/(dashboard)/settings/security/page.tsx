@@ -1,18 +1,7 @@
-"use client";
+import { redirect } from "next/navigation";
 
-import { PageHeader } from "@/components/shared/page-header";
-import { SecuritySettingsSection } from "@/features/auth/components/security-settings-section";
-import { SessionsSettingsSection } from "@/features/sessions/components/sessions-settings-section";
-
+// Security now lives as a section of the profile page; kept as a redirect so
+// old links still land there.
 export default function SecurityPage() {
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Segurança"
-        description="Gerencie a senha, o acesso com Google e os dispositivos conectados à sua conta."
-      />
-      <SecuritySettingsSection />
-      <SessionsSettingsSection />
-    </div>
-  );
+  redirect("/settings/profile#seguranca");
 }

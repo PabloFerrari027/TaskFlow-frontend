@@ -32,6 +32,7 @@ export function TemplateGridSkeleton({ count = 6 }: { count?: number }) {
   );
 }
 
+// The system catalog: the templates TaskFlow itself provides.
 export function TemplateGallery() {
   const { filters, setFilters, clearFilters, hasActiveFilters } = useTemplateUrlFilters();
   const categoriesQuery = useProjectTemplateCategoriesQuery();
@@ -39,8 +40,6 @@ export function TemplateGallery() {
     page: filters.page,
     limit: PAGE_SIZE,
     category: filters.category,
-    pricing: filters.pricing,
-    origin: filters.origin,
     search: filters.search,
   });
 

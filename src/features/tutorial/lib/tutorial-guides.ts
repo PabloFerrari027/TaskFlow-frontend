@@ -120,12 +120,10 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         heading: "O que cada item do menu mostra",
         bullets: [
           "Projetos: todos os projetos do workspace, ativos e arquivados, em árvore ou tabela.",
-          "Atividade: linha do tempo de tudo que aconteceu no workspace atual.",
-          "Automações: regras automáticas do workspace atual (só Proprietário e Administrador veem este item).",
           "Desenvolvedores: chaves de API e webhooks do workspace atual (só Proprietário e Administrador veem este item).",
           "Assistente: liga ou desliga o assistente de IA do workspace atual.",
-          "Workspaces: seus workspaces, membros e convites.",
-          "Segurança: senha, vínculo com o Google e dispositivos conectados.",
+          "Workspaces: seus workspaces, membros, convites e a atividade do workspace atual.",
+          "Perfil: foto, senha, vínculo com o Google e dispositivos conectados.",
         ],
       },
     ],
@@ -224,15 +222,16 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Configurações do workspace",
         intro:
-          "Na página Workspaces, abaixo dos cards, ficam duas seções do workspace atual, uma embaixo da outra:",
+          "Na página Workspaces, abaixo dos cards, ficam as seções do workspace atual, uma embaixo da outra:",
         bullets: [
           "Membros: quem faz parte, com o papel de cada um.",
           "Convites: convites enviados e o estado de cada um (pendente, aceito, revogado ou expirado), com a data de expiração.",
+          "Atividade: a linha do tempo de tudo que aconteceu no workspace, de todos os projetos.",
         ],
         callouts: [
           {
             kind: "note",
-            text: "Atividade, Automações, Desenvolvedores e Assistente têm cada um sua própria página no menu lateral, sempre referentes ao workspace selecionado no topo — não ficam nesta página.",
+            text: "Desenvolvedores e Assistente têm cada um sua própria página no menu lateral, sempre referentes ao workspace selecionado no topo — não ficam nesta página.",
           },
         ],
       },
@@ -367,27 +366,35 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
     id: "templates",
     group: "daily",
     title: "Modelos de projeto",
-    summary: "Começar um projeto já organizado, comprar modelos e publicar os seus.",
+    summary: "Começar um projeto já organizado e salvar seus projetos como modelo.",
     icon: LayoutTemplate,
     audience:
-      "Qualquer pessoa pode ver os modelos. Para usar um modelo ou publicar um projeto como modelo, é preciso ser Proprietário ou Administrador do workspace.",
+      "Qualquer pessoa pode ver os modelos. Para usar um modelo ou salvar um projeto como modelo, é preciso ser Proprietário ou Administrador do workspace.",
     href: "/templates",
     hrefLabel: "Abrir modelos",
     sections: [
       {
         heading: "O que é um modelo",
         intro:
-          "Um modelo é um projeto pronto para copiar. Em vez de montar colunas e campos do zero, você escolhe um modelo e o TaskFlow cria o projeto já organizado. Existem modelos feitos pelo TaskFlow (sempre grátis) e modelos publicados por outras pessoas (grátis ou pagos).",
+          "Um modelo é um projeto pronto para copiar. Em vez de montar colunas e campos do zero, você escolhe um modelo e o TaskFlow cria o projeto já organizado. Existem dois tipos, e os dois são grátis:",
+        bullets: [
+          "Modelos do TaskFlow: vêm prontos com o sistema e aparecem para todo mundo.",
+          "Modelos do workspace: salvos a partir de projetos do seu workspace. Só as pessoas desse workspace veem e usam.",
+        ],
       },
       {
         heading: "Usar um modelo",
         steps: [
           "Abra Modelos no menu lateral (ou “Começar de um modelo”, na página Projetos).",
-          "Busque pelo nome ou filtre por categoria, preço e origem.",
+          "No alto aparecem os modelos do seu workspace. Mais abaixo, os do TaskFlow, com busca e filtro por categoria.",
           "Abra um modelo para ver a prévia: as colunas, os campos extras e as tarefas de exemplo.",
           "Clique em “Usar este modelo”, dê um nome ao projeto e confirme.",
         ],
         callouts: [
+          {
+            kind: "tip",
+            text: "Também dá para escolher um modelo direto em “Novo projeto”: os modelos aparecem logo acima do nome, começando pelos do seu workspace.",
+          },
           {
             kind: "note",
             text: "O projeto é criado no workspace que estiver selecionado no topo da tela. Só Proprietário e Administrador desse workspace podem usar modelos, porque o modelo cria campos extras. Se o botão aparecer desativado, troque de workspace ou peça a um administrador.",
@@ -413,60 +420,36 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         ],
       },
       {
-        heading: "Comprar um modelo pago",
+        heading: "Salvar um projeto seu como modelo",
         steps: [
-          "Num modelo pago, clique em “Comprar por R$ …”. Antes da compra, a prévia mostra só quantas colunas, campos e tarefas ele tem.",
-          "Você vai para uma página segura de pagamento. Pague por lá.",
-          "Ao voltar, a página mostra “Confirmando pagamento…” até a confirmação chegar.",
-          "Confirmado, o conteúdo completo aparece e o botão “Usar este modelo” fica liberado. O modelo também passa a aparecer em Meus modelos → Comprados.",
-        ],
-        callouts: [
-          {
-            kind: "warning",
-            text: "A liberação acontece quando o serviço de pagamento avisa o TaskFlow, não quando você volta para a página. Com cartão, costuma levar poucos segundos. Com boleto, pode levar alguns dias. Se a página parar de esperar, o modelo aparece em Comprados assim que o pagamento for confirmado. Não compre de novo.",
-          },
-          {
-            kind: "tip",
-            text: "Você paga uma vez e pode usar o modelo quantas vezes quiser, mesmo que o autor tire o modelo do hub depois.",
-          },
-        ],
-      },
-      {
-        heading: "Publicar um projeto seu como modelo",
-        steps: [
-          "Abra o projeto e clique em “Publicar como modelo”, no cabeçalho.",
+          "Abra o projeto e clique em “Salvar como modelo”, no cabeçalho.",
           "Dê um nome, uma descrição e escolha a categoria.",
-          "Escolha se ele é grátis ou pago. Se for pago, o preço fica entre R$ 1,00 e R$ 1.000,00.",
-          "Clique em “Publicar no hub”. O modelo já aparece em Modelos e em Meus modelos.",
+          "Clique em “Salvar modelo”. Ele passa a aparecer em Modelos, na parte do seu workspace.",
         ],
         bullets: [
-          "Vão para o hub: as colunas (com as subcolunas) e os campos extras.",
+          "Vão para o modelo: as colunas (com as subcolunas) e os campos extras.",
           "Não vão: tarefas, comentários, anexos, valores preenchidos e as pessoas do projeto.",
           "O limite é de 100 colunas e 50 campos extras por projeto.",
         ],
         callouts: [
           {
             kind: "note",
-            text: "O modelo é uma cópia congelada do projeto no momento em que foi publicado. Para atualizar, publique o projeto de novo (vira um modelo novo) e tire o antigo do hub.",
+            text: "O modelo é privado: só as pessoas do workspace veem e usam. Ele é uma cópia congelada do projeto no momento em que foi salvo. Para atualizar, salve o projeto de novo (vira um modelo novo) e exclua o antigo.",
           },
         ],
       },
       {
-        heading: "Tirar do hub e excluir",
-        intro: "Em Modelos → Meus modelos, cada modelo que você publicou tem estas ações:",
+        heading: "Editar e excluir",
+        intro:
+          "Abra um modelo do seu workspace. Proprietários e Administradores veem estas ações:",
         bullets: [
-          "“Editar anúncio” muda nome, descrição, categoria e preço. Um preço novo só vale para as próximas compras.",
-          "“Tirar do hub” esconde o modelo de quem ainda não tem. Quem já comprou continua usando. “Devolver ao hub” mostra de novo.",
-          "“Excluir” apaga o modelo. Projetos já criados com ele continuam iguais.",
+          "“Editar modelo” muda nome, descrição e categoria.",
+          "“Excluir” apaga o modelo para todo o workspace. Projetos já criados com ele continuam iguais.",
         ],
         callouts: [
           {
-            kind: "warning",
-            text: "Se alguém já comprou o modelo, ele não pode ser excluído, porque quem pagou tem direito de continuar usando. Nesse caso, tire do hub.",
-          },
-          {
             kind: "note",
-            text: "A moderação do TaskFlow pode tirar do hub um modelo que não deveria estar lá. Um modelo removido pela moderação não pode ser usado nem devolvido ao hub.",
+            text: "Os modelos do TaskFlow são mantidos pela equipe do TaskFlow e não podem ser editados nem excluídos por você.",
           },
         ],
       },
@@ -478,14 +461,14 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
           "No workspace selecionado você não é Proprietário nem Administrador. Troque de workspace no topo da tela ou peça a um administrador para usar o modelo.",
       },
       {
-        question: "Paguei, mas o modelo ainda pede para comprar.",
+        question: "Outras pessoas veem os modelos que eu salvo?",
         answer:
-          "A confirmação do pagamento pode demorar, principalmente no boleto. Assim que chegar, o modelo aparece em Meus modelos → Comprados. Não é preciso pagar de novo.",
+          "Só as pessoas do mesmo workspace. Quem é de fora não vê nem consegue usar.",
       },
       {
-        question: "Mudei meu projeto. O modelo que publiquei muda junto?",
+        question: "Mudei meu projeto. O modelo que salvei muda junto?",
         answer:
-          "Não. O modelo guarda a estrutura do dia em que foi publicado. Publique de novo para criar uma versão atualizada.",
+          "Não. O modelo guarda a estrutura do dia em que foi salvo. Salve de novo para criar uma versão atualizada.",
       },
       {
         question: "Dá para aplicar um modelo num projeto que já existe?",
@@ -766,9 +749,13 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
           "Sob os comentários, a linha do tempo da tarefa registra cada mudança: status, responsável, movimentação de coluna e novos comentários. Os comentários aparecem nos dois lugares de propósito: acima com o texto completo, e aqui como parte do resumo cronológico.",
       },
       {
-        heading: "Atividade do workspace",
+        heading: "Atividade do projeto e do workspace",
         intro:
-          "Na página Atividade, no menu lateral, você vê tudo que acontece no workspace atual, em ordem cronológica e paginado. É a melhor forma de responder “quem mudou isso e quando?”.",
+          "A mesma linha do tempo existe em dois tamanhos, sempre em ordem cronológica e paginada. É a melhor forma de responder “quem mudou isso e quando?”.",
+        bullets: [
+          "Do projeto: na aba Atividade, dentro do projeto. Mostra só o que mudou nele: tarefas, comentários, colunas e campos extras.",
+          "Do workspace: na página Workspaces, na seção Atividade. Mostra tudo, de todos os projetos, mais o que é do workspace (membros, automações, chaves de API).",
+        ],
       },
     ],
     faq: [
@@ -851,18 +838,18 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
     summary: "Regras “quando isso acontecer, faça aquilo” que rodam sozinhas.",
     icon: Workflow,
     audience: "Proprietário e Administrador",
-    href: "/automations",
-    hrefLabel: "Abrir automações",
+    href: "/projects",
+    hrefLabel: "Ir para Projetos",
     sections: [
       {
         heading: "O que são",
         intro:
-          "Uma automação observa um evento e executa uma ação, sem ninguém precisar confirmar. Ótimo para tirar trabalho repetitivo da equipe, e justamente por rodar sozinha exige cuidado. Fica na página Automações, no menu lateral (só aparece para Proprietário e Administrador).",
+          "Uma automação observa um evento e executa uma ação, sem ninguém precisar confirmar. Ótimo para tirar trabalho repetitivo da equipe, e justamente por rodar sozinha exige cuidado. Fica na aba Automações de cada projeto (só aparece para Proprietário e Administrador).",
       },
       {
         heading: "Comece por um template",
         intro:
-          "Sem regras ainda, a galeria de templates ocupa a tela. Escolha um e o formulário abre já preenchido, faltando só o que é do seu workspace (por exemplo, qual coluna). Esses campos ficam destacados em âmbar.",
+          "Sem regras no projeto ainda, a galeria de modelos ocupa a aba. Escolha um e o formulário abre já preenchido, faltando só o que é do seu workspace (por exemplo, qual coluna). Esses campos ficam destacados em âmbar.",
         bullets: [
           "Mover para a coluna de concluídas: quando o status virar Concluída, a tarefa vai para a coluna que você escolher.",
           "Devolver ao Backlog ao reabrir: quando uma tarefa concluída for reaberta, ela volta para a coluna que você escolher.",
@@ -875,7 +862,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         intro:
           "A regra é construída como uma frase: “Quando [uma tarefa] [tiver o status alterado] e [o novo status] [for] [Concluída], então [mover a tarefa] para a coluna [Concluída]”. Cada trecho entre colchetes é um campo que você clica para escolher.",
         steps: [
-          "Escolha o que observar: tarefa, comentário, coluna, projeto, campo extra ou o próprio workspace.",
+          "Escolha o que observar: tarefa, comentário, coluna ou campo extra.",
           "Escolha o evento. Exemplos para tarefas: status alterado, responsável alterado, mudar de coluna, prazo alterado, prioridade alterada, ganhar ou perder participante.",
           "Opcional: adicione condições para a regra só valer em certos casos (por exemplo, “o novo status for Concluída”).",
           "Escolha a ação: mover a tarefa, mudar o status, atribuir a tarefa, mudar a prioridade, adicionar ou remover participante.",
@@ -893,7 +880,18 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         bullets: [
           "Ligue e desligue uma regra pelo botão ao lado dela, sem apagar.",
           "“Excluir automação” remove de vez.",
-          "Com regras existentes, a lista ocupa a tela e os templates ficam em “Nova a partir de um template”.",
+          "Com regras existentes, a lista ocupa a aba e os modelos ficam em “Ver modelos prontos”.",
+        ],
+      },
+      {
+        heading: "Automações de um projeto",
+        intro:
+          "Dentro de cada projeto há a aba Automações. Ali você vê só o que age naquele projeto e pode ligar, pausar, editar ou excluir sem sair dele.",
+        bullets: [
+          "“Automações deste projeto”: as que valem só para ele. Uma automação criada por essa aba já nasce limitada ao projeto.",
+          "“Automações de todo o workspace”: as que valem para todos os projetos, e por isso também agem neste. Mudar uma delas muda o que acontece em todos os projetos.",
+          "Se, ao montar a regra, ela deixar de estar limitada ao projeto, um aviso em âmbar mostra isso e oferece “Limitar a este projeto”.",
+          "“Automações antigas do workspace”: regras criadas antes, que reagem a algo fora dos projetos (como alguém entrar no workspace). Não dá mais para criar ou editar regras assim, só pausar ou excluir.",
         ],
       },
       {
@@ -907,16 +905,16 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
           },
           {
             kind: "note",
-            text: "Ainda não existe um teste de regra nem um histórico de execuções. Comece com regras simples e observe o resultado na página Atividade.",
+            text: "Ainda não existe um teste de regra nem um histórico de execuções. Comece com regras simples e observe o resultado na aba Atividade do projeto.",
           },
         ],
       },
     ],
     faq: [
       {
-        question: "Não vejo a página Automações no menu.",
+        question: "Não vejo a aba Automações no projeto.",
         answer:
-          "Ela só aparece para Proprietários e Administradores do workspace atual.",
+          "Ela só aparece para Proprietários e Administradores do workspace do projeto.",
       },
       {
         question: "Uma regra parou de funcionar.",
@@ -1004,7 +1002,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Segurança e histórico",
         intro:
-          "Toda criação, edição, giro de segredo e remoção — de chaves e de webhooks — fica registrada na página Atividade, com quem fez e quando.",
+          "Toda criação, edição, giro de segredo e remoção — de chaves e de webhooks — fica registrada na seção Atividade da página Workspaces, com quem fez e quando.",
         bullets: [
           "Só Proprietário e Administrador conseguem ver ou gerenciar qualquer uma das duas coisas, mesmo para apenas listar — mais restrito que a maioria das outras configurações, porque ambas dão acesso de longa duração ao workspace inteiro.",
         ],
@@ -1198,8 +1196,8 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
     title: "Conta, senha e sessões",
     summary: "Entrar com segurança, trocar a senha e encerrar dispositivos.",
     icon: KeyRound,
-    href: "/settings/security",
-    hrefLabel: "Abrir segurança",
+    href: "/settings/profile#seguranca",
+    hrefLabel: "Abrir perfil",
     sections: [
       {
         heading: "Criar conta e entrar",
@@ -1212,7 +1210,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       },
       {
         heading: "Segurança",
-        intro: "Em Segurança, conforme a sua conta:",
+        intro: "Em Perfil, na seção de segurança, conforme a sua conta:",
         bullets: [
           "Com senha: altere informando a senha atual e a nova.",
           "Só com Google (sem senha): defina uma primeira senha, confirmando com o Google.",
@@ -1228,7 +1226,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Sessões",
         intro:
-          "Na seção Sessões, em Segurança, você vê cada dispositivo conectado, com o atual marcado como “Sessão atual”.",
+          "Na seção Sessões, em Perfil, você vê cada dispositivo conectado, com o atual marcado como “Sessão atual”.",
         bullets: [
           "“Revogar” encerra uma sessão específica.",
           "“Encerrar todas” desconecta você de todos os dispositivos, inclusive este.",
@@ -1307,7 +1305,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Ver seu consumo",
         intro:
-          "Em Configurações → Plano, abaixo da lista de planos, você vê quantos tokens já gastou hoje, nesta semana e neste mês, contados das mesmas viradas em UTC que o limite usa. Logo depois vem o histórico detalhado de cada uso, que também está em Configurações → Uso de IA.",
+          "Em Configurações → Plano, abaixo da lista de planos, você vê quantos tokens já gastou hoje, nesta semana e neste mês, contados das mesmas viradas em UTC que o limite usa. Logo depois vem o histórico detalhado de cada uso, que também aparece na página Assistente.",
         callouts: [
           {
             kind: "note",

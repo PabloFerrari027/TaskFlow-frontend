@@ -13,6 +13,8 @@ import {
 import { shortenId } from "@/lib/format";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useAssignableMembers } from "@/features/tasks/hooks/use-assignable-members";
+import { OptionChip } from "@/features/custom-fields/components/option-chip";
+import { getOptionColor } from "@/features/custom-fields/lib/option-colors";
 import type { CustomFieldDefinition, CustomFieldValue } from "@/types/custom-field";
 
 interface TaskCustomFieldValueInputProps {
@@ -90,7 +92,7 @@ export function TaskCustomFieldValueInput({
           <SelectContent>
             {(definition.options ?? []).map((option) => (
               <SelectItem key={option} value={option}>
-                {option}
+                <OptionChip label={option} color={getOptionColor(definition, option)} />
               </SelectItem>
             ))}
           </SelectContent>
@@ -113,7 +115,7 @@ export function TaskCustomFieldValueInput({
                   onSave(next);
                 }}
               />
-              {option}
+              <OptionChip label={option} color={getOptionColor(definition, option)} />
             </label>
           ))}
         </div>

@@ -9,6 +9,7 @@ import type { Workspace } from "@/types/workspace";
 // workspace; the backend can also turn this off on its own (kill switch on
 // repeated prompt-injection signals or reauth failures) and only an OWNER
 // can turn it back on here.
+// Renders flat (no border of its own) so it sits inside the caller's Card.
 export function WorkspaceAssistantSettingsPanel({
   workspace,
   canManage,
@@ -19,34 +20,28 @@ export function WorkspaceAssistantSettingsPanel({
   const updateMutation = useUpdateAssistantSettingsMutation(workspace.id);
 
   return (
-    <div className="max-w-lg space-y-4">
-      <div className="flex items-center justify-between gap-4 rounded-lg border border-border/60 p-4">
+    <div className="space-y-3">
+      <div className="flex items-start justify-between gap-4">
         <div className="space-y-1">
-          <p className="text-sm font-medium text-foreground">Assistente de IA com ações</p>
-          <p className="text-xs text-muted-foreground">
-            Permite conversar com um assistente que pode ler dados deste workspace e propor
-            ações (criar tarefas, arquivar projetos, etc.) — toda ação de escrita exige sua
-            confirmação explícita antes de acontecer.
+          <h3 className="text-base font-semibold text-foreground">Assistente de IA</h3>
+          <p className="text-sm text-muted-foreground">
+            Converse com um assistente que lê os dados deste workspace e sugere ações, como
+            criar tarefas. Nada é alterado sem a sua confirmação.
           </p>
         </div>
         <Switch
+          aria-label="Ligar ou desligar o assistente de IA"
           checked={workspace.assistantEnabled}
           disabled={!canManage || updateMutation.isPending}
           onCheckedChange={(checked) => updateMutation.mutate(checked)}
         />
       </div>
 
-      {!canManage ? (
-        <p className="text-xs text-muted-foreground">
-          Somente o OWNER do workspace pode ligar ou desligar o assistente.
-        </p>
-      ) : (
-        <p className="text-xs text-muted-foreground">
-          Se o assistente detectar repetidos sinais de conteúdo suspeito ou tentativas de senha
-          incorreta ao confirmar uma ação, ele se desliga sozinho por segurança — reative aqui
-          quando quiser.
-        </p>
-      )}
+      <p className="text-xs text-muted-foreground">
+        {canManage
+          ? "Por segurança, ele se desliga sozinho se notar conteúdo suspeito ou senhas erradas repetidas. Religue aqui quando quiser."
+          : "Somente o dono do workspace pode ligar ou desligar o assistente."}
+      </p>
     </div>
   );
 }

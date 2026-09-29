@@ -57,7 +57,7 @@ export function AutomationTemplatesGallery({
 
       <div>
         <Button variant="outline" size="sm" onClick={onCreateFromScratch}>
-          Prefiro montar a minha do zero
+          Criar automação personalizada
         </Button>
       </div>
     </div>

@@ -200,7 +200,7 @@ export const FAQ: FaqItem[] = [
   {
     question: "Como vejo em quais dispositivos minha conta está conectada?",
     answer:
-      "Em Configurações > Sessões você vê todos os dispositivos conectados, com IP e último uso, e pode encerrar qualquer sessão que não reconheça. Se suspeitar de acesso indevido, altere também sua senha em Configurações > Segurança.",
+      "Em Perfil, na seção Sessões, você vê todos os dispositivos conectados, com IP e último uso, e pode encerrar qualquer sessão que não reconheça. Se suspeitar de acesso indevido, altere também sua senha no Perfil.",
   },
   {
     question: "Como posso corrigir ou excluir meus dados?",

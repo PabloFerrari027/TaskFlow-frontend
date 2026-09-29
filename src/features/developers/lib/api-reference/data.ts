@@ -134,6 +134,19 @@ export function buildDataEndpoints(workspaceId: string): ApiEndpoint[] {
     },
     {
       method: "GET",
+      path: "/projects/:projectId/activity",
+      summary: "Timeline de um projeto",
+      description: "Paginado, ordenado por `occurredAt` descendente. Tudo gravado com este `projectId`: o próprio projeto, suas tasks, comentários, seções e campos. Não inclui sub-projetos.",
+      requestExample: [
+        'curl "$API_URL/projects/PROJECT_ID/activity" \\',
+        '  -H "Authorization: Bearer $ACCESS_TOKEN"',
+      ].join("\n"),
+      responseStatus: "200 OK",
+      responseExample: '{ "data": [ { "id": "...", "projectId": "...", "entityType": "SECTION", "...": "..." } ], "meta": { "...": "..." } }',
+      errorCodes: ["PROJECT_NOT_FOUND", "FORBIDDEN_WORKSPACE_ACTION"],
+    },
+    {
+      method: "GET",
       path: "/tasks/:taskId/activity",
       summary: "Timeline de uma task",
       description: "Paginado. Entradas TASK desta task, unidas a comentários feitos nela (COMMENT). Nunca inclui SECTION/CUSTOM_FIELD/WORKSPACE/PROJECT.",

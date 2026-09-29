@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Loader2 } from "lucide-react";
+import { FolderKanban, Globe, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,6 +28,11 @@ import {
   validateDraft,
   type RuleDraft,
 } from "@/features/automations/lib/automation-draft";
+import {
+  canLimitToProject,
+  isDraftLimitedToProject,
+  scopeDraftToProject,
+} from "@/features/automations/lib/project-scope";
 import type { AutomationRule } from "@/types/automation";
 
 interface AutomationRuleFormDialogProps {
@@ -37,6 +42,8 @@ interface AutomationRuleFormDialogProps {
   // Editing an existing rule; otherwise creating (from `initialDraft` if given).
   rule?: AutomationRule | null;
   initialDraft?: RuleDraft | null;
+  // Opened from a project's tab: says whether the rule is limited to it.
+  project?: { id: string; name: string } | null;
 }
 
 // The draft lives in this component's state and is seeded once, so the parent
@@ -47,6 +54,7 @@ export function AutomationRuleFormDialog({
   onOpenChange,
   rule,
   initialDraft,
+  project,
 }: AutomationRuleFormDialogProps) {
   const [draft, setDraft] = React.useState<RuleDraft>(() =>
     rule ? fromRule(rule) : (initialDraft ?? emptyDraft())
@@ -89,6 +97,10 @@ export function AutomationRuleFormDialog({
 
           <AutomationLivePreview draft={draft} lookups={lookups} />
 
+          {project ? (
+            <ProjectScopeNote draft={draft} project={project} onChange={setDraft} />
+          ) : null}
+
           <div className="space-y-2">
             <Label htmlFor="automation-name">Nome da automação (opcional)</Label>
             <Input
@@ -117,5 +129,49 @@ export function AutomationRuleFormDialog({
         </form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+// Picking an event without a project (e.g. "ganhar um participante") drops the
+// project condition, silently widening the rule to the whole workspace — this
+// note makes that visible and offers the way back.
+function ProjectScopeNote({
+  draft,
+  project,
+  onChange,
+}: {
+  draft: RuleDraft;
+  project: { id: string; name: string };
+  onChange: (draft: RuleDraft) => void;
+}) {
+  if (isDraftLimitedToProject(draft, project.id)) {
+    return (
+      <p className="flex items-center gap-2 text-sm text-muted-foreground">
+        <FolderKanban className="size-4 shrink-0" aria-hidden />
+        Vale só para o projeto “{project.name}”.
+      </p>
+    );
+  }
+
+  const canLimit = canLimitToProject(draft);
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-sm text-amber-700 dark:text-amber-400">
+      <p className="flex items-center gap-2">
+        <Globe className="size-4 shrink-0" aria-hidden />
+        {canLimit
+          ? "Do jeito que está, esta automação vale para todos os projetos do workspace."
+          : "Este tipo de acontecimento não pode ser limitado a um projeto: a automação vai valer para todo o workspace."}
+      </p>
+      {canLimit ? (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => onChange(scopeDraftToProject(draft, project.id))}
+        >
+          Limitar a este projeto
+        </Button>
+      ) : null}
+    </div>
   );
 }

@@ -19,6 +19,7 @@ import { formatDate, shortenId } from "@/lib/format";
 import type {
   AnalyticsDerivedMetricName,
   AnalyticsEntity,
+  AnalyticsFilter,
   AnalyticsMetric,
   AnalyticsResultMetric,
 } from "@/types/analytics";
@@ -283,6 +284,12 @@ export function groupValueLabel(
   }
 
   const kind = CATEGORICAL_FIELDS[entity].find((spec) => spec.field === field)?.kind ?? "text";
+  return fieldValueLabel(kind, text, lookups);
+}
+
+// Same fallbacks for a group value and a filter value: names where the
+// viewer may know them, a short neutral reference where not.
+function fieldValueLabel(kind: FieldKind, text: string, lookups?: ValueLabeler): string {
   if (lookups) return lookups.labelFor(kind, text);
 
   switch (kind) {
@@ -301,6 +308,71 @@ export function groupValueLabel(
     default:
       return text;
   }
+}
+
+function lowerFirst(text: string) {
+  return text.charAt(0).toLowerCase() + text.slice(1);
+}
+
+function describeFilter(entity: AnalyticsEntity, filter: AnalyticsFilter, lookups?: ValueLabeler) {
+  const spec = FILTER_FIELDS[entity].find((field) => field.field === filter.field);
+  const items = (Array.isArray(filter.value) ? filter.value : [filter.value])
+    .filter((item) => item !== null && item !== undefined && item !== "")
+    .map((item) => fieldValueLabel(spec?.kind ?? "text", String(item), lookups));
+  const subject = spec?.label ?? filter.field;
+
+  switch (filter.operator) {
+    case "equals":
+    case "in":
+      return `${subject}: ${items.join(" ou ")}`;
+    case "notEquals":
+      return `${subject}: tudo menos ${items.join(", ")}`;
+    case "between":
+      return `${subject} entre ${items.join(" e ")}`;
+    case "greaterThan":
+      return `${subject} acima de ${items.join(", ")}`;
+    case "lessThan":
+      return `${subject} abaixo de ${items.join(", ")}`;
+  }
+}
+
+/**
+ * What a chart shows, in the words of someone who didn't build it:
+ * ["Quantidade de tarefas", "por semana (data de criação)", "prioridade: Alta"].
+ * The card joins the parts on one line; the expanded view shows them whole.
+ * Built from the saved query only — nothing here is typed by the user.
+ */
+export function describeChartQuery(query: ChartQuery, lookups?: ValueLabeler): string[] {
+  const metricLabels = query.metrics.map((metric, index) => {
+    const label =
+      metricKey(metric) === "count"
+        ? `Quantidade de ${entityPlural(query.entity)}`
+        : (findMetricOption(metricKey(metric))?.label ?? metric.type);
+    return index === 0 ? label : lowerFirst(label);
+  });
+  const parts = [metricLabels.join(" e ")];
+
+  const entry = query.groupBy?.[0];
+  if (entry) {
+    const { field, unit } = parseGroupByEntry(entry);
+    if (unit) {
+      const unitLabel = TEMPORAL_UNIT_OPTIONS.find((option) => option.value === unit)?.label ?? unit;
+      const fieldLabel = TEMPORAL_FIELDS[query.entity].find((spec) => spec.field === field)?.label;
+      parts.push(
+        fieldLabel
+          ? `por ${unitLabel.toLowerCase()} (${fieldLabel.toLowerCase()})`
+          : `por ${unitLabel.toLowerCase()}`
+      );
+    } else {
+      const fieldLabel = CATEGORICAL_FIELDS[query.entity].find((spec) => spec.field === field)?.label;
+      parts.push(`por ${(fieldLabel ?? field).toLowerCase()}`);
+    }
+  }
+
+  for (const filter of query.filters ?? []) {
+    parts.push(describeFilter(query.entity, filter, lookups));
+  }
+  return parts;
 }
 
 // ------------------------------------------------------------------ drafts

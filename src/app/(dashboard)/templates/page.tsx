@@ -1,15 +1,13 @@
 "use client";
 
 import { Suspense } from "react";
-import Link from "next/link";
-import { Package } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/shared/page-header";
 import { TutorialGuideLink } from "@/components/shared/tutorial-guide-link";
 import {
   TemplateGallery,
   TemplateGridSkeleton,
 } from "@/features/project-templates/components/template-gallery";
+import { WorkspaceTemplatesSection } from "@/features/project-templates/components/workspace-templates-section";
 
 export default function TemplatesPage() {
   return (
@@ -17,21 +15,16 @@ export default function TemplatesPage() {
       <PageHeader
         title="Modelos"
         description="Comece um projeto já organizado: escolha um modelo e o TaskFlow cria as colunas, os campos e tarefas de exemplo para você."
-        actions={
-          <>
-            <TutorialGuideLink guideId="templates" />
-            <Button asChild variant="outline">
-              <Link href="/templates/mine">
-                <Package /> Meus modelos
-              </Link>
-            </Button>
-          </>
-        }
+        actions={<TutorialGuideLink guideId="templates" />}
       />
-      {/* Filters live in the query string (useSearchParams). */}
-      <Suspense fallback={<TemplateGridSkeleton />}>
-        <TemplateGallery />
-      </Suspense>
+      <WorkspaceTemplatesSection />
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold tracking-tight">Modelos do TaskFlow</h2>
+        {/* Filters live in the query string (useSearchParams). */}
+        <Suspense fallback={<TemplateGridSkeleton />}>
+          <TemplateGallery />
+        </Suspense>
+      </section>
     </div>
   );
 }
