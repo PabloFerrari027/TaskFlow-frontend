@@ -32,19 +32,30 @@ export interface NavItem {
 }
 
 export const NAV_ITEMS: NavItem[] = [
+  // Ordenado por prioridade: o que se usa todo dia vem primeiro.
+
   // Uso diário: onde o trabalho acontece.
   { href: "/projects", label: "Projetos", icon: FolderKanban },
-  { href: "/templates", label: "Modelos", icon: LayoutTemplate },
-  { href: "/workspaces", label: "Workspaces", icon: Building2 },
   {
     href: "/workspaces/pages",
     label: "Páginas",
     icon: PanelsTopLeft,
     workspaceHref: (workspaceId) => `/workspaces/${workspaceId}/pages`,
   },
-
-  // Recursos avançados, usados com menos frequência.
   { href: "/assistant", label: "Assistente", icon: Bot },
+
+  // Uso ocasional: começar algo novo e organizar a equipe.
+  { href: "/templates", label: "Modelos", icon: LayoutTemplate },
+  { href: "/workspaces", label: "Workspaces", icon: Building2 },
+
+  // Ajuda para quem está começando.
+  { href: "/tutorial", label: "Tutorial", icon: BookOpen },
+
+  // Conta e configurações pessoais.
+  { href: "/settings/profile", label: "Perfil", icon: UserRound },
+  { href: "/settings/plan", label: "Plano", icon: CreditCard },
+
+  // Recurso técnico, só para Proprietário/Administrador.
   {
     href: "/developers",
     label: "Desenvolvedores",
@@ -52,12 +63,7 @@ export const NAV_ITEMS: NavItem[] = [
     workspacePermission: canManageDeveloperPlatform,
   },
 
-  // Conta e configurações pessoais.
-  { href: "/settings/profile", label: "Perfil", icon: UserRound },
-  { href: "/settings/plan", label: "Plano", icon: CreditCard },
-
-  // Ajuda.
-  { href: "/tutorial", label: "Tutorial", icon: BookOpen },
+  // Informações de referência.
   { href: "/privacy", label: "Privacidade e FAQ", icon: FileText },
 
   // Administração (somente super admin).

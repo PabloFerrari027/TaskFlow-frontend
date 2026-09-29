@@ -1,11 +1,24 @@
-import { CalendarClock, Columns3, CornerDownRight, ListChecks, SlidersHorizontal } from "lucide-react";
+import {
+  CalendarClock,
+  Columns3,
+  CornerDownRight,
+  ListChecks,
+  SlidersHorizontal,
+  Zap,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { TaskPriorityBadge } from "@/components/shared/status-badge";
 import { CUSTOM_FIELD_TYPE_LABEL } from "@/features/custom-fields/schemas";
+import {
+  ENTITY_LABEL,
+  findAction,
+  findTriggerEvent,
+} from "@/features/automations/lib/automation-catalog";
 import { formatDueInDays } from "@/features/project-templates/lib/template-labels";
 import type {
   ProjectTemplateSkeleton,
+  ProjectTemplateSkeletonAutomation,
   ProjectTemplateSkeletonTask,
 } from "@/types/project-template";
 
@@ -142,6 +155,18 @@ function SectionItem({
   );
 }
 
+// "Quando uma tarefa tiver o status alterado: mover a tarefa". Only the event
+// and the action — params hold symbolic refs that mean nothing before the
+// project exists.
+function describeAutomation(automation: ProjectTemplateSkeletonAutomation) {
+  const { entityType, eventType } = automation.trigger;
+  const event = findTriggerEvent(entityType, eventType);
+  const action = findAction(automation.action.tool);
+  if (!event || !action) return "Roda sozinha quando algo acontece no projeto.";
+  const entity = ENTITY_LABEL[entityType as keyof typeof ENTITY_LABEL] ?? "algo";
+  return `Quando ${entity} ${event.phrase}: ${action.label.replace(/:$/, "")}.`;
+}
+
 function sortByPosition(indexes: number[], skeleton: ProjectTemplateSkeleton) {
   return [...indexes].sort(
     (a, b) => skeleton.sections[a].position - skeleton.sections[b].position
@@ -159,6 +184,7 @@ export function TemplateStructurePreview({ skeleton }: { skeleton: ProjectTempla
     rootTasksOf.set(task.sectionIndex, [...(rootTasksOf.get(task.sectionIndex) ?? []), index]);
   });
   const rootSections = sortByPosition(childSectionsOf.get(null) ?? [], skeleton);
+  const automations = skeleton.automations ?? [];
 
   return (
     <>
@@ -216,6 +242,33 @@ export function TemplateStructurePreview({ skeleton }: { skeleton: ProjectTempla
                       Opções: {field.options.join(", ")}
                     </span>
                   ) : null}
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Zap className="size-4" aria-hidden /> Automações
+          </CardTitle>
+          <CardDescription>
+            Tarefas repetitivas que o projeto criado já faz sozinho.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {automations.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Este modelo não traz automações.</p>
+          ) : (
+            <ul className="divide-y divide-border/60">
+              {automations.map((automation, index) => (
+                <li key={index} className="space-y-0.5 py-2 text-sm">
+                  <p className="font-medium text-foreground">{automation.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {describeAutomation(automation)}
+                  </p>
                 </li>
               ))}
             </ul>
