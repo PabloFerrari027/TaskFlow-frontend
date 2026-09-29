@@ -141,6 +141,7 @@ function applyServerState(
       queryClient.setQueryData(queryKeys.tasks.detail(task.id), task);
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all(task.projectId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.projectStats.root() });
       return;
     }
     case "PROJECT": {

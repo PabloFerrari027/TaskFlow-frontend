@@ -60,8 +60,8 @@ function SuggestionTile({
       aria-pressed={selected}
       onClick={() => onSelect(template)}
       className={cn(
-        "group flex h-32 w-40 shrink-0 snap-start flex-col rounded-xl border bg-card p-3 text-left transition-all outline-none",
-        "hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-sm focus-visible:ring-[3px] focus-visible:ring-ring/50",
+        "group flex min-h-36 w-full min-w-0 flex-col rounded-xl border bg-card p-3.5 text-left transition-all outline-none",
+        "hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md focus-visible:ring-[3px] focus-visible:ring-ring/50",
         selected && "border-primary bg-primary/5 ring-1 ring-primary"
       )}
       title={template.description ?? template.name}
@@ -70,7 +70,7 @@ function SuggestionTile({
         <span
           aria-hidden
           className={cn(
-            "flex size-9 items-center justify-center rounded-lg text-lg transition-transform group-hover:scale-110",
+            "flex size-10 items-center justify-center rounded-lg text-xl transition-transform group-hover:scale-110",
             selected ? "bg-primary/15" : "bg-muted"
           )}
         >
@@ -86,8 +86,15 @@ function SuggestionTile({
           </span>
         ) : null}
       </div>
-      <p className="mt-2 line-clamp-2 text-sm leading-snug font-medium">{template.name}</p>
-      <p className="mt-auto pt-1 text-[11px] text-muted-foreground">{formatShortCounts(template)}</p>
+      <p className="mt-3 line-clamp-1 text-sm leading-snug font-medium">{template.name}</p>
+      {template.description ? (
+        <p className="mt-0.5 line-clamp-2 text-xs leading-snug text-muted-foreground">
+          {template.description}
+        </p>
+      ) : null}
+      <p className="mt-auto pt-2 text-[11px] text-muted-foreground/80">
+        {formatShortCounts(template)}
+      </p>
     </button>
   );
 }
@@ -145,7 +152,7 @@ export function TemplateSuggestions({
   if (!isLoading && templates.length === 0) return null;
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
         <p className="flex items-center gap-1.5 text-sm font-medium">
           <Sparkles className="size-4 text-primary" />
@@ -166,13 +173,12 @@ export function TemplateSuggestions({
         </Link>
       </div>
 
-      {/* Bleeds to the dialog edges so the row reads as scrollable. */}
-      <div className="-mx-4 flex snap-x gap-2 overflow-x-auto px-4 pt-0.5 pb-2 [scrollbar-width:thin]">
+      <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 md:grid-cols-4">
         {isLoading
-          ? Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-32 w-40 shrink-0 rounded-xl" />
+          ? Array.from({ length: SUGGESTION_COUNT }).map((_, i) => (
+              <Skeleton key={i} className="h-36 w-full rounded-xl" />
             ))
-          : templates.map((template) => (
+          : templates.slice(0, SUGGESTION_COUNT).map((template) => (
               <SuggestionTile
                 key={template.id}
                 template={template}

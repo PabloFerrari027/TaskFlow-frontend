@@ -5,8 +5,12 @@ import { buildSeries } from "@/features/dashboard-pages/lib/chart-data";
 import { EmptyChart } from "@/features/dashboard-pages/components/renderers/renderer-parts";
 import type { AnalyticsResult } from "@/types/analytics";
 
-/** A single headline value — no plot, so no colour and no hover layer. */
-export function NumberCardRenderer({ result }: { result: AnalyticsResult }) {
+/**
+ * A single headline value — no plot, so no colour and no hover layer.
+ * `label` replaces the metric's generic name ("Quantidade") when the caller
+ * knows what is being counted ("Tarefas em aberto").
+ */
+export function NumberCardRenderer({ result, label }: { result: AnalyticsResult; label?: string }) {
   const [series] = buildSeries(result);
   if (!series) return <EmptyChart />;
 
@@ -24,7 +28,7 @@ export function NumberCardRenderer({ result }: { result: AnalyticsResult }) {
           {formatMetricValue(series.metric, value)}
         </p>
       )}
-      <p className="text-sm text-muted-foreground">{series.label}</p>
+      <p className="text-sm text-muted-foreground">{label ?? series.label}</p>
     </div>
   );
 }

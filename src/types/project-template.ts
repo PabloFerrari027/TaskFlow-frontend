@@ -73,10 +73,27 @@ export interface ProjectTemplateSkeletonTask {
   customFieldValues?: Record<string, unknown>;
 }
 
+// Params may hold symbolic refs (`$section:N`, `$field:Nome`, `$role:chave`)
+// resolved on instantiation (API.md § 26.1).
+export interface ProjectTemplateSkeletonAutomation {
+  name: string;
+  // `null` = root project, number = index into `subprojects`.
+  projectRef?: number | null;
+  trigger: {
+    entityType: string;
+    eventType: string;
+    conditions?: { field: string; operator: string; value: unknown }[];
+  };
+  action: { tool: string; params: Record<string, unknown> };
+  moduleKey?: string;
+}
+
 export interface ProjectTemplateSkeleton {
   sections: ProjectTemplateSkeletonSection[];
   customFields: ProjectTemplateSkeletonCustomField[];
   tasks: ProjectTemplateSkeletonTask[];
+  // Absent on `schemaVersion: 1` skeletons.
+  automations?: ProjectTemplateSkeletonAutomation[];
 }
 
 // Only answered for templates the requester may see (404 otherwise), and

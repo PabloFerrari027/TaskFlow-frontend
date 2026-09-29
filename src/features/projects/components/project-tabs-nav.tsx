@@ -24,6 +24,11 @@ export function ProjectTabsNav({
       hint: "Organize o trabalho em colunas. Clique em uma tarefa para ver os detalhes ou arraste para mudar de coluna.",
     },
     {
+      href: `${base}/stats`,
+      label: "Estatísticas",
+      hint: "Veja em números como o projeto está andando: quanto já foi feito, o que está atrasado e quem está com mais tarefas.",
+    },
+    {
       href: `${base}/members`,
       label: "Pessoas",
       hint: "Quem tem acesso a este projeto. Para adicionar alguém, use a aba Convites.",

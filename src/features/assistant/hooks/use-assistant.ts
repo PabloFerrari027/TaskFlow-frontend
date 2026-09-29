@@ -91,6 +91,7 @@ function applyConfirmedActionEffects(
       const task = result as Task;
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all(task.projectId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.projectStats.root() });
       return;
     }
     case "update_task":
@@ -100,6 +101,7 @@ function applyConfirmedActionEffects(
       queryClient.setQueryData(queryKeys.tasks.detail(task.id), task);
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all(task.projectId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.projectStats.root() });
       return;
     }
     case "change_task_status": {
@@ -107,6 +109,7 @@ function applyConfirmedActionEffects(
       queryClient.setQueryData(queryKeys.tasks.detail(task.id), task);
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all(task.projectId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.projectStats.root() });
       if (task.parentTaskId) {
         queryClient.invalidateQueries({ queryKey: queryKeys.tasks.subtasks(task.parentTaskId) });
       }

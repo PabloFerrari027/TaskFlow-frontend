@@ -41,10 +41,14 @@ export function invalidateByEntityChange(
           ? queryKeys.tasks.all(projectId)
           : queryKeys.tasks.byProjectAll(),
       });
+      // Not narrowed by projectId: the task also counts in every ancestor's stats.
+      invalidate(queryClient, { queryKey: queryKeys.projectStats.root() });
       return;
     case "PROJECT":
       invalidate(queryClient, { queryKey: queryKeys.projects.detail(entityId) });
       invalidate(queryClient, { queryKey: queryKeys.projects.all(workspaceId) });
+      // A moved sub-project takes its tasks out of one subtree and into another.
+      invalidate(queryClient, { queryKey: queryKeys.projectStats.root() });
       return;
     case "SECTION":
       invalidate(queryClient, { queryKey: queryKeys.tasks.bySectionAll() });
@@ -77,13 +81,15 @@ export function invalidateByEntityChange(
   }
 }
 
-/** Activity feed, analytics and dashboard pages (whose charts arrive already
- * executed) are derived from every other entity, so any change to one of
- * them makes all three stale. The server still caches a page for up to 60s,
- * so a refetched page can lag behind the change that triggered it. */
+/** Activity feed, analytics (the project stats tab included) and dashboard
+ * pages (whose charts arrive already executed) are derived from every other
+ * entity, so any change to one of them makes all of them stale. The server
+ * still caches a page for up to 60s, so a refetched page can lag behind the
+ * change that triggered it. */
 export function invalidateDerivedData(queryClient: QueryClient) {
   invalidate(queryClient, { queryKey: queryKeys.activity.root() });
   invalidate(queryClient, { queryKey: queryKeys.analytics.root() });
+  invalidate(queryClient, { queryKey: queryKeys.projectStats.root() });
   invalidate(queryClient, { queryKey: queryKeys.dashboardPages.details() });
 }
 
@@ -100,7 +106,9 @@ export function invalidateWorkspaceData(queryClient: QueryClient, workspaceId: s
   if (!skipTasks) invalidate(queryClient, { queryKey: queryKeys.tasks.bySectionAll() });
   invalidate(queryClient, {
     predicate: (query) =>
-      (["tasks", "custom-fields", "sections", "comments", "activity", "analytics"] as unknown[]).includes(
+      (
+        ["tasks", "custom-fields", "sections", "comments", "activity", "analytics", "project-stats"] as unknown[]
+      ).includes(
         query.queryKey[0]
       ) &&
       !(

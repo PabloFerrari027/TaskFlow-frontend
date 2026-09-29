@@ -25,6 +25,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useAuth } from "@/lib/auth/auth-context";
+import { cn } from "@/lib/utils";
 import { canInstantiateProjectTemplate } from "@/lib/permissions";
 import {
   createProjectSchema,
@@ -144,9 +145,17 @@ export function CreateProjectDialog({
         onOpenChange(next);
       }}
     >
-      <DialogContent className={showSuggestions ? "sm:max-w-xl" : undefined}>
-        <DialogHeader>
-          <DialogTitle>{parent ? "Novo sub-projeto" : "Novo projeto"}</DialogTitle>
+      {/* Header and footer stay put; only the body scrolls on short screens. */}
+      <DialogContent
+        className={cn(
+          "flex max-h-[90vh] flex-col gap-0 overflow-hidden p-0",
+          showSuggestions ? "sm:max-w-3xl" : "sm:max-w-lg"
+        )}
+      >
+        <DialogHeader className="border-b px-6 pt-6 pb-4">
+          <DialogTitle className="text-lg">
+            {parent ? "Novo sub-projeto" : "Novo projeto"}
+          </DialogTitle>
           <DialogDescription>
             {parent
               ? `Crie um sub-projeto dentro de “${parent.name}”.`
@@ -156,78 +165,45 @@ export function CreateProjectDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {showSuggestions ? (
-          <TemplateSuggestions
-            workspaceId={workspaceId}
-            query={template ? "" : name}
-            selectedId={template?.id ?? null}
-            onSelect={selectTemplate}
-            onNavigate={() => {
-              reset();
-              onOpenChange(false);
-            }}
-          />
-        ) : null}
-
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {template && category ? (
-              <div className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 p-3 animate-in fade-in-0 slide-in-from-top-1">
-                <span
-                  aria-hidden
-                  className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-lg"
-                >
-                  {category.icon}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">Usando “{template.name}”</p>
-                  <p className="text-xs text-muted-foreground">
-                    Já vem com {formatTemplateCounts(template)}.
-                  </p>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex min-h-0 flex-1 flex-col">
+            <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 py-5">
+              {template && category ? (
+                <div className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 p-3 animate-in fade-in-0 slide-in-from-top-1">
+                  <span
+                    aria-hidden
+                    className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-lg"
+                  >
+                    {category.icon}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">Usando “{template.name}”</p>
+                    <p className="text-xs text-muted-foreground">
+                      Já vem com {formatTemplateCounts(template)}.
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    disabled={isLocked}
+                    onClick={() => setTemplate(null)}
+                  >
+                    <X /> Começar do zero
+                  </Button>
                 </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  disabled={isLocked}
-                  onClick={() => setTemplate(null)}
-                >
-                  <X /> Começar do zero
-                </Button>
-              </div>
-            ) : null}
+              ) : null}
 
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{template ? "Nome do projeto" : "Nome"}</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Website Redesign"
-                      autoFocus
-                      disabled={isLocked}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Instantiating only takes a name — the template brings the rest. */}
-            {!template ? (
               <FormField
                 control={form.control}
-                name="description"
+                name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Descrição (opcional)</FormLabel>
+                    <FormLabel>{template ? "Nome do projeto" : "Nome"}</FormLabel>
                     <FormControl>
-                      <Textarea
-                        rows={3}
-                        placeholder="Do que se trata este projeto?"
+                      <Input
+                        placeholder="Website Redesign"
+                        autoFocus
                         disabled={isLocked}
                         {...field}
                       />
@@ -236,9 +212,57 @@ export function CreateProjectDialog({
                   </FormItem>
                 )}
               />
-            ) : null}
 
-            <DialogFooter>
+              {/* Instantiating only takes a name — the template brings the rest. */}
+              {!template ? (
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Descrição (opcional)</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          rows={3}
+                          placeholder="Do que se trata este projeto?"
+                          disabled={isLocked}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              ) : null}
+
+              {showSuggestions ? (
+                <div className="border-t pt-5">
+                  <TemplateSuggestions
+                    workspaceId={workspaceId}
+                    query={template ? "" : name}
+                    selectedId={template?.id ?? null}
+                    onSelect={selectTemplate}
+                    onNavigate={() => {
+                      reset();
+                      onOpenChange(false);
+                    }}
+                  />
+                </div>
+              ) : null}
+            </div>
+
+            <DialogFooter className="mx-0 mb-0 px-6 py-4">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={instantiateMutation.isPending}
+                onClick={() => {
+                  reset();
+                  onOpenChange(false);
+                }}
+              >
+                Cancelar
+              </Button>
               <Button type="submit" disabled={isLocked}>
                 {isLocked ? <Loader2 className="animate-spin" /> : null}
                 {parent
