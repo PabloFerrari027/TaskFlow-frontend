@@ -143,6 +143,7 @@ function patchTaskInLists(queryClient: QueryClient, task: Task) {
   // looking at right now refetch the next time they're mounted.
   queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all(task.projectId), refetchType: "none" });
   queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll(), refetchType: "none" });
+  queryClient.invalidateQueries({ queryKey: queryKeys.projectStats.root(), refetchType: "none" });
 }
 
 // The detail cache is only filled once a task is opened, but the mutations need

@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import {
+  BarChart3,
   Bot,
   Building2,
   Coins,
@@ -709,6 +710,86 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       },
     ],
     related: ["board", "tasks"],
+  },
+  {
+    id: "project-stats",
+    group: "daily",
+    title: "Estatísticas do projeto",
+    summary: "Entenda em números como o projeto está andando: o que já foi feito, o que atrasou e quem está com mais tarefas.",
+    icon: BarChart3,
+    sections: [
+      {
+        heading: "Onde ficam",
+        intro:
+          "Dentro do projeto, na aba Estatísticas, logo depois de Tarefas. Qualquer pessoa do projeto vê essa aba, inclusive em projetos arquivados. Ela só mostra números: nada ali altera as tarefas.",
+        callouts: [
+          {
+            kind: "note",
+            text: "Os números incluem os sub-projetos. Se “Site” tem o sub-projeto “Blog”, as tarefas do Blog também entram nas estatísticas do Site.",
+          },
+        ],
+      },
+      {
+        heading: "Os números do topo",
+        bullets: [
+          "Total de tarefas: todas as tarefas do projeto, concluídas ou não.",
+          "Tarefas em aberto: as que ainda não foram concluídas (estão em “A fazer” ou “Em progresso”).",
+          "Taxa de conclusão: quanto do total já foi concluído. Se 3 de 10 tarefas estão concluídas, a taxa é de 30%.",
+          "Taxa de atraso: das tarefas que têm prazo, quantas passaram do prazo sem ser concluídas.",
+          "Tempo médio de conclusão: quanto tempo, em média, uma tarefa leva desde que foi criada até ser concluída.",
+          "Urgentes em aberto: tarefas com prioridade Urgente que ainda não foram concluídas.",
+        ],
+      },
+      {
+        heading: "O que conta como atrasada",
+        intro:
+          "Uma tarefa está atrasada quando o prazo dela já passou e ela ainda não foi concluída. Tarefas sem prazo nunca contam como atrasadas e também ficam fora da conta da taxa de atraso: não é justo cobrar prazo de quem nunca teve um.",
+        callouts: [
+          {
+            kind: "tip",
+            text: "Se a taxa de atraso aparece como “Sem dados”, nenhuma tarefa do projeto tem prazo ainda. Defina prazos nas tarefas para acompanhar esse número.",
+          },
+        ],
+      },
+      {
+        heading: "Tempo médio de conclusão",
+        intro:
+          "Só entram na conta as tarefas concluídas depois que o TaskFlow passou a guardar a data de conclusão. Tarefas concluídas antes disso não têm essa data e ficam de fora. Se nenhuma tarefa tiver a data, o número aparece como “Sem dados”, e não como zero.",
+      },
+      {
+        heading: "Os gráficos",
+        bullets: [
+          "Tarefas por status: como as tarefas se dividem entre A fazer, Em progresso e Concluída.",
+          "Tarefas por prioridade: quantas tarefas há em cada nível, de Baixa a Urgente.",
+          "Tarefas criadas ao longo do tempo: quantas tarefas foram criadas em cada semana, nas últimas 12 semanas. As semanas começam na segunda-feira.",
+          "Tarefas por responsável: quantas tarefas estão com cada pessoa. As que ninguém assumiu aparecem como “Sem responsável”.",
+        ],
+        callouts: [
+          {
+            kind: "tip",
+            text: "Passe o mouse (ou toque) sobre uma barra, fatia ou ponto para ver o número exato.",
+          },
+        ],
+      },
+    ],
+    faq: [
+      {
+        question: "O total não bate com o que vejo no quadro.",
+        answer:
+          "As estatísticas somam também as tarefas dos sub-projetos, que não aparecem no quadro deste projeto. Confira também se há filtros ativos no quadro.",
+      },
+      {
+        question: "Mudei uma tarefa e o número não mudou.",
+        answer:
+          "Os números se atualizam sozinhos logo depois de uma mudança, inclusive as feitas por outras pessoas. Se algo parecer desatualizado, recarregue a página.",
+      },
+      {
+        question: "Aparece “Sem dados” em vez de um número.",
+        answer:
+          "Significa que ainda não há informação suficiente para calcular aquele número, por exemplo nenhuma tarefa com prazo ou nenhuma tarefa concluída. Não é o mesmo que zero.",
+      },
+    ],
+    related: ["tasks", "task-views", "projects"],
   },
   {
     id: "collaboration",

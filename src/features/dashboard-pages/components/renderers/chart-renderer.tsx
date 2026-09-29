@@ -14,18 +14,21 @@ import type { DashboardChartType } from "@/types/dashboard-page";
  * builder's live preview and the anonymous viewer alike. `lookups` turns ids
  * into names where the viewer is allowed to know them (signed-in only).
  * `legend` only reaches bar and line: a pie always lists its categories
- * beside it, and a number card names its metric under the value.
+ * beside it, and a number card names its metric under the value (`label`
+ * overrides that name; only a number card uses it).
  */
 export function ChartRenderer({
   chartType,
   result,
   lookups,
   legend,
+  label,
 }: {
   chartType: DashboardChartType;
   result: AnalyticsResult;
   lookups?: ValueLabeler;
   legend?: LegendMode;
+  label?: string;
 }) {
   switch (chartType) {
     case "BAR":
@@ -35,6 +38,6 @@ export function ChartRenderer({
     case "LINE":
       return <LineChartRenderer result={result} lookups={lookups} legend={legend} />;
     case "NUMBER":
-      return <NumberCardRenderer result={result} />;
+      return <NumberCardRenderer result={result} label={label} />;
   }
 }

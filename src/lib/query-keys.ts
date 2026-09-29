@@ -180,4 +180,13 @@ export const queryKeys = {
     query: (request: AnalyticsQuery) =>
       ["analytics", "query", stableStringify(request)] as const,
   },
+  // The project's Estatísticas tab. Its own root (not `analytics`): each
+  // indicator's request depends on "now" (date filters), so it is keyed by
+  // what it shows, not by its body. Every task change invalidates the whole
+  // root — a task in a sub-project also moves its ancestors' numbers.
+  projectStats: {
+    root: () => ["project-stats"] as const,
+    indicator: (projectId: string, indicator: string) =>
+      ["project-stats", projectId, indicator] as const,
+  },
 } as const;

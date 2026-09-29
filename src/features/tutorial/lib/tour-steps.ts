@@ -172,9 +172,10 @@ export const TOUR_STEPS: TourStep[] = [
     skipIfMissing: true,
     title: "As abas do projeto",
     description:
-      "Cada projeto tem quatro abas, e uma frase logo abaixo explica a que está aberta. Você está em Tarefas, o quadro de trabalho.",
+      "Cada projeto tem várias abas, e uma frase logo abaixo explica a que está aberta. Você está em Tarefas, o quadro de trabalho.",
     details: [
       "Tarefas: o quadro, com uma coluna por etapa do fluxo.",
+      "Estatísticas: os números do projeto, como quanto já foi feito e o que está atrasado.",
       "Pessoas: quem tem acesso ao projeto.",
       "Convites: convide alguém por e-mail e acompanhe o aceite.",
       "Campos extras: campos próprios em cada tarefa, como cliente ou valor.",

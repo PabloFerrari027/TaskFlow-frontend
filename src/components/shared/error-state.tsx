@@ -3,16 +3,23 @@
 import { AlertTriangle, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getErrorMessage } from "@/lib/errors";
+import { cn } from "@/lib/utils";
 
 interface ErrorStateProps {
   error?: unknown;
   title?: string;
   onRetry?: () => void;
+  className?: string;
 }
 
-export function ErrorState({ error, title, onRetry }: ErrorStateProps) {
+export function ErrorState({ error, title, onRetry, className }: ErrorStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-destructive/30 bg-destructive/5 px-6 py-14 text-center">
+    <div
+      className={cn(
+        "flex flex-col items-center justify-center rounded-lg border border-dashed border-destructive/30 bg-destructive/5 px-6 py-14 text-center",
+        className
+      )}
+    >
       <div className="mb-4 flex size-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
         <AlertTriangle className="size-5" />
       </div>
