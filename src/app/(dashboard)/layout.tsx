@@ -24,8 +24,12 @@ export default function DashboardLayout({
                 <Sidebar />
                 <div className="flex min-w-0 flex-1 flex-col">
                   <Topbar />
-                  <main className="flex-1 overflow-y-auto p-4 sm:p-6">
-                    {children}
+                  <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
+                    {/* Caps line length on wide monitors. Boards and dashboard
+                        grids opt out by rendering `data-page-width="full"`. */}
+                    <div className="mx-auto w-full max-w-7xl has-data-[page-width=full]:max-w-none">
+                      {children}
+                    </div>
                   </main>
                 </div>
               </div>

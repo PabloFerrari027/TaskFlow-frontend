@@ -146,6 +146,10 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   INVALID_PROJECT_TEMPLATE_CATEGORY: "Escolha uma das categorias da lista.",
   PROJECT_TEMPLATE_REMOVED:
     "Este modelo foi tirado da lista e não pode mais ser usado.",
+  // Sent as the final `error` frame of the assistant's chat stream, whose
+  // server-side messages are in English.
+  REQUEST_TIMEOUT: "O assistente demorou demais para responder. Tente de novo.",
+  INTERNAL_ERROR: "Algo deu errado. Tente novamente em instantes.",
 };
 
 const DEFAULT_MESSAGE = "Algo deu errado. Tente novamente em instantes.";

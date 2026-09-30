@@ -8,5 +8,9 @@ export default function ProjectTasksPage(
 ) {
   const { projectId } = use(props.params);
 
-  return <TaskBoard projectId={projectId} canManage />;
+  return (
+    <div data-page-width="full">
+      <TaskBoard projectId={projectId} canManage />
+    </div>
+  );
 }

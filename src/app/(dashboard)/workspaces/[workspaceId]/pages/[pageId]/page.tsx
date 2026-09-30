@@ -5,5 +5,9 @@ import { PageEditor } from "@/features/dashboard-pages/components/page-editor";
 
 export default function DashboardPageEditorPage() {
   const { workspaceId, pageId } = useParams<{ workspaceId: string; pageId: string }>();
-  return <PageEditor key={pageId} workspaceId={workspaceId} pageId={pageId} />;
+  return (
+    <div data-page-width="full">
+      <PageEditor key={pageId} workspaceId={workspaceId} pageId={pageId} />
+    </div>
+  );
 }

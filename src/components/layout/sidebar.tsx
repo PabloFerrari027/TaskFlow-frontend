@@ -13,12 +13,12 @@ export function Sidebar() {
       id="app-sidebar"
       data-tour="sidebar"
       className={cn(
-        "hidden w-60 shrink-0 border-r border-border/60 bg-card/40",
+        "sticky top-0 hidden h-screen w-64 shrink-0 border-r border-sidebar-border bg-sidebar",
         !collapsed && "md:flex md:flex-col"
       )}
     >
       <div className="flex h-16 items-center border-b border-border/60 px-4">
-        <Logo href="/projects" />
+        <Logo href="/home" />
       </div>
       <div className="flex-1 overflow-y-auto">
         <SidebarNav />

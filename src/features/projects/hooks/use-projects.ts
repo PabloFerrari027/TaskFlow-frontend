@@ -169,6 +169,7 @@ export function useMoveProjectMutation(workspaceId: string) {
       queryClient.invalidateQueries({ queryKey: queryKeys.projects.all(workspaceId) });
       // Its tasks now roll up into a different parent.
       queryClient.invalidateQueries({ queryKey: queryKeys.projectStats.root() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.home.root() });
       toast.success("Projeto movido.");
     },
     onError: (error) => toast.error(getErrorMessage(error)),

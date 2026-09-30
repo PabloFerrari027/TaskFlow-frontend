@@ -46,6 +46,32 @@ export interface AssistantChatResponse {
   transcriptions: Transcription[];
 }
 
+// What the assistant is doing right now, as reported by
+// `POST /assistant/chat/stream` — the wording shown for each is ours
+// (API.md § 16).
+export type AssistantChatStage =
+  | "transcribing"
+  | "reading_attachments"
+  | "loading_context"
+  | "thinking"
+  | "running_tool"
+  | "checking_content";
+
+export interface AssistantChatStatus {
+  stage: AssistantChatStage;
+  tool?: string;
+}
+
+// Every progress frame of the stream. The terminal `done`/`error` frames
+// never reach callers as events: `done` resolves the call with its `result`
+// and `error` rejects it.
+export type AssistantChatEvent =
+  | ({ type: "status" } & AssistantChatStatus)
+  | { type: "transcription"; transcription: Transcription }
+  | { type: "text_delta"; delta: string }
+  | { type: "pending_action"; action: PendingAction }
+  | { type: "warning"; message: string };
+
 export interface ConfirmPendingActionResponse {
   tool: string;
   result: unknown;
@@ -72,6 +98,10 @@ export interface ChatTranscriptMessage {
   attachments?: ChatAttachment[];
   executedActions?: ExecutedAction[];
   pendingActions?: PendingActionState[];
+  // Present only on the assistant reply still being streamed (`null` until
+  // the first status arrives) — `content` holds the text written so far and
+  // is replaced by the final `reply` on `done`.
+  streamingStatus?: AssistantChatStatus | null;
 }
 
 // One entry per PendingAction confirmed during the current session (Sheet

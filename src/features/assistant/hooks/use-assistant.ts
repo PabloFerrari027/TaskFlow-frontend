@@ -7,7 +7,7 @@ import { assistantService } from "@/features/assistant/api/assistant-service";
 import { queryKeys } from "@/lib/query-keys";
 import { getErrorCode, getErrorMessage } from "@/lib/errors";
 import { clearSession } from "@/lib/auth/token-store";
-import type { ChatMessage } from "@/features/assistant/types";
+import type { AssistantChatEvent, ChatMessage } from "@/features/assistant/types";
 import {
   AI_USAGE_QUERY_CACHE,
   buildAiUsageDateRange,
@@ -24,18 +24,31 @@ import type { Task } from "@/types/task";
 
 const AI_USAGE_PAGE_SIZE = 20;
 
+// Streams the turn (`POST /assistant/chat/stream`): progress frames go to
+// `onEvent` as they arrive, and the mutation resolves with the final
+// `done.result` — the same shape the JSON endpoint returns.
 export function useSendChatMessageMutation(workspaceId: string) {
   return useMutation({
     mutationFn: ({
       message,
       history,
       files,
+      onEvent,
+      signal,
     }: {
       message: string;
       history: ChatMessage[];
       files?: File[];
-    }) => assistantService.sendChatMessage(message, workspaceId, history, files),
-    onError: (error) => {
+      onEvent: (event: AssistantChatEvent) => void;
+      signal?: AbortSignal;
+    }) =>
+      assistantService.streamChatMessage(message, workspaceId, history, files, {
+        onEvent,
+        signal,
+      }),
+    onError: (error, variables) => {
+      // Aborted on purpose (the user closed the chat) — nothing to report.
+      if (variables.signal?.aborted) return;
       // The chat shows a persistent notice for these (retrying can't help
       // until the provider account is topped up / the quota window resets),
       // so no toast on top of it.
@@ -92,6 +105,7 @@ function applyConfirmedActionEffects(
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all(task.projectId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll() });
       queryClient.invalidateQueries({ queryKey: queryKeys.projectStats.root() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.home.root() });
       return;
     }
     case "update_task":
@@ -102,6 +116,7 @@ function applyConfirmedActionEffects(
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all(task.projectId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll() });
       queryClient.invalidateQueries({ queryKey: queryKeys.projectStats.root() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.home.root() });
       return;
     }
     case "change_task_status": {
@@ -110,6 +125,7 @@ function applyConfirmedActionEffects(
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all(task.projectId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll() });
       queryClient.invalidateQueries({ queryKey: queryKeys.projectStats.root() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.home.root() });
       if (task.parentTaskId) {
         queryClient.invalidateQueries({ queryKey: queryKeys.tasks.subtasks(task.parentTaskId) });
       }

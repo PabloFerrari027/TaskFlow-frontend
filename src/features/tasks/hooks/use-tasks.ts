@@ -16,6 +16,7 @@ import {
   TASK_MUTATION_KEY,
 } from "@/features/tasks/lib/task-list-refresh";
 import { queryKeys } from "@/lib/query-keys";
+import { celebrate } from "@/lib/celebrate";
 import { getBulkItemErrorMessage, getErrorMessage } from "@/lib/errors";
 import { MAX_PAGE_SIZE, type PaginatedResult } from "@/types/common";
 import { useCurrentWorkspace } from "@/features/workspaces/context/current-workspace-context";
@@ -144,6 +145,7 @@ function patchTaskInLists(queryClient: QueryClient, task: Task) {
   queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all(task.projectId), refetchType: "none" });
   queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll(), refetchType: "none" });
   queryClient.invalidateQueries({ queryKey: queryKeys.projectStats.root(), refetchType: "none" });
+  queryClient.invalidateQueries({ queryKey: queryKeys.home.root(), refetchType: "none" });
 }
 
 // The detail cache is only filled once a task is opened, but the mutations need
@@ -652,7 +654,12 @@ export function useChangeTaskStatusMutation(
       }
       return tasksService.changeStatus(taskId, payload);
     },
-    onSuccess: (task) => {
+    // Read before the request goes out: afterwards the cache already holds DONE.
+    onMutate: (payload) => ({
+      completes:
+        payload.status === "DONE" && findCachedTask(queryClient, taskId)?.status !== "DONE",
+    }),
+    onSuccess: (task, _payload, context) => {
       queryClient.setQueryData(queryKeys.tasks.detail(taskId), task);
       if (task.parentTaskId) {
         queryClient.invalidateQueries({
@@ -660,6 +667,9 @@ export function useChangeTaskStatusMutation(
         });
       }
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.subtasks(task.id) });
+      // Finishing a task is the moment worth marking — in every view, the
+      // silent table included. Offline too: the user did finish it.
+      if (context?.completes) celebrate();
       if (silent) {
         patchTaskInLists(queryClient, task);
         return;
@@ -668,7 +678,9 @@ export function useChangeTaskStatusMutation(
       toast.success(
         isOffline()
           ? "Status salvo offline — será sincronizado quando a conexão voltar."
-          : "Status atualizado."
+          : context?.completes
+            ? "Tarefa concluída. Mandou bem!"
+            : "Status atualizado."
       );
     },
     onError: (error) => toast.error(getErrorMessage(error)),

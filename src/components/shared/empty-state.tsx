@@ -19,22 +19,24 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-muted/30 px-6 py-14 text-center",
+        "flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card/60 px-6 py-16 text-center",
         className
       )}
     >
       {icon ? (
-        <div className="mb-4 flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+        // A soft primary halo instead of a grey disc: an empty screen is an
+        // invitation to start, not an error.
+        <div className="mb-5 flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-8 ring-primary/5 [&_svg:not([class*='size-'])]:size-6">
           {icon}
         </div>
       ) : null}
-      <h3 className="text-sm font-medium text-foreground">{title}</h3>
+      <h3 className="text-base font-semibold text-foreground">{title}</h3>
       {description ? (
-        <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+        <p className="mt-1.5 max-w-md text-sm text-muted-foreground">
           {description}
         </p>
       ) : null}
-      {action ? <div className="mt-5">{action}</div> : null}
+      {action ? <div className="mt-6">{action}</div> : null}
     </div>
   );
 }

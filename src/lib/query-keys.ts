@@ -189,4 +189,12 @@ export const queryKeys = {
     indicator: (projectId: string, indicator: string) =>
       ["project-stats", projectId, indicator] as const,
   },
+  // The Início page: the signed-in user's own task numbers in a workspace.
+  // Same rules as projectStats (keyed by indicator, "now" read at request
+  // time) and invalidated at the same points — every task change.
+  home: {
+    root: () => ["home"] as const,
+    indicator: (workspaceId: string, userId: string, indicator: string) =>
+      ["home", workspaceId, userId, indicator] as const,
+  },
 } as const;

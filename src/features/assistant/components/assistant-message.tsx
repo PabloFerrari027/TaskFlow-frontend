@@ -1,10 +1,40 @@
 "use client";
 
-import { Mic, Paperclip } from "lucide-react";
+import { Loader2, Mic, Paperclip } from "lucide-react";
 import { MarkdownContent } from "@/components/shared/markdown-content";
 import { cn } from "@/lib/utils";
 import { PendingActionCard } from "@/features/assistant/components/pending-action-card";
-import type { ChatTranscriptMessage, PendingActionLocalStatus } from "@/features/assistant/types";
+import { TypingIndicator } from "@/features/assistant/components/typing-indicator";
+import type {
+  AssistantChatStage,
+  AssistantChatStatus,
+  ChatTranscriptMessage,
+  PendingActionLocalStatus,
+} from "@/features/assistant/types";
+
+// The API only reports *which* stage the assistant is in — the wording is
+// ours, kept plain for non-technical users.
+const STAGE_LABEL: Record<Exclude<AssistantChatStage, "running_tool">, string> = {
+  transcribing: "Ouvindo seu áudio...",
+  reading_attachments: "Lendo os anexos...",
+  loading_context: "Olhando o seu workspace...",
+  thinking: "Pensando...",
+  checking_content: "Revisando a resposta...",
+};
+
+// Read-only tools; every other tool registers an action for the user to
+// confirm, so it gets the generic "preparing" label.
+const READ_TOOL_LABEL: Record<string, string> = {
+  list_tasks: "Consultando as tarefas...",
+  list_projects: "Consultando os projetos...",
+  list_workspaces: "Consultando os workspaces...",
+  list_sessions: "Consultando suas sessões...",
+};
+
+function streamingStatusLabel(status: AssistantChatStatus): string {
+  if (status.stage !== "running_tool") return STAGE_LABEL[status.stage];
+  return (status.tool && READ_TOOL_LABEL[status.tool]) || "Preparando a ação para você confirmar...";
+}
 
 // The user bubble uses `bg-primary`, so `MarkdownContent`'s default
 // `text-foreground` (meant for a plain/muted background) would lose
@@ -29,16 +59,31 @@ export function AssistantMessage({
   onPendingActionStatusChange: (actionId: string, status: PendingActionLocalStatus) => void;
 }) {
   const isUser = message.role === "user";
+  const isStreaming = message.streamingStatus !== undefined;
 
   return (
     <div className={cn("flex", isUser ? "justify-end" : "justify-start")}>
       <div className="max-w-[85%] space-y-2">
-        <div className={cn("rounded-lg px-3 py-2", isUser ? "bg-primary" : "bg-muted")}>
-          <MarkdownContent
-            content={message.content}
-            className={isUser ? USER_BUBBLE_MARKDOWN_CLASS : undefined}
-          />
-        </div>
+        {isStreaming && !message.content ? (
+          <TypingIndicator />
+        ) : message.content || !isUser ? (
+          <div className={cn("rounded-lg px-3 py-2", isUser ? "bg-primary" : "bg-muted")}>
+            <MarkdownContent
+              content={message.content}
+              className={isUser ? USER_BUBBLE_MARKDOWN_CLASS : undefined}
+            />
+          </div>
+        ) : null}
+
+        {isStreaming && message.streamingStatus ? (
+          <p
+            aria-live="polite"
+            className="flex items-center gap-1.5 text-xs text-muted-foreground"
+          >
+            <Loader2 className="size-3 animate-spin" />
+            {streamingStatusLabel(message.streamingStatus)}
+          </p>
+        ) : null}
 
         {message.attachments && message.attachments.length > 0 ? (
           <div className="flex flex-wrap justify-end gap-1.5">

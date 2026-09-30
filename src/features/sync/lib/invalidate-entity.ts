@@ -43,12 +43,14 @@ export function invalidateByEntityChange(
       });
       // Not narrowed by projectId: the task also counts in every ancestor's stats.
       invalidate(queryClient, { queryKey: queryKeys.projectStats.root() });
+      invalidate(queryClient, { queryKey: queryKeys.home.root() });
       return;
     case "PROJECT":
       invalidate(queryClient, { queryKey: queryKeys.projects.detail(entityId) });
       invalidate(queryClient, { queryKey: queryKeys.projects.all(workspaceId) });
       // A moved sub-project takes its tasks out of one subtree and into another.
       invalidate(queryClient, { queryKey: queryKeys.projectStats.root() });
+      invalidate(queryClient, { queryKey: queryKeys.home.root() });
       return;
     case "SECTION":
       invalidate(queryClient, { queryKey: queryKeys.tasks.bySectionAll() });
@@ -90,6 +92,7 @@ export function invalidateDerivedData(queryClient: QueryClient) {
   invalidate(queryClient, { queryKey: queryKeys.activity.root() });
   invalidate(queryClient, { queryKey: queryKeys.analytics.root() });
   invalidate(queryClient, { queryKey: queryKeys.projectStats.root() });
+  invalidate(queryClient, { queryKey: queryKeys.home.root() });
   invalidate(queryClient, { queryKey: queryKeys.dashboardPages.details() });
 }
 

@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import {
+  House,
   PanelsTopLeft,
   FolderKanban,
   Building2,
@@ -17,10 +18,23 @@ import {
 import { canManageDeveloperPlatform } from "@/lib/permissions";
 import type { WorkspaceRole } from "@/types/workspace";
 
+export type NavGroup = "work" | "team" | "help" | "account" | "admin";
+
+// Rendered in this order, each under its label; items keep their array order
+// inside a group. Ordered by frequency: what is used every day comes first.
+export const NAV_GROUPS: { id: NavGroup; label: string }[] = [
+  { id: "work", label: "Trabalho" },
+  { id: "team", label: "Equipe" },
+  { id: "help", label: "Ajuda" },
+  { id: "account", label: "Conta" },
+  { id: "admin", label: "Administração" },
+];
+
 export interface NavItem {
   href: string;
   label: string;
   icon: LucideIcon;
+  group: NavGroup;
   requiresSuperAdmin?: boolean;
   // When set, the item only shows while the current workspace role passes
   // this check — mirrors the same gate the old workspace-page tab used.
@@ -32,57 +46,58 @@ export interface NavItem {
 }
 
 export const NAV_ITEMS: NavItem[] = [
-  // Ordenado por prioridade: o que se usa todo dia vem primeiro.
-
   // Uso diário: onde o trabalho acontece.
-  { href: "/projects", label: "Projetos", icon: FolderKanban },
+  { href: "/home", label: "Início", icon: House, group: "work" },
+  { href: "/projects", label: "Projetos", icon: FolderKanban, group: "work" },
   {
     href: "/workspaces/pages",
     label: "Páginas",
     icon: PanelsTopLeft,
+    group: "work",
     workspaceHref: (workspaceId) => `/workspaces/${workspaceId}/pages`,
   },
-  { href: "/assistant", label: "Assistente", icon: Bot },
+  { href: "/assistant", label: "Assistente", icon: Bot, group: "work" },
+  { href: "/templates", label: "Modelos", icon: LayoutTemplate, group: "work" },
 
-  // Uso ocasional: começar algo novo e organizar a equipe.
-  { href: "/templates", label: "Modelos", icon: LayoutTemplate },
-  { href: "/workspaces", label: "Workspaces", icon: Building2 },
-
-  // Ajuda para quem está começando.
-  { href: "/tutorial", label: "Tutorial", icon: BookOpen },
-
-  // Conta e configurações pessoais.
-  { href: "/settings/profile", label: "Perfil", icon: UserRound },
-  { href: "/settings/plan", label: "Plano", icon: CreditCard },
-
+  // Organizar a equipe.
+  { href: "/workspaces", label: "Workspaces", icon: Building2, group: "team" },
   // Recurso técnico, só para Proprietário/Administrador.
   {
     href: "/developers",
     label: "Desenvolvedores",
     icon: Code2,
+    group: "team",
     workspacePermission: canManageDeveloperPlatform,
   },
 
-  // Informações de referência.
-  { href: "/privacy", label: "Privacidade e FAQ", icon: FileText },
+  // Ajuda para quem está começando e informações de referência.
+  { href: "/tutorial", label: "Tutorial", icon: BookOpen, group: "help" },
+  { href: "/privacy", label: "Privacidade e FAQ", icon: FileText, group: "help" },
+
+  // Conta e configurações pessoais.
+  { href: "/settings/profile", label: "Perfil", icon: UserRound, group: "account" },
+  { href: "/settings/plan", label: "Plano", icon: CreditCard, group: "account" },
 
   // Administração (somente super admin).
   {
     href: "/admin/clients",
     label: "Clientes",
     icon: ShieldCheck,
+    group: "admin",
     requiresSuperAdmin: true,
   },
   {
     href: "/admin/plans",
     label: "Planos",
     icon: Coins,
+    group: "admin",
     requiresSuperAdmin: true,
   },
   {
     href: "/admin/templates",
     label: "Modelos",
     icon: ShieldAlert,
+    group: "admin",
     requiresSuperAdmin: true,
   },
 ];

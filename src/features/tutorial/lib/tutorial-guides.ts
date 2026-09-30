@@ -7,6 +7,7 @@ import {
   Compass,
   CloudOff,
   FolderKanban,
+  House,
   KeyRound,
   Kanban,
   LayoutTemplate,
@@ -119,7 +120,10 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       },
       {
         heading: "O que cada item do menu mostra",
+        intro:
+          "O menu lateral é dividido em grupos (Trabalho, Equipe, Ajuda e Conta), do que você usa todo dia para o que usa de vez em quando.",
         bullets: [
+          "Início: seu resumo do dia, com as tarefas atribuídas a você, o que está atrasado e os projetos recentes. É a primeira tela depois do login.",
           "Projetos: todos os projetos do workspace, ativos e arquivados, em árvore ou tabela.",
           "Desenvolvedores: chaves de API e webhooks do workspace atual (só Proprietário e Administrador veem este item).",
           "Assistente: liga ou desliga o assistente de IA do workspace atual.",
@@ -202,6 +206,53 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
   },
 
   // ------------------------------------------------------------- daily
+  {
+    id: "home",
+    group: "daily",
+    title: "Início: seu resumo do dia",
+    summary: "O que está com você, o que atrasou e por onde começar, numa tela só.",
+    icon: House,
+    sections: [
+      {
+        heading: "O que a tela mostra",
+        intro:
+          "A tela Início reúne as tarefas em que você é o responsável, no workspace selecionado no topo:",
+        bullets: [
+          "Com você: quantas tarefas atribuídas a você ainda não foram concluídas.",
+          "Atrasadas: tarefas suas em aberto cujo prazo já passou.",
+          "Vencem em breve: tarefas suas em aberto com prazo nos próximos 7 dias.",
+          "Seu progresso: a porcentagem de todas as tarefas já atribuídas a você que estão concluídas.",
+          "Onde estão suas tarefas: os projetos em que há tarefas suas em aberto, com os atrasados primeiro. Clique num projeto para ir direto ao quadro.",
+          "Continue de onde parou: os projetos ativos alterados mais recentemente.",
+        ],
+        callouts: [
+          {
+            kind: "note",
+            text: "Só contam as tarefas em que você é o responsável. Ser participante ou ter sido mencionado numa tarefa não a coloca aqui.",
+          },
+          {
+            kind: "note",
+            text: "As tarefas de um sub-projeto aparecem somadas no projeto principal acima dele, igual à aba Estatísticas.",
+          },
+        ],
+      },
+      {
+        heading: "Concluindo tarefas",
+        intro:
+          "Quando você muda o status de uma tarefa para Concluída, o TaskFlow comemora com uma pequena animação. Se o seu sistema estiver configurado para reduzir movimentos, a animação não aparece.",
+      },
+    ],
+    faq: [
+      {
+        question: "Os números não batem com o que vejo num projeto.",
+        answer:
+          "Confira o workspace selecionado no topo: a tela Início só conta o workspace atual. Os números também podem levar alguns segundos para atualizar depois de uma alteração.",
+      },
+    ],
+    related: ["tasks", "project-stats"],
+    href: "/home",
+    hrefLabel: "Ir para o Início",
+  },
   {
     id: "workspaces",
     group: "daily",

@@ -18,7 +18,7 @@ export function Topbar() {
   const { collapsed, toggle } = useSidebar();
 
   return (
-    <header className="flex h-16 items-center justify-between gap-3 border-b border-border/60 bg-background px-4 sm:px-6">
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-border/60 bg-background/80 px-4 backdrop-blur-md sm:px-6 lg:px-10">
       <div className="flex items-center gap-3">
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger asChild>
@@ -28,7 +28,7 @@ export function Topbar() {
           </SheetTrigger>
           <SheetContent side="left" className="w-64 p-0">
             <div className="flex h-16 items-center border-b border-border/60 px-4">
-              <Logo href="/projects" />
+              <Logo href="/home" />
             </div>
             <SidebarNav onNavigate={() => setMobileOpen(false)} />
           </SheetContent>

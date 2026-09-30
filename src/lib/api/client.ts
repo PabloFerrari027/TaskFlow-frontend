@@ -40,7 +40,7 @@ apiClient.interceptors.request.use(beforeRequest);
 
 let refreshPromise: Promise<string | null> | null = null;
 
-function redirectToLogin() {
+export function redirectToLogin() {
   if (typeof window === "undefined") return;
   const next = window.location.pathname + window.location.search;
   if (!window.location.pathname.startsWith("/login")) {
