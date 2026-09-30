@@ -16,7 +16,7 @@ export function ErrorState({ error, title, onRetry, className }: ErrorStateProps
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center rounded-lg border border-dashed border-destructive/30 bg-destructive/5 px-6 py-14 text-center",
+        "flex flex-col items-center justify-center rounded-xl border border-dashed border-destructive/30 bg-destructive/5 px-6 py-14 text-center",
         className
       )}
     >

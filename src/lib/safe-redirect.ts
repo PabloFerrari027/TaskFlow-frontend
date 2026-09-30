@@ -8,7 +8,7 @@
  */
 export function getSafeRedirectPath(
   next: string | null | undefined,
-  fallback = "/workspaces"
+  fallback = "/home"
 ): string {
   if (!next) return fallback;
   if (!next.startsWith("/") || next.startsWith("//") || next.startsWith("/\\")) {

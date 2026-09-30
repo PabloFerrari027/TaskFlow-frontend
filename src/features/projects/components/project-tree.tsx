@@ -107,7 +107,7 @@ function ProjectTreeNode({
 
   return (
     <li>
-      <div className="flex items-center gap-2 rounded-lg border border-border/60 bg-card px-2 py-2 transition-shadow hover:shadow-sm">
+      <div className="flex items-center gap-2 rounded-xl border border-border/60 bg-card px-2.5 py-2.5 shadow-card transition-all hover:border-primary/25 hover:shadow-card-hover">
         {hasChildren ? (
           <Button
             variant="ghost"

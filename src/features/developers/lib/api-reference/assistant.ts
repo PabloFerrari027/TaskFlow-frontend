@@ -41,6 +41,44 @@ export function buildAssistantEndpoints(workspaceId: string): ApiEndpoint[] {
     },
     {
       method: "POST",
+      path: "/assistant/chat/stream",
+      summary: "Conversar com o assistente (streaming)",
+      description:
+        "Mesmo corpo, limites e erros de admissão de `POST /assistant/chat`, mas a resposta é SSE (`text/event-stream`): cada frame é `data: <json>` com um `type` — `status` (`stage`, `tool?`), `transcription`, `text_delta` (`delta`), `pending_action` (`action`), `warning` (`message`) e, por último, `done` (`result`, idêntico ao corpo de `POST /assistant/chat`) ou `error` (`statusCode`, `code`, `message`). `EventSource` não faz POST: leia com `fetch` + `response.body.getReader()`.",
+      bodyParams: [
+        { name: "message", type: "string", required: false, notes: "opcional só no multipart com áudio anexado" },
+        { name: "workspaceId", type: "string", required: true },
+        { name: "history", type: "{ role, content }[]", required: false, notes: "até 50 mensagens" },
+        { name: "files", type: "File[]", required: false, notes: "só multipart, até 6 arquivos" },
+      ],
+      requestExample: [
+        'curl -N -X POST "$API_URL/assistant/chat/stream" \\',
+        '  -H "Authorization: Bearer $ACCESS_TOKEN" \\',
+        '  -H "Content-Type: application/json" \\',
+        "  -d '{",
+        `    "message": "Crie uma task \\"Revisar contrato\\" no projeto Jurídico", "workspaceId": "${workspaceId}"`,
+        "  }'",
+      ].join("\n"),
+      responseStatus: "200 OK (text/event-stream)",
+      responseExample: [
+        'data: {"type":"status","stage":"loading_context"}',
+        'data: {"type":"status","stage":"thinking"}',
+        'data: {"type":"status","stage":"running_tool","tool":"create_task"}',
+        'data: {"type":"pending_action","action":{"id":"uuid","tool":"create_task","riskLevel":"standard","humanDescription":"Criar a task \\"Revisar contrato\\" neste projeto.","params":{"...":"..."}}}',
+        'data: {"type":"text_delta","delta":"Vou precisar da sua "}',
+        'data: {"type":"text_delta","delta":"confirmação para criar essa task."}',
+        'data: {"type":"done","result":{"reply":"Vou precisar da sua confirmação para criar essa task.","executedActions":[],"pendingActions":[...],"transcriptions":[]}}',
+      ].join("\n"),
+      notes: [
+        "Recusas de admissão (assistente desligado, rate limit, cota, anexos, 400) continuam sendo erros HTTP normais, antes de qualquer frame.",
+        "`done.result.reply` é a versão final e autoritativa: substitua por ela o texto acumulado dos `text_delta`.",
+        "Linhas começando com `:` (`:ping`, a cada 15s) são keep-alive — ignore.",
+        "Fechar a conexão aborta a chamada ao modelo; uma `PendingAction` já registrada continua válida até o TTL.",
+      ],
+      errorCodes: ["ASSISTANT_DISABLED_FOR_WORKSPACE", "AI_ASSISTANT_RATE_LIMIT_EXCEEDED", "TOKEN_QUOTA_EXCEEDED", "AI_ASSISTANT_TRANSLATION_FAILED", "AI_INSUFFICIENT_CREDITS", "REQUEST_TIMEOUT", "ASSISTANT_ATTACHMENT_TOO_LARGE", "ASSISTANT_TOO_MANY_ATTACHMENTS", "ASSISTANT_AUDIO_TOO_LONG", "ASSISTANT_TRANSCRIPTION_FAILED", "ASSISTANT_EMPTY_TRANSCRIPTION"],
+    },
+    {
+      method: "POST",
       path: "/assistant/actions/:actionId/confirm",
       summary: "Confirmar uma ação pendente",
       description:

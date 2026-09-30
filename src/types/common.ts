@@ -104,7 +104,9 @@ export type ErrorCode =
   | "PROJECT_TEMPLATE_NOT_FOUND"
   | "INVALID_PROJECT_TEMPLATE_SKELETON"
   | "INVALID_PROJECT_TEMPLATE_CATEGORY"
-  | "PROJECT_TEMPLATE_REMOVED";
+  | "PROJECT_TEMPLATE_REMOVED"
+  | "REQUEST_TIMEOUT"
+  | "INTERNAL_ERROR";
 
 export interface DomainErrorResponse {
   statusCode: number;

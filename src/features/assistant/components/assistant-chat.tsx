@@ -23,12 +23,13 @@ import { isAudioFile, validateNewFiles } from "@/features/assistant/lib/attachme
 import { AssistantMessage } from "@/features/assistant/components/assistant-message";
 import { AssistantSessionSummary } from "@/features/assistant/components/assistant-session-summary";
 import { AssistantUsageMeter } from "@/features/assistant/components/assistant-usage-meter";
-import { TypingIndicator } from "@/features/assistant/components/typing-indicator";
 import { WorkspaceAssistantSettingsPanel } from "@/features/workspaces/components/assistant-settings-panel";
 import { useAuth } from "@/lib/auth/auth-context";
 import { canManageAssistantSettings } from "@/lib/permissions";
 import type { WorkspaceRole } from "@/types/workspace";
 import type {
+  AssistantChatEvent,
+  AssistantChatResponse,
   ChatAttachment,
   ChatMessage,
   ChatTranscriptMessage,
@@ -59,20 +60,92 @@ const INITIAL_STATE: ChatState = { transcript: [], confirmedActions: [] };
 type ChatAction =
   | { type: "add"; message: ChatTranscriptMessage }
   | { type: "set-content"; messageId: string; content: string }
+  | { type: "stream-event"; messageId: string; event: AssistantChatEvent }
+  | { type: "stream-done"; messageId: string; result: AssistantChatResponse }
+  | { type: "stream-failed"; messageId: string }
   | { type: "set-pending-status"; messageId: string; actionId: string; status: PendingActionLocalStatus }
   | { type: "reset" };
+
+function updateMessage(
+  state: ChatState,
+  messageId: string,
+  update: (message: ChatTranscriptMessage) => ChatTranscriptMessage
+): ChatState {
+  return {
+    ...state,
+    transcript: state.transcript.map((message) =>
+      message.id === messageId ? update(message) : message
+    ),
+  };
+}
 
 function chatReducer(state: ChatState, action: ChatAction): ChatState {
   switch (action.type) {
     case "add":
       return { ...state, transcript: [...state.transcript, action.message] };
     case "set-content":
-      return {
-        ...state,
-        transcript: state.transcript.map((message) =>
-          message.id === action.messageId ? { ...message, content: action.content } : message
-        ),
-      };
+      return updateMessage(state, action.messageId, (message) => ({
+        ...message,
+        content: action.content,
+      }));
+    case "stream-event": {
+      const { event } = action;
+      if (event.type === "status") {
+        return updateMessage(state, action.messageId, (message) => ({
+          ...message,
+          streamingStatus: { stage: event.stage, tool: event.tool },
+        }));
+      }
+      if (event.type === "text_delta") {
+        return updateMessage(state, action.messageId, (message) => ({
+          ...message,
+          content: message.content + event.delta,
+        }));
+      }
+      if (event.type === "pending_action") {
+        // Shown as soon as it's registered — the user may confirm it before
+        // the reply even finishes.
+        return updateMessage(state, action.messageId, (message) => ({
+          ...message,
+          pendingActions: message.pendingActions?.some((p) => p.id === event.action.id)
+            ? message.pendingActions
+            : [...(message.pendingActions ?? []), { ...event.action, status: "pending" }],
+        }));
+      }
+      // `transcription` is handled by the caller (it updates the *user*
+      // bubble); `warning` needs nothing here — the final `reply` already
+      // opens with the same notice.
+      return state;
+    }
+    case "stream-done":
+      // `reply` is authoritative: it replaces whatever the deltas built up
+      // (an intermediate round's text never makes it into `reply`). Pending
+      // actions keep any status the user already gave them mid-stream.
+      return updateMessage(state, action.messageId, (message) => {
+        const known = new Map(message.pendingActions?.map((p) => [p.id, p.status]));
+        return {
+          ...message,
+          content: action.result.reply,
+          executedActions: action.result.executedActions,
+          pendingActions: action.result.pendingActions.map((pendingAction) => ({
+            ...pendingAction,
+            status: known.get(pendingAction.id) ?? "pending",
+          })),
+          streamingStatus: undefined,
+        };
+      });
+    case "stream-failed": {
+      // A pending action registered before the failure is still valid until
+      // its TTL (API.md § 16), so its bubble stays; an empty one goes away.
+      const message = state.transcript.find((m) => m.id === action.messageId);
+      if (!message?.pendingActions?.length) {
+        return {
+          ...state,
+          transcript: state.transcript.filter((m) => m.id !== action.messageId),
+        };
+      }
+      return updateMessage(state, action.messageId, (m) => ({ ...m, streamingStatus: undefined }));
+    }
     case "set-pending-status": {
       // Confirming an action appends it to the session's summary right here
       // — no backend call needed, everything the summary needs (tool,
@@ -133,6 +206,7 @@ export function AssistantChat() {
   const [state, dispatch] = React.useReducer(chatReducer, INITIAL_STATE);
   const scrollRef = React.useRef<HTMLDivElement>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const streamAbortRef = React.useRef<AbortController | null>(null);
 
   const sendMutation = useSendChatMessageMutation(workspace?.id ?? "");
   const assistantEnabled = workspace?.assistantEnabled ?? false;
@@ -144,8 +218,8 @@ export function AssistantChat() {
   // the user's plan/token cap (`GET /auth/me` never returns a planId — see
   // plan-picker.tsx), so there's no "100%" to show; the meter below scales
   // itself instead. Enabled only while the sheet is open, and refetched right
-  // after each reply so it tracks the running total as closely as this
-  // non-streaming API allows.
+  // after each reply (the stream carries no token counts) so it tracks the
+  // running total.
   const usageQuery = useQuotaWindowUsageQuery("day", { enabled: open && assistantEnabled });
   const tokensToday = usageQuery.data ?? null;
 
@@ -184,6 +258,10 @@ export function AssistantChat() {
   function handleOpenChange(next: boolean) {
     setOpen(next);
     if (!next) {
+      // Closing the connection also stops the model server-side, so no
+      // tokens are spent on a reply nobody will read.
+      streamAbortRef.current?.abort();
+      streamAbortRef.current = null;
       setShowSummary(false);
       setCreditsExhausted(false);
       setQuotaExceeded(false);
@@ -217,31 +295,57 @@ export function AssistantChat() {
     const canSubmit = trimmed.length > 0 || filesToSend.some(isAudioFile);
     if (!canSubmit || composerDisabled || !workspace) return;
 
-    const history: ChatMessage[] = state.transcript.map((message) => ({
-      role: message.role,
-      content: toHistoryContent(message),
-    }));
+    // Turns that ended up empty (e.g. a failed audio-only turn) are left out
+    // — the API rejects a history entry with no content.
+    const history: ChatMessage[] = state.transcript
+      .map((message) => ({ role: message.role, content: toHistoryContent(message) }))
+      .filter((message) => message.content);
 
     const attachments: ChatAttachment[] = filesToSend.map((file) => ({
       fileName: file.name,
       isAudio: isAudioFile(file),
     }));
     const messageId = crypto.randomUUID();
+    const replyId = crypto.randomUUID();
+    // Audio-only turns leave the optimistic bubble empty — filled in with
+    // what the backend understood as each transcription arrives.
+    const transcribed: string[] = [];
 
     dispatch({
       type: "add",
       message: { id: messageId, role: "user", content: trimmed, attachments },
     });
+    // The reply bubble exists from the start so the user watches the
+    // assistant work (status, then text token by token) instead of a spinner.
+    dispatch({
+      type: "add",
+      message: { id: replyId, role: "assistant", content: "", pendingActions: [], streamingStatus: null },
+    });
     setText("");
     setFiles([]);
 
+    const abort = new AbortController();
+    streamAbortRef.current = abort;
+
     sendMutation.mutate(
-      { message: trimmed, history, files: filesToSend.length > 0 ? filesToSend : undefined },
+      {
+        message: trimmed,
+        history,
+        files: filesToSend.length > 0 ? filesToSend : undefined,
+        signal: abort.signal,
+        onEvent: (event) => {
+          if (event.type === "transcription") {
+            if (trimmed) return;
+            transcribed.push(event.transcription.text);
+            dispatch({ type: "set-content", messageId, content: transcribed.join("\n") });
+            return;
+          }
+          dispatch({ type: "stream-event", messageId: replyId, event });
+        },
+      },
       {
         onSuccess: (data) => {
           setQuotaExceeded(false);
-          // Audio-only turns leave the optimistic bubble empty — fill it in
-          // with what the backend actually understood once we know it.
           if (!trimmed && data.transcriptions.length > 0) {
             dispatch({
               type: "set-content",
@@ -249,24 +353,16 @@ export function AssistantChat() {
               content: data.transcriptions.map((transcription) => transcription.text).join("\n"),
             });
           }
-          dispatch({
-            type: "add",
-            message: {
-              id: crypto.randomUUID(),
-              role: "assistant",
-              content: data.reply,
-              executedActions: data.executedActions,
-              pendingActions: data.pendingActions.map((pendingAction) => ({
-                ...pendingAction,
-                status: "pending",
-              })),
-            },
-          });
+          dispatch({ type: "stream-done", messageId: replyId, result: data });
           usageQuery.refetch();
         },
         onError: (error) => {
+          dispatch({ type: "stream-failed", messageId: replyId });
           if (getErrorCode(error) === "AI_INSUFFICIENT_CREDITS") setCreditsExhausted(true);
           if (getErrorCode(error) === "TOKEN_QUOTA_EXCEEDED") setQuotaExceeded(true);
+        },
+        onSettled: () => {
+          if (streamAbortRef.current === abort) streamAbortRef.current = null;
         },
       }
     );
@@ -357,7 +453,6 @@ export function AssistantChat() {
                   />
                 ))
               )}
-              {sendMutation.isPending ? <TypingIndicator /> : null}
               {creditsExhausted ? (
                 <p
                   role="alert"

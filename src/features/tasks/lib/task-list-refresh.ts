@@ -63,6 +63,7 @@ export function scheduleTaskListsRefresh(
     queryClient.invalidateQueries({ queryKey: queryKeys.tasks.byProjectAll() });
     queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll() });
     queryClient.invalidateQueries({ queryKey: queryKeys.projectStats.root() });
+    queryClient.invalidateQueries({ queryKey: queryKeys.home.root() });
     for (const parentId of parents) {
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.subtasks(parentId) });
     }

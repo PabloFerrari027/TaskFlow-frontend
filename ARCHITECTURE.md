@@ -100,13 +100,14 @@ Regras que o código segue consistentemente:
 /invite/project/[token]                    Preview + aceite de convite de projeto (idem; os dois usam `InvitationAcceptPage`)
 
 (dashboard)/                               Layout protegido — RequireAuth + CurrentWorkspaceProvider + SyncProvider
-  /dashboard                               Redirect para /projects (antiga home, fundida em Projetos)
-  /workspaces                              Lista de workspaces do usuário (destino padrão pós-login); clicar num card o define como workspace atual; abaixo, seções empilhadas do workspace atual: membros, convites, assistente e atividade
+  /home                                    Início (destino padrão pós-login): saudação, números das tarefas atribuídas a mim no workspace atual, tarefas em aberto por projeto, projetos recentes e atalhos; sem workspace, oferece criar um
+  /dashboard                               Redirect para /home (rota antiga)
+  /workspaces                              Lista de workspaces do usuário; clicar num card o define como workspace atual; abaixo, seções empilhadas do workspace atual: membros, convites, assistente e atividade
   /workspaces/[workspaceId]                Detalhe: apenas membros + convites, como duas seções empilhadas (sem tabs)
   /activity                                Redirect para /workspaces#atividade (a atividade virou seção de /workspaces e aba do projeto)
   /developers                              Chaves de API + webhooks do workspace atual (item da sidebar só para OWNER/ADMIN; a própria página também bloqueia acesso direto por URL)
   /assistant                               Liga/desliga o assistente de IA do workspace atual (toggle só para OWNER; página visível a todos) + histórico de consumo de IA da conta (`AiUsageHistory` sobre GET /ai-usage/me), em seções empilhadas
-  /projects                                Home: todos os projetos do workspace (ativos + arquivados); sem workspace, oferece criar um; "Começar de um modelo" leva a /templates
+  /projects                                Todos os projetos do workspace (ativos + arquivados); sem workspace, oferece criar um; "Começar de um modelo" leva a /templates
   /projects/[projectId]/                   Layout do projeto: header, tabs, TaskDetailSheet global
     (index)                                Redirect → /tasks
     /tasks                                 Quadro Kanban (TaskBoard)
@@ -412,6 +413,18 @@ Chat de IA (`features/assistant/`) acessível de qualquer tela via ícone fixo n
 - **Por que `ChartRenderer`**: a aba desenha com o mesmo `ChartRenderer` das páginas de dashboard (`NUMBER`/`PIE`/`BAR`/`LINE`), que já concentra a paleta categórica validada (`--analytics-cat-*`), a ordem conhecida de status/prioridade, os rótulos de grupo, o "Outros" e a formatação de métricas (`formatMetricValue`/`formatDerivedMetricValue`, "Sem dados" para `null`). Um segundo conjunto de gráficos divergiria em cor, ordem e formato na primeira mudança de um deles. A única extensão foi um `label` opcional no card de número, para "Tarefas em aberto" não aparecer como o genérico "Quantidade". Nomes de responsáveis vêm do mesmo `ValueLabeler` (`useAutomationLookups`) que o dashboard logado usa; `null` vira "Sem responsável".
 - **Frescor**: `queryKeys.projectStats.root()` é invalidado nos mesmos pontos que as listas de tarefas (`scheduleTaskListsRefresh`, `patchTaskInLists`, `invalidateByEntityChange` para `TASK`/`PROJECT`, `invalidateDerivedData`, `invalidateWorkspaceData`, push do sync, ações do assistente) e ao mover um projeto. Sempre a raiz inteira, nunca só o `projectId` da tarefa: ela também conta nos números de todos os projetos acima dela.
 
+### Início
+
+`features/home/` + `app/(dashboard)/home/page.tsx`: a tela Início, destino padrão pós-login (fallback de `getSafeRedirectPath`) e alvo do logo. Não existe endpoint de "minhas tarefas" entre projetos, então tudo sai de `POST /analytics/query` com o filtro `assigneeId equals <userId do JWT>` no workspace atual. Só o responsável principal conta; participantes e menções, não.
+
+- **Queries** (`lib/home-queries.ts`): no mesmo formato de `project-stats`, com uma função pura por indicador. São elas: progresso (`count` + `completion_rate` numa só query), em aberto, atrasadas (`dueDate lessThan now`), vencendo em 7 dias (`dueDate between [now, now+7d]`) e, agrupadas por `projectId`, em aberto e atrasadas por projeto. O agrupamento por projeto devolve uma linha por projeto raiz (roll-up do backend), e o nome sai da lista de projetos já carregada.
+- **Hooks** (`hooks/use-home-stats.ts`): um `useQuery` por indicador, com chave `queryKeys.home.indicator(workspaceId, userId, indicador)`. O "agora" é lido quando a requisição sai. `queryKeys.home.root()` é invalidado em todos os pontos onde `projectStats.root()` é, porque a regra é a mesma: qualquer mudança de tarefa mexe nos números.
+- A descrição do cabeçalho traz uma frase que muda com os números (atrasadas → vencendo → tudo em dia), para dizer ao usuário por onde começar.
+
+### Celebração ao concluir
+
+`lib/celebrate.ts` dispara um confete curto (DOM + Web Animations API, sem dependência) a partir do último clique. `useChangeTaskStatusMutation` o chama quando o status passa a `DONE` e antes não era, lendo o status anterior do cache em `onMutate`. Vale em todas as visões, inclusive na tabela silenciosa e offline. Nada acontece com `prefers-reduced-motion: reduce`.
+
 ### Tutorial
 
 `features/tutorial/` — sem chamadas à API; todo o estado é local.
@@ -428,6 +441,9 @@ Chat de IA (`features/assistant/`) acessível de qualquer tela via ícone fixo n
 
 - **shadcn/ui** (`components.json`, estilo `radix-nova`, cor base `neutral`, ícones `lucide`) gera os primitivos em `src/components/ui/` — não são editados manualmente fora de customizações pontuais; alterações de configuração passam pelo CLI `shadcn`.
 - **Tokens de tema** em `src/app/globals.css`, definidos em OKLCH, com paletas separadas para claro/escuro (`:root` / `.dark`), aplicados via `next-themes` (`attribute="class"`, `defaultTheme="system"`). O componente `ThemeToggle` alterna entre os modos.
+- **Identidade visual**: fonte Plus Jakarta Sans (`--font-sans`, também usada nos títulos). Os neutros compartilham o matiz do primário (275), o fundo do app é off-white e os cards são brancos, com a sombra suave `shadow-card` (e `shadow-card-hover` nos cards clicáveis) em vez de uma borda dura. Há um token `--success` para feedback positivo. A escala `text-xs`/`text-sm` foi redefinida para 13px/15px (`@theme` em `globals.css`), porque o app usa muito esses tamanhos e o público não é técnico. De `text-base` para cima, os valores são os do Tailwind.
+- **Largura das páginas**: o layout do dashboard limita o conteúdo a `max-w-7xl`, centralizado. Telas que precisam de toda a largura (quadro de tarefas e grade de páginas de dashboard) renderizam `data-page-width="full"`, e o wrapper sai do limite via `has-data-[page-width=full]`. Páginas de leitura e formulário estreitam por conta própria (`mx-auto max-w-3xl`/`max-w-4xl`). A sidebar e a topbar são `sticky`.
+- **Navegação**: `NAV_ITEMS` (`components/layout/nav-items.ts`) marca cada item com um `group`. `NAV_GROUPS` define a ordem e o rótulo dos grupos (Trabalho, Equipe, Ajuda, Conta, Administração), e grupos sem nenhum item visível não aparecem.
 - **Gráficos**: `CategoryBarChart` (`features/analytics/components/category-bar-chart.tsx`) é um bar chart horizontal construído sobre Recharts via o wrapper `ChartContainer`/`ChartTooltip`/`ChartTooltipContent` do shadcn/ui (`src/components/ui/chart.tsx`). Cada barra recebe sua cor por linha via `<Cell fill={row.color}>` (não por série do `ChartConfig`, já que as categorias — projetos, responsáveis — são abertas e não fixas).
 - **Paleta de gráficos**: `--chart-1..5` (tokens padrão do shadcn) **não** é usada em novos gráficos categóricos porque as duas primeiras cores falham em distinção segura para daltonismo (CVD) quando adjacentes. Uma paleta dedicada `--analytics-cat-1..6` (com valores próprios claro/escuro) é a referência validada usada por `AnalyticsDashboard`/`CategoryBarChart`.
 - **`cn()`** (`src/lib/utils.ts`) é apenas um re-export do pacote `cn` (não a implementação local `clsx`+`tailwind-merge` mais comum em outros projetos shadcn) — usado em todo o código para compor classes condicionalmente.
