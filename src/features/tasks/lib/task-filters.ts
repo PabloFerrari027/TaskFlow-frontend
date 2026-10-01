@@ -129,8 +129,10 @@ export function matchesTaskFilters(task: Task, filters: TaskFilters) {
   }
 
   if (filters.assignees.length > 0) {
-    const assignee = task.assigneeId ?? UNASSIGNED_VALUE;
-    if (!filters.assignees.includes(assignee)) return false;
+    // Any of the task's assignees counts, not only the main one.
+    const ids = task.assigneeIds?.length ? task.assigneeIds : task.assigneeId ? [task.assigneeId] : [];
+    const candidates = ids.length > 0 ? ids : [UNASSIGNED_VALUE];
+    if (!candidates.some((id) => filters.assignees.includes(id))) return false;
   }
 
   if (!matchesDuePreset(task, filters.due)) return false;
