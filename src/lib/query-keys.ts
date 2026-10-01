@@ -97,6 +97,11 @@ export const queryKeys = {
         ? (["tasks", "section", sectionId, { page }] as const)
         : (["tasks", "section", sectionId] as const),
   },
+  intakeForms: {
+    all: (projectId: string) => ["intake-forms", projectId] as const,
+    // Anonymous: its own root, nothing signed-in reuses it.
+    public: (token: string) => ["public-intake-form", token] as const,
+  },
   savedViews: {
     all: (projectId: string) => ["saved-views", projectId] as const,
   },
