@@ -39,6 +39,9 @@ export interface ProjectTemplateSummary {
   sectionCount: number;
   customFieldCount: number;
   taskCount: number;
+  automationCount?: number;
+  /** Recurring tasks the template creates (API.md § 26.1). */
+  recurrenceCount?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -85,12 +88,33 @@ export interface ProjectTemplateSkeletonAutomation {
   moduleKey?: string;
 }
 
+// A recurring task the template creates (API.md § 26.1): no timezone or dates —
+// those come from the instantiation.
+export interface ProjectTemplateSkeletonRecurrence {
+  title: string;
+  description?: string;
+  projectRef?: number | null;
+  sectionIndex?: number;
+  assigneeRole?: string;
+  dueInDays?: number;
+  customFieldValues?: Record<string, unknown>;
+  schedule: {
+    frequency: "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY";
+    interval?: number;
+    daysOfWeek?: number[];
+    dayOfMonth?: number;
+    month?: number;
+    time: string;
+  };
+}
+
 export interface ProjectTemplateSkeleton {
   sections: ProjectTemplateSkeletonSection[];
   customFields: ProjectTemplateSkeletonCustomField[];
   tasks: ProjectTemplateSkeletonTask[];
   // Absent on `schemaVersion: 1` skeletons.
   automations?: ProjectTemplateSkeletonAutomation[];
+  recurrences?: ProjectTemplateSkeletonRecurrence[];
 }
 
 // Only answered for templates the requester may see (404 otherwise), and
@@ -120,6 +144,8 @@ export type AdminProjectTemplateFilters = ProjectTemplateFilters;
 
 export interface InstantiateProjectTemplateRequest {
   name: string;
+  /** IANA timezone for the template's recurring tasks — the browser's. */
+  timezone?: string;
 }
 
 export interface InstantiateProjectTemplateResponse {
@@ -130,6 +156,12 @@ export interface SaveProjectAsTemplateRequest {
   name: string;
   description?: string;
   category: ProjectTemplateCategory;
+  /** Tasks (no assignee, comments, attachments, PEOPLE/DATE values). Off by default. */
+  includeTasks?: boolean;
+  /** The workspace's automations scoped to this project. */
+  includeAutomations?: boolean;
+  /** The project's enabled recurring tasks (no assignee; timezone chosen again on use). */
+  includeRecurrences?: boolean;
 }
 
 export interface UpdateProjectTemplateListingRequest {

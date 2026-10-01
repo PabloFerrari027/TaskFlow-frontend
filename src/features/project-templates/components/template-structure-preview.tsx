@@ -3,6 +3,7 @@ import {
   Columns3,
   CornerDownRight,
   ListChecks,
+  Repeat,
   SlidersHorizontal,
   Zap,
 } from "lucide-react";
@@ -16,6 +17,7 @@ import {
   findTriggerEvent,
 } from "@/features/automations/lib/automation-catalog";
 import { formatDueInDays } from "@/features/project-templates/lib/template-labels";
+import { describeSchedule } from "@/features/recurring-tasks/lib/schedule-text";
 import type {
   ProjectTemplateSkeleton,
   ProjectTemplateSkeletonAutomation,
@@ -185,6 +187,7 @@ export function TemplateStructurePreview({ skeleton }: { skeleton: ProjectTempla
   });
   const rootSections = sortByPosition(childSectionsOf.get(null) ?? [], skeleton);
   const automations = skeleton.automations ?? [];
+  const recurrences = skeleton.recurrences ?? [];
 
   return (
     <>
@@ -275,6 +278,31 @@ export function TemplateStructurePreview({ skeleton }: { skeleton: ProjectTempla
           )}
         </CardContent>
       </Card>
+
+      {recurrences.length > 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Repeat className="size-4" aria-hidden /> Tarefas repetidas
+            </CardTitle>
+            <CardDescription>
+              Tarefas que o projeto criado cadastra sozinho, nas datas abaixo, no seu fuso horário.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ul className="divide-y divide-border/60">
+              {recurrences.map((recurrence, index) => (
+                <li key={index} className="space-y-0.5 py-2 text-sm">
+                  <p className="font-medium text-foreground">{recurrence.title}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {describeSchedule(recurrence.schedule)}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      ) : null}
     </>
   );
 }

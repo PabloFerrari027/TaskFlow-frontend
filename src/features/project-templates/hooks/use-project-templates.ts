@@ -10,6 +10,7 @@ import {
 import { toast } from "sonner";
 import { projectTemplatesService } from "@/features/project-templates/api/project-templates-service";
 import { queryKeys } from "@/lib/query-keys";
+import { browserTimezone } from "@/features/recurring-tasks/lib/schedule-text";
 import { getErrorCode, getErrorMessage, getServerErrorMessage } from "@/lib/errors";
 import type {
   AdminProjectTemplateFilters,
@@ -98,7 +99,11 @@ export function useInstantiateProjectTemplateMutation(workspaceId: string) {
 
   return useMutation({
     mutationFn: ({ templateId, name }: { templateId: string; name: string }) =>
-      projectTemplatesService.instantiate(workspaceId, templateId, { name }),
+      // The browser's timezone drives the template's recurring tasks (API.md § 26.3).
+      projectTemplatesService.instantiate(workspaceId, templateId, {
+        name,
+        timezone: browserTimezone(),
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.projects.all(workspaceId) });
       toast.success("Projeto criado a partir do modelo.");
