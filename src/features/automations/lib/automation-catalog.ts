@@ -20,6 +20,7 @@ export type FieldKind =
   | "taskStatus"
   | "taskPriority"
   | "projectStatus"
+  | "approvalDecision"
   | "number"
   | "date"
   | "text";
@@ -80,6 +81,28 @@ const PROJECT_ID = f("projectId", "projeto", "o", "project");
 
 export const TRIGGER_EVENTS: TriggerEventSpec[] = [
   // ---------------------------------------------------------------- TASK
+  {
+    entityType: "TASK",
+    eventType: "tasks.task_created",
+    phrase: "for criada",
+    fields: [PROJECT_ID, f("sectionId", "seção", "a", "section")],
+    taskIdField: "entityId",
+  },
+  // Time-based (no author): sent once per due date by the server's deadline scanner.
+  {
+    entityType: "TASK",
+    eventType: "tasks.task_due_soon",
+    phrase: "estiver com o prazo chegando",
+    fields: [PROJECT_ID],
+    taskIdField: "entityId",
+  },
+  {
+    entityType: "TASK",
+    eventType: "tasks.task_overdue",
+    phrase: "passar do prazo",
+    fields: [PROJECT_ID],
+    taskIdField: "entityId",
+  },
   {
     entityType: "TASK",
     eventType: "tasks.task_status_changed",
@@ -154,6 +177,73 @@ export const TRIGGER_EVENTS: TriggerEventSpec[] = [
   },
   {
     entityType: "TASK",
+    eventType: "tasks.task_workflow_status_changed",
+    phrase: "mudar de etapa",
+    fields: [PROJECT_ID, f("category", "tipo da nova etapa", "o", "taskStatus")],
+    taskIdField: "entityId",
+  },
+  {
+    entityType: "TASK",
+    eventType: "tasks.task_assignees_changed",
+    phrase: "tiver os responsáveis alterados",
+    fields: [PROJECT_ID],
+    taskIdField: "entityId",
+  },
+  {
+    entityType: "TASK",
+    eventType: "tasks.task_schedule_changed",
+    phrase: "tiver o início ou o marco alterado",
+    fields: [PROJECT_ID, f("startDate", "novo início", "o", "date")],
+    taskIdField: "entityId",
+  },
+  {
+    entityType: "TASK",
+    eventType: "tasks.task_estimate_changed",
+    phrase: "tiver a estimativa alterada",
+    fields: [PROJECT_ID],
+    taskIdField: "entityId",
+  },
+  {
+    entityType: "TASK",
+    eventType: "tasks.task_dependency_added",
+    phrase: "passar a depender de outra tarefa",
+    fields: [PROJECT_ID],
+    taskIdField: "entityId",
+  },
+  {
+    entityType: "TASK",
+    eventType: "tasks.task_dependency_removed",
+    phrase: "deixar de depender de outra tarefa",
+    fields: [PROJECT_ID],
+    taskIdField: "entityId",
+  },
+  {
+    entityType: "TASK",
+    eventType: "tasks.task_restored",
+    phrase: "for restaurada da lixeira",
+    fields: [PROJECT_ID],
+    taskIdField: "entityId",
+  },
+  {
+    entityType: "TASK",
+    eventType: "approvals.approval_requested",
+    phrase: "tiver uma aprovação pedida",
+    fields: [PROJECT_ID, f("approverId", "quem vai aprovar", "o", "member")],
+    taskIdField: "entityId",
+  },
+  {
+    entityType: "TASK",
+    eventType: "approvals.approval_decided",
+    phrase: "tiver uma aprovação respondida",
+    fields: [
+      PROJECT_ID,
+      f("decision", "resposta", "a", "approvalDecision"),
+      f("approverId", "quem respondeu", "o", "member"),
+    ],
+    taskIdField: "entityId",
+  },
+  {
+    entityType: "TASK",
     eventType: "custom_fields.task_custom_field_value_set",
     phrase: "tiver um campo personalizado alterado",
     fields: [
@@ -174,6 +264,13 @@ export const TRIGGER_EVENTS: TriggerEventSpec[] = [
       f("authorId", "autor do comentário", "o", "member"),
       f("parentId", "comentário respondido", "o", "text"),
     ],
+    taskIdField: "taskId",
+  },
+  {
+    entityType: "COMMENT",
+    eventType: "comments.comment_edited",
+    phrase: "for editado",
+    fields: [f("taskId", "tarefa", "a", "text")],
     taskIdField: "taskId",
   },
   // ------------------------------------------------------------- SECTION

@@ -144,8 +144,94 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   PROJECT_TEMPLATE_NOT_FOUND: "Este modelo não está mais disponível.",
   INVALID_PROJECT_TEMPLATE_SKELETON: "O modelo tem um problema que impede salvá-lo.",
   INVALID_PROJECT_TEMPLATE_CATEGORY: "Escolha uma das categorias da lista.",
-  PROJECT_TEMPLATE_REMOVED:
-    "Este modelo foi tirado da lista e não pode mais ser usado.",
+  ACCOUNT_ALREADY_HAS_GOOGLE:
+    "Sua conta já tem uma conta Google vinculada.",
+  INVALID_USER_NAME:
+    "O nome precisa ter entre 1 e 100 caracteres.",
+  TOO_MANY_PASSWORD_ATTEMPTS:
+    "Muitas tentativas de senha. Aguarde alguns minutos e tente novamente.",
+  REALTIME_TICKET_INVALID:
+    "A conexão em tempo real expirou. Recarregue a página.",
+  SYNC_BATCH_TOO_LARGE:
+    "Muitas alterações pendentes de uma vez. Tente sincronizar novamente.",
+  UNSUPPORTED_DERIVED_METRIC:
+    "Este indicador não está disponível.",
+  INVALID_TASK_SCHEDULE:
+    "A data de início precisa ser antes do prazo (ou no mesmo dia).",
+  TASK_NOT_IN_TRASH:
+    "Esta tarefa não está na lixeira.",
+  TASK_PARENT_IN_TRASH:
+    "A tarefa principal desta subtarefa também está na lixeira. Restaure ela primeiro.",
+  INVALID_TASK_DEPENDENCY:
+    "Essa ligação não pode ser feita. Escolha outra tarefa do mesmo projeto.",
+  TASK_DEPENDENCY_CYCLE:
+    "Isso criaria um ciclo: uma tarefa acabaria esperando por ela mesma.",
+  TASK_DEPENDENCY_NOT_FOUND:
+    "Essa ligação entre tarefas não existe mais.",
+  TASK_HAS_OPEN_BLOCKERS:
+    "Esta tarefa ainda depende de outras que não foram concluídas.",
+  WORKFLOW_STATUS_NOT_FOUND:
+    "Esta etapa não existe mais.",
+  INVALID_WORKFLOW_STATUS:
+    "Confira o nome e a cor da etapa.",
+  LAST_STATUS_OF_CATEGORY:
+    "O projeto precisa de pelo menos uma etapa de cada tipo (a fazer, em andamento e concluída).",
+  COMMENT_EDIT_NOT_ALLOWED:
+    "Só quem escreveu o comentário pode editá-lo.",
+  INVALID_COMMENT_REACTION:
+    "Escolha um único emoji para reagir.",
+  NOTIFICATION_NOT_FOUND:
+    "Esta notificação não existe mais.",
+  INVALID_SEARCH_QUERY:
+    "Digite pelo menos uma palavra para buscar.",
+  INVALID_TASK_RECURRENCE:
+    "Confira a repetição: dias, horário, datas e os campos escolhidos.",
+  TASK_RECURRENCE_NOT_FOUND:
+    "Esta tarefa repetida não existe mais.",
+  TASK_RECURRENCE_LIMIT_REACHED:
+    "O projeto já tem 50 tarefas repetidas, que é o máximo.",
+  TIME_ENTRY_NOT_FOUND:
+    "Este registro de tempo não existe mais.",
+  INVALID_TIME_ENTRY:
+    "Confira o horário de início e a duração (até 24 horas).",
+  NO_RUNNING_TIMER:
+    "Não há nenhum cronômetro rodando.",
+  SAVED_VIEW_NOT_FOUND:
+    "Esta visão salva não existe mais.",
+  INVALID_SAVED_VIEW:
+    "Não foi possível salvar a visão com essas opções.",
+  INTAKE_FORM_NOT_FOUND:
+    "Este formulário não existe ou o link foi trocado.",
+  INVALID_INTAKE_FORM:
+    "O formulário tem um problema. Confira os campos.",
+  INVALID_FORM_SUBMISSION:
+    "Confira as respostas do formulário.",
+  TASK_APPROVAL_NOT_FOUND:
+    "Este pedido de aprovação não existe mais.",
+  INVALID_TASK_APPROVAL:
+    "Este pedido de aprovação não pode ser feito.",
+  TASK_APPROVAL_CLOSED:
+    "Este pedido de aprovação já foi respondido ou cancelado.",
+  INVALID_IMPORT_FILE:
+    "Não foi possível ler o arquivo. Use uma planilha CSV ou um arquivo JSON exportado do TaskFlow.",
+  IMPORT_HAS_ERRORS:
+    "Algumas linhas têm problemas. Corrija o arquivo ou importe só as linhas válidas.",
+  DATA_EXPORT_NOT_FOUND:
+    "Esta exportação não existe mais.",
+  DATA_EXPORT_NOT_READY:
+    "A exportação ainda não está pronta para baixar.",
+  INVALID_TEMPLATE_INSTANTIATION:
+    "Confira as escolhas do modelo: campos obrigatórios, pessoas e datas.",
+  TEMPLATE_INSTANTIATION_NOT_FOUND:
+    "Não encontramos a criação deste projeto.",
+  INVALID_TEMPLATE_MEDIA:
+    "Use uma imagem JPEG, PNG ou WebP.",
+  INVALID_PROJECT_TEMPLATE_LISTING:
+    "Confira as informações do modelo.",
+  TEMPLATE_AI_RATE_LIMIT_EXCEEDED:
+    "Muitos pedidos à IA em pouco tempo. Aguarde um pouco e tente de novo.",
+  TEMPLATE_AI_GENERATION_FAILED:
+    "A IA não conseguiu montar um modelo agora. Tente de novo.",
   // Sent as the final `error` frame of the assistant's chat stream, whose
   // server-side messages are in English.
   REQUEST_TIMEOUT: "O assistente demorou demais para responder. Tente de novo.",

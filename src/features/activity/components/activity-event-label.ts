@@ -1,5 +1,5 @@
 import { TASK_PRIORITY_LABEL, TASK_STATUS_LABEL } from "@/components/shared/status-badge";
-import { formatDate } from "@/lib/format";
+import { formatDate, formatMinutes } from "@/lib/format";
 import { formatCustomFieldValue } from "@/features/custom-fields/lib/format-custom-field-value";
 import type { ActivityLogEntry } from "@/types/activity";
 import type { TaskPriority, TaskStatus } from "@/types/task";
@@ -56,6 +56,49 @@ function readTextChange(value: unknown): { from: string | null; to: string | nul
   };
 }
 
+const EXACT_LABELS: Record<string, string> = {
+  "recurring_tasks.task_recurrence_created": "criou uma tarefa repetida",
+  "recurring_tasks.task_recurrence_updated": "editou uma tarefa repetida",
+  "recurring_tasks.task_recurrence_deleted": "removeu uma tarefa repetida",
+  "recurring_tasks.task_recurrence_enabled_changed": "ligou ou desligou uma tarefa repetida",
+  "recurring_tasks.task_recurrence_auto_disabled": "uma tarefa repetida foi desligada automaticamente",
+  "tasks.task_workflow_status_changed": "mudou a etapa",
+  "tasks.task_assignees_changed": "alterou os responsáveis",
+  "tasks.task_schedule_changed": "alterou o início ou o marco",
+  "tasks.task_estimate_changed": "alterou a estimativa",
+  "tasks.task_dependency_added": "ligou a tarefa a outra da qual ela depende",
+  "tasks.task_dependency_removed": "removeu uma dependência",
+  "tasks.task_restored": "restaurou a tarefa da lixeira",
+  "tasks.task_deleted": "mandou a tarefa para a lixeira",
+  "tasks.task_unblocked": "a tarefa foi liberada (as dependências terminaram)",
+  "tasks.task_due_soon": "o prazo está chegando",
+  "tasks.task_overdue": "a tarefa passou do prazo",
+  "approvals.approval_requested": "pediu aprovação",
+  "approvals.approval_decided": "respondeu um pedido de aprovação",
+};
+
+function describeExactDetail(type: string, payload: Record<string, unknown>): string | null {
+  if (type === "approvals.approval_decided") {
+    return payload.decision === "APPROVED" ? "aprovada" : payload.decision === "REJECTED" ? "recusada" : null;
+  }
+  if (type === "tasks.task_schedule_changed") {
+    return formatDateValue(payload.startDate);
+  }
+  if (type === "tasks.task_estimate_changed") {
+    const parts: string[] = [];
+    if (typeof payload.estimateMinutes === "number") parts.push(formatMinutes(payload.estimateMinutes));
+    if (typeof payload.storyPoints === "number") parts.push(`${payload.storyPoints} pontos`);
+    return parts.length > 0 ? parts.join(" · ") : null;
+  }
+  if (type === "tasks.task_workflow_status_changed" && isTaskStatus(payload.category)) {
+    return TASK_STATUS_LABEL[payload.category];
+  }
+  if (type === "recurring_tasks.task_recurrence_created" || type === "recurring_tasks.task_recurrence_updated") {
+    return typeof payload.title === "string" ? payload.title : null;
+  }
+  return null;
+}
+
 export function describeActivityEntry(
   entry: ActivityLogEntry,
   context?: ActivityDescribeContext
@@ -68,11 +111,21 @@ export function describeActivityEntry(
   fieldChanges?: ActivityFieldChange[];
 } {
   if (entry.entityType === "COMMENT") {
+    if (entry.eventType.toLowerCase().includes("edited")) {
+      return { label: "editou um comentário", detail: null };
+    }
     return { label: "comentou nesta tarefa", detail: null };
   }
 
   const type = entry.eventType.toLowerCase();
   const payload = entry.payload ?? {};
+
+  // Exact labels for the events whose names would otherwise trip the
+  // substring matching below ("task_recurrence_created" → "criou a tarefa").
+  const exact = EXACT_LABELS[type];
+  if (exact) {
+    return { label: exact, detail: describeExactDetail(type, payload) };
+  }
 
   // Checked before the generic eventType substring matching below — a
   // "sections.section_created"/"sections.section_moved" eventType would

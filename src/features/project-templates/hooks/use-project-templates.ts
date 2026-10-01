@@ -14,7 +14,6 @@ import { getErrorCode, getErrorMessage, getServerErrorMessage } from "@/lib/erro
 import type {
   AdminProjectTemplateFilters,
   CreateProjectTemplateRequest,
-  ModerateProjectTemplateRequest,
   ProjectTemplateDetail,
   ProjectTemplateFilters,
   SaveProjectAsTemplateRequest,
@@ -109,11 +108,6 @@ export function useInstantiateProjectTemplateMutation(workspaceId: string) {
       if (code === "PROJECT_TEMPLATE_NOT_FOUND") {
         forgetTemplate(queryClient, templateId);
         toast.error("Este modelo não está mais disponível. Nada foi criado; escolha outro.");
-        return;
-      }
-      if (code === "PROJECT_TEMPLATE_REMOVED") {
-        forgetTemplate(queryClient, templateId);
-        toast.error("Este modelo não está mais disponível. Nada foi criado.");
         return;
       }
       if (code === "FORBIDDEN_WORKSPACE_ACTION") {
@@ -276,43 +270,5 @@ export function useAdminDeleteProjectTemplateMutation() {
       }
       toast.error(getErrorMessage(error));
     },
-  });
-}
-
-export function useAdminRemoveProjectTemplateMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({
-      templateId,
-      input,
-    }: {
-      templateId: string;
-      input?: ModerateProjectTemplateRequest;
-    }) => projectTemplatesService.adminRemove(templateId, input),
-    onSuccess: (template) => {
-      invalidateAfterAdminWrite(queryClient, template.id);
-      toast.success("Modelo tirado da lista.");
-    },
-    onError: (error) => toast.error(getErrorMessage(error)),
-  });
-}
-
-export function useAdminRestoreProjectTemplateMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({
-      templateId,
-      input,
-    }: {
-      templateId: string;
-      input?: ModerateProjectTemplateRequest;
-    }) => projectTemplatesService.adminRestore(templateId, input),
-    onSuccess: (template) => {
-      invalidateAfterAdminWrite(queryClient, template.id);
-      toast.success("Modelo restaurado e de volta à lista.");
-    },
-    onError: (error) => toast.error(getErrorMessage(error)),
   });
 }

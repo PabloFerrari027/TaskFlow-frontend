@@ -2,6 +2,8 @@ import type { InvitationStatus } from "./common";
 
 export type ProjectStatus = "ACTIVE" | "ARCHIVED";
 
+export type BlockedTaskCompletion = "WARN" | "BLOCK";
+
 export interface Project {
   id: string;
   workspaceId: string;
@@ -10,6 +12,8 @@ export interface Project {
   // null for a root project; otherwise the parent within the same workspace.
   parentId: string | null;
   status: ProjectStatus;
+  /** Finishing a task with unfinished blockers: WARN lets it (with a notice), BLOCK refuses. */
+  blockedTaskCompletion: BlockedTaskCompletion;
   createdBy: string | null;
   version: number;
   createdAt: string;
@@ -30,6 +34,7 @@ export interface MoveProjectRequest {
 export interface UpdateProjectRequest {
   name?: string;
   description?: string;
+  blockedTaskCompletion?: BlockedTaskCompletion;
 }
 
 export type ProjectRole = "MEMBER" | "GUEST";

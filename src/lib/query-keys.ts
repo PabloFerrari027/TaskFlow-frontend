@@ -147,6 +147,15 @@ export const queryKeys = {
     adminList: (filters: AdminProjectTemplateFilters) =>
       ["project-templates", "admin", filters] as const,
   },
+  // Per user, not per workspace: the inbox mixes every workspace (filtered
+  // client-side by the `workspaceId` param when asked).
+  notifications: {
+    root: () => ["notifications"] as const,
+    list: (params: { unreadOnly?: boolean; workspaceId?: string; page?: number }) =>
+      ["notifications", "list", params] as const,
+    unreadCount: (workspaceId?: string) => ["notifications", "unread-count", workspaceId ?? null] as const,
+    preferences: () => ["notifications", "preferences"] as const,
+  },
   automations: {
     all: (workspaceId: string) => ["automations", "workspace", workspaceId] as const,
   },

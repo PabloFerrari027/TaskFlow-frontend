@@ -81,7 +81,7 @@ export function TaskSelectionBar({ projectId }: { projectId: string }) {
             ? "Apagar a tarefa selecionada?"
             : `Apagar as ${selection.count} tarefas selecionadas?`
         }
-        description="As tarefas somem do quadro e essa ação não pode ser desfeita."
+        description="As tarefas (e as subtarefas delas) vão para a lixeira do projeto. Dá para restaurar em até 30 dias."
         confirmLabel={selection.count === 1 ? "Apagar tarefa" : "Apagar tarefas"}
         isLoading={deleteMutation.isPending}
         onConfirm={() =>

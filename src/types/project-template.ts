@@ -21,8 +21,6 @@ export const PROJECT_TEMPLATE_CATEGORIES = [
 
 export type ProjectTemplateCategory = (typeof PROJECT_TEMPLATE_CATEGORIES)[number];
 
-export type ProjectTemplateStatus = "PUBLISHED" | "UNPUBLISHED" | "REMOVED";
-
 export interface ProjectTemplateAuthor {
   id: string;
   name: string | null;
@@ -38,7 +36,6 @@ export interface ProjectTemplateSummary {
   workspaceId?: string | null;
   // Who saved it; `null` on system templates.
   author: ProjectTemplateAuthor | null;
-  status: ProjectTemplateStatus;
   sectionCount: number;
   customFieldCount: number;
   taskCount: number;
@@ -119,10 +116,7 @@ export interface ProjectTemplateFilters extends PaginationParams {
   search?: string;
 }
 
-export interface AdminProjectTemplateFilters extends ProjectTemplateFilters {
-  // PUBLISHED when omitted.
-  status?: ProjectTemplateStatus;
-}
+export type AdminProjectTemplateFilters = ProjectTemplateFilters;
 
 export interface InstantiateProjectTemplateRequest {
   name: string;
@@ -157,8 +151,4 @@ export interface UpdateProjectTemplateRequest {
   category?: ProjectTemplateCategory;
   // Replaces the whole skeleton (system templates only).
   skeleton?: ProjectTemplateSkeleton;
-}
-
-export interface ModerateProjectTemplateRequest {
-  reason?: string;
 }
