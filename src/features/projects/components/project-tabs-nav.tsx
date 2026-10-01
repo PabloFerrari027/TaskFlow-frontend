@@ -54,6 +54,11 @@ export function ProjectTabsNav({
       hint: "A linha do tempo de tudo que mudou neste projeto: quem fez e quando.",
     },
     {
+      href: `${base}/trash`,
+      label: "Lixeira",
+      hint: "Tarefas apagadas nos últimos 30 dias. Dá para trazê-las de volta.",
+    },
+    {
       href: `${base}/settings`,
       label: "Configurações",
       hint: "Ajuste como o projeto funciona: as etapas por onde as tarefas passam e outras regras.",
