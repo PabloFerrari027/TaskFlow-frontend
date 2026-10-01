@@ -97,6 +97,11 @@ export const queryKeys = {
         ? (["tasks", "section", sectionId, { page }] as const)
         : (["tasks", "section", sectionId] as const),
   },
+  approvals: {
+    root: () => ["approvals"] as const,
+    task: (taskId: string) => ["approvals", "task", taskId] as const,
+    pending: () => ["approvals", "pending"] as const,
+  },
   timeTracking: {
     root: () => ["time-tracking"] as const,
     running: () => ["time-tracking", "running"] as const,
