@@ -97,6 +97,9 @@ export const queryKeys = {
         ? (["tasks", "section", sectionId, { page }] as const)
         : (["tasks", "section", sectionId] as const),
   },
+  dataJobs: {
+    detail: (jobId: string) => ["data-jobs", jobId] as const,
+  },
   intakeForms: {
     all: (projectId: string) => ["intake-forms", projectId] as const,
     // Anonymous: its own root, nothing signed-in reuses it.
