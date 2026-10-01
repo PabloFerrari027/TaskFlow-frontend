@@ -94,8 +94,8 @@ export function TaskDetailView({
             <Separator />
 
             <div className="space-y-1.5">
-              <p className="text-xs font-medium text-muted-foreground uppercase">Status</p>
-              <TaskStatusSelect taskId={task.id} status={task.status} />
+              <p className="text-xs font-medium text-muted-foreground uppercase">Etapa</p>
+              <TaskStatusSelect task={task} />
             </div>
 
             <Separator />

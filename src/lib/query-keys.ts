@@ -90,6 +90,10 @@ export const queryKeys = {
         ? (["tasks", "section", sectionId, { page }] as const)
         : (["tasks", "section", sectionId] as const),
   },
+  // A project's custom statuses (etapas). Configuration, not synced.
+  statuses: {
+    all: (projectId: string) => ["statuses", "project", projectId] as const,
+  },
   sections: {
     all: (projectId: string) => ["sections", "project", projectId] as const,
     byProjectAll: () => ["sections", "project"] as const,
