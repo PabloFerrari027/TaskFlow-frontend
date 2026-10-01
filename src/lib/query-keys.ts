@@ -97,6 +97,16 @@ export const queryKeys = {
         ? (["tasks", "section", sectionId, { page }] as const)
         : (["tasks", "section", sectionId] as const),
   },
+  timeTracking: {
+    root: () => ["time-tracking"] as const,
+    running: () => ["time-tracking", "running"] as const,
+    task: (taskId: string, page?: number) =>
+      page
+        ? (["time-tracking", "task", taskId, { page }] as const)
+        : (["time-tracking", "task", taskId] as const),
+    report: (projectId: string, params: { groupBy: string; from?: string }) =>
+      ["time-tracking", "report", projectId, params] as const,
+  },
   // Never cached server-side either: nextRunAt/lastRunAt/enabled change on their own.
   recurringTasks: {
     all: (projectId: string) => ["recurring-tasks", projectId] as const,

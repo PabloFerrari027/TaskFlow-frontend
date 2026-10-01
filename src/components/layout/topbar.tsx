@@ -14,6 +14,7 @@ import { SyncStatusIndicator } from "@/features/sync/components/sync-status-indi
 import { AssistantChat } from "@/features/assistant/components/assistant-chat";
 import { NotificationBell } from "@/features/notifications/components/notification-bell";
 import { GlobalSearch } from "@/features/search/components/global-search";
+import { RunningTimerIndicator } from "@/features/time-tracking/components/running-timer-indicator";
 
 export function Topbar() {
   const [mobileOpen, setMobileOpen] = React.useState(false);
@@ -54,6 +55,7 @@ export function Topbar() {
       </div>
 
       <div className="flex items-center gap-1">
+        <RunningTimerIndicator />
         <GlobalSearch />
         <AssistantChat />
         <NotificationBell />
