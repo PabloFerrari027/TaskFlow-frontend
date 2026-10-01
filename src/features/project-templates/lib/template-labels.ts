@@ -1,7 +1,4 @@
-import type {
-  ProjectTemplateStatus,
-  ProjectTemplateSummary,
-} from "@/types/project-template";
+import type { ProjectTemplateSummary } from "@/types/project-template";
 
 export function plural(count: number, singular: string, pluralForm: string) {
   return `${count} ${count === 1 ? singular : pluralForm}`;
@@ -31,12 +28,6 @@ export function getAuthorLabel(template: Pick<ProjectTemplateSummary, "isSystemD
 export function isWorkspaceTemplate(template: Pick<ProjectTemplateSummary, "isSystemDefault">) {
   return !template.isSystemDefault;
 }
-
-export const TEMPLATE_STATUS_LABEL: Record<ProjectTemplateStatus, string> = {
-  PUBLISHED: "Disponível",
-  UNPUBLISHED: "Oculto",
-  REMOVED: "Tirado da lista",
-};
 
 export function formatDueInDays(days: number) {
   if (days === 0) return "prazo: no dia em que o projeto for criado";

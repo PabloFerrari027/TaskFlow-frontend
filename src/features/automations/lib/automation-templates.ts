@@ -26,8 +26,7 @@ const fixed = (value = ""): ParamDraft => ({ ...emptyParam(), value });
 
 // Templates stop short of the values that only exist in the user's own
 // workspace (which section, which project): those stay blank and highlighted
-// in the builder. They are limited to what the trigger whitelist can express —
-// e.g. "when a task is created" is not a trigger, so there's no template for it.
+// in the builder. They are limited to what the trigger whitelist can express.
 export const AUTOMATION_TEMPLATES: AutomationTemplate[] = [
   {
     id: "done-move-section",
@@ -86,6 +85,45 @@ export const AUTOMATION_TEMPLATES: AutomationTemplate[] = [
       conditions: [],
       tool: "change_task_status",
       params: { status: fixed("IN_PROGRESS") },
+    }),
+  },
+  {
+    id: "overdue-urgent",
+    title: "Tarefa atrasada vira Urgente",
+    description: "Quando uma tarefa passar do prazo, a prioridade dela vira Urgente sozinha.",
+    build: () => ({
+      ...emptyDraft(),
+      name: "Tarefa atrasada vira Urgente",
+      eventType: "tasks.task_overdue",
+      conditions: [],
+      tool: "update_task",
+      params: { priority: fixed("URGENT") },
+    }),
+  },
+  {
+    id: "created-assign-actor",
+    title: "Quem cria a tarefa fica responsável",
+    description: "Toda tarefa nova é atribuída a quem a criou.",
+    build: () => ({
+      ...emptyDraft(),
+      name: "Quem cria a tarefa fica responsável",
+      eventType: "tasks.task_created",
+      conditions: [],
+      tool: "assign_task",
+      params: { assigneeId: { mode: "event", value: "", eventField: "actorId" } },
+    }),
+  },
+  {
+    id: "approved-done",
+    title: "Concluir ao ser aprovada",
+    description: "Quando um pedido de aprovação de uma tarefa for aprovado, ela vira Concluída.",
+    build: () => ({
+      ...emptyDraft(),
+      name: "Concluir ao ser aprovada",
+      eventType: "approvals.approval_decided",
+      conditions: [condition("decision", "equals", "APPROVED")],
+      tool: "change_task_status",
+      params: { status: fixed("DONE") },
     }),
   },
 ];

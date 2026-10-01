@@ -5,7 +5,6 @@ import type {
   CreateProjectTemplateRequest,
   InstantiateProjectTemplateRequest,
   InstantiateProjectTemplateResponse,
-  ModerateProjectTemplateRequest,
   ProjectTemplate,
   ProjectTemplateCategoryInfo,
   ProjectTemplateDetail,
@@ -108,21 +107,5 @@ export const projectTemplatesService = {
   // 204 with no body.
   async adminDelete(templateId: string) {
     await apiClient.delete(`/admin/project-templates/${templateId}`);
-  },
-
-  async adminRemove(templateId: string, input: ModerateProjectTemplateRequest = {}) {
-    const { data } = await apiClient.post<ProjectTemplate>(
-      `/admin/project-templates/${templateId}/remove`,
-      input
-    );
-    return data;
-  },
-
-  async adminRestore(templateId: string, input: ModerateProjectTemplateRequest = {}) {
-    const { data } = await apiClient.post<ProjectTemplate>(
-      `/admin/project-templates/${templateId}/restore`,
-      input
-    );
-    return data;
   },
 };

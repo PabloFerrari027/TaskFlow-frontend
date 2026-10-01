@@ -133,3 +133,22 @@ export function formatDurationHours(hours: number): string {
   if (remainingHours === 0) return `${days}d`;
   return `${days}d ${remainingHours}h`;
 }
+
+// Estimates and logged time: "45min", "2h", "1h 30min".
+export function formatMinutes(minutes: number): string {
+  const total = Math.max(0, Math.round(minutes));
+  const hours = Math.floor(total / 60);
+  const rest = total % 60;
+  if (hours === 0) return `${rest}min`;
+  if (rest === 0) return `${hours}h`;
+  return `${hours}h ${rest}min`;
+}
+
+// A running timer or a time entry: "0:05:12", "1:02:00".
+export function formatClock(totalSeconds: number): string {
+  const seconds = Math.max(0, Math.floor(totalSeconds));
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}

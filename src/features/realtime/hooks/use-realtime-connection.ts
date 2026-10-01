@@ -11,6 +11,7 @@ import {
 import { pendingTaskMutations } from "@/features/tasks/lib/task-list-refresh";
 import { setRealtimeConnected } from "@/features/realtime/lib/connection-state";
 import { pullChanges } from "@/features/sync/lib/sync-engine";
+import { queryKeys } from "@/lib/query-keys";
 import { useCurrentWorkspace } from "@/features/workspaces/context/current-workspace-context";
 import type { RealtimeChangeMessage, RealtimeMessage } from "@/types/realtime";
 
@@ -111,6 +112,9 @@ export function useRealtimeConnection() {
 
       if (message?.type === "sync") {
         pull();
+      } else if (message?.type === "notification") {
+        // Only ever sent to the recipient; the content comes from /notifications.
+        void queryClient.invalidateQueries({ queryKey: queryKeys.notifications.root() });
       } else if (
         message?.type === "change" &&
         message.workspaceId === workspaceId &&

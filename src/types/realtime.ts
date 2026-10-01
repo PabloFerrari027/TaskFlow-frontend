@@ -18,4 +18,17 @@ export interface RealtimeChangeMessage {
   occurredAt: string;
 }
 
-export type RealtimeMessage = RealtimeSyncMessage | RealtimeChangeMessage;
+// "A notification arrived for YOU" — only sent to the recipient's connections.
+// Like `change`, it carries no content: the inbox is fetched from /notifications.
+export interface RealtimeNotificationMessage {
+  type: "notification";
+  notificationId: string;
+  notificationType: string;
+  workspaceId: string;
+  occurredAt: string;
+}
+
+export type RealtimeMessage =
+  | RealtimeSyncMessage
+  | RealtimeChangeMessage
+  | RealtimeNotificationMessage;

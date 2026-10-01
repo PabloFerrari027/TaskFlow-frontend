@@ -32,6 +32,7 @@ import type {
   ChangeTaskStatusRequest,
   CreateTaskRequest,
   Task,
+  TaskStatus,
   UpdateTaskRequest,
 } from "@/types/task";
 
@@ -163,6 +164,44 @@ function findCachedTask(queryClient: QueryClient, taskId: string): Task | undefi
   return undefined;
 }
 
+// What `/sync/push` applies to a TASK (`task-sync.handler.ts` on the backend);
+// `position` rides along with `sectionId` for the optimistic copy. Anything
+// else — dates, priority, estimates, several assignees, mentions — only exists
+// on REST, so it can't be queued: it is dropped and the person is told.
+const SYNCABLE_TASK_FIELDS = new Set([
+  "title",
+  "description",
+  "assigneeId",
+  "parentTaskId",
+  "sectionId",
+  "position",
+  "status",
+]);
+
+function splitSyncablePayload(payload: Record<string, unknown>) {
+  const syncable: Record<string, unknown> = {};
+  const dropped: string[] = [];
+  for (const [key, value] of Object.entries(payload)) {
+    if (value === undefined) continue;
+    if (SYNCABLE_TASK_FIELDS.has(key)) syncable[key] = value;
+    else dropped.push(key);
+  }
+  return { syncable, dropped };
+}
+
+/** Toasts the backend's notices about a status change (e.g. finished with open blockers). */
+export function toastTaskWarnings(task: Task) {
+  for (const warning of task.warnings ?? []) toast.warning(translateTaskWarning(warning));
+}
+
+// The server writes these in English; the one it sends today is about blockers.
+function translateTaskWarning(warning: string) {
+  if (/block/i.test(warning)) {
+    return "Tarefa concluída, mas ela ainda depende de tarefas que não terminaram.";
+  }
+  return warning;
+}
+
 // Task lists can realistically grow large, so this is genuinely paged.
 export function useTasksQuery(projectId: string, page = 1) {
   return useQuery({
@@ -226,24 +265,29 @@ export function useUpdateTaskMutation(
     mutationFn: (payload: UpdateTaskRequest) => {
       const current = findCachedTask(queryClient, taskId);
       if (isOffline() && workspaceId && current) {
-        // `/sync/push` payloads don't carry mentions (REST-only, API.md § 9) —
-        // queueing them would drop them silently while the optimistic copy
-        // showed them as saved, so they're left out and the user is told.
-        const { mentionedUserIds, ...syncable } = payload;
+        // Queueing a REST-only field would drop it silently while the
+        // optimistic copy showed it as saved, so it's left out and the user is told.
+        const { mentionedUserIds, ...rest } = payload;
+        const { syncable, dropped } = splitSyncablePayload(rest);
         const currentMentions = current.mentionedUserIds ?? [];
-        if (
-          mentionedUserIds &&
+        const mentionsChanged =
+          !!mentionedUserIds &&
           (mentionedUserIds.length !== currentMentions.length ||
-            mentionedUserIds.some((id) => !currentMentions.includes(id)))
-        ) {
-          toast.warning("Menções só podem ser alteradas online — o restante da edição foi salvo.");
+            mentionedUserIds.some((id) => !currentMentions.includes(id)));
+        if (dropped.length > 0 || mentionsChanged) {
+          if (Object.keys(syncable).length === 0) {
+            throw new Error("Sem conexão: essa alteração só pode ser feita online.");
+          }
+          toast.warning(
+            "Parte da edição só pode ser feita online (como datas, prioridade e menções) — o restante foi salvo."
+          );
         }
         return Promise.resolve(
           queueEntityUpdate({
             workspaceId,
             entityType: "TASK",
             entityId: taskId,
-            payload: syncable as Record<string, unknown>,
+            payload: syncable,
             current,
             meta: { projectId: current.projectId },
           })
@@ -572,13 +616,13 @@ export function useDeleteTasksMutation() {
         toast.success(
           queuedOffline
             ? "Exclusão salva offline — será sincronizada quando a conexão voltar."
-            : `${pluralizeTasks(deletedIds.length, "tarefa apagada", "tarefas apagadas")}.`
+            : `${pluralizeTasks(deletedIds.length, "tarefa foi para a lixeira", "tarefas foram para a lixeira")}. Dá para restaurar em até 30 dias.`
         );
       } else if (deletedIds.length === 0) {
         toast.error(failures[0]);
       } else {
         toast.warning(
-          `${pluralizeTasks(deletedIds.length, "tarefa apagada", "tarefas apagadas")}, mas ${pluralizeTasks(failures.length, "falhou", "falharam")}: ${failures[0]}`
+          `${pluralizeTasks(deletedIds.length, "tarefa foi para a lixeira", "tarefas foram para a lixeira")}, mas ${pluralizeTasks(failures.length, "falhou", "falharam")}: ${failures[0]}`
         );
       }
     },
@@ -638,15 +682,20 @@ export function useChangeTaskStatusMutation(
 
   return useMutation({
     mutationKey: TASK_MUTATION_KEY,
-    mutationFn: (payload: ChangeTaskStatusRequest) => {
+    mutationFn: ({ category: _category, ...payload }: ChangeTaskStatusRequest & { category?: TaskStatus }) => {
+      void _category;
       const current = findCachedTask(queryClient, taskId);
       if (isOffline() && workspaceId && current) {
+        // Sync only knows the three categories, not a project's custom statuses.
+        if (!payload.status) {
+          throw new Error("Sem conexão: trocar para uma etapa personalizada só pode ser feito online.");
+        }
         return Promise.resolve(
           queueEntityUpdate({
             workspaceId,
             entityType: "TASK",
             entityId: taskId,
-            payload: payload as unknown as Record<string, unknown>,
+            payload: { status: payload.status },
             current,
             meta: { projectId: current.projectId },
           })
@@ -655,12 +704,17 @@ export function useChangeTaskStatusMutation(
       return tasksService.changeStatus(taskId, payload);
     },
     // Read before the request goes out: afterwards the cache already holds DONE.
-    onMutate: (payload) => ({
+    // A custom status is resolved to its category by the caller (`category`).
+    onMutate: (payload: ChangeTaskStatusRequest & { category?: TaskStatus }) => ({
       completes:
-        payload.status === "DONE" && findCachedTask(queryClient, taskId)?.status !== "DONE",
+        (payload.status ?? payload.category) === "DONE" &&
+        findCachedTask(queryClient, taskId)?.status !== "DONE",
     }),
     onSuccess: (task, _payload, context) => {
-      queryClient.setQueryData(queryKeys.tasks.detail(taskId), task);
+      toastTaskWarnings(task);
+      const { warnings: _warnings, ...stored } = task;
+      void _warnings;
+      queryClient.setQueryData(queryKeys.tasks.detail(taskId), stored);
       if (task.parentTaskId) {
         queryClient.invalidateQueries({
           queryKey: queryKeys.tasks.subtasks(task.parentTaskId),

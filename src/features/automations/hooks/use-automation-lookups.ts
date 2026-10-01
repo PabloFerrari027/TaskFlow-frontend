@@ -43,6 +43,15 @@ const PROJECT_STATUS_OPTIONS: PickerOption[] = Object.entries(PROJECT_STATUS_LAB
   ([value, label]) => ({ value, label })
 );
 
+const APPROVAL_DECISION_LABEL: Record<string, string> = {
+  APPROVED: "aprovada",
+  REJECTED: "recusada",
+};
+
+const APPROVAL_DECISION_OPTIONS: PickerOption[] = Object.entries(APPROVAL_DECISION_LABEL).map(
+  ([value, label]) => ({ value, label })
+);
+
 interface SectionsCombined {
   sections: Section[];
   isLoading: boolean;
@@ -133,6 +142,8 @@ export function useAutomationLookups(workspaceId: string): AutomationLookups {
             return PRIORITY_OPTIONS;
           case "projectStatus":
             return PROJECT_STATUS_OPTIONS;
+          case "approvalDecision":
+            return APPROVAL_DECISION_OPTIONS;
           case "member":
             return memberOptions;
           case "project":
@@ -151,6 +162,8 @@ export function useAutomationLookups(workspaceId: string): AutomationLookups {
             return (TASK_PRIORITY_LABEL as Record<string, string>)[value] ?? value;
           case "projectStatus":
             return (PROJECT_STATUS_LABEL as Record<string, string>)[value] ?? value;
+          case "approvalDecision":
+            return APPROVAL_DECISION_LABEL[value] ?? value;
           case "member":
             return memberLabel(value);
           case "project":

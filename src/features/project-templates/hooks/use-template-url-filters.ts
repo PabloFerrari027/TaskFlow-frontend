@@ -5,14 +5,12 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   PROJECT_TEMPLATE_CATEGORIES,
   type ProjectTemplateCategory,
-  type ProjectTemplateStatus,
 } from "@/types/project-template";
 
 export interface TemplateUrlFilters {
   page: number;
   category?: ProjectTemplateCategory;
   search?: string;
-  status?: ProjectTemplateStatus;
 }
 
 function pick<T extends string>(value: string | null, allowed: readonly T[]): T | undefined {
@@ -26,7 +24,6 @@ function parse(params: URLSearchParams): TemplateUrlFilters {
     category: pick(params.get("category"), PROJECT_TEMPLATE_CATEGORIES),
     // The API caps `search` at 100 characters.
     search: params.get("search")?.trim().slice(0, 100) || undefined,
-    status: pick(params.get("status"), ["PUBLISHED", "UNPUBLISHED", "REMOVED"] as const),
   };
 }
 
@@ -49,7 +46,6 @@ export function useTemplateUrlFilters() {
       const params = new URLSearchParams();
       if (next.search) params.set("search", next.search);
       if (next.category) params.set("category", next.category);
-      if (next.status) params.set("status", next.status);
       if (next.page > 1) params.set("page", String(next.page));
       const query = params.toString();
       const url = query ? `${pathname}?${query}` : pathname;
@@ -59,10 +55,10 @@ export function useTemplateUrlFilters() {
     [filters, pathname, router]
   );
 
-  const hasActiveFilters = Boolean(filters.search || filters.category || filters.status);
+  const hasActiveFilters = Boolean(filters.search || filters.category);
 
   const clearFilters = React.useCallback(
-    () => setFilters({ search: undefined, category: undefined, status: undefined }),
+    () => setFilters({ search: undefined, category: undefined }),
     [setFilters]
   );
 

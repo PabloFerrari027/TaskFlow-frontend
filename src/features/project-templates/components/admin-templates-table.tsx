@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-import { Ban, LayoutTemplate, RotateCcw, SearchX, Trash2 } from "lucide-react";
+import { LayoutTemplate, SearchX, Trash2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -14,39 +14,23 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ErrorState } from "@/components/shared/error-state";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { Pager } from "@/components/shared/pager";
 import { formatDate } from "@/lib/format";
 import { getCategoryInfo } from "@/features/project-templates/lib/categories";
-import { TEMPLATE_STATUS_LABEL } from "@/features/project-templates/lib/template-labels";
-import { TemplateStatusBadge } from "@/features/project-templates/components/template-badges";
 import { TemplateFilters } from "@/features/project-templates/components/template-filters";
-import { ModerationReasonDialog } from "@/features/project-templates/components/moderation-reason-dialog";
 import { useTemplateUrlFilters } from "@/features/project-templates/hooks/use-template-url-filters";
 import {
   useAdminDeleteProjectTemplateMutation,
   useAdminProjectTemplatesQuery,
-  useAdminRemoveProjectTemplateMutation,
-  useAdminRestoreProjectTemplateMutation,
   useProjectTemplateCategoriesQuery,
 } from "@/features/project-templates/hooks/use-project-templates";
-import type { ProjectTemplateStatus, ProjectTemplateSummary } from "@/types/project-template";
+import type { ProjectTemplateSummary } from "@/types/project-template";
 
 const PAGE_SIZE = 20;
-const STATUSES: ProjectTemplateStatus[] = ["PUBLISHED", "UNPUBLISHED", "REMOVED"];
-
-type PendingAction =
-  | { kind: "remove" | "restore" | "delete"; template: ProjectTemplateSummary }
-  | null;
+type PendingAction = { kind: "delete"; template: ProjectTemplateSummary } | null;
 
 // The system catalog only — the service pins every admin listing to it.
 export function AdminTemplatesTable() {
@@ -58,10 +42,7 @@ export function AdminTemplatesTable() {
     limit: PAGE_SIZE,
     category: filters.category,
     search: filters.search,
-    status: filters.status,
   });
-  const removeMutation = useAdminRemoveProjectTemplateMutation();
-  const restoreMutation = useAdminRestoreProjectTemplateMutation();
   const deleteMutation = useAdminDeleteProjectTemplateMutation();
   const [pending, setPending] = React.useState<PendingAction>(null);
 
@@ -86,28 +67,6 @@ export function AdminTemplatesTable() {
         filters={filters}
         setFilters={setFilters}
         categories={categoriesQuery.data}
-        extra={
-          <Select
-            // The API lists PUBLISHED when `status` is omitted.
-            value={filters.status ?? "PUBLISHED"}
-            onValueChange={(value) =>
-              setFilters({
-                status: value === "PUBLISHED" ? undefined : (value as ProjectTemplateStatus),
-              })
-            }
-          >
-            <SelectTrigger className="w-52" aria-label="Situação">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {STATUSES.map((status) => (
-                <SelectItem key={status} value={status}>
-                  {TEMPLATE_STATUS_LABEL[status]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        }
       />
 
       {templatesQuery.isLoading ? (
@@ -139,9 +98,8 @@ export function AdminTemplatesTable() {
               <TableRow>
                 <TableHead>Nome</TableHead>
                 <TableHead>Categoria</TableHead>
-                <TableHead>Situação</TableHead>
                 <TableHead>Atualizado</TableHead>
-                <TableHead className="w-32" />
+                <TableHead className="w-16" />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -155,35 +113,11 @@ export function AdminTemplatesTable() {
                     <TableCell className="text-muted-foreground">
                       <span aria-hidden>{category.icon}</span> {category.label}
                     </TableCell>
-                    <TableCell>
-                      <TemplateStatusBadge status={template.status} />
-                    </TableCell>
                     <TableCell className="text-muted-foreground">
                       {formatDate(template.updatedAt)}
                     </TableCell>
                     <TableCell>
                       <div className="flex justify-end gap-1">
-                        {template.status === "REMOVED" ? (
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            aria-label="Restaurar"
-                            title="Restaurar"
-                            onClick={() => setPending({ kind: "restore", template })}
-                          >
-                            <RotateCcw />
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            aria-label="Tirar da lista"
-                            title="Tirar da lista"
-                            onClick={() => setPending({ kind: "remove", template })}
-                          >
-                            <Ban />
-                          </Button>
-                        )}
                         <Button
                           variant="ghost"
                           size="icon-sm"
@@ -208,41 +142,6 @@ export function AdminTemplatesTable() {
           />
         </div>
       )}
-
-      {pending?.kind === "remove" ? (
-        <ModerationReasonDialog
-          open
-          onOpenChange={(open) => !open && close()}
-          title={`Tirar “${pending.template.name}” da lista?`}
-          description="Ele some da lista de modelos para todos e ninguém mais consegue usá-lo. Projetos já criados com ele não mudam. Dá para restaurar depois."
-          confirmLabel="Tirar da lista"
-          variant="destructive"
-          isPending={removeMutation.isPending}
-          onConfirm={(reason) =>
-            removeMutation.mutate(
-              { templateId: pending.template.id, input: { reason } },
-              { onSuccess: close }
-            )
-          }
-        />
-      ) : null}
-
-      {pending?.kind === "restore" ? (
-        <ModerationReasonDialog
-          open
-          onOpenChange={(open) => !open && close()}
-          title={`Restaurar “${pending.template.name}”?`}
-          description="O modelo volta para a lista e pode ser usado de novo."
-          confirmLabel="Restaurar"
-          isPending={restoreMutation.isPending}
-          onConfirm={(reason) =>
-            restoreMutation.mutate(
-              { templateId: pending.template.id, input: { reason } },
-              { onSuccess: close }
-            )
-          }
-        />
-      ) : null}
 
       <ConfirmDialog
         open={pending?.kind === "delete"}
