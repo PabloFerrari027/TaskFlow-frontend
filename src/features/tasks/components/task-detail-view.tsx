@@ -20,6 +20,7 @@ import {
   TaskTitleField,
 } from "@/features/tasks/components/task-inline-text-fields";
 import { SubtaskList } from "@/features/tasks/components/subtask-list";
+import { TaskDependenciesSection } from "@/features/tasks/components/task-dependencies-section";
 import { AttachmentsSection } from "@/features/tasks/components/attachments-section";
 import { TaskCoverBanner } from "@/features/tasks/components/task-cover";
 import { ParticipantsSection } from "@/features/tasks/components/participants-section";
@@ -61,6 +62,10 @@ export function TaskDetailView({
     <>
       <Card className="p-5">
         <SubtaskList projectId={projectId} parentTaskId={task.id} sectionId={task.sectionId} />
+      </Card>
+
+      <Card className="p-5">
+        <TaskDependenciesSection projectId={projectId} taskId={task.id} />
       </Card>
 
       <Card className="p-5">

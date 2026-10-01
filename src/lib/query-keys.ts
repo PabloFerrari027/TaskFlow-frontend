@@ -66,6 +66,13 @@ export const queryKeys = {
     subtasks: (taskId: string) => ["tasks", taskId, "subtasks"] as const,
     customFieldValues: (taskId: string) =>
       ["tasks", taskId, "custom-field-values"] as const,
+    dependencies: (taskId: string) => ["tasks", taskId, "dependencies"] as const,
+    // Under the `tasks` root, so every task-wide invalidation refreshes it too.
+    timeline: (projectId: string) => ["tasks", "timeline", projectId] as const,
+    trash: (projectId: string, page?: number) =>
+      page
+        ? (["tasks", "trash", projectId, { page }] as const)
+        : (["tasks", "trash", projectId] as const),
     // Binary downloads (attachments, covers) deliberately live under their own
     // root, not `["tasks", taskId, ...]`: the bulk `tasks` invalidations run on
     // every realtime signal / non-empty pull, and would otherwise re-download

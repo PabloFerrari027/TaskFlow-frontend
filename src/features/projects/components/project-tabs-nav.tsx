@@ -24,6 +24,11 @@ export function ProjectTabsNav({
       hint: "Organize o trabalho em colunas. Clique em uma tarefa para ver os detalhes ou arraste para mudar de coluna.",
     },
     {
+      href: `${base}/timeline`,
+      label: "Cronograma",
+      hint: "As tarefas com datas numa linha do tempo, com as dependências entre elas. Clique numa barra para abrir a tarefa.",
+    },
+    {
       href: `${base}/stats`,
       label: "Estatísticas",
       hint: "Veja em números como o projeto está andando: quanto já foi feito, o que está atrasado e quem está com mais tarefas.",
