@@ -5,6 +5,7 @@ import type {
   AdminProjectTemplateFilters,
   ProjectTemplateFilters,
 } from "@/types/project-template";
+import type { SearchParams } from "@/types/search";
 import { stableStringify } from "@/lib/utils";
 
 export const queryKeys = {
@@ -155,6 +156,11 @@ export const queryKeys = {
       ["notifications", "list", params] as const,
     unreadCount: (workspaceId?: string) => ["notifications", "unread-count", workspaceId ?? null] as const,
     preferences: () => ["notifications", "preferences"] as const,
+  },
+  search: {
+    root: () => ["search"] as const,
+    results: (workspaceId: string, params: SearchParams) =>
+      ["search", workspaceId, params] as const,
   },
   automations: {
     all: (workspaceId: string) => ["automations", "workspace", workspaceId] as const,

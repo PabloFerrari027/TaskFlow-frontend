@@ -13,6 +13,7 @@ import { WorkspaceSwitcher } from "@/features/workspaces/components/workspace-sw
 import { SyncStatusIndicator } from "@/features/sync/components/sync-status-indicator";
 import { AssistantChat } from "@/features/assistant/components/assistant-chat";
 import { NotificationBell } from "@/features/notifications/components/notification-bell";
+import { GlobalSearch } from "@/features/search/components/global-search";
 
 export function Topbar() {
   const [mobileOpen, setMobileOpen] = React.useState(false);
@@ -53,6 +54,7 @@ export function Topbar() {
       </div>
 
       <div className="flex items-center gap-1">
+        <GlobalSearch />
         <AssistantChat />
         <NotificationBell />
         <SyncStatusIndicator />
