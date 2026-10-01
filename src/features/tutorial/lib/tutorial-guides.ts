@@ -1,7 +1,13 @@
 import type { LucideIcon } from "lucide-react";
 import {
+  BadgeCheck,
   BarChart3,
+  Bell,
   Bot,
+  CalendarRange,
+  FileInput,
+  Repeat,
+  Timer,
   Building2,
   Coins,
   Compass,
@@ -630,17 +636,17 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         bullets: [
           "Título e descrição, editáveis no próprio lugar.",
           "Subtarefas: use “Adicionar” para criar; clicar numa subtarefa abre o painel dela.",
-          "Anexos.",
-          "Coluna, status, responsável, prazo e prioridade, cada um com seu seletor. Ao trocar, o valor é salvo na hora.",
+          "Dependências, Aprovações, Tempo e Anexos.",
+          "Coluna, etapa, responsáveis, prazo, início, marco, estimativa e prioridade, cada um com seu seletor. Ao trocar, o valor é salvo na hora.",
           "Participantes.",
           "Campos extras do projeto.",
           "Comentários e o histórico de atividade, sempre por último.",
         ],
       },
       {
-        heading: "Status, prioridade e prazo",
+        heading: "Etapa, prioridade e prazo",
         bullets: [
-          "Status: A fazer, Em progresso ou Concluída.",
+          "Etapa: por onde a tarefa está passando. Toda etapa é de um de três tipos — a fazer, em andamento ou concluída — e cada projeto pode criar as suas (ex.: “Em revisão”) na aba Configurações.",
           "Prioridade: Baixa, Média, Alta ou Urgente.",
           "Prazo: aparece como etiqueta colorida. Vermelho para atrasada, âmbar para vence hoje ou em breve, cinza para o restante. Uma tarefa concluída deixa de contar como atrasada.",
         ],
@@ -652,9 +658,17 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         ],
       },
       {
+        heading: "Início, marco e estimativa",
+        bullets: [
+          "Começa em: a data em que o trabalho começa (opcional, nunca depois do prazo). Com início e prazo, a tarefa vira uma barra no Cronograma. Dá para tirar a data depois.",
+          "Marco: marque quando a tarefa é um ponto importante (uma entrega, uma aprovação) e não um período de trabalho.",
+          "Tempo estimado (horas e minutos) e Pontos de esforço: quanto a tarefa deve dar de trabalho. O tempo registrado aparece comparado com a estimativa.",
+        ],
+      },
+      {
         heading: "Responsável e participantes",
         intro:
-          "O responsável é quem executa a tarefa, e é uma pessoa só; ele pode ser retirado a qualquer momento. Participantes são pessoas que acompanham, sem serem o responsável: use “Adicionar participante” para incluir quem precisa ficar por dentro.",
+          "Responsáveis são quem executa a tarefa — pode ser mais de uma pessoa. O primeiro da lista é o principal (aparece no cartão); a estrela torna outra pessoa a principal. Participantes são pessoas que acompanham, sem serem responsáveis: use “Adicionar participante” para incluir quem precisa ficar por dentro.",
       },
       {
         heading: "Subtarefas",
@@ -675,9 +689,9 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         ],
       },
       {
-        heading: "Sem exclusão",
+        heading: "Apagar e restaurar",
         intro:
-          "Tarefas não são excluídas. Use o status Concluída para tirá-las do seu foco, e os filtros para escondê-las quando quiser.",
+          "Selecione tarefas no quadro e use “Apagar”: elas vão para a Lixeira do projeto junto com as subtarefas. O aviso que aparece tem o botão “Desfazer”, e na aba Lixeira dá para restaurar por 30 dias. Depois disso, a tarefa é apagada de vez.",
       },
     ],
     faq: [
@@ -702,7 +716,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
           "Duas pessoas editaram ao mesmo tempo. Atualize a tela para ver a versão mais recente e refaça a sua alteração.",
       },
     ],
-    related: ["collaboration", "custom-fields", "task-views"],
+    related: ["collaboration", "custom-fields", "task-views", "dependencies", "time-tracking"],
   },
   {
     id: "task-views",
@@ -745,6 +759,16 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
             kind: "tip",
             text: "“Limpar filtros” aparece assim que há algum filtro ativo e volta tudo ao padrão de uma vez.",
           },
+        ],
+      },
+      {
+        heading: "Visões salvas",
+        intro:
+          "Usa sempre os mesmos filtros? Monte-os e escolha “Visões” → “Salvar filtros atuais como visão…”. Depois é um clique para voltar a eles.",
+        bullets: [
+          "Marque “Compartilhar com o projeto” para que todas as pessoas do projeto vejam a visão.",
+          "Com uma visão aberta, “Atualizar” guarda nela os filtros de agora.",
+          "Alguns filtros avançados (datas de criação/atualização, participante, menção, anexos, descrição) ainda não ficam salvos — o aviso diz quais.",
         ],
       },
     ],
@@ -843,6 +867,214 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
     related: ["tasks", "task-views", "projects"],
   },
   {
+    id: "dependencies",
+    group: "daily",
+    title: "Dependências e cronograma",
+    summary: "Diga que uma tarefa só começa depois de outra e veja tudo numa linha do tempo.",
+    icon: CalendarRange,
+    sections: [
+      {
+        heading: "Ligar tarefas",
+        steps: [
+          "Abra a tarefa que precisa esperar.",
+          "Em Dependências, use “Esta tarefa depende de…” e busque a outra tarefa pelo nome.",
+          "Pronto: enquanto a outra não terminar, aparece o aviso “Ainda falta terminar…”.",
+        ],
+        callouts: [
+          {
+            kind: "note",
+            text: "Quando todas as tarefas de que ela depende terminam, o responsável recebe a notificação “Tarefa liberada”.",
+          },
+        ],
+      },
+      {
+        heading: "Concluir antes da hora",
+        intro:
+          "Na aba Configurações do projeto você escolhe o que acontece se alguém concluir uma tarefa que ainda depende de outras: deixar e avisar, ou não deixar.",
+      },
+      {
+        heading: "Cronograma",
+        bullets: [
+          "A aba Cronograma mostra as tarefas com datas como barras, do início ao prazo.",
+          "As setas ligam o que precisa terminar antes. Marcos aparecem como losangos.",
+          "As cores dizem a situação: a fazer, em andamento, concluída ou atrasada. A linha azul é hoje.",
+          "Clique numa barra para abrir a tarefa. Use Dias, Semanas ou Meses para mudar o zoom.",
+        ],
+      },
+    ],
+    related: ["tasks"],
+  },
+  {
+    id: "recurring-tasks",
+    group: "daily",
+    title: "Tarefas repetidas",
+    summary: "Deixe o TaskFlow cadastrar sozinho o que se repete: contas, relatórios, compras.",
+    icon: Repeat,
+    sections: [
+      {
+        heading: "Criar uma repetição",
+        steps: [
+          "No projeto, abra a aba Repetições e clique em “Nova repetição”.",
+          "Dê o título da tarefa e, se quiser, coluna, responsável, prioridade e prazo (em dias depois de criada).",
+          "Escolha quando repete: todo dia, toda semana (e em quais dias), todo mês (e em qual dia) ou todo ano — e o horário.",
+          "Confira as próximas datas que aparecem embaixo e salve.",
+        ],
+        callouts: [
+          {
+            kind: "tip",
+            text: "Use “Inserir no título” para colocar a data, o dia da semana, o mês ou o ano no nome da tarefa: “Compras — 05/10/2026”.",
+          },
+          {
+            kind: "note",
+            text: "Dia 31 em “todo mês” significa “último dia do mês”: em fevereiro cai no dia 28 (ou 29).",
+          },
+        ],
+      },
+      {
+        heading: "Pausar e retomar",
+        intro:
+          "A chave de cada repetição pausa e liga de novo. Se quem criou perder o acesso ao projeto, ou o projeto for arquivado, ela é pausada sozinha e o motivo aparece na lista.",
+      },
+    ],
+    faq: [
+      {
+        question: "A tarefa não apareceu no horário exato.",
+        answer: "Ela é criada até 1 minuto depois do horário escolhido.",
+      },
+      {
+        question: "Apaguei a repetição. As tarefas somem?",
+        answer: "Não. Só param de ser criadas novas; as que já existem continuam no projeto.",
+      },
+    ],
+    related: ["templates"],
+  },
+  {
+    id: "time-tracking",
+    group: "daily",
+    title: "Controle de tempo",
+    summary: "Marque quanto tempo cada tarefa levou, com cronômetro ou à mão.",
+    icon: Timer,
+    sections: [
+      {
+        heading: "Cronômetro",
+        bullets: [
+          "Na seção Tempo da tarefa, clique em “Iniciar cronômetro”.",
+          "Enquanto ele roda, um contador verde fica no topo da tela, em qualquer página. Clique no quadrado para parar e salvar.",
+          "Só existe um cronômetro por pessoa: iniciar em outra tarefa para o anterior e salva o tempo dele.",
+        ],
+      },
+      {
+        heading: "Registrar à mão",
+        intro:
+          "Esqueceu de ligar o cronômetro? Use “Registrar à mão”: dia, hora de início e quanto tempo (até 24 horas por registro).",
+      },
+      {
+        heading: "Relatório",
+        intro:
+          "Na aba Estatísticas do projeto, “Tempo registrado” mostra o total por pessoa ou por tarefa, no período que você escolher.",
+      },
+    ],
+    related: ["tasks", "project-stats"],
+  },
+  {
+    id: "approvals",
+    group: "daily",
+    title: "Aprovações",
+    summary: "Peça o “ok” de alguém numa tarefa e acompanhe a resposta.",
+    icon: BadgeCheck,
+    sections: [
+      {
+        heading: "Pedir",
+        steps: [
+          "Abra a tarefa e, em Aprovações, clique em “Pedir aprovação”.",
+          "Escolha a pessoa (pode ser um convidado, como um cliente) e deixe um recado se quiser.",
+          "Ela recebe uma notificação. Enquanto não responder, você pode cancelar o pedido.",
+        ],
+      },
+      {
+        heading: "Responder",
+        intro:
+          "Os pedidos para você aparecem na própria tarefa e no Início, em “Aguardando sua aprovação”. Aprove ou recuse, com um comentário opcional — quem pediu é avisado.",
+        callouts: [
+          {
+            kind: "tip",
+            text: "Combine com uma automação: “quando uma aprovação for respondida com aprovada, mudar o status para Concluída”. Há um modelo pronto em Automações.",
+          },
+        ],
+      },
+    ],
+    related: ["automations", "notifications"],
+  },
+  {
+    id: "notifications",
+    group: "daily",
+    title: "Notificações e busca",
+    summary: "Saiba o que mudou para você e encontre qualquer coisa no workspace.",
+    icon: Bell,
+    sections: [
+      {
+        heading: "O sino",
+        bullets: [
+          "O número vermelho no sino, no topo da tela, é quantos avisos você ainda não leu.",
+          "Clique num aviso para ir direto à tarefa. “Marcar todas como lidas” limpa o contador.",
+          "Você é avisado quando: é mencionado, vira responsável, comentam numa tarefa sua, uma tarefa sua muda de status, o prazo chega ou vence, uma tarefa é liberada, e em pedidos e respostas de aprovação.",
+        ],
+      },
+      {
+        heading: "Escolher o que receber",
+        intro:
+          "Em Conta → Notificações (ou na engrenagem do sino), ligue ou desligue cada tipo de aviso, no app e por e-mail.",
+      },
+      {
+        heading: "Busca",
+        intro:
+          "Clique em “Buscar” no topo ou aperte Ctrl+K (⌘K no Mac). Digite parte das palavras — sem se preocupar com acentos — e escolha uma tarefa, um comentário ou um projeto.",
+      },
+    ],
+    href: "/settings/notifications",
+    hrefLabel: "Abrir as preferências",
+    related: ["collaboration"],
+  },
+  {
+    id: "intake-forms",
+    group: "advanced",
+    title: "Formulários e importação",
+    summary: "Receba pedidos de quem não usa o TaskFlow e traga tarefas de planilhas.",
+    icon: FileInput,
+    sections: [
+      {
+        heading: "Formulários de pedidos",
+        steps: [
+          "No projeto, abra Configurações → Formulários de pedidos → “Novo formulário”.",
+          "Monte as perguntas. Uma delas vira o título da tarefa; as outras podem virar descrição, prazo ou prioridade.",
+          "Copie o link e mande para quem quiser — não precisa ter conta.",
+          "Cada resposta vira uma tarefa na coluna escolhida.",
+        ],
+        callouts: [
+          {
+            kind: "warning",
+            text: "Quem tem o link consegue enviar. Se ele foi parar onde não devia, use “Trocar link”: o antigo para de funcionar na hora.",
+          },
+        ],
+      },
+      {
+        heading: "Importar uma planilha",
+        steps: [
+          "Em Configurações → Importar e exportar, escolha um arquivo CSV (até 2 MB). Exportações do Asana, Jira e Trello funcionam direto.",
+          "Confira de qual coluna vem cada informação — o TaskFlow já sugere sozinho.",
+          "Veja quantas linhas estão prontas e quais têm problema (com o número da linha).",
+          "Importe tudo, ou marque para importar só as linhas sem problema.",
+        ],
+      },
+      {
+        heading: "Exportar",
+        intro:
+          "Escolha Planilha (CSV, só as tarefas) ou Cópia completa (JSON, com colunas, comentários e dependências), clique em “Preparar arquivo” e depois em “Baixar”.",
+      },
+    ],
+    related: ["projects"],
+  },
+  {
     id: "collaboration",
     group: "daily",
     title: "Comentários, menções e atividade",
@@ -867,6 +1099,13 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         heading: "Respostas em thread",
         intro:
           "Use “Responder” num comentário para abrir uma conversa encadeada. O recuo visual para no terceiro nível para não estreitar demais o texto, mas você pode continuar respondendo indefinidamente.",
+      },
+      {
+        heading: "Editar e reagir",
+        bullets: [
+          "Use o lápis para corrigir um comentário seu. Ele passa a mostrar “editado”.",
+          "Use a carinha para reagir com um emoji. Clique de novo no emoji para tirar a sua reação; passe o mouse para ver quem reagiu.",
+        ],
       },
       {
         heading: "Apagar comentários",

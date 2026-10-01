@@ -64,7 +64,7 @@ src/
   types/                   # Tipos alinhados 1:1 aos DTOs da API
 ```
 
-Features existentes: `auth`, `sessions`, `workspaces`, `projects`, `project-templates`, `tasks`, `sections`, `custom-fields`, `comments`, `activity`, `analytics`, `automations`, `assistant`, `admin`, `sync`, `realtime`, `tutorial`.
+Features existentes: `auth`, `sessions`, `workspaces`, `projects`, `project-templates`, `tasks`, `sections`, `custom-fields`, `comments`, `activity`, `analytics`, `automations`, `assistant`, `admin`, `sync`, `realtime`, `tutorial`, `notifications`, `search`, `recurring-tasks`, `time-tracking`, `approvals`, `intake-forms`, `data-portability`.
 
 ## 3. Arquitetura em camadas
 
@@ -118,18 +118,25 @@ Regras que o código segue consistentemente:
     /custom-fields                         Campos personalizados do projeto
     /activity                              Atividade do projeto (linha do tempo paginada, GET /projects/:id/activity)
     /automations                           Automações que agem neste projeto (aba só para OWNER/ADMIN do workspace)
+    /timeline                              Cronograma (Gantt): tarefas com datas + setas de dependência (GET /projects/:id/timeline)
+    /recurring                             Tarefas repetidas do projeto (/projects/:id/recurring-tasks)
+    /trash                                 Lixeira do projeto (30 dias) com restaurar
+    /settings                              Configurações do projeto em seções empilhadas: etapas, regra de dependências, formulários de pedidos, importar/exportar
   /templates                               Modelos, em duas seções empilhadas: os do workspace atual (privados) e os do sistema (busca + filtro de categoria na query string)
   /templates/[templateId]                  Detalhe do modelo: prévia, usar; editar/excluir para OWNER/ADMIN quando é modelo do workspace
   /analytics                               Dashboard analítico do workspace atual
   /settings/profile                        Foto de perfil + segurança (#seguranca: alterar senha / definir primeira senha em conta Google-only / vincular Google em conta com senha) + sessões ativas (#sessoes), em seções empilhadas
   /settings/security                       Redirect para /settings/profile#seguranca
   /settings/sessions                       Redirect para /settings/profile#sessoes
+  /settings/notifications                  Preferências de notificação por tipo (no app / e-mail)
   /settings/plan                           Escolher/trocar o próprio plano de tokens de IA (PATCH /plans/me) + consumo de hoje/semana/mês (UTC) + histórico de consumo
   /tutorial                                Guias por tema (accordion) + botão para refazer o tour guiado
   /admin/clients                           Gestão de clientes (apenas SUPER_ADMIN)
   /admin/clients/[clientId]                Detalhe do cliente: dados básicos, atribuição de plano, histórico de uso de IA (apenas SUPER_ADMIN)
   /admin/plans                             CRUD de planos de tokens de IA — criar, editar teto, listar (apenas SUPER_ADMIN)
-  /admin/templates                         Modelos do sistema: tirar da lista/restaurar/excluir (apenas SUPER_ADMIN)
+  /admin/templates                         Modelos do sistema: listar e excluir (apenas SUPER_ADMIN; o backend não tem mais situação nem moderação)
+
+/forms/[token]                             Formulário de pedidos público (sem login, sem o shell do app) — cada envio vira uma tarefa
 ```
 
 ### Guards
@@ -334,6 +341,15 @@ Camada **aditiva** sobre o offline-first (`features/realtime/`): quando outro us
 | **sync** | `/sync/push`, `/sync/pull` | Ver [§10](#10-sincronização-offline). |
 | **realtime** | `/workspaces/:id/realtime/ticket` (POST), `/realtime/stream?ticket=` (SSE) | Sinais de invalidação em tempo real — ver [Tempo real](#tempo-real-sse). |
 | **tutorial** | — (sem API) | Página `/tutorial` + tour guiado — ver [Tutorial](#tutorial). |
+| **notifications** | `/notifications`, `/unread-count`, `/read-all`, `/:id/read`, `GET\|PUT /preferences` | Sino na topbar (`NotificationBell`); a lista só é buscada com o painel aberto. Título/texto vêm prontos em pt-BR do servidor. O realtime manda `{ type: "notification" }` só ao destinatário, que invalida `queryKeys.notifications.root()` (e as aprovações, se o tipo for `APPROVAL_*`); um refetch a cada 2 min cobre conexão caída. |
+| **search** | `GET /workspaces/:id/search` | `GlobalSearch` (botão na topbar + Ctrl/⌘K), `Command` com `shouldFilter={false}` (o servidor já filtra/ranqueia), mínimo 2 letras, debounce 250 ms. Também é a fonte do seletor de dependências (filtrado por `projectId`). |
+| **tasks (etapas)** | `GET\|POST /projects/:id/statuses`, `PATCH\|DELETE /statuses/:id` | Ver [Etapas, cronograma e lixeira](#etapas-cronograma-e-lixeira). |
+| **recurring-tasks** | `/projects/:id/recurring-tasks` (+ `/preview`) | Ver [Tarefas repetidas](#tarefas-repetidas). |
+| **time-tracking** | `/tasks/:id/timer/start`, `/timer/stop`, `GET /timer`, `/tasks/:id/time-entries`, `/time-entries/:id`, `/projects/:id/time-report` | Cronômetro global (`RunningTimerIndicator` na topbar, só quando roda), `TaskTimeSection` no painel da tarefa e `ProjectTimeReport` em Estatísticas. `useElapsedSeconds` soma ao `durationSeconds` do servidor o tempo desde o último fetch, sem relógio próprio. Uma pessoa = um cronômetro: iniciar em outra tarefa para o anterior (`stopped` na resposta). |
+| **approvals** | `POST\|GET /tasks/:id/approvals`, `GET /approvals/pending`, `POST /approvals/:id/approve\|reject\|cancel` | `TaskApprovalsSection` no painel; `PendingApprovalsCard` no Início (só aparece com pedidos). A lista pendente não traz o título: cada item busca a tarefa (`useTaskQuery`, cache compartilhado). |
+| **saved-views** | `POST\|GET /projects/:id/views`, `PATCH\|DELETE /views/:id` | `SavedViewsMenu` na barra do quadro. `lib/saved-view-mapping.ts` converte os filtros do quadro ↔ `config` (estrito no servidor); o que não cabe no `config` (sem prioridade, sem prazo, datas de criação/atualização, participante, menção, anexos, descrição, "só subtarefas") é avisado ao salvar. `dueWithinDays` é nosso: 0 = hoje, 7 = próximos 7 dias, -365 = atrasadas. |
+| **intake-forms** | `/projects/:id/forms`, `/intake-forms/:id` (+ `/regenerate-token`), público `GET /forms/:token` e `POST /forms/:token/submissions` | Construtor em Configurações (`IntakeFormDialog`): a `key` de cada campo é gerada do rótulo; regras do backend espelhadas (um campo por destino, título obrigatório e TEXT/LONG_TEXT, prazo só DATE, prioridade só SELECT). A página pública usa `_skipAuth` como as páginas compartilhadas e manda o honeypot `website`. |
+| **data-portability** | `/projects/:id/imports/preview`, `/projects/:id/imports`, `/projects/:id/exports`, `/data-jobs/:id` (+ `/download`) | Em Configurações. A prévia roda de novo a cada troca de mapeamento (multipart, `mapping` em JSON); o job é acompanhado por polling de 1,5 s até DONE/FAILED, e um import concluído atualiza as listas de tarefas e colunas. |
 
 ### Quadro Kanban (`features/tasks/components/task-board.tsx` + `section-column.tsx`)
 
@@ -399,7 +415,7 @@ Chat de IA (`features/assistant/`) acessível de qualquer tela via ícone fixo n
 - **O detalhe depende de quem pede** (`access: FREE | WORKSPACE`, `canInstantiate`): por isso nunca é semeado a partir do cache de uma lista, e respostas de admin (template completo, outro formato) só invalidam o detalhe em vez de escrevê-lo. Salvar/editar um modelo do workspace devolve o próprio detalhe e usa `setQueryData`.
 - **Salvar como modelo** (header do projeto) chama `POST /projects/:id/save-as-workspace-template`. Um modelo de outro workspace (a pessoa é membro dos dois) aparece, mas "Usar" explica que é preciso trocar de workspace, porque a API só instancia no workspace dono.
 - **Sugestões no "Novo projeto"** (`TemplateSuggestions`): primeiro os modelos do workspace (a busca pelo nome digitado roda no cliente, já que a lista vem inteira), depois os do sistema (busca no servidor).
-- **Filtros na URL** (`useTemplateUrlFilters`): `search`, `category`, `status` (só admin) e `page` ficam na query string. Chips e busca usam `router.push`, e a busca (com debounce) usa `router.replace`, para o voltar não refazer cada tecla. A caixa de busca só aceita o valor da URL quando ele não é o eco do que ela mesma enviou, para um `replace` atrasado não apagar as últimas teclas. As páginas envolvem o conteúdo em `<Suspense>` por causa do `useSearchParams`. A mesma barra de filtros serve à tabela de `/admin/templates`, com o seletor de situação.
+- **Filtros na URL** (`useTemplateUrlFilters`): `search`, `category` e `page` ficam na query string. Chips e busca usam `router.push`, e a busca (com debounce) usa `router.replace`, para o voltar não refazer cada tecla. A caixa de busca só aceita o valor da URL quando ele não é o eco do que ela mesma enviou, para um `replace` atrasado não apagar as últimas teclas. As páginas envolvem o conteúdo em `<Suspense>` por causa do `useSearchParams`. A mesma barra de filtros serve à tabela de `/admin/templates`.
 - **Rótulos de categoria** vêm de `GET /project-templates/categories`; `lib/categories.ts` tem uma cópia local só para antes da resposta chegar. O `templateCount` que o endpoint devolve não é mostrado: ele conta também modelos da comunidade.
 - **Instanciar não é idempotente**: o dialog bloqueia o reenvio enquanto a mutação está pendente **e** depois do sucesso, até a navegação. Como a API é tudo ou nada, toda mensagem de erro diz "nada foi criado". `409 REMOVED`/`404` tiram o modelo do cache.
 - **Fora do escopo**: não há editor visual de skeleton para modelos de sistema. `adminCreate`/`adminUpdate` e os hooks correspondentes existem, sem tela.
@@ -425,11 +441,23 @@ Chat de IA (`features/assistant/`) acessível de qualquer tela via ícone fixo n
 
 `lib/celebrate.ts` dispara um confete curto (DOM + Web Animations API, sem dependência) a partir do último clique. `useChangeTaskStatusMutation` o chama quando o status passa a `DONE` e antes não era, lendo o status anterior do cache em `onMutate`. Vale em todas as visões, inclusive na tabela silenciosa e offline. Nada acontece com `prefers-reduced-motion: reduce`.
 
+### Etapas, cronograma e lixeira
+
+- **Etapas** (`WorkflowStatus`): cada projeto tem as suas, sempre dentro de uma das três categorias (`TODO`/`IN_PROGRESS`/`DONE`, que continuam em `task.status`); `task.statusId` aponta a etapa (`null` = a padrão da categoria). `TaskStatusSelect` (cartão, subtarefa, painel e célula da tabela) agrupa por categoria; escolher a etapa **padrão** manda `{ status }` (funciona offline), qualquer outra manda `{ statusId }`. O editor (`WorkflowStatusesSection`) reordena trocando as posições de duas etapas (o servidor nunca renumera) e, ao apagar, pede a etapa que recebe as tarefas.
+- **Dependências** (`TaskDependenciesSection`) + regra `project.blockedTaskCompletion` (`WARN`/`BLOCK`, em Configurações). Com `WARN`, `PATCH /tasks/:id/status` devolve `warnings` — mostrados num toast e retirados antes de guardar a tarefa no cache.
+- **Cronograma** (`ProjectTimeline`): HTML + SVG próprios, sem biblioteca. As datas são contadas em **dias UTC**, porque o app grava as datas como meia-noite UTC do dia escolhido (`fromDateInputValue`).
+- **Lixeira**: apagar tarefas virou exclusão reversível por 30 dias. O toast de exclusão tem "Desfazer" (`restoreTasks`), e a aba Lixeira lista e restaura.
+- **Offline**: `/sync/push` só aplica título, descrição, status, responsável, pai e coluna. `useUpdateTaskMutation` envia só esses campos para a fila e avisa que o resto (datas, prioridade, estimativas, vários responsáveis, menções) precisa de conexão; trocar para uma etapa não padrão offline é recusado com uma mensagem.
+
+### Tarefas repetidas
+
+`features/recurring-tasks/` (aba **Repetições**). O `ScheduleEditor` monta a agenda (`DAILY`/`WEEKLY`/`MONTHLY`/`YEARLY`, intervalo, dias, horário, início/fim) e chama `POST .../preview` com debounce para mostrar as 5 próximas datas — a fonte da verdade do cálculo é o servidor. Toda agenda leva o fuso do navegador (`browserTimezone`), assim como a instanciação de modelos (`timezone`). `describeSchedule` escreve a agenda numa frase, também usada na prévia de modelos (`skeleton.recurrences`). A lista refaz a busca a cada minuto, porque `nextRunAt`/`enabled` mudam sozinhos; mudanças chegam também pelo realtime (`entityType: TASK_RECURRENCE`). "Salvar como modelo" agora oferece levar tarefas, repetições e automações (`includeTasks`/`includeRecurrences`/`includeAutomations`, todos desligados por padrão no backend).
+
 ### Tutorial
 
 `features/tutorial/` — sem chamadas à API; todo o estado é local.
 
-- **Página `/tutorial`**: 16 guias em 4 grupos (Comece por aqui, Trabalho do dia a dia, Recursos avançados, Conta e funcionamento), seguidos da matriz **Papéis e permissões** e de um **Glossário**. `TutorialGuides` é um accordion (`components/ui/accordion.tsx`, `type="multiple"`) com busca (ignora acentos; abre sozinha até 3 resultados), atalhos por guia e deep link por hash (`/tutorial#board` abre e rola até o guia).
+- **Página `/tutorial`**: 24 guias em 4 grupos (Comece por aqui, Trabalho do dia a dia, Recursos avançados, Conta e funcionamento), seguidos da matriz **Papéis e permissões** e de um **Glossário**. `TutorialGuides` é um accordion (`components/ui/accordion.tsx`, `type="multiple"`) com busca (ignora acentos; abre sozinha até 3 resultados), atalhos por guia e deep link por hash (`/tutorial#board` abre e rola até o guia).
 - **`TutorialGuideLink`** (`components/shared/`): um link simples e sempre visível para `/tutorial#<guideId>`, usado por telas de feature (`DevelopersSection`, `/settings/plan`, `/admin/plans`) que precisam de documentação rica sem duplicá-la — em vez de embutir um explicador próprio numa aba interna da feature (que esconde a informação atrás de mais um clique, ruim para o público leigo a quem `/tutorial` é dirigido), a feature aponta para o guia certo.
 - **Conteúdo é dado, não JSX** (`lib/tutorial-guides.ts`): cada guia tem `sections` (`intro`, `steps`, `bullets`, `callouts` dos tipos `tip`/`note`/`warning`), `faq`, `audience`, `related` e `href`. `GuideBody` renderiza tudo; adicionar ou editar um guia não exige mexer em componente. A busca indexa todo esse texto. `lib/tutorial-reference.ts` guarda a matriz de papéis (espelha `src/lib/permissions.ts` — atualizar os dois juntos) e o glossário.
 - **Texto acompanha a interface**: os guias citam rótulos reais ("Novo projeto", "Mover para…", "Adicionar coluna", "Mais filtros") e chamam as seções do quadro de **colunas**, como a UI. Revisar quando o texto da interface mudar. O `AccordionContent` usa `h-auto` porque a primitiva fixa a altura medida na abertura, o que cortaria os `<details>` de dúvidas ao expandirem.
@@ -471,8 +499,9 @@ Herdadas diretamente da API (não são bugs do frontend):
 - **`TOKEN_QUOTA_EXCEEDED` não diz qual janela estourou** (dia, semana ou mês — API.md § 23) — o aviso no chat do assistente só diz que o limite do plano foi atingido e que libera sozinho, com link para `/settings/plan`, sem afirmar uma janela. Os limites de frequência (`AI_RATE_LIMIT_EXCEEDED`/`AI_ASSISTANT_RATE_LIMIT_EXCEEDED`) têm texto próprio ("muitas perguntas em pouco tempo") para não serem confundidos com o plano. Hoje só o assistente consome IA na UI: a pergunta em linguagem natural (`NaturalLanguageQueryBox`, `POST /analytics/query/natural-language`) saiu junto com a página `/analytics` em `ee433bd` e ainda não voltou nas dashboard pages — quando voltar, deve reusar as mesmas mensagens de `errors.ts` e o mesmo link para `/settings/plan`.
 - **Sem pagamento de plano** — o backend `main` não tem preço, checkout nem assinatura (§ 23); planos são só teto de IA e a troca é livre.
 - **Membros de workspace/projeto expõem só `userId`** — sem nome ou e-mail, daí os avatares de iniciais + tooltip com id abreviado (`MemberAvatar`) em vez de nomes reais.
-- **Sem exclusão de projeto ou tarefa** — apenas arquivamento (projeto) e mudança de status (tarefa).
-- **`PATCH /tasks/:id` não consegue limpar `assigneeId`** — omitir o campo mantém o responsável atual; limpar exige ir por `/sync/push` mesmo online (`useUnassignTaskMutation`).
+- **Sem exclusão de projeto** — apenas arquivamento. Tarefas vão para a lixeira (30 dias).
+- **`useUnassignTaskMutation` ainda limpa o responsável por `/sync/push`** — o backend agora aceita `assigneeId: null` (e `assigneeIds: []`) no `PATCH`, então isso pode ser simplificado.
+- **Sync offline cobre poucos campos de tarefa** — ver [Etapas, cronograma e lixeira](#etapas-cronograma-e-lixeira).
 - **Prazo e prioridade de tarefa, uma vez definidos, só podem ser substituídos por outro valor** — a API não oferece uma forma de removê-los depois de definidos.
 - **Comentários e valores de custom field em tarefas não são versionados** (`version`) — sem base para concorrência otimista; por isso ficam parcialmente ou totalmente fora do fluxo de sincronização offline (ver [§10](#10-sincronização-offline)).
 - **Gráficos de dashboard não têm períodos relativos** ("últimos 30 dias", "atrasadas agora") — um filtro de data num gráfico salvo guarda um timestamp fixo, calculado no cliente na hora de salvar; "últimos 7 dias" viraria silenciosamente "7 dias antes de quando o gráfico foi criado". Por isso o construtor só oferece intervalos fixos, exibidos como datas, e para atraso usa a métrica `overdue_rate`, que o servidor calcula no momento da consulta. Destrava quando a API aceitar datas relativas resolvidas na consulta (algo como `"value": "now-7d"`) — pedido já levado ao backend.
