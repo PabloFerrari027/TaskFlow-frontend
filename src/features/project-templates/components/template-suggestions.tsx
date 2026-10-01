@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowRight, Check, Sparkles } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { getCategoryInfo } from "@/features/project-templates/lib/categories";
 import { isWorkspaceTemplate, plural } from "@/features/project-templates/lib/template-labels";
 import {
@@ -20,15 +21,6 @@ import type {
 const SUGGESTION_COUNT = 8;
 const SEARCH_DELAY_MS = 350;
 const MIN_SEARCH_LENGTH = 3;
-
-function useDebouncedValue<T>(value: T, delay: number): T {
-  const [debounced, setDebounced] = React.useState(value);
-  React.useEffect(() => {
-    const timer = setTimeout(() => setDebounced(value), delay);
-    return () => clearTimeout(timer);
-  }, [value, delay]);
-  return debounced;
-}
 
 // Shorter than `formatTemplateCounts` — a suggestion tile has room for one line.
 function formatShortCounts(template: ProjectTemplateSummary) {
