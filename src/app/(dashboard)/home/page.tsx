@@ -13,6 +13,7 @@ import { useSelfIdentity } from "@/features/auth/hooks/use-current-user";
 import { HomeStatTiles } from "@/features/home/components/home-stat-tiles";
 import { HomeTasksByProject } from "@/features/home/components/home-tasks-by-project";
 import { HomeRecentProjects } from "@/features/home/components/home-recent-projects";
+import { PendingApprovalsCard } from "@/features/approvals/components/pending-approvals-card";
 import { useHomeStats } from "@/features/home/hooks/use-home-stats";
 import { readCount } from "@/features/home/lib/home-queries";
 import { CreateProjectDialog } from "@/features/projects/components/create-project-dialog";
@@ -113,7 +114,8 @@ export default function HomePage() {
       />
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+        <div className="space-y-6 lg:col-span-2">
+          <PendingApprovalsCard />
           <HomeTasksByProject
             openByProject={stats.openByProject}
             overdueByProject={stats.overdueByProject}

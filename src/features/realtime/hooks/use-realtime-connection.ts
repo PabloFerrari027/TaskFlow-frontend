@@ -115,6 +115,10 @@ export function useRealtimeConnection() {
       } else if (message?.type === "notification") {
         // Only ever sent to the recipient; the content comes from /notifications.
         void queryClient.invalidateQueries({ queryKey: queryKeys.notifications.root() });
+        // Approval requests/answers reach the person through a notification.
+        if (message.notificationType?.startsWith("APPROVAL_")) {
+          void queryClient.invalidateQueries({ queryKey: queryKeys.approvals.root() });
+        }
       } else if (
         message?.type === "change" &&
         message.workspaceId === workspaceId &&

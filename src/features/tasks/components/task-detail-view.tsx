@@ -22,6 +22,7 @@ import {
 import { SubtaskList } from "@/features/tasks/components/subtask-list";
 import { TaskDependenciesSection } from "@/features/tasks/components/task-dependencies-section";
 import { TaskTimeSection } from "@/features/time-tracking/components/task-time-section";
+import { TaskApprovalsSection } from "@/features/approvals/components/task-approvals-section";
 import { AttachmentsSection } from "@/features/tasks/components/attachments-section";
 import { TaskCoverBanner } from "@/features/tasks/components/task-cover";
 import { ParticipantsSection } from "@/features/tasks/components/participants-section";
@@ -67,6 +68,10 @@ export function TaskDetailView({
 
       <Card className="p-5">
         <TaskDependenciesSection projectId={projectId} taskId={task.id} />
+      </Card>
+
+      <Card className="p-5">
+        <TaskApprovalsSection projectId={projectId} taskId={task.id} />
       </Card>
 
       <Card className="p-5">
