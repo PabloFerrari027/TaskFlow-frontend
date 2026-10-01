@@ -1,6 +1,6 @@
 "use client";
 
-import { Paperclip } from "lucide-react";
+import { Clock, Diamond, Paperclip } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MemberAvatar, MemberIdLabel } from "@/components/shared/member-avatar";
 import { TaskDueDateBadge, TaskPriorityBadge } from "@/components/shared/status-badge";
@@ -11,7 +11,7 @@ import { useTaskPanel } from "@/features/tasks/hooks/use-task-panel";
 import { useTaskDropTarget } from "@/features/tasks/hooks/use-task-drop-target";
 import { setLiftedDragImage, TASK_DRAG_MIME } from "@/lib/dnd";
 import { stripMarkdown } from "@/lib/markdown-format";
-import { formatRelativeTime } from "@/lib/format";
+import { formatDate, formatMinutes, formatRelativeTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Task } from "@/types/task";
 
@@ -101,15 +101,41 @@ export function TaskCardItem({ task, onReorder }: TaskCardItemProps) {
         <p className="line-clamp-3 text-xs text-muted-foreground">{stripMarkdown(task.description)}</p>
       ) : null}
 
-      {task.priority || task.dueDate ? (
+      {task.priority || task.dueDate || task.isMilestone || task.estimateMinutes ? (
         <div className="flex flex-wrap items-center gap-1.5">
+          {task.isMilestone ? (
+            <span className="inline-flex items-center gap-1 text-xs text-violet-600 dark:text-violet-400">
+              <Diamond className="size-3" /> Marco
+            </span>
+          ) : null}
           {task.priority ? <TaskPriorityBadge priority={task.priority} /> : null}
+          {task.startDate && task.dueDate ? (
+            <span className="text-xs text-muted-foreground">
+              {formatDate(task.startDate, "d MMM")} →
+            </span>
+          ) : null}
           {task.dueDate ? <TaskDueDateBadge dueDate={task.dueDate} /> : null}
+          {task.estimateMinutes ? (
+            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+              <Clock className="size-3" /> {formatMinutes(task.estimateMinutes)}
+            </span>
+          ) : null}
         </div>
       ) : null}
 
       <div className="flex items-center justify-between gap-2">
-        {task.assigneeId ? (
+        {(task.assigneeIds?.length ?? 0) > 1 ? (
+          <div className="flex items-center -space-x-1.5">
+            {task.assigneeIds.slice(0, 4).map((userId) => (
+              <MemberAvatar key={userId} userId={userId} className="ring-2 ring-card" />
+            ))}
+            {task.assigneeIds.length > 4 ? (
+              <span className="pl-2.5 text-xs text-muted-foreground">
+                +{task.assigneeIds.length - 4}
+              </span>
+            ) : null}
+          </div>
+        ) : task.assigneeId ? (
           <div className="flex items-center gap-1.5">
             <MemberAvatar userId={task.assigneeId} />
             <MemberIdLabel userId={task.assigneeId} />

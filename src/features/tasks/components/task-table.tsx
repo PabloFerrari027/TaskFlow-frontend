@@ -67,7 +67,8 @@ function PriorityCell({ task }: { task: Task }) {
   );
 }
 
-// Clearing goes through the dedicated unassign call — see `TaskAssigneeSelect`.
+// The main assignee only; clearing goes through the dedicated unassign call
+// (`useUnassignTaskMutation`). Co-assignees are edited in the task panel.
 function AssigneeCell({ projectId, task }: { projectId: string; task: Task }) {
   const updateMutation = useUpdateTaskMutation(task.id, { silent: true });
   const unassignMutation = useUnassignTaskMutation(task.id, { silent: true });

@@ -10,7 +10,11 @@ import { TaskStatusSelect } from "@/features/tasks/components/task-status-select
 import { TaskSectionSelect } from "@/features/tasks/components/task-section-select";
 import { TaskPrioritySelect } from "@/features/tasks/components/task-priority-select";
 import { TaskDueDateInput } from "@/features/tasks/components/task-due-date-input";
-import { TaskAssigneeSelect } from "@/features/tasks/components/task-assignee-select";
+import { TaskAssigneesField } from "@/features/tasks/components/task-assignees-field";
+import {
+  TaskEstimateFields,
+  TaskScheduleFields,
+} from "@/features/tasks/components/task-planning-fields";
 import {
   TaskDescriptionField,
   TaskTitleField,
@@ -101,11 +105,11 @@ export function TaskDetailView({
             <Separator />
 
             <div className="space-y-1.5">
-              <p className="text-xs font-medium text-muted-foreground uppercase">Responsável</p>
-              <TaskAssigneeSelect
+              <p className="text-xs font-medium text-muted-foreground uppercase">Responsáveis</p>
+              <TaskAssigneesField
                 projectId={projectId}
                 taskId={task.id}
-                assigneeId={task.assigneeId}
+                assigneeIds={task.assigneeIds ?? (task.assigneeId ? [task.assigneeId] : [])}
               />
             </div>
 
@@ -128,6 +132,14 @@ export function TaskDetailView({
                 </p>
               ) : null}
             </div>
+
+            <Separator />
+
+            <TaskScheduleFields task={task} />
+
+            <Separator />
+
+            <TaskEstimateFields key={`${task.estimateMinutes}:${task.storyPoints}`} task={task} />
 
             <Separator />
 
