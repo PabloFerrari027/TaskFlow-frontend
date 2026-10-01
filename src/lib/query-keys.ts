@@ -97,6 +97,9 @@ export const queryKeys = {
         ? (["tasks", "section", sectionId, { page }] as const)
         : (["tasks", "section", sectionId] as const),
   },
+  savedViews: {
+    all: (projectId: string) => ["saved-views", projectId] as const,
+  },
   approvals: {
     root: () => ["approvals"] as const,
     task: (taskId: string) => ["approvals", "task", taskId] as const,
