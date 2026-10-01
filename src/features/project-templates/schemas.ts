@@ -30,8 +30,5 @@ export function toListingRequest(values: TemplateListingFormValues, mode: "save"
   };
 }
 
-export const moderationReasonSchema = z.object({
-  reason: z.string().max(500, "Use no máximo 500 caracteres."),
-});
 
-export type ModerationReasonFormValues = z.infer<typeof moderationReasonSchema>;
+

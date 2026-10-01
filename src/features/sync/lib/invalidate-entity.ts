@@ -73,6 +73,11 @@ export function invalidateByEntityChange(
         queryKey: taskId ? queryKeys.comments.all(taskId) : queryKeys.comments.byTaskAll(),
       });
       return;
+    case "TASK_RECURRENCE":
+      invalidate(queryClient, {
+        queryKey: projectId ? queryKeys.recurringTasks.all(projectId) : ["recurring-tasks"],
+      });
+      return;
     case "WORKSPACE":
       invalidate(queryClient, { queryKey: queryKeys.workspaces.all() });
       return;

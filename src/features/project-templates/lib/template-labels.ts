@@ -7,7 +7,10 @@ export function plural(count: number, singular: string, pluralForm: string) {
 // "4 colunas · 5 campos · 7 tarefas de exemplo" — zero counts are left out,
 // except columns, which every template has.
 export function formatTemplateCounts(
-  template: Pick<ProjectTemplateSummary, "sectionCount" | "customFieldCount" | "taskCount">
+  template: Pick<
+    ProjectTemplateSummary,
+    "sectionCount" | "customFieldCount" | "taskCount" | "recurrenceCount"
+  >
 ) {
   const parts = [plural(template.sectionCount, "coluna", "colunas")];
   if (template.customFieldCount > 0) {
@@ -15,6 +18,9 @@ export function formatTemplateCounts(
   }
   if (template.taskCount > 0) {
     parts.push(plural(template.taskCount, "tarefa de exemplo", "tarefas de exemplo"));
+  }
+  if (template.recurrenceCount) {
+    parts.push(plural(template.recurrenceCount, "tarefa repetida", "tarefas repetidas"));
   }
   return parts.join(" · ");
 }

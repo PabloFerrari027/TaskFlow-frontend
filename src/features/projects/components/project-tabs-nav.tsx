@@ -29,6 +29,11 @@ export function ProjectTabsNav({
       hint: "As tarefas com datas numa linha do tempo, com as dependências entre elas. Clique numa barra para abrir a tarefa.",
     },
     {
+      href: `${base}/recurring`,
+      label: "Repetições",
+      hint: "Tarefas que o TaskFlow cria sozinho em datas fixas, como “Pagar o aluguel” todo dia 5.",
+    },
+    {
       href: `${base}/stats`,
       label: "Estatísticas",
       hint: "Veja em números como o projeto está andando: quanto já foi feito, o que está atrasado e quem está com mais tarefas.",

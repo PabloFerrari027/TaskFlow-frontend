@@ -97,6 +97,12 @@ export const queryKeys = {
         ? (["tasks", "section", sectionId, { page }] as const)
         : (["tasks", "section", sectionId] as const),
   },
+  // Never cached server-side either: nextRunAt/lastRunAt/enabled change on their own.
+  recurringTasks: {
+    all: (projectId: string) => ["recurring-tasks", projectId] as const,
+    preview: (projectId: string, schedule: unknown) =>
+      ["recurring-tasks", projectId, "preview", stableStringify(schedule)] as const,
+  },
   // A project's custom statuses (etapas). Configuration, not synced.
   statuses: {
     all: (projectId: string) => ["statuses", "project", projectId] as const,
