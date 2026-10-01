@@ -1,15 +1,25 @@
 "use client";
 
-import { Reply, Trash2 } from "lucide-react";
+import * as React from "react";
+import { Pencil, Reply, SmilePlus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { MentionTextarea } from "@/components/shared/mention-textarea";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { MemberAvatar, MemberIdLabel } from "@/components/shared/member-avatar";
 import { formatRelativeTime } from "@/lib/format";
-import { splitMentions } from "@/lib/mentions";
+import { extractMentionedUserIds, splitMentions } from "@/lib/mentions";
+import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useAssignableMembers } from "@/features/tasks/hooks/use-assignable-members";
 import { useProjectPermission } from "@/features/projects/hooks/use-project-permission";
-import { useDeleteCommentMutation } from "@/features/comments/hooks/use-comments";
+import {
+  useDeleteCommentMutation,
+  useToggleCommentReactionMutation,
+  useUpdateCommentMutation,
+} from "@/features/comments/hooks/use-comments";
+import { useMemberName } from "@/features/tasks/components/task-assignees-field";
 import type { Comment } from "@/types/comment";
 
 interface CommentItemProps {
@@ -19,13 +29,101 @@ interface CommentItemProps {
   onReply: () => void;
 }
 
+const QUICK_EMOJIS = ["👍", "❤️", "🎉", "😄", "👀", "🙏", "✅", "🔥"];
+
+function Reactions({ comment, projectId }: { comment: Comment; projectId: string }) {
+  const { userId: currentUserId } = useAuth();
+  const memberName = useMemberName(projectId);
+  const toggle = useToggleCommentReactionMutation(comment.taskId, currentUserId);
+  const [pickerOpen, setPickerOpen] = React.useState(false);
+  const reactions = comment.reactions ?? [];
+
+  function react(emoji: string) {
+    const reacted = !!currentUserId && !!reactions.find((r) => r.emoji === emoji)?.userIds.includes(currentUserId);
+    toggle.mutate({ commentId: comment.id, emoji, reacted });
+  }
+
+  return (
+    <div className="mt-1.5 flex flex-wrap items-center gap-1">
+      {reactions.map((reaction) => {
+        const mine = !!currentUserId && reaction.userIds.includes(currentUserId);
+        return (
+          <Tooltip key={reaction.emoji}>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={() => react(reaction.emoji)}
+                aria-pressed={mine}
+                className={cn(
+                  "inline-flex h-6 items-center gap-1 rounded-full border px-2 text-xs transition-colors",
+                  mine ? "border-primary/50 bg-primary/10 text-primary" : "border-border hover:bg-muted"
+                )}
+              >
+                <span>{reaction.emoji}</span>
+                <span className="font-medium">{reaction.count}</span>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>{reaction.userIds.map(memberName).join(", ")}</TooltipContent>
+          </Tooltip>
+        );
+      })}
+      <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
+        <PopoverTrigger asChild>
+          <Button size="icon-xs" variant="ghost" aria-label="Reagir" title="Reagir">
+            <SmilePlus />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-1.5" align="start">
+          <div className="flex gap-0.5">
+            {QUICK_EMOJIS.map((emoji) => (
+              <button
+                key={emoji}
+                type="button"
+                className="rounded-md p-1.5 text-lg leading-none hover:bg-muted"
+                aria-label={`Reagir com ${emoji}`}
+                onClick={() => {
+                  react(emoji);
+                  setPickerOpen(false);
+                }}
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}
+
 export function CommentItem({ comment, projectId, hasReplies, onReply }: CommentItemProps) {
   const { userId: currentUserId } = useAuth();
   const { canManage } = useProjectPermission(projectId);
   const deleteMutation = useDeleteCommentMutation(comment.taskId);
-  const { names } = useAssignableMembers(projectId);
+  const updateMutation = useUpdateCommentMutation(comment.taskId);
+  const { userIds: memberIds, names } = useAssignableMembers(projectId);
+  const [editing, setEditing] = React.useState(false);
+  const [draft, setDraft] = React.useState(comment.content);
 
-  const canDelete = canManage || comment.authorId === currentUserId;
+  const isAuthor = comment.authorId === currentUserId;
+  const canDelete = canManage || isAuthor;
+
+  function saveEdit() {
+    const content = draft.trim();
+    if (!content) return;
+    if (content === comment.content) {
+      setEditing(false);
+      return;
+    }
+    updateMutation.mutate(
+      {
+        commentId: comment.id,
+        // The complete set after the edit — a deleted "@Ana" stops being a mention.
+        payload: { content, mentionedUserIds: extractMentionedUserIds(content, memberIds, names) },
+      },
+      { onSuccess: () => setEditing(false) }
+    );
+  }
 
   return (
     <div className="flex items-start gap-2.5">
@@ -36,12 +134,29 @@ export function CommentItem({ comment, projectId, hasReplies, onReply }: Comment
             <MemberIdLabel userId={comment.authorId} />
             <span className="text-xs text-muted-foreground">
               {formatRelativeTime(comment.createdAt)}
+              {comment.editedAt ? (
+                <span title={`Editado ${formatRelativeTime(comment.editedAt)}`}> · editado</span>
+              ) : null}
             </span>
           </div>
           <div className="flex items-center gap-0.5">
             <Button size="xs" variant="ghost" onClick={onReply}>
               <Reply /> Responder
             </Button>
+            {isAuthor && !editing ? (
+              <Button
+                size="icon-xs"
+                variant="ghost"
+                aria-label="Editar comentário"
+                title="Editar"
+                onClick={() => {
+                  setDraft(comment.content);
+                  setEditing(true);
+                }}
+              >
+                <Pencil />
+              </Button>
+            ) : null}
             {canDelete ? (
               hasReplies ? (
                 // The API refuses to delete a comment that still has replies
@@ -71,6 +186,28 @@ export function CommentItem({ comment, projectId, hasReplies, onReply }: Comment
             ) : null}
           </div>
         </div>
+        {editing ? (
+          <div className="mt-1 space-y-2">
+            <MentionTextarea
+              projectId={projectId}
+              rows={3}
+              autoFocus
+              value={draft}
+              onChange={setDraft}
+              onKeyDown={(event) => {
+                if (event.key === "Escape") setEditing(false);
+              }}
+            />
+            <div className="flex justify-end gap-2">
+              <Button size="sm" variant="ghost" onClick={() => setEditing(false)} disabled={updateMutation.isPending}>
+                Cancelar
+              </Button>
+              <Button size="sm" onClick={saveEdit} disabled={!draft.trim() || updateMutation.isPending}>
+                Salvar
+              </Button>
+            </div>
+          </div>
+        ) : (
         <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">
           {splitMentions(comment.content, comment.mentionedUserIds ?? [], names).map((part, i) =>
             part.mention ? (
@@ -82,6 +219,8 @@ export function CommentItem({ comment, projectId, hasReplies, onReply }: Comment
             ),
           )}
         </p>
+        )}
+        <Reactions comment={comment} projectId={projectId} />
       </div>
     </div>
   );
