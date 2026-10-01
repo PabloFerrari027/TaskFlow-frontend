@@ -60,7 +60,7 @@ export function SubtaskList({
                 {subtask.title}
               </span>
               {subtask.assigneeId ? <MemberAvatar userId={subtask.assigneeId} /> : null}
-              <TaskStatusSelect taskId={subtask.id} status={subtask.status} size="sm" />
+              <TaskStatusSelect task={subtask} size="sm" />
             </div>
           ))}
         </div>

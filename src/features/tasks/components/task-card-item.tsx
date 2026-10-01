@@ -117,7 +117,7 @@ export function TaskCardItem({ task, onReorder }: TaskCardItemProps) {
         ) : (
           <span className="text-xs text-muted-foreground">Sem responsável</span>
         )}
-        <TaskStatusSelect taskId={task.id} status={task.status} size="sm" />
+        <TaskStatusSelect task={task} size="sm" />
       </div>
 
       <p className="text-[0.7rem] text-muted-foreground">

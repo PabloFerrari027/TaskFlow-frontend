@@ -14,25 +14,20 @@ import {
 } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import {
-  TASK_PRIORITY_LABEL,
-  TASK_STATUS_LABEL,
-  TaskPriorityBadge,
-  TaskStatusBadge,
-} from "@/components/shared/status-badge";
+import { TASK_PRIORITY_LABEL, TaskPriorityBadge } from "@/components/shared/status-badge";
+import { TaskStatusSelect } from "@/features/tasks/components/task-status-select";
 import { AssigneeSelect } from "@/features/tasks/components/assignee-select";
 import { useTaskSelection } from "@/features/tasks/context/task-selection-context";
 import { TaskTitleCell } from "@/features/tasks/components/task-inline-text-fields";
 import { useTaskPanel } from "@/features/tasks/hooks/use-task-panel";
 import {
-  useChangeTaskStatusMutation,
   useCreateTaskMutation,
   useUnassignTaskMutation,
   useUpdateTaskMutation,
 } from "@/features/tasks/hooks/use-tasks";
 import { fromDateInputValue, toDateInputValue } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import type { Task, TaskPriority, TaskStatus } from "@/types/task";
+import type { Task, TaskPriority } from "@/types/task";
 
 // Cells look like plain table text until hovered or focused, like a spreadsheet.
 const CELL_TRIGGER_CLASS =
@@ -40,27 +35,8 @@ const CELL_TRIGGER_CLASS =
 const CELL_CLASS = "border-r border-border/60 p-0.5! last:border-r-0";
 
 function StatusCell({ task }: { task: Task }) {
-  const mutation = useChangeTaskStatusMutation(task.id, { silent: true });
-
   return (
-    <Select
-      value={task.status}
-      disabled={mutation.isPending}
-      onValueChange={(next) => mutation.mutate({ status: next as TaskStatus })}
-    >
-      <SelectTrigger aria-label="Status da tarefa" className={CELL_TRIGGER_CLASS}>
-        <SelectValue>
-          <TaskStatusBadge status={task.status} />
-        </SelectValue>
-      </SelectTrigger>
-      <SelectContent>
-        {(Object.keys(TASK_STATUS_LABEL) as TaskStatus[]).map((status) => (
-          <SelectItem key={status} value={status}>
-            {TASK_STATUS_LABEL[status]}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <TaskStatusSelect task={task} silent asBadge triggerClassName={CELL_TRIGGER_CLASS} />
   );
 }
 

@@ -5,9 +5,17 @@ import type {
   BulkUpdateTaskItem,
   ChangeTaskStatusRequest,
   CreateTaskRequest,
+  CreateWorkflowStatusRequest,
   DeletedTask,
+  DeleteWorkflowStatusResponse,
+  ProjectTimeline,
+  RestoredTask,
   Task,
+  TaskDependencies,
+  TrashedTask,
   UpdateTaskRequest,
+  UpdateWorkflowStatusRequest,
+  WorkflowStatus,
 } from "@/types/task";
 
 // Server cap per bulk call (`MAX_BULK_TASKS_BATCH_SIZE`); a bigger batch is
@@ -162,6 +170,76 @@ export const tasksService = {
   // Idempotent on the server: a task without a cover comes back unchanged.
   async removeCover(taskId: string) {
     const { data } = await apiClient.delete<Task>(`/tasks/${taskId}/cover`);
+    return data;
+  },
+
+  // --- Custom statuses (etapas). Every write answers with the whole list.
+  async listStatuses(projectId: string) {
+    const { data } = await apiClient.get<WorkflowStatus[]>(`/projects/${projectId}/statuses`);
+    return data;
+  },
+
+  async createStatus(projectId: string, payload: CreateWorkflowStatusRequest) {
+    const { data } = await apiClient.post<WorkflowStatus[]>(
+      `/projects/${projectId}/statuses`,
+      payload
+    );
+    return data;
+  },
+
+  async updateStatus(statusId: string, payload: UpdateWorkflowStatusRequest) {
+    const { data } = await apiClient.patch<WorkflowStatus[]>(`/statuses/${statusId}`, payload);
+    return data;
+  },
+
+  // Tasks in the deleted status move to `replacementStatusId` (same category) —
+  // required when any task uses it.
+  async deleteStatus(statusId: string, replacementStatusId?: string) {
+    const { data } = await apiClient.delete<DeleteWorkflowStatusResponse>(
+      `/statuses/${statusId}`,
+      { params: { replacementStatusId } }
+    );
+    return data;
+  },
+
+  // --- Trash
+  async listTrash(projectId: string, params?: PaginationParams) {
+    const { data } = await apiClient.get<PaginatedResult<TrashedTask>>(
+      `/projects/${projectId}/trash`,
+      { params }
+    );
+    return data;
+  },
+
+  async restore(taskId: string) {
+    const { data } = await apiClient.post<RestoredTask>(`/tasks/${taskId}/restore`);
+    return data;
+  },
+
+  // --- Dependencies and timeline
+  async listDependencies(taskId: string) {
+    const { data } = await apiClient.get<TaskDependencies>(`/tasks/${taskId}/dependencies`);
+    return data;
+  },
+
+  async addDependency(taskId: string, blockerTaskId: string) {
+    const { data } = await apiClient.post<TaskDependencies>(`/tasks/${taskId}/dependencies`, {
+      blockerTaskId,
+    });
+    return data;
+  },
+
+  async removeDependency(taskId: string, blockerTaskId: string) {
+    const { data } = await apiClient.delete<TaskDependencies>(
+      `/tasks/${taskId}/dependencies/${blockerTaskId}`
+    );
+    return data;
+  },
+
+  async timeline(projectId: string, params?: { from?: string; to?: string }) {
+    const { data } = await apiClient.get<ProjectTimeline>(`/projects/${projectId}/timeline`, {
+      params,
+    });
     return data;
   },
 

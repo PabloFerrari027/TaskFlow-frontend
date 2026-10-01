@@ -48,6 +48,11 @@ export function ProjectTabsNav({
       label: "Atividade",
       hint: "A linha do tempo de tudo que mudou neste projeto: quem fez e quando.",
     },
+    {
+      href: `${base}/settings`,
+      label: "Configurações",
+      hint: "Ajuste como o projeto funciona: as etapas por onde as tarefas passam e outras regras.",
+    },
     ...(showAutomations
       ? [
           {
