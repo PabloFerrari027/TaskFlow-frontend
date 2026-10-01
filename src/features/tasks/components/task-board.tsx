@@ -14,6 +14,7 @@ import { TaskFormDialog } from "@/features/tasks/components/task-form-dialog";
 import { TaskSelectionBar } from "@/features/tasks/components/task-selection-bar";
 import { TaskSelectionProvider } from "@/features/tasks/context/task-selection-context";
 import { TaskViewToggle } from "@/features/tasks/components/task-view-toggle";
+import { SavedViewsMenu } from "@/features/tasks/components/saved-views-menu";
 import { useTaskFilters } from "@/features/tasks/hooks/use-task-filters";
 import { useTaskViewMode } from "@/features/tasks/hooks/use-task-view-mode";
 
@@ -70,6 +71,15 @@ function TaskBoardContent({
               <Columns3 /> Adicionar coluna
             </Button>
           </RoleGate>
+          <SavedViewsMenu
+            projectId={projectId}
+            filters={filters}
+            viewMode={viewMode}
+            onApply={(next, mode) => {
+              patchFilters(next);
+              setViewMode(mode);
+            }}
+          />
         </div>
         <TaskViewToggle value={viewMode} onChange={setViewMode} />
       </div>
