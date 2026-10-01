@@ -613,11 +613,21 @@ export function useDeleteTasksMutation() {
         queryClient.removeQueries({ queryKey: queryKeys.tasks.detail(taskId) });
       }
       if (failures.length === 0) {
-        toast.success(
-          queuedOffline
-            ? "Exclusão salva offline — será sincronizada quando a conexão voltar."
-            : `${pluralizeTasks(deletedIds.length, "tarefa foi para a lixeira", "tarefas foram para a lixeira")}. Dá para restaurar em até 30 dias.`
-        );
+        if (queuedOffline) {
+          toast.success("Exclusão salva offline — será sincronizada quando a conexão voltar.");
+        } else {
+          toast.success(
+            `${pluralizeTasks(deletedIds.length, "tarefa foi para a lixeira", "tarefas foram para a lixeira")}.`,
+            {
+              description: "Dá para restaurar pela aba Lixeira do projeto em até 30 dias.",
+              action: {
+                label: "Desfazer",
+                onClick: () => void restoreTasks(queryClient, deletedIds).then(toastRestoreResult),
+              },
+              duration: 8000,
+            }
+          );
+        }
       } else if (deletedIds.length === 0) {
         toast.error(failures[0]);
       } else {
@@ -636,6 +646,53 @@ export function useDeleteTasksMutation() {
       scheduleTaskListsRefresh(queryClient, {
         subtaskParentIds: tasks.map((task) => task.parentTaskId),
       }),
+  });
+}
+
+/**
+ * Takes tasks back out of the trash (with the subtasks that went with them).
+ * Used by the trash page and by the "Desfazer" button of the delete toast.
+ */
+async function restoreTasks(queryClient: QueryClient, taskIds: string[]) {
+  const failures: string[] = [];
+  let restored = 0;
+  for (const taskId of taskIds) {
+    try {
+      await tasksService.restore(taskId);
+      restored += 1;
+    } catch (error) {
+      failures.push(getErrorMessage(error));
+    }
+  }
+  scheduleTaskListsRefresh(queryClient);
+  queryClient.invalidateQueries({ queryKey: ["tasks", "trash"] });
+  return { restored, failures };
+}
+
+function toastRestoreResult({ restored, failures }: { restored: number; failures: string[] }) {
+  if (failures.length === 0) {
+    toast.success(restored === 1 ? "Tarefa restaurada." : `${restored} tarefas restauradas.`);
+  } else if (restored === 0) {
+    toast.error(failures[0]);
+  } else {
+    toast.warning(`${restored} restauradas, mas ${failures.length} não: ${failures[0]}`);
+  }
+}
+
+export function useProjectTrashQuery(projectId: string, page = 1) {
+  return useQuery({
+    queryKey: queryKeys.tasks.trash(projectId, page),
+    queryFn: () => tasksService.listTrash(projectId, { page }),
+    placeholderData: (previous) => previous,
+  });
+}
+
+export function useRestoreTaskMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (taskId: string) => restoreTasks(queryClient, [taskId]),
+    onSuccess: toastRestoreResult,
   });
 }
 
