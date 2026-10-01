@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { BookOpen, FileText, LogOut, PlayCircle, UserRound } from "lucide-react";
+import { Bell, BookOpen, FileText, LogOut, PlayCircle, UserRound } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -63,6 +63,11 @@ export function UserMenu() {
         <DropdownMenuItem asChild>
           <Link href="/settings/profile">
             <UserRound /> Meu perfil
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/settings/notifications">
+            <Bell /> Notificações
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
