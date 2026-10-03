@@ -22,6 +22,8 @@ const TOOL_PAST_LABEL: Record<string, string> = {
   change_task_status: "Status da tarefa alterado",
   add_task_participant: "Participante adicionado",
   remove_task_participant: "Participante removido",
+  request_task_approval: "Aprovação pedida",
+  attach_files_to_task: "Arquivos anexados",
   revoke_session: "Sessão encerrada",
 };
 

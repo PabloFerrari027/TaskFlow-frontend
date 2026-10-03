@@ -1428,8 +1428,23 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         bullets: [
           "Criar e atualizar workspaces, projetos e tarefas.",
           "Atribuir tarefas, mudar o status, mover entre colunas e adicionar ou remover participantes.",
+          "Pedir a aprovação de uma tarefa a alguém.",
           "Convidar e remover membros do workspace.",
           "Arquivar projetos, revogar sessões e excluir workspaces (ações críticas).",
+        ],
+      },
+      {
+        heading: "Arquivos e áudio",
+        bullets: [
+          "Use o clipe para enviar imagens, PDFs, planilhas e outros documentos, ou o microfone para falar em vez de digitar.",
+          "O assistente só lê o conteúdo de um arquivo quando você pede (“leia”, “resuma”, “qual o total da nota?”). Sem esse pedido, ele só sabe o nome e o tipo do arquivo.",
+          "Para guardar um arquivo numa tarefa, diga onde: “anexe na tarefa Contrato” ou “crie a tarefa Nota fiscal com este arquivo”. Dá para pedir isso numa mensagem seguinte, por até 30 minutos depois do envio.",
+        ],
+        callouts: [
+          {
+            kind: "note",
+            text: "Arquivos muito grandes (acima de 5MB, ou PDFs com mais de 20 páginas) não são lidos, mas ainda podem ser anexados a uma tarefa.",
+          },
         ],
       },
       {

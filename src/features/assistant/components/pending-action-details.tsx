@@ -22,7 +22,9 @@ export function PendingActionDetails({
           {paramEntries.map(([key, value]) => (
             <div key={key} className="flex gap-1.5">
               <dt className="shrink-0 font-medium text-muted-foreground">{key}:</dt>
-              <dd className="truncate text-foreground">{String(value)}</dd>
+              <dd className="truncate text-foreground">
+                {Array.isArray(value) ? value.map(String).join(", ") : String(value)}
+              </dd>
             </div>
           ))}
         </dl>
