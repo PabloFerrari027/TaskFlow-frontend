@@ -6,6 +6,7 @@ import type {
   ProjectTemplateFilters,
 } from "@/types/project-template";
 import type { SearchParams } from "@/types/search";
+import type { ListChannelConversationsParams } from "@/types/assistant-channel";
 import { stableStringify } from "@/lib/utils";
 
 export const queryKeys = {
@@ -17,6 +18,15 @@ export const queryKeys = {
   },
   sessions: {
     all: () => ["sessions"] as const,
+  },
+  // The assistant over WhatsApp & co. (API.md § 28) — per signed-in user.
+  assistantChannels: {
+    root: () => ["assistant-channels"] as const,
+    list: () => ["assistant-channels", "list"] as const,
+    conversations: (params: ListChannelConversationsParams) =>
+      ["assistant-channels", "conversations", params] as const,
+    messages: (conversationId: string) =>
+      ["assistant-channels", "messages", conversationId] as const,
   },
   clients: {
     all: (params?: { page?: number; status?: ClientStatus; email?: string }) =>
