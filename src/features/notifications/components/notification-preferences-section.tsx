@@ -1,5 +1,8 @@
 "use client";
 
+import Link from "next/link";
+import { cn } from "@/lib/utils";
+import { useAssistantChannelsQuery } from "@/features/assistant-channels/hooks/use-assistant-channels";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
@@ -15,9 +18,19 @@ export function NotificationPreferencesSection() {
   const preferencesQuery = useNotificationPreferencesQuery();
   const saveMutation = useSaveNotificationPreferenceMutation();
 
+  const channelsQuery = useAssistantChannelsQuery();
+  // The column only exists where the server has WhatsApp configured.
+  const whatsapp = channelsQuery.data?.find((channel) => channel.channel === "whatsapp");
+  const showWhatsApp = Boolean(whatsapp?.available);
+  const whatsappLinked = Boolean(whatsapp?.link);
+
   const byType = new Map(preferencesQuery.data?.map((p) => [p.type, p]));
 
-  function toggle(preference: NotificationPreference, channel: "inApp" | "email", value: boolean) {
+  function toggle(
+    preference: NotificationPreference,
+    channel: "inApp" | "email" | "whatsapp",
+    value: boolean
+  ) {
     saveMutation.mutate({ ...preference, [channel]: value });
   }
 
@@ -27,8 +40,17 @@ export function NotificationPreferencesSection() {
         <CardTitle>O que você quer receber</CardTitle>
         <CardDescription>
           Escolha, para cada tipo de aviso, se ele aparece no sino do TaskFlow e se também chega por
-          e-mail. Salva na hora.
+          e-mail{showWhatsApp ? " ou pelo WhatsApp" : ""}. Salva na hora.
         </CardDescription>
+        {showWhatsApp && !whatsappLinked ? (
+          <p className="text-xs text-muted-foreground">
+            Para receber pelo WhatsApp, vincule seu número na página{" "}
+            <Link href="/assistant" className="font-medium text-primary hover:underline">
+              Assistente
+            </Link>
+            . Sem número vinculado, nada é enviado por lá.
+          </p>
+        ) : null}
       </CardHeader>
       <CardContent>
         {preferencesQuery.isLoading ? (
@@ -41,18 +63,30 @@ export function NotificationPreferencesSection() {
           <ErrorState error={preferencesQuery.error} onRetry={() => preferencesQuery.refetch()} />
         ) : (
           <div className="divide-y">
-            <div className="hidden grid-cols-[1fr_5rem_5rem] gap-4 pb-2 text-xs font-medium text-muted-foreground uppercase sm:grid">
+            <div
+              className={cn(
+                "hidden gap-4 pb-2 text-xs font-medium text-muted-foreground uppercase sm:grid",
+                showWhatsApp ? "grid-cols-[1fr_5rem_5rem_5rem]" : "grid-cols-[1fr_5rem_5rem]"
+              )}
+            >
               <span>Aviso</span>
               <span className="text-center">No app</span>
               <span className="text-center">E-mail</span>
+              {showWhatsApp ? <span className="text-center">WhatsApp</span> : null}
             </div>
             {NOTIFICATION_TYPES.map((type) => {
-              const preference = byType.get(type) ?? { type, inApp: true, email: false };
+              // The server default for WhatsApp is on.
+              const preference = byType.get(type) ?? { type, inApp: true, email: false, whatsapp: true };
               const label = NOTIFICATION_TYPE_LABEL[type];
               return (
                 <div
                   key={type}
-                  className="grid grid-cols-[1fr_auto_auto] items-center gap-4 py-3 sm:grid-cols-[1fr_5rem_5rem]"
+                  className={cn(
+                    "grid items-center gap-4 py-3",
+                    showWhatsApp
+                      ? "grid-cols-[1fr_auto_auto_auto] sm:grid-cols-[1fr_5rem_5rem_5rem]"
+                      : "grid-cols-[1fr_auto_auto] sm:grid-cols-[1fr_5rem_5rem]"
+                  )}
                 >
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-foreground">{label.title}</p>
@@ -74,6 +108,16 @@ export function NotificationPreferencesSection() {
                     />
                     <span className="sm:hidden">E-mail</span>
                   </label>
+                  {showWhatsApp ? (
+                    <label className="flex flex-col items-center gap-1 text-[11px] text-muted-foreground">
+                      <Switch
+                        checked={preference.whatsapp ?? true}
+                        onCheckedChange={(value) => toggle(preference, "whatsapp", value)}
+                        aria-label={`${label.title} pelo WhatsApp`}
+                      />
+                      <span className="sm:hidden">WhatsApp</span>
+                    </label>
+                  ) : null}
                 </div>
               );
             })}

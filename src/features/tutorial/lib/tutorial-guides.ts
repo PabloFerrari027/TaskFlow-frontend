@@ -1072,7 +1072,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Escolher o que receber",
         intro:
-          "Em Conta → Notificações (ou na engrenagem do sino), ligue ou desligue cada tipo de aviso, no app e por e-mail.",
+          "Em Conta → Notificações (ou na engrenagem do sino), ligue ou desligue cada tipo de aviso, no app, por e-mail e pelo WhatsApp. O WhatsApp usa o número que você vinculou ao assistente, na página Assistente. Sem número vinculado, nada é enviado por lá.",
       },
       {
         heading: "Busca",
