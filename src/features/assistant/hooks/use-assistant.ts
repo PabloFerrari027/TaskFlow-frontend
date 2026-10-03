@@ -15,6 +15,7 @@ import {
 } from "@/types/ai-usage";
 import type { Project } from "@/types/project";
 import type { Task } from "@/types/task";
+import type { TaskApproval } from "@/types/approval";
 
 // Conversation state (transcript, pending action status) lives in the chat
 // component's own reducer, never in TanStack Query — it's an ephemeral
@@ -136,6 +137,21 @@ function applyConfirmedActionEffects(
     case "remove_task_participant": {
       const task = result as Task;
       queryClient.setQueryData(queryKeys.tasks.detail(task.id), task);
+      return;
+    }
+    case "request_task_approval": {
+      const approval = result as TaskApproval;
+      queryClient.invalidateQueries({ queryKey: queryKeys.approvals.task(approval.taskId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.approvals.pending() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.home.root() });
+      return;
+    }
+    // `{ taskId, attached }` — the task may also be new (projectId + title).
+    case "attach_files_to_task": {
+      const { taskId } = result as { taskId: string };
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.detail(taskId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.home.root() });
       return;
     }
     case "revoke_session":

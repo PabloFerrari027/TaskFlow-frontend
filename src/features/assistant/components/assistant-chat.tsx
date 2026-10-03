@@ -519,6 +519,12 @@ export function AssistantChat() {
                 <p className="text-xs text-muted-foreground">
                   Escreva uma mensagem para enviar junto com o(s) arquivo(s).
                 </p>
+              ) : files.some((file) => !isAudioFile(file)) ? (
+                // The server only reads a file's content when the message asks
+                // for it; otherwise it is kept (30 min) to attach to a task.
+                <p className="text-xs text-muted-foreground">
+                  Peça para ler, resumir ou extrair algo do arquivo, ou diga em que tarefa anexá-lo.
+                </p>
               ) : null}
 
               <div className="flex gap-2">
