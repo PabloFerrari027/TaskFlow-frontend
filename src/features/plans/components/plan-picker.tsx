@@ -2,13 +2,13 @@
 
 import * as React from "react";
 import {
+  BadgePercent,
   CalendarDays,
   CalendarRange,
   Check,
   CircleCheck,
   Crown,
   Info,
-  Loader2,
   Rocket,
   Sparkles,
   Sun,
@@ -20,18 +20,20 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ErrorState } from "@/components/shared/error-state";
 import { cn } from "@/lib/utils";
-import { usePlansQuery, useSetMyPlanMutation } from "@/features/plans/hooks/use-plans";
+import { useMyPlanQuery, usePlansQuery } from "@/features/plans/hooks/use-plans";
+import { ChoosePlanDialog } from "@/features/plans/components/choose-plan-dialog";
+import { describeDiscount, formatPriceCents } from "@/features/plans/lib/price";
+import { formatDate } from "@/lib/format";
 import {
   DEFAULT_PLAN_NAME,
   derivedCaps,
   formatTokensHuman,
   utcMidnightInLocalTime,
 } from "@/features/plans/lib/plan-caps";
-import type { Plan } from "@/types/plan";
+import type { MyPlan, Plan } from "@/types/plan";
 
 const numberFormat = new Intl.NumberFormat("pt-BR");
 
@@ -41,11 +43,9 @@ const TIER_ICONS: LucideIcon[] = [Sparkles, Zap, Rocket, Crown];
 
 export function PlanPicker() {
   const plansQuery = usePlansQuery();
-  const setMyPlanMutation = useSetMyPlanMutation();
-  // GET /auth/me never returns a planId (API.md § 23), so the only plan this
-  // screen can point at is the one picked while it's open — never persisted,
-  // and labeled as "just chosen", not as the user's current plan.
-  const [chosenPlanId, setChosenPlanId] = React.useState<string | null>(null);
+  const myPlanQuery = useMyPlanQuery();
+  const [choosing, setChoosing] = React.useState<Plan | null>(null);
+  const myPlan = myPlanQuery.data;
 
   if (plansQuery.isLoading) {
     return (
@@ -64,34 +64,24 @@ export function PlanPicker() {
   const plans = [...(plansQuery.data ?? [])].sort(
     (a, b) => a.monthlyTokenBudget - b.monthlyTokenBudget
   );
-  // Looked up in the list so a plan removed after being chosen stops showing.
-  const chosenPlan = plans.find((plan) => plan.id === chosenPlanId) ?? null;
   const largestBudget = plans.at(-1)?.monthlyTokenBudget ?? 0;
-
-  function choosePlan(plan: Plan) {
-    setMyPlanMutation.mutate(plan, { onSuccess: () => setChosenPlanId(plan.id) });
-  }
+  // No plan assigned = the FREE quota.
+  const currentPlanId =
+    myPlan?.plan?.id ?? plans.find((plan) => plan.name === DEFAULT_PLAN_NAME)?.id ?? null;
 
   return (
     <div className="space-y-6">
-      {chosenPlan ? (
-        <div
-          role="status"
-          className="flex items-start gap-3 rounded-xl border border-primary/30 bg-primary/5 p-4 text-sm text-foreground"
-        >
-          <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-            <Check className="size-4" />
-          </div>
-          <div className="space-y-0.5">
-            <p className="font-medium">
-              Pronto! Você escolheu o plano {chosenPlan.name}.
-            </p>
-            <p className="text-muted-foreground">
-              Essa marcação só aparece enquanto esta tela estiver aberta — ela lembra a escolha
-              que você fez agora, não é uma consulta ao servidor.
-            </p>
-          </div>
-        </div>
+      {myPlanQuery.isLoading ? (
+        <Skeleton className="h-24 w-full rounded-xl" />
+      ) : myPlan ? (
+        <CurrentPlanSummary
+          myPlan={myPlan}
+          onApplyCoupon={
+            myPlan.plan && myPlan.plan.monthlyPriceCents > 0
+              ? () => setChoosing(plans.find((plan) => plan.id === myPlan.plan?.id) ?? myPlan.plan)
+              : undefined
+          }
+        />
       ) : null}
 
       {plans.length === 0 ? (
@@ -110,18 +100,69 @@ export function PlanPicker() {
               capacityPercent={
                 largestBudget > 0 ? (plan.monthlyTokenBudget / largestBudget) * 100 : 0
               }
-              isChosen={plan.id === chosenPlan?.id}
-              isPending={
-                setMyPlanMutation.isPending && setMyPlanMutation.variables?.id === plan.id
-              }
-              disabled={setMyPlanMutation.isPending}
-              onChoose={() => choosePlan(plan)}
+              isCurrent={plan.id === currentPlanId}
+              onChoose={() => setChoosing(plan)}
             />
           ))}
         </div>
       )}
 
       <HowLimitsWork />
+
+      {choosing ? (
+        <ChoosePlanDialog
+          plan={choosing}
+          myPlan={myPlan}
+          open
+          onOpenChange={(open) => !open && setChoosing(null)}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+function CurrentPlanSummary({
+  myPlan,
+  onApplyCoupon,
+}: {
+  myPlan: MyPlan;
+  onApplyCoupon?: () => void;
+}) {
+  const { plan, discount } = myPlan;
+
+  return (
+    <div className="flex flex-col gap-3 rounded-xl border border-primary/30 bg-primary/5 p-4 text-sm sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex items-start gap-3">
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+          <Check className="size-4" />
+        </div>
+        <div className="space-y-0.5">
+          <p className="font-medium text-foreground">
+            Seu plano: {plan?.name ?? DEFAULT_PLAN_NAME}
+            <span className="ml-2 font-normal text-muted-foreground">
+              {formatPriceCents(myPlan.effectiveMonthlyPriceCents)}
+              {myPlan.effectiveMonthlyPriceCents > 0 ? "/mês" : ""}
+            </span>
+          </p>
+          {discount ? (
+            <p className="flex items-center gap-1.5 text-muted-foreground">
+              <BadgePercent className="size-4 text-emerald-600" />
+              Cupom {discount.couponCode}: {describeDiscount(discount)}
+              {discount.endsAt ? `, até ${formatDate(discount.endsAt)}` : ""}. Sem ele,{" "}
+              {formatPriceCents(discount.originalPriceCents)}/mês.
+            </p>
+          ) : !plan ? (
+            <p className="text-muted-foreground">
+              Você ainda não escolheu um plano, então vale o limite do plano {DEFAULT_PLAN_NAME}.
+            </p>
+          ) : null}
+        </div>
+      </div>
+      {onApplyCoupon ? (
+        <Button variant="outline" size="sm" onClick={onApplyCoupon}>
+          <BadgePercent /> Tenho um cupom
+        </Button>
+      ) : null}
     </div>
   );
 }
@@ -130,17 +171,13 @@ function PlanOption({
   plan,
   icon: Icon,
   capacityPercent,
-  isChosen,
-  isPending,
-  disabled,
+  isCurrent,
   onChoose,
 }: {
   plan: Plan;
   icon: LucideIcon;
   capacityPercent: number;
-  isChosen: boolean;
-  isPending: boolean;
-  disabled: boolean;
+  isCurrent: boolean;
   onChoose: () => void;
 }) {
   const { daily, weekly } = derivedCaps(plan.monthlyTokenBudget);
@@ -149,7 +186,7 @@ function PlanOption({
     <Card
       className={cn(
         "relative gap-5 p-5 transition-shadow hover:shadow-md",
-        isChosen && "bg-primary/[0.03] ring-2 ring-primary"
+        isCurrent && "bg-primary/[0.03] ring-2 ring-primary"
       )}
     >
       <div className="flex items-start justify-between gap-2">
@@ -160,7 +197,7 @@ function PlanOption({
           {plan.name === DEFAULT_PLAN_NAME ? (
             <Badge variant="secondary">Padrão</Badge>
           ) : null}
-          {isChosen ? <Badge>Escolhido agora</Badge> : null}
+          {isCurrent ? <Badge>Seu plano</Badge> : null}
         </div>
       </div>
 
@@ -173,6 +210,10 @@ function PlanOption({
         </p>
         <p className="text-xs text-muted-foreground">
           por mês · {numberFormat.format(plan.monthlyTokenBudget)} tokens
+        </p>
+        <p className="pt-1 text-sm font-medium text-foreground">
+          {formatPriceCents(plan.monthlyPriceCents ?? 0)}
+          {plan.monthlyPriceCents ? <span className="font-normal text-muted-foreground">/mês</span> : null}
         </p>
       </div>
 
@@ -205,23 +246,15 @@ function PlanOption({
         </li>
       </ul>
 
-      <ConfirmDialog
-        trigger={
-          <Button
-            className="w-full"
-            variant={isChosen ? "default" : "outline"}
-            disabled={disabled || isChosen}
-          >
-            {isPending ? <Loader2 className="animate-spin" /> : <Check />}
-            {isChosen ? "Escolhido" : "Escolher este plano"}
-          </Button>
-        }
-        title={`Trocar para o plano ${plan.name}?`}
-        description="O novo limite passa a valer na próxima vez que você usar a IA. Você pode trocar de plano de novo quando quiser."
-        confirmLabel="Trocar de plano"
-        variant="default"
-        onConfirm={onChoose}
-      />
+      <Button
+        className="w-full"
+        variant={isCurrent ? "default" : "outline"}
+        disabled={isCurrent}
+        onClick={onChoose}
+      >
+        <Check />
+        {isCurrent ? "Plano atual" : "Escolher este plano"}
+      </Button>
     </Card>
   );
 }
@@ -271,9 +304,9 @@ function HowLimitsWork() {
       <div className="flex items-start gap-2 text-xs text-muted-foreground">
         <Info className="mt-0.5 size-3.5 shrink-0" />
         <p>
-          Não é possível mostrar qual é o seu plano atual: o TaskFlow consegue trocá-lo, mas não
-          consultá-lo. Se você nunca escolheu um plano, vale o limite do plano{" "}
-          {DEFAULT_PLAN_NAME}.
+          Se você nunca escolheu um plano, vale o limite do plano {DEFAULT_PLAN_NAME}. Um cupom
+          de desconto vale só para o plano em que foi aplicado: trocar de plano encerra o
+          desconto.
         </p>
       </div>
     </Card>

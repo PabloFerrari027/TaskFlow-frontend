@@ -7,6 +7,7 @@ import type {
 } from "@/types/project-template";
 import type { SearchParams } from "@/types/search";
 import type { ListChannelConversationsParams } from "@/types/assistant-channel";
+import type { ListCouponsParams } from "@/types/plan";
 import { stableStringify } from "@/lib/utils";
 
 export const queryKeys = {
@@ -40,9 +41,16 @@ export const queryKeys = {
   },
   plans: {
     all: () => ["plans"] as const,
+    mine: () => ["plans", "me"] as const,
     admin: {
       all: () => ["plans", "admin"] as const,
     },
+  },
+  coupons: {
+    root: () => ["coupons"] as const,
+    list: (params: ListCouponsParams) => ["coupons", "list", params] as const,
+    redemptions: (couponId: string, page: number) =>
+      ["coupons", "redemptions", couponId, page] as const,
   },
   workspaces: {
     all: () => ["workspaces"] as const,

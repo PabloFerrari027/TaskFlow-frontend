@@ -36,6 +36,7 @@ export function AssignClientPlanCard({ clientId }: AssignClientPlanCardProps) {
         <p className="font-medium text-foreground">Plano de tokens de IA</p>
         <p className="text-sm text-muted-foreground">
           Não é possível confirmar aqui qual é o plano atual deste cliente — apenas atribuir um novo.
+          Trocar para outro plano encerra o desconto de cupom que ele tiver.
           Quem nunca recebeu nem escolheu um plano usa o limite do plano {DEFAULT_PLAN_NAME}.
         </p>
       </div>

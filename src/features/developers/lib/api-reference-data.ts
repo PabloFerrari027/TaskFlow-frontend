@@ -151,6 +151,15 @@ export const GENERAL_ERRORS: ApiErrorCode[] = [
   { code: "TOKEN_QUOTA_EXCEEDED", status: 429, when: "Cota de tokens de IA do plano do usuário esgotada (dia, semana ou mês)." },
   { code: "PLAN_NOT_FOUND", status: 404, when: "`planId` inexistente." },
   { code: "PLAN_NAME_ALREADY_EXISTS", status: 409, when: "Já existe um plano com esse `name` (`POST /admin/plans`)." },
+  { code: "COUPON_NOT_FOUND", status: 404, when: "Cupom inexistente; no resgate/preview, também cupom desativado." },
+  { code: "COUPON_CODE_ALREADY_EXISTS", status: 409, when: "`POST /admin/coupons` — código já usado por outro cupom." },
+  { code: "INVALID_COUPON", status: 400, when: "`POST`/`PATCH /admin/coupons` — termos inconsistentes." },
+  { code: "COUPON_EXPIRED", status: 422, when: "Resgate/preview a partir de `expiresAt`." },
+  { code: "COUPON_NOT_YET_VALID", status: 422, when: "Resgate/preview antes de `startsAt`." },
+  { code: "COUPON_NOT_APPLICABLE_TO_PLAN", status: 422, when: "Cupom restrito a outros planos, ou plano gratuito." },
+  { code: "COUPON_REDEMPTION_LIMIT_REACHED", status: 409, when: "`maxRedemptions` esgotado." },
+  { code: "COUPON_ALREADY_REDEEMED", status: 409, when: "O usuário já usou este cupom." },
+  { code: "COUPON_HAS_REDEMPTIONS", status: 409, when: "`DELETE /admin/coupons/:couponId` — cupom já resgatado (desative em vez de apagar)." },
   { code: "AI_USAGE_INVALID_RANGE", status: 400, when: "`from` posterior a `to`, ou intervalo maior que 90 dias." },
 ];
 

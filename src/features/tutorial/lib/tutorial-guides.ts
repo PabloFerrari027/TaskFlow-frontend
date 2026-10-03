@@ -1724,7 +1724,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "O que é um plano",
         intro:
-          "Um plano define quantos “tokens” — a unidade que mede o quanto o modelo de IA processou — você pode gastar usando a IA do TaskFlow, como o chat do assistente. É um limite de uso, não uma assinatura paga, e é por pessoa, não por workspace: o mesmo plano vale em todos os workspaces em que você está.",
+          "Um plano define quantos “tokens” — a unidade que mede o quanto o modelo de IA processou — você pode gastar usando a IA do TaskFlow, como o chat do assistente. Cada plano tem um preço por mês (ainda só informativo: não há cobrança). O plano é por pessoa, não por workspace: o mesmo plano vale em todos os workspaces em que você está.",
         callouts: [
           {
             kind: "note",
@@ -1736,19 +1736,26 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         heading: "Escolher ou trocar de plano",
         steps: [
           "Abra Configurações → Plano.",
-          "Veja a lista de planos disponíveis. Cada um mostra o limite por mês e, logo abaixo, quanto isso dá por semana e por dia.",
-          "Clique em “Escolher este plano” no que quiser e confirme.",
-          "O plano escolhido fica marcado como “Escolhido agora” enquanto a tela estiver aberta.",
+          "No topo aparece o seu plano atual, com o preço que você paga (já com desconto, se tiver).",
+          "Na lista, cada plano mostra o limite por mês, quanto isso dá por semana e por dia, e o preço. O seu está marcado como “Seu plano”.",
+          "Clique em “Escolher este plano” no que quiser. Se tiver um cupom, digite-o e clique em “Aplicar” para ver o preço com desconto.",
+          "Clique em “Trocar de plano” para confirmar.",
         ],
         callouts: [
           {
-            kind: "warning",
-            text: "Não existe, hoje, uma forma de consultar qual é o seu plano atual — só de trocar. Por isso a marcação “Escolhido agora” some ao sair da tela: ela lembra a escolha que você acabou de fazer, não é uma consulta ao sistema. Se tiver dúvida, pode escolher de novo sem problema: a troca sempre substitui o que valia antes.",
-          },
-          {
             kind: "note",
-            text: "Trocar de plano não tem custo. Qualquer plano da lista pode ser escolhido livremente, mesmo o maior.",
+            text: "Ainda não há cobrança: qualquer plano da lista pode ser escolhido livremente, mesmo o maior.",
           },
+        ],
+      },
+      {
+        heading: "Cupons de desconto",
+        bullets: [
+          "Um cupom dá desconto no preço mensal de um plano pago, por um mês, por alguns meses ou enquanto você ficar no plano.",
+          "Para usar no plano que você já tem, clique em “Tenho um cupom”, no quadro do seu plano. Para usar ao trocar, digite o cupom na janela de troca.",
+          "Cada pessoa usa cada cupom uma vez. Um cupom novo substitui o desconto que você tinha.",
+          "O desconto vale só para o plano em que foi aplicado: trocar para outro plano encerra o desconto.",
+          "O preço com desconto fica guardado como estava no dia do resgate, mesmo que o preço do plano mude depois.",
         ],
       },
       {
@@ -1768,7 +1775,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         callouts: [
           {
             kind: "note",
-            text: "Esses números não aparecem como porcentagem do limite porque não é possível consultar qual é o seu plano atual. Eles se atualizam a cada poucos minutos; use o botão “Atualizar” para ver na hora.",
+            text: "Cada número vem com uma barra que mostra quanto do limite do seu plano já foi usado. Eles se atualizam a cada poucos minutos; use o botão “Atualizar” para ver na hora.",
           },
           {
             kind: "note",
@@ -1793,7 +1800,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Para administradores da plataforma",
         intro:
-          "Administradores da plataforma (papel diferente de Administrador de workspace) têm uma área própria, em Administração → Planos, para criar planos e ajustar o teto de um existente, e podem corrigir manualmente o plano de um cliente específico pela página de detalhe dele.",
+          "Administradores da plataforma (papel diferente de Administrador de workspace) têm uma área própria, em Administração → Planos, para criar planos e ajustar o teto e o preço de um existente, e podem corrigir manualmente o plano de um cliente específico pela página de detalhe dele. Em Administração → Cupons, criam e acompanham os cupons de desconto.",
         callouts: [
           {
             kind: "note",
@@ -1805,7 +1812,11 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
           },
           {
             kind: "note",
-            text: "Na página do cliente, dá para atribuir um plano e ver o histórico de uso de IA dele, mas não qual plano está valendo hoje — pelo mesmo motivo de a própria pessoa não conseguir ver o dela.",
+            text: "Na página do cliente, dá para atribuir um plano e ver o histórico de uso de IA dele. Trocar o plano de alguém para outro encerra o desconto que a pessoa tinha.",
+          },
+          {
+            kind: "note",
+            text: "Cupons: o código e os termos do desconto não mudam depois de criados. Para mudá-los, desative o cupom e crie outro. Só dá para apagar um cupom que ninguém usou; os outros são desativados, o que não cancela descontos já resgatados. O ícone de pessoas mostra quem usou cada cupom.",
           },
         ],
       },

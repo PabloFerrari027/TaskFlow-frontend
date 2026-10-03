@@ -1,6 +1,6 @@
 import type { ApiEndpoint } from "@/features/developers/lib/api-reference-data";
 
-// API.md § 23-24 (Planos e cota de tokens de IA + Consumo de tokens de IA).
+// API.md § 23-24 (Planos, cupons e cota de tokens de IA + Consumo de tokens de IA).
 export function buildBillingEndpoints(): ApiEndpoint[] {
   return [
     {
@@ -10,24 +10,73 @@ export function buildBillingEndpoints(): ApiEndpoint[] {
       description: "Sem paginação (poucos planos, cadastrados por admin) — array direto, não um `PaginatedResult`.",
       requestExample: ['curl "$API_URL/plans" \\', '  -H "Authorization: Bearer $ACCESS_TOKEN"'].join("\n"),
       responseStatus: "200 OK",
-      responseExample: '[ { "id": "uuid", "name": "PRO", "monthlyTokenBudget": 1000000, "createdAt": "...", "updatedAt": "..." } ]',
+      responseExample: '[ { "id": "uuid", "name": "PRO", "monthlyTokenBudget": 1000000, "monthlyPriceCents": 4990, "createdAt": "...", "updatedAt": "..." } ]',
+      notes: ["`monthlyPriceCents`: centavos de BRL, `0` = gratuito. Só informativo enquanto não existe checkout."],
+    },
+    {
+      method: "GET",
+      path: "/plans/me",
+      summary: "Meu plano e desconto vigente",
+      description:
+        "`plan: null` = sem plano atribuído (cota do FREE, preço 0). `discount: null` = sem desconto vigente. O preço com desconto é o snapshot do resgate.",
+      requestExample: ['curl "$API_URL/plans/me" \\', '  -H "Authorization: Bearer $ACCESS_TOKEN"'].join("\n"),
+      responseStatus: "200 OK",
+      responseExample: `{\n  "plan": { "id": "uuid", "name": "PRO", "monthlyTokenBudget": 1000000, "monthlyPriceCents": 4990, "createdAt": "...", "updatedAt": "..." },\n  "discount": { "couponCode": "BLACKFRIDAY30", "discountType": "PERCENT", "percentOff": 30, "amountOffCents": null, "duration": "REPEATING", "durationInMonths": 3, "originalPriceCents": 4990, "discountedPriceCents": 3493, "redeemedAt": "...", "endsAt": "..." },\n  "effectiveMonthlyPriceCents": 3493\n}`,
     },
     {
       method: "PATCH",
       path: "/plans/me",
-      summary: "Trocar meu próprio plano",
+      summary: "Trocar meu próprio plano (com cupom opcional)",
       description:
-        "Sem checagem de pagamento nesta versão — qualquer usuário autenticado pode \"assinar\" qualquer plano cadastrado, de graça. Não implemente uma UI que prometa cobrança automática a partir daqui.",
-      bodyParams: [{ name: "planId", type: "string", required: true }],
+        "Sem checagem de pagamento nesta versão — qualquer usuário autenticado pode \"assinar\" qualquer plano cadastrado, de graça. Com `couponCode`, o resgate é atômico com a troca: cupom recusado, plano mantido. Sem cupom, trocar para outro plano cancela o desconto vigente.",
+      bodyParams: [
+        { name: "planId", type: "string", required: true },
+        { name: "couponCode", type: "string", required: false, notes: "case-insensitive; também aplica um cupom ao plano atual" },
+      ],
       requestExample: [
         'curl -X PATCH "$API_URL/plans/me" \\',
         '  -H "Authorization: Bearer $ACCESS_TOKEN" \\',
         '  -H "Content-Type: application/json" \\',
-        "  -d '{ \"planId\": \"uuid\" }'",
+        "  -d '{ \"planId\": \"uuid\", \"couponCode\": \"blackfriday30\" }'",
       ].join("\n"),
       responseStatus: "200 OK",
-      responseExample: "(sem corpo)",
-      errorCodes: ["PLAN_NOT_FOUND"],
+      responseExample: "(mesmo formato de GET /plans/me, já com a troca)",
+      errorCodes: [
+        "PLAN_NOT_FOUND",
+        "COUPON_NOT_FOUND",
+        "COUPON_ALREADY_REDEEMED",
+        "COUPON_NOT_YET_VALID",
+        "COUPON_EXPIRED",
+        "COUPON_NOT_APPLICABLE_TO_PLAN",
+        "COUPON_REDEMPTION_LIMIT_REACHED",
+      ],
+    },
+    {
+      method: "POST",
+      path: "/plans/coupons/preview",
+      summary: "Conferir um cupom sem resgatar",
+      description: "Mostra o preço com desconto; nada é gravado nem reservado. Rate limit próprio: 20 req/min.",
+      bodyParams: [
+        { name: "planId", type: "string", required: true },
+        { name: "code", type: "string", required: true },
+      ],
+      requestExample: [
+        'curl -X POST "$API_URL/plans/coupons/preview" \\',
+        '  -H "Authorization: Bearer $ACCESS_TOKEN" \\',
+        '  -H "Content-Type: application/json" \\',
+        "  -d '{ \"planId\": \"uuid\", \"code\": \"blackfriday30\" }'",
+      ].join("\n"),
+      responseStatus: "200 OK",
+      responseExample: '{ "code": "BLACKFRIDAY30", "discountType": "PERCENT", "percentOff": 30, "duration": "REPEATING", "durationInMonths": 3, "planId": "uuid", "planName": "PRO", "originalPriceCents": 4990, "discountedPriceCents": 3493, "discountCents": 1497, "endsAt": "..." }',
+      errorCodes: [
+        "PLAN_NOT_FOUND",
+        "COUPON_NOT_FOUND",
+        "COUPON_ALREADY_REDEEMED",
+        "COUPON_NOT_YET_VALID",
+        "COUPON_EXPIRED",
+        "COUPON_NOT_APPLICABLE_TO_PLAN",
+        "COUPON_REDEMPTION_LIMIT_REACHED",
+      ],
     },
     {
       method: "GET",
@@ -46,6 +95,7 @@ export function buildBillingEndpoints(): ApiEndpoint[] {
       bodyParams: [
         { name: "name", type: "string", required: true, notes: "mín. 2 caracteres, único" },
         { name: "monthlyTokenBudget", type: "number", required: true, notes: "inteiro ≥ 1" },
+        { name: "monthlyPriceCents", type: "number", required: false, notes: "centavos, inteiro ≥ 0 (padrão 0)" },
       ],
       requestExample: [
         'curl -X POST "$API_URL/admin/plans" \\',
@@ -60,9 +110,13 @@ export function buildBillingEndpoints(): ApiEndpoint[] {
     {
       method: "PATCH",
       path: "/admin/plans/:planId",
-      summary: "Atualizar o teto de um plano",
-      description: "Exige `SUPER_ADMIN`. `name` não é editável — é a chave estável referenciada por integrações/seed.",
-      bodyParams: [{ name: "monthlyTokenBudget", type: "number", required: true }],
+      summary: "Atualizar o teto e/ou o preço de um plano",
+      description:
+        "Exige `SUPER_ADMIN`. `name` não é editável — é a chave estável referenciada por integrações/seed. Mudar o preço não altera descontos já resgatados.",
+      bodyParams: [
+        { name: "monthlyTokenBudget", type: "number", required: false },
+        { name: "monthlyPriceCents", type: "number", required: false },
+      ],
       requestExample: [
         'curl -X PATCH "$API_URL/admin/plans/PLAN_ID" \\',
         '  -H "Authorization: Bearer $SUPER_ADMIN_TOKEN" \\',
@@ -77,7 +131,8 @@ export function buildBillingEndpoints(): ApiEndpoint[] {
       method: "PATCH",
       path: "/admin/users/:userId/plan",
       summary: "Forçar o plano de um usuário",
-      description: "Exige `SUPER_ADMIN`. O fluxo normal é o próprio usuário via `PATCH /plans/me` acima — isto é uma correção manual.",
+      description:
+        "Exige `SUPER_ADMIN`. O fluxo normal é o próprio usuário via `PATCH /plans/me` acima — isto é uma correção manual. Trocar para outro plano cancela o desconto vigente do usuário.",
       bodyParams: [{ name: "planId", type: "string", required: true }],
       requestExample: [
         'curl -X PATCH "$API_URL/admin/users/USER_ID/plan" \\',
@@ -88,6 +143,100 @@ export function buildBillingEndpoints(): ApiEndpoint[] {
       responseStatus: "200 OK",
       responseExample: "(sem corpo)",
       errorCodes: ["CLIENT_NOT_FOUND", "PLAN_NOT_FOUND"],
+    },
+    {
+      method: "GET",
+      path: "/admin/coupons",
+      summary: "Listar cupons (admin)",
+      description: "Exige `SUPER_ADMIN`. Paginado, mais recentes primeiro.",
+      queryParams: [
+        { name: "page", type: "number", required: false },
+        { name: "limit", type: "number", required: false },
+        { name: "search", type: "string", required: false, notes: "substring do código" },
+        { name: "status", type: '"ACTIVE"|"INACTIVE"', required: false },
+      ],
+      requestExample: ['curl "$API_URL/admin/coupons?status=ACTIVE" \\', '  -H "Authorization: Bearer $SUPER_ADMIN_TOKEN"'].join("\n"),
+      responseStatus: "200 OK",
+      responseExample: '{ "data": [ { "id": "uuid", "code": "BLACKFRIDAY30", "description": "Black Friday", "discountType": "PERCENT", "percentOff": 30, "amountOffCents": null, "duration": "REPEATING", "durationInMonths": 3, "maxRedemptions": 100, "redemptionCount": 12, "startsAt": null, "expiresAt": "...", "isActive": true, "planIds": [], "createdAt": "...", "updatedAt": "..." } ], "meta": { "page": 1, "limit": 20, "total": 1, "totalPages": 1 } }',
+    },
+    {
+      method: "POST",
+      path: "/admin/coupons",
+      summary: "Criar um cupom",
+      description:
+        "Exige `SUPER_ADMIN`. Código e termos do desconto são imutáveis depois. `PERCENT` exige `percentOff` 1–100; `FIXED_AMOUNT` exige `amountOffCents` ≥ 1; `REPEATING` exige `durationInMonths` 1–36.",
+      bodyParams: [
+        { name: "code", type: "string", required: true, notes: "3–40 de A-Z 0-9 - _ (gravado em maiúsculas)" },
+        { name: "description", type: "string", required: false },
+        { name: "discountType", type: '"PERCENT"|"FIXED_AMOUNT"', required: true },
+        { name: "percentOff", type: "number", required: false },
+        { name: "amountOffCents", type: "number", required: false },
+        { name: "duration", type: '"ONCE"|"REPEATING"|"FOREVER"', required: true },
+        { name: "durationInMonths", type: "number", required: false },
+        { name: "maxRedemptions", type: "number", required: false, notes: "ausente = ilimitado" },
+        { name: "startsAt", type: "string (ISO 8601)", required: false },
+        { name: "expiresAt", type: "string (ISO 8601)", required: false },
+        { name: "planIds", type: "string[]", required: false, notes: "vazio = qualquer plano pago" },
+      ],
+      requestExample: [
+        'curl -X POST "$API_URL/admin/coupons" \\',
+        '  -H "Authorization: Bearer $SUPER_ADMIN_TOKEN" \\',
+        '  -H "Content-Type: application/json" \\',
+        "  -d '{ \"code\": \"blackfriday30\", \"discountType\": \"PERCENT\", \"percentOff\": 30, \"duration\": \"REPEATING\", \"durationInMonths\": 3 }'",
+      ].join("\n"),
+      responseStatus: "201 Created",
+      responseExample: '{ "id": "uuid", "code": "BLACKFRIDAY30", "description": "Black Friday", "discountType": "PERCENT", "percentOff": 30, "amountOffCents": null, "duration": "REPEATING", "durationInMonths": 3, "maxRedemptions": 100, "redemptionCount": 12, "startsAt": null, "expiresAt": "...", "isActive": true, "planIds": [], "createdAt": "...", "updatedAt": "..." }',
+      errorCodes: ["INVALID_COUPON", "COUPON_CODE_ALREADY_EXISTS", "PLAN_NOT_FOUND"],
+    },
+    {
+      method: "PATCH",
+      path: "/admin/coupons/:couponId",
+      summary: "Editar ou desativar um cupom",
+      description:
+        "Exige `SUPER_ADMIN`. Todos opcionais; `null` limpa. Desativar não cancela descontos já resgatados.",
+      bodyParams: [
+        { name: "description", type: "string | null", required: false },
+        { name: "maxRedemptions", type: "number | null", required: false },
+        { name: "startsAt", type: "string | null", required: false },
+        { name: "expiresAt", type: "string | null", required: false },
+        { name: "isActive", type: "boolean", required: false },
+        { name: "planIds", type: "string[]", required: false },
+      ],
+      requestExample: [
+        'curl -X PATCH "$API_URL/admin/coupons/COUPON_ID" \\',
+        '  -H "Authorization: Bearer $SUPER_ADMIN_TOKEN" \\',
+        '  -H "Content-Type: application/json" \\',
+        "  -d '{ \"isActive\": false }'",
+      ].join("\n"),
+      responseStatus: "200 OK",
+      responseExample: '{ "id": "COUPON_ID", "isActive": false, "...": "..." }',
+      errorCodes: ["COUPON_NOT_FOUND", "PLAN_NOT_FOUND", "INVALID_COUPON"],
+    },
+    {
+      method: "DELETE",
+      path: "/admin/coupons/:couponId",
+      summary: "Apagar um cupom nunca usado",
+      description: "Exige `SUPER_ADMIN`. Cupom com resgates é desativado, não apagado.",
+      requestExample: [
+        'curl -X DELETE "$API_URL/admin/coupons/COUPON_ID" \\',
+        '  -H "Authorization: Bearer $SUPER_ADMIN_TOKEN"',
+      ].join("\n"),
+      responseStatus: "204 No Content",
+      responseExample: "(sem corpo)",
+      errorCodes: ["COUPON_NOT_FOUND", "COUPON_HAS_REDEMPTIONS"],
+    },
+    {
+      method: "GET",
+      path: "/admin/coupons/:couponId/redemptions",
+      summary: "Quem usou um cupom",
+      description: "Exige `SUPER_ADMIN`. Paginado, mais recentes primeiro. `canceledAt` preenchido = trocou de plano ou aplicou outro cupom.",
+      requestExample: [
+        'curl "$API_URL/admin/coupons/COUPON_ID/redemptions" \\',
+        '  -H "Authorization: Bearer $SUPER_ADMIN_TOKEN"',
+      ].join("\n"),
+      responseStatus: "200 OK",
+      responseExample: '{ "data": [ { "id": "uuid", "userId": "uuid", "userEmail": "ana@ex.com", "planId": "uuid", "planName": "PRO", "originalPriceCents": 4990, "discountedPriceCents": 3493, "redeemedAt": "...", "endsAt": "...", "canceledAt": null } ], "meta": { "...": "..." } }',
+      errorCodes: ["COUPON_NOT_FOUND"],
     },
     {
       method: "GET",

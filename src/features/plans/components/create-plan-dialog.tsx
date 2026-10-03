@@ -29,6 +29,7 @@ import {
 import { useCreatePlanMutation } from "@/features/plans/hooks/use-plans";
 import { DerivedCapsHint } from "@/features/plans/components/derived-caps-hint";
 import { getErrorCode, getErrorMessage } from "@/lib/errors";
+import { parsePriceInput } from "@/features/plans/lib/price";
 
 interface CreatePlanDialogProps {
   open: boolean;
@@ -40,11 +41,12 @@ export function CreatePlanDialog({ open, onOpenChange }: CreatePlanDialogProps) 
 
   const form = useForm<CreatePlanFormInput, unknown, CreatePlanFormValues>({
     resolver: zodResolver(createPlanSchema),
-    defaultValues: { name: "", monthlyTokenBudget: 1_000_000 },
+    defaultValues: { name: "", monthlyTokenBudget: 1_000_000, monthlyPrice: "0" },
   });
 
   function onSubmit(values: CreatePlanFormValues) {
-    createMutation.mutate(values, {
+    const { monthlyPrice, ...rest } = values;
+    createMutation.mutate({ ...rest, monthlyPriceCents: parsePriceInput(monthlyPrice) }, {
       onSuccess: () => {
         form.reset();
         onOpenChange(false);
@@ -106,6 +108,24 @@ export function CreatePlanDialog({ open, onOpenChange }: CreatePlanDialogProps) 
                     />
                   </FormControl>
                   <DerivedCapsHint value={field.value} />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+
+            <FormField
+              control={form.control}
+              name="monthlyPrice"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Preço por mês (R$)</FormLabel>
+                  <FormControl>
+                    <Input inputMode="decimal" placeholder="49,90" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    0 = gratuito. Ainda não há cobrança: o preço é a base dos cupons de desconto.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

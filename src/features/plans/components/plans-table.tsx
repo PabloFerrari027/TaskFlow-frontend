@@ -27,6 +27,7 @@ import {
   formatTokensHuman,
 } from "@/features/plans/lib/plan-caps";
 import type { Plan } from "@/types/plan";
+import { formatPriceCents } from "@/features/plans/lib/price";
 
 const numberFormat = new Intl.NumberFormat("pt-BR");
 
@@ -80,6 +81,7 @@ export function PlansTable() {
         <TableHeader>
           <TableRow>
             <TableHead>Nome</TableHead>
+            <TableHead className="text-right">Preço/mês</TableHead>
             <TableHead className="text-right">Tokens/mês</TableHead>
             <TableHead className="text-right">Por semana (÷ 4)</TableHead>
             <TableHead className="text-right">Por dia (÷ 30)</TableHead>
@@ -107,6 +109,9 @@ export function PlansTable() {
                       </Tooltip>
                     ) : null}
                   </span>
+                </TableCell>
+                <TableCell className="text-right tabular-nums">
+                  {formatPriceCents(plan.monthlyPriceCents ?? 0)}
                 </TableCell>
                 <TableCell className="text-right tabular-nums">
                   {numberFormat.format(plan.monthlyTokenBudget)}

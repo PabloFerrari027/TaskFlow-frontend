@@ -7,10 +7,18 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/shared/error-state";
 import {
   QUOTA_WINDOWS,
+  useMyPlanQuery,
+  usePlansQuery,
   useQuotaWindowsUsageQueries,
   type QuotaWindow,
 } from "@/features/plans/hooks/use-plans";
-import { utcMidnightInLocalTime } from "@/features/plans/lib/plan-caps";
+import {
+  DEFAULT_PLAN_NAME,
+  derivedCaps,
+  formatTokensHuman,
+  utcMidnightInLocalTime,
+} from "@/features/plans/lib/plan-caps";
+import { cn } from "@/lib/utils";
 
 const numberFormat = new Intl.NumberFormat("pt-BR");
 const timeFormat = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" });
@@ -21,10 +29,20 @@ const WINDOW_LABELS: Record<QuotaWindow, { title: string; since: string }> = {
   month: { title: "Neste mês", since: "desde o dia 1º, 00:00 UTC" },
 };
 
-// The same windows TOKEN_QUOTA_GUARD counts (API.md § 23), shown as raw
-// totals only — there's no known cap to turn them into a percentage.
+// The same windows TOKEN_QUOTA_GUARD counts (API.md § 23), against the caps
+// of the current plan (or FREE, when none is assigned).
 export function UsageWindowsSummary() {
   const queries = useQuotaWindowsUsageQueries();
+  const myPlanQuery = useMyPlanQuery();
+  const plansQuery = usePlansQuery();
+  const budget =
+    myPlanQuery.data?.plan?.monthlyTokenBudget ??
+    (myPlanQuery.data
+      ? plansQuery.data?.find((plan) => plan.name === DEFAULT_PLAN_NAME)?.monthlyTokenBudget
+      : undefined);
+  const caps: Record<QuotaWindow, number> | null = budget
+    ? { day: derivedCaps(budget).daily, week: derivedCaps(budget).weekly, month: budget }
+    : null;
   const failed = queries.find((query) => query.isError);
   const isFetching = queries.some((query) => query.isFetching);
   const updatedAt = Math.min(...queries.map((query) => query.dataUpdatedAt || Infinity));
@@ -42,6 +60,8 @@ export function UsageWindowsSummary() {
       <div className="grid gap-3 sm:grid-cols-3">
         {QUOTA_WINDOWS.map((window, index) => {
           const total = queries[index].data;
+          const cap = caps?.[window];
+          const percent = cap && total !== undefined ? Math.min(100, (total / cap) * 100) : null;
           return (
             <Card key={window} className="gap-1 p-4">
               <p className="text-xs text-muted-foreground">{WINDOW_LABELS[window].title}</p>
@@ -52,7 +72,24 @@ export function UsageWindowsSummary() {
                   {numberFormat.format(total)} tokens
                 </p>
               )}
-              <p className="text-xs text-muted-foreground">{WINDOW_LABELS[window].since}</p>
+              {cap ? (
+                <>
+                  <div className="h-1.5 overflow-hidden rounded-full bg-muted" role="presentation">
+                    <div
+                      className={cn(
+                        "h-full rounded-full transition-[width]",
+                        percent !== null && percent >= 90 ? "bg-destructive" : "bg-primary"
+                      )}
+                      style={{ width: `${percent ?? 0}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    de ≈ {formatTokensHuman(cap)} · {WINDOW_LABELS[window].since}
+                  </p>
+                </>
+              ) : (
+                <p className="text-xs text-muted-foreground">{WINDOW_LABELS[window].since}</p>
+              )}
             </Card>
           );
         })}
@@ -62,8 +99,8 @@ export function UsageWindowsSummary() {
         <p>
           Contado das mesmas viradas que o limite usa (00:00 UTC é{" "}
           {/* Server and browser may be in different time zones. */}
-          <span suppressHydrationWarning>{utcMidnightInLocalTime()}</span> no seu horário). Sem
-          comparação com o limite, porque não é possível consultar o seu plano atual.
+          <span suppressHydrationWarning>{utcMidnightInLocalTime()}</span> no seu horário),
+          comparado com o limite do seu plano.
         </p>
         <div className="flex items-center gap-2">
           {Number.isFinite(updatedAt) ? (

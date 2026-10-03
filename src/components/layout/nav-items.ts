@@ -14,6 +14,7 @@ import {
   Code2,
   LayoutTemplate,
   ShieldAlert,
+  TicketPercent,
 } from "lucide-react";
 import { canManageDeveloperPlatform } from "@/lib/permissions";
 import type { WorkspaceRole } from "@/types/workspace";
@@ -90,6 +91,13 @@ export const NAV_ITEMS: NavItem[] = [
     href: "/admin/plans",
     label: "Planos",
     icon: Coins,
+    group: "admin",
+    requiresSuperAdmin: true,
+  },
+  {
+    href: "/admin/coupons",
+    label: "Cupons",
+    icon: TicketPercent,
     group: "admin",
     requiresSuperAdmin: true,
   },
