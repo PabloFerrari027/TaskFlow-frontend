@@ -1486,6 +1486,30 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         ],
       },
       {
+        heading: "Pelo WhatsApp",
+        intro:
+          "Na página Assistente, em “Assistente no WhatsApp”, você vincula o seu número e passa a falar com o assistente sem abrir o TaskFlow:",
+        steps: [
+          "Informe o seu número (com DDD) e o workspace em que o assistente vai trabalhar.",
+          "Clique em “Enviar código pelo WhatsApp”. Chega um código de 6 dígitos no seu WhatsApp.",
+          "Digite o código na página e clique em Confirmar.",
+          "Mande um “oi” para o número do TaskFlow (o botão “Abrir conversa” já abre o chat).",
+        ],
+        bullets: [
+          "Mande texto, áudio, foto ou documento. Toda alteração pede confirmação com os botões Confirmar e Cancelar da própria conversa.",
+          "Ações críticas (excluir, arquivar, remover membro, encerrar sessão) não podem ser confirmadas pelo WhatsApp: faça-as aqui no app.",
+          "“nova” recomeça a conversa; “ajuda” lista os comandos; “/desvincular” desvincula o número.",
+          "Para trocar de workspace, escolha outro no cartão do WhatsApp. Para parar, clique em Desvincular.",
+          "Diferente do painel do app, as conversas pelo WhatsApp ficam guardadas: veja em “Conversas pelo WhatsApp”, na mesma página.",
+        ],
+        callouts: [
+          {
+            kind: "note",
+            text: "O código vale 10 minutos. Depois de 5 códigos errados, peça outro.",
+          },
+        ],
+      },
+      {
         heading: "Proteção automática",
         intro:
           "Se o sistema perceber conteúdo suspeito repetidamente, ou várias falhas de reautenticação em pouco tempo, ele desliga o assistente do workspace sozinho. Depois disso, só um Proprietário pode reativá-lo.",

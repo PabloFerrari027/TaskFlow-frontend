@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/auth/auth-context";
 import { canManageAssistantSettings } from "@/lib/permissions";
 import { WorkspaceAssistantSettingsPanel } from "@/features/workspaces/components/assistant-settings-panel";
 import { AiUsageHistory } from "@/features/assistant/components/ai-usage-history";
+import { AssistantChannelsSection } from "@/features/assistant-channels/components/assistant-channels-section";
 import type { WorkspaceRole } from "@/types/workspace";
 
 export default function AssistantPage() {
@@ -46,6 +47,8 @@ export default function AssistantPage() {
           </Card>
         ) : null}
       </section>
+
+      <AssistantChannelsSection currentWorkspaceId={workspace?.id ?? null} />
 
       <section className="space-y-4">
         <div className="space-y-1">
