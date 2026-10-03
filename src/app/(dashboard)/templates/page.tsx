@@ -8,6 +8,7 @@ import {
   TemplateGridSkeleton,
 } from "@/features/project-templates/components/template-gallery";
 import { WorkspaceTemplatesSection } from "@/features/project-templates/components/workspace-templates-section";
+import { ApplyToBanner } from "@/features/project-templates/components/apply-to-banner";
 
 export default function TemplatesPage() {
   return (
@@ -17,7 +18,10 @@ export default function TemplatesPage() {
         description="Comece um projeto já organizado: escolha um modelo e o TaskFlow cria as colunas, os campos e tarefas de exemplo para você."
         actions={<TutorialGuideLink guideId="templates" />}
       />
-      <WorkspaceTemplatesSection />
+      <Suspense fallback={null}>
+        <ApplyToBanner />
+        <WorkspaceTemplatesSection />
+      </Suspense>
       <section className="space-y-4">
         <h2 className="text-lg font-semibold tracking-tight">Modelos do TaskFlow</h2>
         {/* Filters live in the query string (useSearchParams). */}

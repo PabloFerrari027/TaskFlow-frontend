@@ -33,7 +33,20 @@ import {
 } from "@/features/projects/schemas";
 import { useCreateProjectMutation } from "@/features/projects/hooks/use-projects";
 import { useCurrentWorkspace } from "@/features/workspaces/context/current-workspace-context";
-import { useInstantiateProjectTemplateMutation } from "@/features/project-templates/hooks/use-project-templates";
+import {
+  useInstantiateProjectTemplateMutation,
+  useProjectTemplateQuery,
+} from "@/features/project-templates/hooks/use-project-templates";
+import { useInstantiationRunner } from "@/features/project-templates/hooks/use-instantiation-runner";
+import {
+  InstantiationProgress,
+  TemplateChoicesFields,
+  hasTemplateQuestions,
+  initialTemplateChoices,
+  missingTemplateChoices,
+  toChoicesRequest,
+  type TemplateChoicesValue,
+} from "@/features/project-templates/components/template-choices-fields";
 import { TemplateSuggestions } from "@/features/project-templates/components/template-suggestions";
 import { getCategoryInfo } from "@/features/project-templates/lib/categories";
 import { formatTemplateCounts } from "@/features/project-templates/lib/template-labels";
@@ -61,6 +74,16 @@ export function CreateProjectDialog({
   const createMutation = useCreateProjectMutation(workspaceId);
   const instantiateMutation = useInstantiateProjectTemplateMutation(workspaceId);
   const [template, setTemplate] = React.useState<ProjectTemplateSummary | null>(null);
+  // The list has no `preview`: what the template asks comes from its detail.
+  const detailQuery = useProjectTemplateQuery(template?.id);
+  const questions = template && detailQuery.data?.id === template.id ? detailQuery.data.preview : null;
+  const [choices, setChoices] = React.useState<TemplateChoicesValue | null>(null);
+  const [choicesError, setChoicesError] = React.useState<string | null>(null);
+  const runner = useInstantiationRunner(workspaceId, (projectId) => {
+    reset();
+    onOpenChange(false);
+    router.push(`/projects/${projectId}/tasks`);
+  });
 
   const form = useForm<CreateProjectFormValues>({
     resolver: zodResolver(createProjectSchema),
@@ -68,22 +91,25 @@ export function CreateProjectDialog({
   });
   const name = useWatch({ control: form.control, name: "name" });
 
-  // A template always creates a top-level project, and using one takes
-  // OWNER/ADMIN (stricter than a blank project) — otherwise no suggestions.
+  // Using a template takes OWNER/ADMIN (stricter than a blank project) —
+  // otherwise no suggestions. With a parent, it becomes a sub-project.
   const myRole =
     workspace?.id === workspaceId
       ? workspace.members.find((member) => member.userId === userId)?.role
       : undefined;
-  const showSuggestions = !parent && canInstantiateProjectTemplate(myRole);
-  // Stays locked after success too, until the navigation replaces the page:
-  // a second submit would create a second project.
-  const isLocked =
-    createMutation.isPending || instantiateMutation.isPending || instantiateMutation.isSuccess;
+  const showSuggestions = canInstantiateProjectTemplate(myRole);
+  // Stays locked while the queued run goes, until the navigation replaces
+  // the page: a second submit would create a second project.
+  const isLocked = createMutation.isPending || instantiateMutation.isPending || runner.isRunning;
+  const currentChoices = questions ? (choices ?? initialTemplateChoices(questions)) : null;
 
   function reset() {
     form.reset();
     setTemplate(null);
+    setChoices(null);
+    setChoicesError(null);
     instantiateMutation.reset();
+    runner.reset();
   }
 
   function selectTemplate(next: ProjectTemplateSummary) {
@@ -98,21 +124,32 @@ export function CreateProjectDialog({
       form.setValue("name", next.name, { shouldValidate: form.formState.isSubmitted });
     }
     setTemplate(next);
+    setChoices(null);
+    setChoicesError(null);
   }
 
   function onSubmit(values: CreateProjectFormValues) {
     if (isLocked) return;
 
     if (template) {
+      // Still loading what the template asks.
+      if (!questions || !currentChoices) return;
+      const missing = missingTemplateChoices(questions, currentChoices);
+      if (missing.length > 0) {
+        setChoicesError(`Preencha: ${missing.join(", ")}.`);
+        return;
+      }
+      setChoicesError(null);
       instantiateMutation.mutate(
-        { templateId: template.id, name: values.name.trim() },
         {
-          onSuccess: ({ projectId }) => {
-            reset();
-            onOpenChange(false);
-            router.push(`/projects/${projectId}/tasks`);
+          templateId: template.id,
+          input: {
+            ...toChoicesRequest(questions, currentChoices),
+            name: values.name.trim(),
+            parentProjectId: parent?.id,
           },
-        }
+        },
+        { onSuccess: runner.follow }
       );
       return;
     }
@@ -139,8 +176,8 @@ export function CreateProjectDialog({
     <Dialog
       open={open}
       onOpenChange={(next) => {
-        // Closing mid-request would hide the outcome of a non-idempotent call.
-        if (instantiateMutation.isPending) return;
+        // Closing mid-run would hide the outcome of a non-idempotent call.
+        if (instantiateMutation.isPending || runner.isRunning) return;
         if (!next) reset();
         onOpenChange(next);
       }}
@@ -158,7 +195,7 @@ export function CreateProjectDialog({
           </DialogTitle>
           <DialogDescription>
             {parent
-              ? `Crie um sub-projeto dentro de “${parent.name}”.`
+              ? `Crie um sub-projeto dentro de “${parent.name}”, do zero ou a partir de um modelo.`
               : showSuggestions
                 ? "Comece do zero ou escolha um modelo com colunas e tarefas já organizadas."
                 : "Crie um projeto dentro deste workspace."}
@@ -213,6 +250,31 @@ export function CreateProjectDialog({
                 )}
               />
 
+              {template && workspace && currentChoices && questions && hasTemplateQuestions(questions) ? (
+                <TemplateChoicesFields
+                  questions={questions}
+                  value={currentChoices}
+                  onChange={setChoices}
+                  members={workspace.members}
+                  disabled={isLocked}
+                />
+              ) : template && !questions ? (
+                <TemplateChoicesFields
+                  questions={{}}
+                  value={initialTemplateChoices({})}
+                  onChange={() => {}}
+                  members={[]}
+                  isLoading
+                />
+              ) : null}
+              {choicesError ? <p className="text-sm text-destructive">{choicesError}</p> : null}
+              {runner.isRunning ? (
+                <InstantiationProgress
+                  done={runner.instantiation?.progressDone ?? 0}
+                  total={runner.instantiation?.progressTotal ?? 0}
+                />
+              ) : null}
+
               {/* Instantiating only takes a name — the template brings the rest. */}
               {!template ? (
                 <FormField
@@ -255,7 +317,7 @@ export function CreateProjectDialog({
               <Button
                 type="button"
                 variant="outline"
-                disabled={instantiateMutation.isPending}
+                disabled={instantiateMutation.isPending || runner.isRunning}
                 onClick={() => {
                   reset();
                   onOpenChange(false);
@@ -263,14 +325,14 @@ export function CreateProjectDialog({
               >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={isLocked}>
+              <Button type="submit" disabled={isLocked || (template !== null && !questions)}>
                 {isLocked ? <Loader2 className="animate-spin" /> : null}
-                {parent
-                  ? "Criar sub-projeto"
-                  : template
-                    ? isLocked
-                      ? "Criando projeto…"
-                      : "Criar a partir do modelo"
+                {template
+                  ? isLocked
+                    ? "Criando projeto…"
+                    : "Criar a partir do modelo"
+                  : parent
+                    ? "Criar sub-projeto"
                     : "Criar projeto"}
               </Button>
             </DialogFooter>

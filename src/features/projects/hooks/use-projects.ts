@@ -63,6 +63,7 @@ export function useProjectQuery(projectId: string) {
   return useQuery({
     queryKey: queryKeys.projects.detail(projectId),
     queryFn: () => projectsService.get(projectId),
+    enabled: Boolean(projectId),
   });
 }
 

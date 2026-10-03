@@ -3,7 +3,15 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-import { LayoutTemplate, SearchX, Trash2 } from "lucide-react";
+import { Image as ImageIcon, LayoutTemplate, SearchX, Trash2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { TemplateMediaManager } from "@/features/project-templates/components/template-media-manager";
 import {
   Table,
   TableBody,
@@ -30,7 +38,11 @@ import {
 import type { ProjectTemplateSummary } from "@/types/project-template";
 
 const PAGE_SIZE = 20;
-type PendingAction = { kind: "delete"; template: ProjectTemplateSummary } | null;
+type PendingAction =
+  | { kind: "delete"; template: ProjectTemplateSummary }
+  // By id: the row is refetched after each upload and the dialog follows it.
+  | { kind: "media"; templateId: string }
+  | null;
 
 // The system catalog only — the service pins every admin listing to it.
 export function AdminTemplatesTable() {
@@ -42,6 +54,8 @@ export function AdminTemplatesTable() {
     limit: PAGE_SIZE,
     category: filters.category,
     search: filters.search,
+    level: filters.level,
+    sort: filters.sort,
   });
   const deleteMutation = useAdminDeleteProjectTemplateMutation();
   const [pending, setPending] = React.useState<PendingAction>(null);
@@ -60,6 +74,10 @@ export function AdminTemplatesTable() {
 
   const close = () => setPending(null);
   const result = templatesQuery.data;
+  const mediaTemplate =
+    pending?.kind === "media"
+      ? result?.data.find((template) => template.id === pending.templateId)
+      : undefined;
 
   return (
     <div className="space-y-5">
@@ -98,8 +116,10 @@ export function AdminTemplatesTable() {
               <TableRow>
                 <TableHead>Nome</TableHead>
                 <TableHead>Categoria</TableHead>
+                <TableHead>Versão</TableHead>
+                <TableHead>Usos</TableHead>
                 <TableHead>Atualizado</TableHead>
-                <TableHead className="w-16" />
+                <TableHead className="w-24" />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -113,11 +133,24 @@ export function AdminTemplatesTable() {
                     <TableCell className="text-muted-foreground">
                       <span aria-hidden>{category.icon}</span> {category.label}
                     </TableCell>
+                    <TableCell className="text-muted-foreground">v{template.version}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {template.stats?.instantiationCount ?? 0}
+                    </TableCell>
                     <TableCell className="text-muted-foreground">
                       {formatDate(template.updatedAt)}
                     </TableCell>
                     <TableCell>
                       <div className="flex justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          aria-label="Capa e imagens"
+                          title="Capa e imagens"
+                          onClick={() => setPending({ kind: "media", templateId: template.id })}
+                        >
+                          <ImageIcon />
+                        </Button>
                         <Button
                           variant="ghost"
                           size="icon-sm"
@@ -143,16 +176,26 @@ export function AdminTemplatesTable() {
         </div>
       )}
 
+      <Dialog open={pending?.kind === "media"} onOpenChange={(open) => !open && close()}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Capa e imagens</DialogTitle>
+            <DialogDescription>{mediaTemplate?.name}</DialogDescription>
+          </DialogHeader>
+          {mediaTemplate ? <TemplateMediaManager template={mediaTemplate} admin /> : null}
+        </DialogContent>
+      </Dialog>
+
       <ConfirmDialog
         open={pending?.kind === "delete"}
         onOpenChange={(open) => !open && close()}
         trigger={<span className="hidden" />}
-        title={`Excluir “${pending?.template.name ?? ""}”?`}
+        title={`Excluir “${pending?.kind === "delete" ? pending.template.name : ""}”?`}
         description="A exclusão é definitiva. Projetos já criados com este modelo não mudam."
         confirmLabel="Excluir modelo"
         isLoading={deleteMutation.isPending}
         onConfirm={() => {
-          if (!pending) return;
+          if (pending?.kind !== "delete") return;
           deleteMutation.mutate(pending.template.id, { onSettled: close });
         }}
       />

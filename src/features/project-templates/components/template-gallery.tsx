@@ -41,6 +41,8 @@ export function TemplateGallery() {
     limit: PAGE_SIZE,
     category: filters.category,
     search: filters.search,
+    level: filters.level,
+    sort: filters.sort,
   });
 
   const result = templatesQuery.data;
@@ -87,6 +89,7 @@ export function TemplateGallery() {
                 key={template.id}
                 template={template}
                 categories={categoriesQuery.data}
+                applyTo={filters.applyTo}
               />
             ))}
           </TemplateGrid>

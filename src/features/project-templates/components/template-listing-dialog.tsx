@@ -31,12 +31,22 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { getCategoryInfo } from "@/features/project-templates/lib/categories";
+import {
+  TEMPLATE_LANGUAGE_LABEL,
+  TEMPLATE_LEVEL_LABEL,
+} from "@/features/project-templates/lib/template-labels";
 import { useProjectTemplateCategoriesQuery } from "@/features/project-templates/hooks/use-project-templates";
 import {
   templateListingSchema,
   type TemplateListingFormValues,
 } from "@/features/project-templates/schemas";
-import { PROJECT_TEMPLATE_CATEGORIES } from "@/types/project-template";
+import {
+  PROJECT_TEMPLATE_CATEGORIES,
+  PROJECT_TEMPLATE_LANGUAGES,
+  PROJECT_TEMPLATE_LEVELS,
+} from "@/types/project-template";
+
+const NO_LEVEL = "__none__";
 
 interface TemplateListingDialogProps {
   open: boolean;
@@ -49,6 +59,8 @@ interface TemplateListingDialogProps {
   defaultValues: DefaultValues<TemplateListingFormValues>;
   isPending: boolean;
   onSubmit: (values: TemplateListingFormValues) => void;
+  /** Also tags, level, language and duration (where the API takes them). */
+  withDetails?: boolean;
 }
 
 export function TemplateListingDialog({
@@ -61,6 +73,7 @@ export function TemplateListingDialog({
   defaultValues,
   isPending,
   onSubmit,
+  withDetails = false,
 }: TemplateListingDialogProps) {
   const categoriesQuery = useProjectTemplateCategoriesQuery();
   const form = useForm<TemplateListingFormValues>({
@@ -151,6 +164,89 @@ export function TemplateListingDialog({
                 </FormItem>
               )}
             />
+
+            {withDetails ? (
+              <>
+                <FormField
+                  control={form.control}
+                  name="tags"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tags (opcional)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="agência, crm, vendas" {...field} value={field.value ?? ""} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <FormField
+                    control={form.control}
+                    name="level"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nível</FormLabel>
+                        <Select
+                          value={field.value || NO_LEVEL}
+                          onValueChange={(value) => field.onChange(value === NO_LEVEL ? "" : value)}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="w-full">
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value={NO_LEVEL}>Não informar</SelectItem>
+                            {PROJECT_TEMPLATE_LEVELS.map((level) => (
+                              <SelectItem key={level} value={level}>
+                                {TEMPLATE_LEVEL_LABEL[level]}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="language"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Idioma</FormLabel>
+                        <Select value={field.value ?? "pt-BR"} onValueChange={field.onChange}>
+                          <FormControl>
+                            <SelectTrigger className="w-full">
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {PROJECT_TEMPLATE_LANGUAGES.map((language) => (
+                              <SelectItem key={language} value={language}>
+                                {TEMPLATE_LANGUAGE_LABEL[language]}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="estimatedDurationDays"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Duração (dias)</FormLabel>
+                        <FormControl>
+                          <Input inputMode="numeric" {...field} value={field.value ?? ""} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </>
+            ) : null}
 
             <DialogFooter>
               <Button type="submit" disabled={isPending}>
