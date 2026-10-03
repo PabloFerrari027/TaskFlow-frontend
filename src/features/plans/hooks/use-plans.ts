@@ -1,17 +1,44 @@
 "use client";
 
-import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { toast } from "sonner";
 import { plansService } from "@/features/plans/api/plans-service";
 import { assistantService } from "@/features/assistant/api/assistant-service";
 import { quotaWindowStarts } from "@/features/plans/lib/plan-caps";
 import { queryKeys } from "@/lib/query-keys";
 import { getErrorCode, getErrorMessage } from "@/lib/errors";
+import type {
+  CreateCouponRequest,
+  ListCouponsParams,
+  UpdateCouponRequest,
+} from "@/types/plan";
 
 export function usePlansQuery() {
   return useQuery({
     queryKey: queryKeys.plans.all(),
     queryFn: () => plansService.list(),
+  });
+}
+
+/** The current plan, its discount and the price after it (API.md § 23). */
+export function useMyPlanQuery() {
+  return useQuery({
+    queryKey: queryKeys.plans.mine(),
+    queryFn: () => plansService.getMine(),
+  });
+}
+
+// Errors are shown inline by the coupon field.
+export function usePreviewCouponMutation() {
+  return useMutation({
+    mutationFn: ({ planId, code }: { planId: string; code: string }) =>
+      plansService.previewCoupon(planId, code),
   });
 }
 
@@ -50,15 +77,25 @@ export function useQuotaWindowsUsageQueries() {
   });
 }
 
-// `PATCH /plans/me` answers 200 with no body — there's nothing to write back
-// to the cache, and no endpoint to re-read the user's plan from (API.md § 23).
+// Answers with the same shape as `GET /plans/me`, already reflecting the
+// change. A coupon is redeemed atomically with it; coupon errors are shown
+// inline by the dialog, so they are not toasted here.
 export function useSetMyPlanMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (plan: { id: string; name: string }) => plansService.setMine(plan.id),
-    onSuccess: (_data, plan) => toast.success(`Plano ${plan.name} escolhido.`),
+    mutationFn: ({ plan, couponCode }: { plan: { id: string; name: string }; couponCode?: string }) =>
+      plansService.setMine(plan.id, couponCode),
+    onSuccess: (myPlan, { plan, couponCode }) => {
+      queryClient.setQueryData(queryKeys.plans.mine(), myPlan);
+      toast.success(
+        couponCode && myPlan.discount
+          ? `Plano ${plan.name} com o cupom ${myPlan.discount.couponCode}.`
+          : `Plano ${plan.name} escolhido.`
+      );
+    },
     onError: (error) => {
+      if (getErrorCode(error)?.startsWith("COUPON_")) return;
       // A SUPER_ADMIN may have removed or changed the plan since the list
       // loaded — refresh it so the user picks from what exists now.
       if (getErrorCode(error) === "PLAN_NOT_FOUND") {
@@ -82,7 +119,7 @@ export function useCreatePlanMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: { name: string; monthlyTokenBudget: number }) =>
+    mutationFn: (input: { name: string; monthlyTokenBudget: number; monthlyPriceCents?: number }) =>
       plansService.adminCreate(input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.plans.admin.all() });
@@ -104,10 +141,12 @@ export function useUpdatePlanMutation() {
     mutationFn: ({
       planId,
       monthlyTokenBudget,
+      monthlyPriceCents,
     }: {
       planId: string;
       monthlyTokenBudget: number;
-    }) => plansService.adminUpdate(planId, { monthlyTokenBudget }),
+      monthlyPriceCents: number;
+    }) => plansService.adminUpdate(planId, { monthlyTokenBudget, monthlyPriceCents }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.plans.admin.all() });
       toast.success("Plano atualizado.");
@@ -138,6 +177,82 @@ export function useAssignUserPlanMutation() {
         toast.error("Esse plano não existe mais. A lista foi atualizada.");
         return;
       }
+      toast.error(getErrorMessage(error));
+    },
+  });
+}
+
+// ---------------------------------------------------------------- coupons (SUPER_ADMIN)
+
+export function useCouponsQuery(params: ListCouponsParams) {
+  return useQuery({
+    queryKey: queryKeys.coupons.list(params),
+    queryFn: () => plansService.listCoupons(params),
+    placeholderData: keepPreviousData,
+    // A 403 means "not a super admin" — the page redirects, no retry.
+    retry: false,
+  });
+}
+
+export function useCouponRedemptionsQuery(couponId: string | null, page: number) {
+  return useQuery({
+    queryKey: queryKeys.coupons.redemptions(couponId ?? "", page),
+    queryFn: () => plansService.listCouponRedemptions(couponId!, { page, limit: 20 }),
+    enabled: Boolean(couponId),
+    placeholderData: keepPreviousData,
+  });
+}
+
+// Field errors (code taken, inconsistent terms) are shown by the form.
+const FORM_COUPON_ERRORS = new Set(["COUPON_CODE_ALREADY_EXISTS", "INVALID_COUPON"]);
+
+export function useCreateCouponMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: CreateCouponRequest) => plansService.createCoupon(input),
+    onSuccess: (coupon) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.coupons.root() });
+      toast.success(`Cupom ${coupon.code} criado.`);
+    },
+    onError: (error) => {
+      if (FORM_COUPON_ERRORS.has(getErrorCode(error) ?? "")) return;
+      toast.error(getErrorMessage(error));
+    },
+  });
+}
+
+export function useUpdateCouponMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ couponId, input }: { couponId: string; input: UpdateCouponRequest }) =>
+      plansService.updateCoupon(couponId, input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.coupons.root() });
+      toast.success("Cupom atualizado.");
+    },
+    onError: (error) => {
+      if (getErrorCode(error) === "INVALID_COUPON") return;
+      if (getErrorCode(error) === "COUPON_NOT_FOUND") {
+        queryClient.invalidateQueries({ queryKey: queryKeys.coupons.root() });
+      }
+      toast.error(getErrorMessage(error));
+    },
+  });
+}
+
+export function useDeleteCouponMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (couponId: string) => plansService.deleteCoupon(couponId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.coupons.root() });
+      toast.success("Cupom apagado.");
+    },
+    onError: (error) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.coupons.root() });
       toast.error(getErrorMessage(error));
     },
   });

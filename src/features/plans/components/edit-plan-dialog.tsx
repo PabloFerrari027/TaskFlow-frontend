@@ -16,6 +16,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -29,6 +30,7 @@ import {
 import { useUpdatePlanMutation } from "@/features/plans/hooks/use-plans";
 import { DerivedCapsHint } from "@/features/plans/components/derived-caps-hint";
 import { getErrorCode } from "@/lib/errors";
+import { centsToPriceInput, parsePriceInput } from "@/features/plans/lib/price";
 import type { Plan } from "@/types/plan";
 
 interface EditPlanDialogProps {
@@ -44,12 +46,19 @@ export function EditPlanDialog({ plan, open, onOpenChange }: EditPlanDialogProps
 
   const form = useForm<EditPlanFormInput, unknown, EditPlanFormValues>({
     resolver: zodResolver(editPlanSchema),
-    values: { monthlyTokenBudget: plan.monthlyTokenBudget },
+    values: {
+      monthlyTokenBudget: plan.monthlyTokenBudget,
+      monthlyPrice: centsToPriceInput(plan.monthlyPriceCents ?? 0),
+    },
   });
 
   function onSubmit(values: EditPlanFormValues) {
     updateMutation.mutate(
-      { planId: plan.id, monthlyTokenBudget: values.monthlyTokenBudget },
+      {
+        planId: plan.id,
+        monthlyTokenBudget: values.monthlyTokenBudget,
+        monthlyPriceCents: parsePriceInput(values.monthlyPrice),
+      },
       {
         onSuccess: () => onOpenChange(false),
         // The plan is gone — the hook already refreshed the list, so there's
@@ -75,7 +84,7 @@ export function EditPlanDialog({ plan, open, onOpenChange }: EditPlanDialogProps
               <Input id="plan-name" value={plan.name} disabled readOnly />
               <p className="text-sm text-muted-foreground">
                 O nome não pode ser alterado: ele é a chave fixa do plano, usada por integrações e
-                pelo plano padrão da plataforma. Só o limite mensal é editável.
+                pelo plano padrão da plataforma. Só o limite e o preço são editáveis.
               </p>
             </div>
 
@@ -96,6 +105,24 @@ export function EditPlanDialog({ plan, open, onOpenChange }: EditPlanDialogProps
                     />
                   </FormControl>
                   <DerivedCapsHint value={field.value} />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+
+            <FormField
+              control={form.control}
+              name="monthlyPrice"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Preço por mês (R$)</FormLabel>
+                  <FormControl>
+                    <Input inputMode="decimal" placeholder="49,90" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    0 = gratuito. Quem já resgatou um cupom mantém o preço com desconto que viu.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
