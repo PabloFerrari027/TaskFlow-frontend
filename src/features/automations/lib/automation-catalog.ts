@@ -18,6 +18,9 @@ export type FieldKind =
   | "project"
   | "section"
   | "taskStatus"
+  // A project's workflow status (etapa): the value is `CATEGORY` (the
+  // category's default) or `CATEGORY:statusId` — sent as `status` + `statusId`.
+  | "workflowStatus"
   | "taskPriority"
   | "projectStatus"
   | "approvalDecision"
@@ -452,6 +455,8 @@ export interface ActionParamSpec {
   // Text read between the previous chip and this one: "… para a seção [x]".
   lead: string;
   kind: FieldKind;
+  // Left out of the request when empty, and not required to save.
+  optional?: boolean;
 }
 
 export interface ActionSpec {
@@ -476,7 +481,7 @@ export const ACTIONS: ActionSpec[] = [
     tool: "change_task_status",
     label: "mudar o status da tarefa",
     needsTask: true,
-    params: [{ key: "status", label: "status", lead: "para", kind: "taskStatus" }],
+    params: [{ key: "status", label: "etapa", lead: "para", kind: "workflowStatus" }],
   },
   {
     tool: "assign_task",
@@ -503,6 +508,15 @@ export const ACTIONS: ActionSpec[] = [
     params: [{ key: "userId", label: "participante", lead: "", kind: "member" }],
   },
   {
+    tool: "request_task_approval",
+    label: "pedir a aprovação da tarefa",
+    needsTask: true,
+    params: [
+      { key: "approverId", label: "aprovador", lead: "a", kind: "member" },
+      { key: "note", label: "nota (opcional)", lead: "com a nota", kind: "text", optional: true },
+    ],
+  },
+  {
     tool: "create_task",
     label: "criar uma tarefa",
     needsTask: false,
@@ -526,8 +540,24 @@ export function eventFieldsForKind(
   event: TriggerEventSpec | undefined,
   kind: FieldKind
 ): PayloadFieldSpec[] {
-  // A free-text param (e.g. a task title) accepts any field's value.
-  return payloadFieldsOf(event).filter((field) => kind === "text" || field.kind === kind);
+  // A free-text param (e.g. a task title) accepts any field's value; an etapa
+  // accepts a status category (the category's default etapa).
+  return payloadFieldsOf(event).filter(
+    (field) =>
+      kind === "text" ||
+      field.kind === kind ||
+      (kind === "workflowStatus" && field.kind === "taskStatus")
+  );
+}
+
+export function toWorkflowStatusValue(status: string, statusId?: string | null) {
+  return statusId ? `${status}:${statusId}` : status;
+}
+
+/** Splits a `workflowStatus` value into the `status`/`statusId` params. */
+export function parseWorkflowStatusValue(value: string): { status: string; statusId?: string } {
+  const [status, statusId] = value.split(":");
+  return statusId ? { status, statusId } : { status };
 }
 
 const PLACEHOLDER = /^\s*\{\{\s*payload\.([A-Za-z0-9_]+)\s*\}\}\s*$/;

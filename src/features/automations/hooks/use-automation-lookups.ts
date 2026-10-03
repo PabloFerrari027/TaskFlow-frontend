@@ -8,6 +8,15 @@ import {
   TASK_STATUS_LABEL,
 } from "@/components/shared/status-badge";
 import { sectionsService } from "@/features/sections/api/sections-service";
+import { tasksService } from "@/features/tasks/api/tasks-service";
+import {
+  STATUS_CATEGORIES,
+  statusesOfCategory,
+} from "@/features/tasks/hooks/use-workflow-statuses";
+import {
+  parseWorkflowStatusValue,
+  toWorkflowStatusValue,
+} from "@/features/automations/lib/automation-catalog";
 import { useProjectsQuery } from "@/features/projects/hooks/use-projects";
 import { useWorkspaceQuery } from "@/features/workspaces/hooks/use-workspaces";
 import type { FieldKind } from "@/features/automations/lib/automation-catalog";
@@ -18,6 +27,7 @@ import { queryKeys } from "@/lib/query-keys";
 import { buildTree, flattenTree, getAncestors } from "@/lib/tree";
 import { MAX_PAGE_SIZE } from "@/types/common";
 import type { Section } from "@/types/section";
+import type { WorkflowStatus } from "@/types/task";
 
 export interface PickerOption {
   value: string;
@@ -57,6 +67,18 @@ interface SectionsCombined {
   isLoading: boolean;
 }
 
+interface StatusesCombined {
+  statuses: WorkflowStatus[];
+  isLoading: boolean;
+}
+
+// What a rule without `statusId` does: the category's default etapa.
+const CATEGORY_DEFAULT_OPTIONS: PickerOption[] = STATUS_CATEGORIES.map((category) => ({
+  value: category,
+  label: `${TASK_STATUS_LABEL[category]} (etapa padrão)`,
+  group: "Qualquer projeto",
+}));
+
 // Sections have no workspace-level endpoint, so a rule's section can only be
 // found by asking every project. The query key/fn are the same ones the board
 // uses (`useSectionsQuery`), so a project already opened is served from cache.
@@ -77,9 +99,26 @@ export function useAutomationLookups(workspaceId: string): AutomationLookups {
     }),
   });
 
+  // Same key/fn as `useProjectStatusesQuery`, so an opened project is cached.
+  const statusesResult = useQueries({
+    queries: projects.map((project) => ({
+      queryKey: queryKeys.statuses.all(project.id),
+      queryFn: () => tasksService.listStatuses(project.id),
+      staleTime: 5 * 60_000,
+    })),
+    combine: (results): StatusesCombined => ({
+      statuses: results.flatMap((result) => result.data ?? []),
+      isLoading: results.some((result) => result.isLoading),
+    }),
+  });
+
   const members = workspaceQuery.data?.members;
+  const workflowStatuses = statusesResult.statuses;
   const isLoading =
-    workspaceQuery.isLoading || projectsQuery.isLoading || sectionsResult.isLoading;
+    workspaceQuery.isLoading ||
+    projectsQuery.isLoading ||
+    sectionsResult.isLoading ||
+    statusesResult.isLoading;
 
   return React.useMemo(() => {
     const memberNames = new Map(
@@ -130,6 +169,26 @@ export function useAutomationLookups(workspaceId: string): AutomationLookups {
       keywords: [member.role, member.userId],
     }));
 
+    // A custom etapa only exists in its own project, so options are grouped by
+    // project; the backend refuses one from another project when the rule runs.
+    const statusOptions: PickerOption[] = [...CATEGORY_DEFAULT_OPTIONS];
+    const statusLabels = new Map<string, string>();
+    for (const project of projects) {
+      const projectName = projectLabels.get(project.id) ?? project.name;
+      const own = workflowStatuses.filter((status) => status.projectId === project.id);
+      for (const category of STATUS_CATEGORIES) {
+        for (const status of statusesOfCategory(own, category)) {
+          statusLabels.set(status.id, `${status.name} (${projectName})`);
+          statusOptions.push({
+            value: toWorkflowStatusValue(category, status.id),
+            label: status.name,
+            group: projectName,
+            keywords: [TASK_STATUS_LABEL[category]],
+          });
+        }
+      }
+    }
+
     const unknown = (kind: string, id: string) => `${kind} ${shortenId(id)}…`;
 
     return {
@@ -138,6 +197,8 @@ export function useAutomationLookups(workspaceId: string): AutomationLookups {
         switch (kind) {
           case "taskStatus":
             return STATUS_OPTIONS;
+          case "workflowStatus":
+            return statusOptions;
           case "taskPriority":
             return PRIORITY_OPTIONS;
           case "projectStatus":
@@ -158,6 +219,12 @@ export function useAutomationLookups(workspaceId: string): AutomationLookups {
         switch (kind) {
           case "taskStatus":
             return (TASK_STATUS_LABEL as Record<string, string>)[value] ?? value;
+          case "workflowStatus": {
+            const { status, statusId } = parseWorkflowStatusValue(value);
+            const category = (TASK_STATUS_LABEL as Record<string, string>)[status] ?? status;
+            if (!statusId) return category;
+            return statusLabels.get(statusId) ?? `${category} (etapa ${shortenId(statusId)}…)`;
+          }
           case "taskPriority":
             return (TASK_PRIORITY_LABEL as Record<string, string>)[value] ?? value;
           case "projectStatus":
@@ -175,5 +242,12 @@ export function useAutomationLookups(workspaceId: string): AutomationLookups {
         }
       },
     };
-  }, [currentUserId, isLoading, members, projects, sectionsResult.sections]);
+  }, [
+    currentUserId,
+    isLoading,
+    members,
+    projects,
+    sectionsResult.sections,
+    workflowStatuses,
+  ]);
 }

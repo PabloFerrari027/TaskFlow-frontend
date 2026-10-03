@@ -12,8 +12,10 @@ import {
   findAction,
   findTriggerEvent,
   parsePlaceholder,
+  parseWorkflowStatusValue,
   payloadFieldsOf,
   toPlaceholder,
+  toWorkflowStatusValue,
   type ActionSpec,
   type FieldKind,
   type TriggerEventSpec,
@@ -138,14 +140,21 @@ export function coerceConditionValue(
 export function fromRule(rule: AutomationRule): RuleDraft {
   const spec = findAction(rule.action.tool);
   const specKeys = new Set(spec?.params.map((param) => param.key));
+  // An etapa is edited as one value that the request splits into `status` + `statusId`.
+  if (spec?.params.some((param) => param.kind === "workflowStatus")) specKeys.add("statusId");
 
   const params: Record<string, ParamDraft> = {};
   for (const param of spec?.params ?? []) {
     const raw = rule.action.params[param.key];
     const eventField = parsePlaceholder(raw);
+    let fixed = raw === undefined || raw === null ? "" : String(raw);
+    if (param.kind === "workflowStatus" && fixed !== "") {
+      const statusId = rule.action.params.statusId;
+      fixed = toWorkflowStatusValue(fixed, typeof statusId === "string" ? statusId : null);
+    }
     params[param.key] = eventField
       ? { mode: "event", value: "", eventField }
-      : { mode: "fixed", value: raw === undefined || raw === null ? "" : String(raw), eventField: "" };
+      : { mode: "fixed", value: fixed, eventField: "" };
   }
 
   const extraParams: Record<string, unknown> = {};
@@ -211,6 +220,13 @@ export function toRequest(draft: RuleDraft, fallbackName: string): CreateAutomat
   for (const param of spec?.params ?? []) {
     const draftParam = draft.params[param.key];
     if (!draftParam) continue;
+    if (param.kind === "workflowStatus" && draftParam.mode === "fixed") {
+      if (draftParam.value === "") continue;
+      const { status, statusId } = parseWorkflowStatusValue(draftParam.value);
+      params[param.key] = status;
+      if (statusId) params.statusId = statusId;
+      continue;
+    }
     const value =
       draftParam.mode === "event" ? toPlaceholder(draftParam.eventField) : draftParam.value;
     if (value !== "") params[param.key] = value;
@@ -265,7 +281,9 @@ export function validateDraft(draft: RuleDraft): string[] {
   const spec = findAction(draft.tool);
   if (!draft.tool) problems.push("o que ela deve fazer (passo 3)");
   for (const param of spec?.params ?? []) {
-    if (!isParamComplete(draft.params[param.key])) problems.push(`${param.label} (passo 3)`);
+    if (!param.optional && !isParamComplete(draft.params[param.key])) {
+      problems.push(`${param.label} (passo 3)`);
+    }
   }
   return problems;
 }
@@ -316,7 +334,9 @@ function paramSegments(
   return spec.params.flatMap((param) => {
     const draftParam = draft.params[param.key];
     const lead = param.lead ? [plain(` ${param.lead}`)] : [];
-    if (!isParamComplete(draftParam)) return [...lead, plain(" "), missing(param.label)];
+    if (!isParamComplete(draftParam)) {
+      return param.optional ? [] : [...lead, plain(" "), missing(param.label)];
+    }
     const text =
       draftParam.mode === "event"
         ? eventValueText(draftParam.eventField, event)

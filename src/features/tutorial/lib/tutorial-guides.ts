@@ -1236,7 +1236,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
           "Escolha o que observar: tarefa, comentário, coluna ou campo extra.",
           "Escolha o evento. Exemplos para tarefas: status alterado, responsável alterado, mudar de coluna, prazo alterado, prioridade alterada, ganhar ou perder participante.",
           "Opcional: adicione condições para a regra só valer em certos casos (por exemplo, “o novo status for Concluída”).",
-          "Escolha a ação: mover a tarefa, mudar o status, atribuir a tarefa, mudar a prioridade, adicionar ou remover participante.",
+          "Escolha a ação: mover a tarefa, mudar a etapa (uma das etapas do projeto ou a padrão de A fazer, Em andamento ou Concluída), atribuir a tarefa, mudar a prioridade, adicionar ou remover participante, ou pedir a aprovação de alguém (com uma nota opcional).",
           "Preencha os valores da ação e confira a frase de prévia no topo do formulário, que muda a cada escolha.",
           "Salve. O nome é opcional: se você deixar em branco, a própria frase vira o nome.",
         ],
