@@ -45,13 +45,20 @@ export function WorkspaceTemplateActions({ template, onDeleted }: WorkspaceTempl
           open
           onOpenChange={setEditOpen}
           title="Editar modelo"
-          description="Muda o nome, a descrição e a categoria. As colunas e os campos continuam os mesmos."
+          description="Muda como o modelo aparece. A estrutura só muda com uma versão nova."
           submitLabel="Salvar"
           isPending={updateMutation.isPending}
+          withDetails
           defaultValues={{
             name: template.name,
             description: template.description ?? "",
             category: template.category,
+            tags: (template.tags ?? []).join(", "),
+            level: template.level ?? "",
+            language: template.language ?? "pt-BR",
+            estimatedDurationDays: template.estimatedDurationDays
+              ? String(template.estimatedDurationDays)
+              : "",
           }}
           onSubmit={(values) =>
             updateMutation.mutate(

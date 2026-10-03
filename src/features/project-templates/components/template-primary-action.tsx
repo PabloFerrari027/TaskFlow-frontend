@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Lock, Plus, Sparkles } from "lucide-react";
+import { Lock, Plus, RefreshCw, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -21,7 +21,13 @@ function Note({ icon, children }: { icon: React.ReactNode; children: React.React
   );
 }
 
-function UseAction({ template }: { template: ProjectTemplateDetail }) {
+function UseAction({
+  template,
+  applyToProjectId,
+}: {
+  template: ProjectTemplateDetail;
+  applyToProjectId?: string;
+}) {
   const { workspace, isLoading } = useCurrentWorkspace();
   const { userId } = useAuth();
   const [useOpen, setUseOpen] = React.useState(false);
@@ -61,7 +67,7 @@ function UseAction({ template }: { template: ProjectTemplateDetail }) {
   return (
     <div className="space-y-3">
       <Button size="lg" disabled={!allowed} onClick={() => setUseOpen(true)}>
-        <Sparkles /> Usar este modelo
+        <Sparkles /> {applyToProjectId ? "Aplicar ao projeto" : "Usar este modelo"}
       </Button>
       {allowed ? (
         <p className="text-sm text-muted-foreground">
@@ -85,8 +91,28 @@ function UseAction({ template }: { template: ProjectTemplateDetail }) {
           </p>
         </Note>
       )}
+      {template.updateAvailable ? (
+        <Note icon={<RefreshCw />}>
+          <p>
+            Há uma versão nova deste modelo (v{template.version}). Você usou a v
+            {template.myLastInstantiatedVersion}. Para trazer as novidades a um projeto que já
+            existe, use “Projeto existente”.
+          </p>
+        </Note>
+      ) : null}
       {useOpen ? (
-        <UseTemplateDialog template={template} workspace={workspace} open onOpenChange={setUseOpen} />
+        <UseTemplateDialog
+          source={{
+            kind: "template",
+            templateId: template.id,
+            name: template.name,
+            questions: template.preview,
+          }}
+          workspace={workspace}
+          open
+          onOpenChange={setUseOpen}
+          applyToProjectId={applyToProjectId}
+        />
       ) : null}
     </div>
   );
@@ -94,6 +120,12 @@ function UseAction({ template }: { template: ProjectTemplateDetail }) {
 
 // The detail only answers for templates the user may see (404 otherwise), so
 // what's left to check is the workspace and the role (API.md § 26.3).
-export function TemplatePrimaryAction({ template }: { template: ProjectTemplateDetail }) {
-  return <UseAction template={template} />;
+export function TemplatePrimaryAction({
+  template,
+  applyToProjectId,
+}: {
+  template: ProjectTemplateDetail;
+  applyToProjectId?: string;
+}) {
+  return <UseAction template={template} applyToProjectId={applyToProjectId} />;
 }

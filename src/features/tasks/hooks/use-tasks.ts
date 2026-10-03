@@ -862,7 +862,7 @@ export function useRemoveAttachmentMutation(taskId: string) {
   });
 }
 
-function useObjectUrl(blob: Blob | null | undefined, mimeType: string) {
+export function useObjectUrl(blob: Blob | null | undefined, mimeType: string) {
   const [objectUrl, setObjectUrl] = React.useState<string | null>(null);
 
   React.useEffect(() => {

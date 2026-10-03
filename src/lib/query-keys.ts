@@ -197,6 +197,15 @@ export const queryKeys = {
     detail: (templateId: string) => ["project-templates", "detail", templateId] as const,
     workspace: (workspaceId: string) =>
       ["project-templates", "workspace", workspaceId] as const,
+    versions: (templateId: string) => ["project-templates", "versions", templateId] as const,
+    instantiation: (instantiationId: string) =>
+      ["project-templates", "instantiation", instantiationId] as const,
+    // Binary images (cover / screenshot N). The URL never changes when an
+    // image is replaced, so `stamp` (the template's `updatedAt`) is in the key.
+    image: (templateId: string, image: "cover" | number, stamp?: string) =>
+      stamp === undefined
+        ? (["template-images", templateId, image] as const)
+        : (["template-images", templateId, image, stamp] as const),
     adminLists: () => ["project-templates", "admin"] as const,
     adminList: (filters: AdminProjectTemplateFilters) =>
       ["project-templates", "admin", filters] as const,

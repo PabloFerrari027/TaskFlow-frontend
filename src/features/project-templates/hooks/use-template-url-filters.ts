@@ -4,13 +4,23 @@ import * as React from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   PROJECT_TEMPLATE_CATEGORIES,
+  PROJECT_TEMPLATE_LEVELS,
   type ProjectTemplateCategory,
+  type ProjectTemplateLevel,
+  type ProjectTemplateSort,
 } from "@/types/project-template";
+
+// `relevance` is the API's own default while searching, so it is never picked here.
+export const TEMPLATE_SORTS: readonly ProjectTemplateSort[] = ["featured", "popular", "newest"];
 
 export interface TemplateUrlFilters {
   page: number;
   category?: ProjectTemplateCategory;
   search?: string;
+  level?: ProjectTemplateLevel;
+  sort?: ProjectTemplateSort;
+  /** Came from "Aplicar um modelo" in this project: kept while browsing. */
+  applyTo?: string;
 }
 
 function pick<T extends string>(value: string | null, allowed: readonly T[]): T | undefined {
@@ -24,6 +34,9 @@ function parse(params: URLSearchParams): TemplateUrlFilters {
     category: pick(params.get("category"), PROJECT_TEMPLATE_CATEGORIES),
     // The API caps `search` at 100 characters.
     search: params.get("search")?.trim().slice(0, 100) || undefined,
+    level: pick(params.get("level"), PROJECT_TEMPLATE_LEVELS),
+    sort: pick(params.get("sort"), TEMPLATE_SORTS),
+    applyTo: params.get("applyTo") || undefined,
   };
 }
 
@@ -46,7 +59,10 @@ export function useTemplateUrlFilters() {
       const params = new URLSearchParams();
       if (next.search) params.set("search", next.search);
       if (next.category) params.set("category", next.category);
+      if (next.level) params.set("level", next.level);
+      if (next.sort) params.set("sort", next.sort);
       if (next.page > 1) params.set("page", String(next.page));
+      if (next.applyTo) params.set("applyTo", next.applyTo);
       const query = params.toString();
       const url = query ? `${pathname}?${query}` : pathname;
       if (options.replace) router.replace(url, { scroll: false });
@@ -55,10 +71,10 @@ export function useTemplateUrlFilters() {
     [filters, pathname, router]
   );
 
-  const hasActiveFilters = Boolean(filters.search || filters.category);
+  const hasActiveFilters = Boolean(filters.search || filters.category || filters.level);
 
   const clearFilters = React.useCallback(
-    () => setFilters({ search: undefined, category: undefined }),
+    () => setFilters({ search: undefined, category: undefined, level: undefined }),
     [setFilters]
   );
 

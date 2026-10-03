@@ -22,6 +22,7 @@ export const CATEGORY_FALLBACK: Record<
   HOME_PERSONAL: { label: "Vida pessoal e casa", icon: "🏠" },
   CAREER_FREELANCE: { label: "Carreira e freelas", icon: "🧑‍💼" },
   INDUSTRY_SPECIFIC: { label: "Setores específicos", icon: "🏗️" },
+  AGRIBUSINESS: { label: "Agropecuária", icon: "🌾" },
 };
 
 export function getCategoryInfo(

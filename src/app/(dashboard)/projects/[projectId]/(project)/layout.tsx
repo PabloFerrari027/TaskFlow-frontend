@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import { use } from "react";
-import { Archive, FolderInput, FolderPlus, LayoutTemplate, Pencil } from "lucide-react";
+import Link from "next/link";
+import { Archive, FolderInput, FolderPlus, LayoutTemplate, Pencil, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/shared/page-header";
@@ -83,6 +84,13 @@ export default function ProjectDetailLayout(
               <Button variant="outline" size="sm" onClick={() => setSaveTemplateOpen(true)}>
                 <LayoutTemplate /> Salvar como modelo
               </Button>
+              {project.status === "ACTIVE" ? (
+                <Button asChild variant="outline" size="sm">
+                  <Link href={`/templates?applyTo=${project.id}`}>
+                    <Wand2 /> Aplicar um modelo
+                  </Link>
+                </Button>
+              ) : null}
               {project.status === "ACTIVE" ? (
                 <Button
                   variant="outline"

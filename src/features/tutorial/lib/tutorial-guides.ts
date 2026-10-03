@@ -444,18 +444,19 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         heading: "Usar um modelo",
         steps: [
           "Abra Modelos no menu lateral (ou “Começar de um modelo”, na página Projetos).",
-          "No alto aparecem os modelos do seu workspace. Mais abaixo, os do TaskFlow, com busca e filtro por categoria.",
-          "Abra um modelo para ver a prévia: as colunas, os campos extras e as tarefas de exemplo.",
-          "Clique em “Usar este modelo”, dê um nome ao projeto e confirme.",
+          "No alto aparecem os modelos do seu workspace. Mais abaixo, os do TaskFlow, com busca (por nome, descrição ou tag), filtro por categoria e nível, e ordem por destaques, mais usados ou mais recentes.",
+          "Abra um modelo para ver a prévia: o guia, as colunas, as etapas, as tarefas de exemplo (com marcos e dependências), os campos, as automações, os formulários, as visões, os painéis e os subprojetos.",
+          "Clique em “Usar este modelo”, dê um nome ao projeto e responda o que o modelo perguntar (veja abaixo).",
+          "Acompanhe a barra de progresso. Quando terminar, você vai direto para o projeto criado.",
         ],
         callouts: [
           {
             kind: "tip",
-            text: "Também dá para escolher um modelo direto em “Novo projeto”: os modelos aparecem logo acima do nome, começando pelos do seu workspace.",
+            text: "Também dá para escolher um modelo direto em “Novo projeto” ou “Criar sub-projeto”: os modelos aparecem logo abaixo do nome, começando pelos do seu workspace.",
           },
           {
             kind: "note",
-            text: "O projeto é criado no workspace que estiver selecionado no topo da tela. Só Proprietário e Administrador desse workspace podem usar modelos, porque o modelo cria campos extras. Se o botão aparecer desativado, troque de workspace ou peça a um administrador.",
+            text: "O projeto é criado no workspace que estiver selecionado no topo da tela. Só Proprietário e Administrador desse workspace podem usar modelos, porque o modelo cria campos extras e automações. Se o botão aparecer desativado, troque de workspace ou peça a um administrador.",
           },
           {
             kind: "tip",
@@ -464,11 +465,42 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         ],
       },
       {
+        heading: "O que o modelo pergunta",
+        intro: "Alguns modelos pedem informações antes de criar o projeto:",
+        bullets: [
+          "Personalize: textos que entram nos nomes das colunas e tarefas, como o nome do cliente. Os marcados com * são obrigatórios.",
+          "Data de referência (por exemplo, “Data do evento”): os prazos são contados a partir dela, inclusive para trás (“14 dias antes”). Sem ela, o modelo usa a primeira data em que nenhuma tarefa nasce atrasada.",
+          "Partes opcionais: blocos que você liga ou desliga, como uma fase de testes. O que estiver desligado não é criado.",
+          "Quem faz o quê: escolha a pessoa de cada papel (por exemplo, Designer). Ela vira a responsável pelas tarefas desse papel. Sem ninguém, as tarefas ficam sem responsável.",
+        ],
+      },
+      {
+        heading: "Aplicar um modelo num projeto que já existe",
+        steps: [
+          "No cabeçalho do projeto, clique em “Aplicar um modelo” e escolha o modelo. Ou, na página do modelo, clique em “Usar este modelo” e escolha a aba “Projeto existente”.",
+          "Responda o que o modelo perguntar e clique em “Aplicar ao projeto”.",
+        ],
+        bullets: [
+          "Colunas e tarefas entram depois das que o projeto já tem.",
+          "Um campo extra com o mesmo nome e o mesmo tipo é reaproveitado. Se o nome for igual mas o tipo for outro, nada é aplicado e o aviso diz qual campo conflita.",
+          "Subprojetos do modelo viram subprojetos deste projeto.",
+        ],
+        callouts: [
+          {
+            kind: "tip",
+            text: "Quando um modelo que você já usou ganha uma versão nova, a página dele avisa. Aplicar de novo num projeto existente é o jeito de trazer as novidades.",
+          },
+        ],
+      },
+      {
         heading: "O que vem no projeto criado",
         bullets: [
-          "As colunas do modelo, inclusive as subcolunas, além da coluna padrão que todo projeto tem.",
-          "Os campos extras, com as opções já preenchidas.",
-          "As tarefas de exemplo, com subtarefas e prioridade. Os prazos são contados a partir do dia em que você usa o modelo: “prazo: 3 dias após criar” vira uma data 3 dias depois de hoje.",
+          "As colunas do modelo, inclusive as subcolunas. A primeira coluna do modelo vira a coluna padrão do projeto.",
+          "As etapas do fluxo (por exemplo, “Em revisão”), quando o modelo tem as suas.",
+          "Os campos extras, com descrição, valor padrão e cores das opções.",
+          "As tarefas de exemplo, com subtarefas, prioridade, etapa, responsável (pelo papel), início, prazo, estimativa, marcos e dependências.",
+          "Um guia de uso como primeira tarefa (“Comece por aqui”), quando o modelo tem.",
+          "Automações, tarefas repetidas, formulários públicos, visões salvas, painéis e subprojetos, quando o modelo tem.",
         ],
         callouts: [
           {
@@ -478,30 +510,46 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         ],
       },
       {
-        heading: "Salvar um projeto seu como modelo",
+        heading: "Criar ou adaptar um modelo com IA",
         steps: [
-          "Abra o projeto e clique em “Salvar como modelo”, no cabeçalho.",
-          "Dê um nome, uma descrição e escolha a categoria.",
-          "Clique em “Salvar modelo”. Ele passa a aparecer em Modelos, na parte do seu workspace.",
-        ],
-        bullets: [
-          "Vão para o modelo: as colunas (com as subcolunas) e os campos extras.",
-          "Não vão: tarefas, comentários, anexos, valores preenchidos e as pessoas do projeto.",
-          "O limite é de 100 colunas e 50 campos extras por projeto.",
+          "Em Modelos, no quadro do seu workspace, clique em “Criar com IA” e descreva o que você quer organizar. Ou, na página de um modelo, clique em “Adaptar com IA” e diga o que mudar.",
+          "Confira o rascunho: a prévia mostra tudo o que ele vai criar. Nada foi salvo ainda.",
+          "Clique em “Criar projeto” para usar o rascunho agora, ou em “Salvar como modelo” para guardá-lo no workspace.",
         ],
         callouts: [
           {
             kind: "note",
-            text: "O modelo é privado: só as pessoas do workspace veem e usam. Ele é uma cópia congelada do projeto no momento em que foi salvo. Para atualizar, salve o projeto de novo (vira um modelo novo) e exclua o antigo.",
+            text: "A IA cria colunas, campos, tarefas e um guia, mas não automações, painéis, papéis nem subprojetos. O pedido usa a cota de IA do seu plano.",
           },
         ],
       },
       {
-        heading: "Editar e excluir",
-        intro:
-          "Abra um modelo do seu workspace. Proprietários e Administradores veem estas ações:",
+        heading: "Salvar um projeto seu como modelo",
+        steps: [
+          "Abra o projeto e clique em “Salvar como modelo”, no cabeçalho.",
+          "Escolha o que levar e, se quiser, escreva um guia de uso.",
+          "Dê um nome, uma descrição e escolha a categoria. Clique em “Salvar modelo”.",
+        ],
         bullets: [
-          "“Editar modelo” muda nome, descrição e categoria.",
+          "Sempre vão: as colunas (com as subcolunas), os campos extras, as etapas, os formulários e as visões compartilhadas.",
+          "Você escolhe se vão: as tarefas (e se mantêm a etapa), os subprojetos, as tarefas repetidas, as automações do projeto e os gráficos de até 5 painéis.",
+          "Nunca vão: responsáveis, comentários, anexos e as pessoas do projeto.",
+        ],
+        callouts: [
+          {
+            kind: "note",
+            text: "O modelo é privado: só as pessoas do workspace veem e usam. Ele é uma cópia congelada do projeto. Para atualizá-lo, publique uma versão nova (veja abaixo).",
+          },
+        ],
+      },
+      {
+        heading: "Editar, versões, imagens e excluir",
+        intro:
+          "Abra um modelo do seu workspace. Proprietários e Administradores veem o quadro “Gerenciar este modelo”:",
+        bullets: [
+          "“Editar modelo” muda nome, descrição, categoria, tags, nível, idioma e duração.",
+          "“Publicar versão nova” lê o projeto de origem de novo, como ele está agora. Escreva o que mudou: aparece no histórico de versões. Quem já usou o modelo é avisado de que há uma versão nova.",
+          "Capa e imagens: a capa aparece no cartão do modelo; as imagens (até 6), na página dele. JPEG, PNG ou WebP de até 5MB.",
           "“Excluir” apaga o modelo para todo o workspace. Projetos já criados com ele continuam iguais.",
         ],
         callouts: [
@@ -526,11 +574,12 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         question: "Mudei meu projeto. O modelo que salvei muda junto?",
         answer:
-          "Não. O modelo guarda a estrutura do dia em que foi salvo. Salve de novo para criar uma versão atualizada.",
+          "Não. O modelo guarda a estrutura do dia em que foi salvo. Use “Publicar versão nova” na página do modelo para atualizá-lo.",
       },
       {
         question: "Dá para aplicar um modelo num projeto que já existe?",
-        answer: "Não. Um modelo sempre cria um projeto novo.",
+        answer:
+          "Sim. Use “Aplicar um modelo” no cabeçalho do projeto, ou a aba “Projeto existente” ao usar o modelo. O conteúdo entra depois do que o projeto já tem.",
       },
     ],
     related: ["projects", "custom-fields", "board"],

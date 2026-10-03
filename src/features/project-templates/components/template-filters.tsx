@@ -3,13 +3,34 @@
 import * as React from "react";
 import { Search } from "lucide-react";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { TEMPLATE_LEVEL_LABEL } from "@/features/project-templates/lib/template-labels";
+import { TEMPLATE_SORTS } from "@/features/project-templates/hooks/use-template-url-filters";
 import { cn } from "@/lib/utils";
 import { getCategoryInfo } from "@/features/project-templates/lib/categories";
 import type { TemplateUrlFilters } from "@/features/project-templates/hooks/use-template-url-filters";
 import {
   PROJECT_TEMPLATE_CATEGORIES,
+  PROJECT_TEMPLATE_LEVELS,
   type ProjectTemplateCategoryInfo,
+  type ProjectTemplateLevel,
+  type ProjectTemplateSort,
 } from "@/types/project-template";
+
+const SORT_LABEL: Record<ProjectTemplateSort, string> = {
+  featured: "Destaques",
+  popular: "Mais usados",
+  newest: "Mais recentes",
+  relevance: "Mais relevantes",
+};
+
+const ANY_LEVEL = "__any__";
 
 const SEARCH_DEBOUNCE_MS = 350;
 
@@ -60,7 +81,7 @@ function SearchBox({
       </InputGroupAddon>
       <InputGroupInput
         type="search"
-        placeholder="Buscar por nome ou descrição"
+        placeholder="Buscar por nome, descrição ou tag"
         aria-label="Buscar modelos"
         maxLength={100}
         value={input}
@@ -106,6 +127,43 @@ export function TemplateFilters({ filters, setFilters, categories, extra }: Temp
     <div className="space-y-3">
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
         <SearchBox value={filters.search ?? ""} onDebouncedChange={onSearch} />
+        <Select
+          value={filters.level ?? ANY_LEVEL}
+          onValueChange={(value) =>
+            setFilters({ level: value === ANY_LEVEL ? undefined : (value as ProjectTemplateLevel) })
+          }
+        >
+          <SelectTrigger aria-label="Nível" className="sm:w-40">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ANY_LEVEL}>Qualquer nível</SelectItem>
+            {PROJECT_TEMPLATE_LEVELS.map((level) => (
+              <SelectItem key={level} value={level}>
+                {TEMPLATE_LEVEL_LABEL[level]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {/* While searching the API orders by relevance unless told otherwise. */}
+        <Select
+          value={filters.sort ?? (filters.search ? "relevance" : "featured")}
+          onValueChange={(value) =>
+            setFilters({ sort: value === "relevance" ? undefined : (value as ProjectTemplateSort) })
+          }
+        >
+          <SelectTrigger aria-label="Ordenar" className="sm:w-44">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {filters.search ? <SelectItem value="relevance">{SORT_LABEL.relevance}</SelectItem> : null}
+            {TEMPLATE_SORTS.map((sort) => (
+              <SelectItem key={sort} value={sort}>
+                {SORT_LABEL[sort]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         {extra}
       </div>
 

@@ -11,12 +11,19 @@ import { toast } from "sonner";
 import { projectTemplatesService } from "@/features/project-templates/api/project-templates-service";
 import { queryKeys } from "@/lib/query-keys";
 import { browserTimezone } from "@/features/recurring-tasks/lib/schedule-text";
+import { useObjectUrl } from "@/features/tasks/hooks/use-tasks";
 import { getErrorCode, getErrorMessage, getServerErrorMessage } from "@/lib/errors";
 import type {
   AdminProjectTemplateFilters,
+  ApplyProjectTemplateRequest,
   CreateProjectTemplateRequest,
+  InstantiateDraftRequest,
+  InstantiateProjectTemplateRequest,
   ProjectTemplateDetail,
   ProjectTemplateFilters,
+  ProjectTemplateLanguage,
+  ProjectTemplateSummary,
+  PublishTemplateVersionRequest,
   SaveProjectAsTemplateRequest,
   UpdateProjectTemplateListingRequest,
   UpdateProjectTemplateRequest,
@@ -88,41 +95,238 @@ function forgetTemplate(queryClient: QueryClient, templateId: string) {
   invalidateCatalog(queryClient);
 }
 
+// Errors that come back before anything is written: choices are validated
+// first, and a failure mid-way undoes everything (API.md § 26.3).
+function toastInstantiationError(queryClient: QueryClient, error: unknown, templateId?: string) {
+  const code = getErrorCode(error);
+  if (code === "PROJECT_TEMPLATE_NOT_FOUND" && templateId) {
+    forgetTemplate(queryClient, templateId);
+    toast.error("Este modelo não está mais disponível. Nada foi criado; escolha outro.");
+    return;
+  }
+  if (code === "FORBIDDEN_WORKSPACE_ACTION") {
+    toast.error("Só donos e administradores do workspace podem usar modelos. Nada foi criado.");
+    return;
+  }
+  if (code === "INVALID_TEMPLATE_INSTANTIATION" || code === "INVALID_PROJECT_TEMPLATE_SKELETON") {
+    // The server's text says which choice is wrong.
+    const detail = getServerErrorMessage(error);
+    toast.error(getErrorMessage(error), detail ? { description: detail } : undefined);
+    return;
+  }
+  toast.error(`${getErrorMessage(error)} Nada foi criado; tente de novo.`);
+}
+
+// Always queued (`async: true`): a big template takes a while, and the 202
+// gives an id whose progress `useTemplateInstantiationQuery` follows. The
+// browser's timezone drives the template's recurring tasks.
+const QUEUED = () => ({ async: true, timezone: browserTimezone() });
+
 /**
  * Not idempotent — two calls create two projects — so callers must block a
- * second submit while `isPending`. The API is all-or-nothing (API.md § 26.3):
- * on any error the partial project was already discarded, so the message can
- * safely say nothing was created.
+ * second submit while `isPending` (and while the queued run is going).
  */
 export function useInstantiateProjectTemplateMutation(workspaceId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ templateId, name }: { templateId: string; name: string }) =>
-      // The browser's timezone drives the template's recurring tasks (API.md § 26.3).
-      projectTemplatesService.instantiate(workspaceId, templateId, {
-        name,
-        timezone: browserTimezone(),
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.projects.all(workspaceId) });
-      toast.success("Projeto criado a partir do modelo.");
+    mutationFn: ({
+      templateId,
+      input,
+    }: {
+      templateId: string;
+      input: InstantiateProjectTemplateRequest;
+    }) => projectTemplatesService.instantiate(workspaceId, templateId, { ...input, ...QUEUED() }),
+    onError: (error, { templateId }) => toastInstantiationError(queryClient, error, templateId),
+  });
+}
+
+export function useApplyProjectTemplateMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      projectId,
+      templateId,
+      input,
+    }: {
+      projectId: string;
+      templateId: string;
+      input: ApplyProjectTemplateRequest;
+    }) => projectTemplatesService.apply(projectId, templateId, { ...input, ...QUEUED() }),
+    onError: (error, { templateId }) => toastInstantiationError(queryClient, error, templateId),
+  });
+}
+
+export function useInstantiateDraftMutation(workspaceId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: InstantiateDraftRequest) =>
+      projectTemplatesService.instantiateDraft(workspaceId, { ...input, ...QUEUED() }),
+    onError: (error) => toastInstantiationError(queryClient, error),
+  });
+}
+
+const POLL_MS = 1000;
+
+/** Polls a queued instantiation until it succeeds or fails. */
+export function useTemplateInstantiationQuery(workspaceId: string, instantiationId: string | null) {
+  return useQuery({
+    queryKey: queryKeys.projectTemplates.instantiation(instantiationId ?? ""),
+    queryFn: () => projectTemplatesService.getInstantiation(workspaceId, instantiationId!),
+    enabled: Boolean(instantiationId),
+    refetchInterval: (query) => {
+      const status = query.state.data?.status;
+      return status === "SUCCEEDED" || status === "FAILED" ? false : POLL_MS;
     },
-    onError: (error, { templateId }) => {
-      const code = getErrorCode(error);
-      if (code === "PROJECT_TEMPLATE_NOT_FOUND") {
-        forgetTemplate(queryClient, templateId);
-        toast.error("Este modelo não está mais disponível. Nada foi criado; escolha outro.");
-        return;
-      }
-      if (code === "FORBIDDEN_WORKSPACE_ACTION") {
+    retry: false,
+  });
+}
+
+/** What a finished instantiation changed: the projects (and the board, on apply). */
+export function useOnInstantiationFinished() {
+  const queryClient = useQueryClient();
+  return (workspaceId: string, projectId: string | null) => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.projects.all(workspaceId) });
+    if (projectId) {
+      queryClient.invalidateQueries({ queryKey: queryKeys.projects.detail(projectId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.sections.all(projectId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all(projectId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.statuses.all(projectId) });
+    }
+    queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll() });
+    // `myLastInstantiatedVersion` / `updateAvailable` and the use count.
+    queryClient.invalidateQueries({ queryKey: [...queryKeys.projectTemplates.all(), "detail"] });
+  };
+}
+
+// ---------------------------------------------------------------- versions
+
+export function useTemplateVersionsQuery(templateId: string | null | undefined) {
+  return useQuery({
+    queryKey: queryKeys.projectTemplates.versions(templateId ?? ""),
+    queryFn: () => projectTemplatesService.versions(templateId as string),
+    enabled: Boolean(templateId),
+  });
+}
+
+export function usePublishTemplateVersionMutation(templateId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: PublishTemplateVersionRequest) =>
+      projectTemplatesService.publishVersion(templateId, input),
+    onSuccess: (template) => {
+      cacheWorkspaceTemplate(queryClient, template);
+      queryClient.invalidateQueries({ queryKey: queryKeys.projectTemplates.versions(templateId) });
+      toast.success(`Versão ${template.version} publicada.`);
+    },
+    onError: (error) => {
+      if (getErrorCode(error) === "PROJECT_TEMPLATE_NOT_FOUND") {
         toast.error(
-          "Só donos e administradores do workspace podem criar projetos a partir de modelos. Nada foi criado."
+          "O projeto de origem deste modelo foi apagado, então não dá para tirar uma versão nova dele."
         );
         return;
       }
-      toast.error(`${getErrorMessage(error)} Nada foi criado; tente de novo.`);
+      toastTemplateWriteError(error);
     },
+  });
+}
+
+// ---------------------------------------------------------------- images
+
+/** Cover (or screenshot N) as an object URL, or `null` while loading / when absent. */
+export function useTemplateImageUrl(
+  template: Pick<ProjectTemplateSummary, "id" | "updatedAt" | "hasCover" | "screenshotCount">,
+  image: "cover" | number
+) {
+  const exists = image === "cover" ? template.hasCover : image < template.screenshotCount;
+  const query = useQuery({
+    queryKey: queryKeys.projectTemplates.image(template.id, image, template.updatedAt),
+    queryFn: () => projectTemplatesService.getImage(template.id, image),
+    enabled: exists,
+    placeholderData: (previous) => previous,
+    staleTime: Infinity,
+    gcTime: 5 * 60_000,
+    retry: false,
+  });
+  const objectUrl = useObjectUrl(exists ? query.data : null, "image/jpeg");
+  return exists ? objectUrl : null;
+}
+
+type MediaAction =
+  | { kind: "setCover"; file: File }
+  | { kind: "removeCover" }
+  | { kind: "addScreenshot"; file: File }
+  | { kind: "removeScreenshot"; index: number };
+
+/** Cover and screenshots; `admin` uses the SUPER_ADMIN routes. */
+export function useTemplateMediaMutation(templateId: string, admin = false) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (action: MediaAction) => {
+      switch (action.kind) {
+        case "setCover":
+          return projectTemplatesService.setCover(templateId, action.file, admin);
+        case "removeCover":
+          return projectTemplatesService.removeCover(templateId, admin);
+        case "addScreenshot":
+          return projectTemplatesService.addScreenshot(templateId, action.file, admin);
+        case "removeScreenshot":
+          return projectTemplatesService.removeScreenshot(templateId, action.index, admin);
+      }
+    },
+    onSuccess: () => {
+      // Screenshots shift down when one is removed, so every image goes.
+      queryClient.removeQueries({ queryKey: queryKeys.projectTemplates.image(templateId, "cover") });
+      queryClient.removeQueries({ queryKey: ["template-images", templateId] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.projectTemplates.detail(templateId) });
+      queryClient.invalidateQueries({ queryKey: [...queryKeys.projectTemplates.all(), "workspace"] });
+      invalidateCatalog(queryClient);
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+}
+
+// ---------------------------------------------------------------- AI
+
+function toastAiError(error: unknown) {
+  if (getErrorCode(error) === "FORBIDDEN_WORKSPACE_ACTION") {
+    toast.error("Só donos e administradores do workspace podem usar a IA nos modelos.");
+    return;
+  }
+  toast.error(getErrorMessage(error));
+}
+
+export function useGenerateTemplateDraftMutation(workspaceId: string) {
+  return useMutation({
+    mutationFn: ({ prompt, language }: { prompt: string; language?: ProjectTemplateLanguage }) =>
+      projectTemplatesService.generateDraft(workspaceId, prompt, language),
+    onError: toastAiError,
+  });
+}
+
+export function useAdaptTemplateDraftMutation(workspaceId: string) {
+  return useMutation({
+    mutationFn: ({ templateId, instructions }: { templateId: string; instructions: string }) =>
+      projectTemplatesService.adaptDraft(workspaceId, templateId, instructions),
+    onError: toastAiError,
+  });
+}
+
+export function useCreateWorkspaceTemplateMutation(workspaceId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: CreateProjectTemplateRequest) =>
+      projectTemplatesService.createForWorkspace(workspaceId, input),
+    onSuccess: (template) => {
+      cacheWorkspaceTemplate(queryClient, template);
+      toast.success("Modelo salvo no workspace.");
+    },
+    onError: toastTemplateWriteError,
   });
 }
 
