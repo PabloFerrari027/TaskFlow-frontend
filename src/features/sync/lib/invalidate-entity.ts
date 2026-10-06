@@ -1,5 +1,5 @@
 import type { InvalidateQueryFilters, QueryClient } from "@tanstack/react-query";
-import { pendingTaskMutations } from "@/features/tasks/lib/task-list-refresh";
+import { pendingItemMutations } from "@/features/items/lib/item-list-refresh";
 import { queryKeys } from "@/lib/query-keys";
 
 // A refetch already in flight is left alone instead of cancelled and restarted
@@ -19,8 +19,8 @@ export interface EntityChange {
   workspaceId: string;
   // Optional narrowing hints — a push knows them from the queued operation's
   // `meta`; a realtime signal doesn't, and falls back to the broader prefix.
-  projectId?: string;
-  taskId?: string;
+  folderId?: string;
+  itemId?: string;
 }
 
 /**
@@ -30,52 +30,52 @@ export interface EntityChange {
  */
 export function invalidateByEntityChange(
   queryClient: QueryClient,
-  { entityType, entityId, workspaceId, projectId, taskId }: EntityChange
+  { entityType, entityId, workspaceId, folderId, itemId }: EntityChange
 ) {
   switch (entityType) {
-    case "TASK":
-      invalidate(queryClient, { queryKey: queryKeys.tasks.detail(entityId) });
-      invalidate(queryClient, { queryKey: queryKeys.tasks.bySectionAll() });
+    case "ITEM":
+      invalidate(queryClient, { queryKey: queryKeys.items.detail(entityId) });
+      invalidate(queryClient, { queryKey: queryKeys.items.bySectionAll() });
       invalidate(queryClient, {
-        queryKey: projectId
-          ? queryKeys.tasks.all(projectId)
-          : queryKeys.tasks.byProjectAll(),
+        queryKey: folderId
+          ? queryKeys.items.all(folderId)
+          : queryKeys.items.byFolderAll(),
       });
-      // Not narrowed by projectId: the task also counts in every ancestor's stats.
-      invalidate(queryClient, { queryKey: queryKeys.projectStats.root() });
+      // Not narrowed by folderId: the item also counts in every ancestor's stats.
+      invalidate(queryClient, { queryKey: queryKeys.folderStats.root() });
       invalidate(queryClient, { queryKey: queryKeys.home.root() });
       return;
-    case "PROJECT":
-      invalidate(queryClient, { queryKey: queryKeys.projects.detail(entityId) });
-      invalidate(queryClient, { queryKey: queryKeys.projects.all(workspaceId) });
-      // A moved sub-project takes its tasks out of one subtree and into another.
-      invalidate(queryClient, { queryKey: queryKeys.projectStats.root() });
+    case "FOLDER":
+      invalidate(queryClient, { queryKey: queryKeys.folders.detail(entityId) });
+      invalidate(queryClient, { queryKey: queryKeys.folders.all(workspaceId) });
+      // A moved sub-folder takes its items out of one subtree and into another.
+      invalidate(queryClient, { queryKey: queryKeys.folderStats.root() });
       invalidate(queryClient, { queryKey: queryKeys.home.root() });
       return;
     case "SECTION":
-      invalidate(queryClient, { queryKey: queryKeys.tasks.bySectionAll() });
+      invalidate(queryClient, { queryKey: queryKeys.items.bySectionAll() });
       invalidate(queryClient, {
-        queryKey: projectId
-          ? queryKeys.sections.all(projectId)
-          : queryKeys.sections.byProjectAll(),
+        queryKey: folderId
+          ? queryKeys.sections.all(folderId)
+          : queryKeys.sections.byFolderAll(),
       });
       return;
     case "CUSTOM_FIELD":
     case "CUSTOM_FIELD_DEFINITION":
       invalidate(queryClient, {
-        queryKey: projectId
-          ? queryKeys.customFields.all(projectId)
-          : queryKeys.customFields.byProjectAll(),
+        queryKey: folderId
+          ? queryKeys.customFields.all(folderId)
+          : queryKeys.customFields.byFolderAll(),
       });
       return;
     case "COMMENT":
       invalidate(queryClient, {
-        queryKey: taskId ? queryKeys.comments.all(taskId) : queryKeys.comments.byTaskAll(),
+        queryKey: itemId ? queryKeys.comments.all(itemId) : queryKeys.comments.byItemAll(),
       });
       return;
-    case "TASK_RECURRENCE":
+    case "ITEM_RECURRENCE":
       invalidate(queryClient, {
-        queryKey: projectId ? queryKeys.recurringTasks.all(projectId) : ["recurring-tasks"],
+        queryKey: folderId ? queryKeys.recurringItems.all(folderId) : ["recurring-items"],
       });
       return;
     case "WORKSPACE":
@@ -88,7 +88,7 @@ export function invalidateByEntityChange(
   }
 }
 
-/** Activity feed, analytics (the project stats tab included) and dashboard
+/** Activity feed, analytics (the folder stats tab included) and dashboard
  * pages (whose charts arrive already executed) are derived from every other
  * entity, so any change to one of them makes all of them stale. The server
  * still caches a page for up to 60s, so a refetched page can lag behind the
@@ -96,7 +96,7 @@ export function invalidateByEntityChange(
 export function invalidateDerivedData(queryClient: QueryClient) {
   invalidate(queryClient, { queryKey: queryKeys.activity.root() });
   invalidate(queryClient, { queryKey: queryKeys.analytics.root() });
-  invalidate(queryClient, { queryKey: queryKeys.projectStats.root() });
+  invalidate(queryClient, { queryKey: queryKeys.folderStats.root() });
   invalidate(queryClient, { queryKey: queryKeys.home.root() });
   invalidate(queryClient, { queryKey: queryKeys.dashboardPages.details() });
 }
@@ -104,25 +104,25 @@ export function invalidateDerivedData(queryClient: QueryClient) {
 /** Coarse invalidation of every synced query group for a workspace — used
  * when a pull reports changes but their shape is opaque. */
 export function invalidateWorkspaceData(queryClient: QueryClient, workspaceId: string) {
-  // Task lists are left out while this client has task writes in flight: a
-  // refetch now could resurrect a task that is being deleted. Those writes
+  // Item lists are left out while this client has item writes in flight: a
+  // refetch now could resurrect an item that is being deleted. Those writes
   // refresh the lists themselves once they settle.
-  const skipTasks = pendingTaskMutations(queryClient) > 0;
+  const skipItems = pendingItemMutations(queryClient) > 0;
 
-  invalidate(queryClient, { queryKey: queryKeys.projects.all(workspaceId) });
+  invalidate(queryClient, { queryKey: queryKeys.folders.all(workspaceId) });
   invalidate(queryClient, { queryKey: queryKeys.dashboardPages.details() });
-  if (!skipTasks) invalidate(queryClient, { queryKey: queryKeys.tasks.bySectionAll() });
+  if (!skipItems) invalidate(queryClient, { queryKey: queryKeys.items.bySectionAll() });
   invalidate(queryClient, {
     predicate: (query) =>
       (
-        ["tasks", "custom-fields", "sections", "comments", "activity", "analytics", "project-stats"] as unknown[]
+        ["items", "custom-fields", "sections", "comments", "activity", "analytics", "folder-stats"] as unknown[]
       ).includes(
         query.queryKey[0]
       ) &&
       !(
-        skipTasks &&
-        query.queryKey[0] === "tasks" &&
-        (query.queryKey[1] === "project" || query.queryKey[1] === "section")
+        skipItems &&
+        query.queryKey[0] === "items" &&
+        (query.queryKey[1] === "folder" || query.queryKey[1] === "section")
       ),
   });
 }

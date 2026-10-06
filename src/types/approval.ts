@@ -1,13 +1,13 @@
-export type TaskApprovalStatus = "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED";
+export type ItemApprovalStatus = "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED";
 
-/** A request for ONE person to approve a task. */
-export interface TaskApproval {
+/** A request for ONE person to approve an item. */
+export interface ItemApproval {
   id: string;
-  taskId: string;
-  projectId: string;
+  itemId: string;
+  folderId: string;
   requestedBy: string;
   approverId: string;
-  status: TaskApprovalStatus;
+  status: ItemApprovalStatus;
   /** What the requester wrote. */
   note: string | null;
   /** What the approver wrote when answering. */
@@ -17,7 +17,7 @@ export interface TaskApproval {
 }
 
 export interface RequestApprovalRequest {
-  /** Must have access to the project (a GUEST client can approve). */
+  /** Must have access to the folder (a GUEST client can approve). */
   approverId: string;
   note?: string;
 }

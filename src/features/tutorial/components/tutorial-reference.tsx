@@ -56,8 +56,8 @@ export function RolesMatrix() {
         </Table>
       </div>
       <p className="text-xs text-muted-foreground">
-        Não há papel de administrador dentro de um projeto: gerenciar um projeto depende do papel
-        no workspace. O uso diário das tarefas (criar, editar, comentar) é o trabalho normal de um
+        Não há papel de administrador dentro de uma pasta: gerenciar uma pasta depende do papel
+        no workspace. O uso diário dos itens (criar, editar, comentar) é o trabalho normal de um
         Membro; ao Convidado o servidor pode aplicar restrições, e quando algo é bloqueado o
         sistema mostra uma mensagem de permissão.
       </p>

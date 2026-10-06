@@ -1,17 +1,17 @@
 import { CheckCircle2, XCircle } from "lucide-react";
 
 const PROBLEMS = [
-  "Tarefas espalhadas entre planilhas, chats e ferramentas soltas",
+  "Itens espalhados entre planilhas, chats e ferramentas soltas",
   "Ninguém sabe quem é responsável por quê, nem qual é o status real",
   "Convidar um colaborador externo vira um processo manual e inseguro",
-  "Cada projeto precisaria de campos diferentes, mas a ferramenta não flexibiliza",
+  "Cada pasta precisaria de campos diferentes, mas a ferramenta não flexibiliza",
 ];
 
 const SOLUTIONS = [
-  "Workspaces organizam times, projetos e tarefas em uma hierarquia clara",
-  "Responsáveis, status e subtarefas deixam o progresso visível para todos",
-  "Convites por e-mail com papéis específicos para workspace e projeto",
-  "Campos personalizados (texto, número, data, seleção, checkbox) por projeto",
+  "Workspaces organizam times, pastas e itens em uma hierarquia clara",
+  "Responsáveis, status e subitens deixam o progresso visível para todos",
+  "Convites por e-mail com papéis específicos para workspace e pasta",
+  "Campos personalizados (texto, número, data, seleção, checkbox) por pasta",
 ];
 
 export function ProblemSolution() {

@@ -21,15 +21,15 @@ import type { SearchResult, SearchResultType } from "@/types/search";
 const SEARCH_DELAY_MS = 250;
 
 const GROUPS: { type: SearchResultType; heading: string; icon: React.ReactNode }[] = [
-  { type: "TASK", heading: "Tarefas", icon: <CheckSquare /> },
+  { type: "ITEM", heading: "Itens", icon: <CheckSquare /> },
   { type: "COMMENT", heading: "Comentários", icon: <MessageSquare /> },
-  { type: "PROJECT", heading: "Projetos", icon: <FolderKanban /> },
+  { type: "FOLDER", heading: "Pastas", icon: <FolderKanban /> },
 ];
 
 function resultHref(result: SearchResult) {
-  if (result.type === "PROJECT") return `/projects/${result.id}/tasks`;
-  const taskId = result.taskId ?? result.id;
-  return `/projects/${result.projectId}/tasks?taskId=${taskId}`;
+  if (result.type === "FOLDER") return `/folders/${result.id}/items`;
+  const itemId = result.itemId ?? result.id;
+  return `/folders/${result.folderId}/items?itemId=${itemId}`;
 }
 
 // Ctrl+K / ⌘K from anywhere in the app, or the button in the topbar.
@@ -89,14 +89,14 @@ export function GlobalSearch() {
         open={open}
         onOpenChange={setOpen}
         title="Buscar"
-        description="Busque tarefas, comentários e projetos do workspace atual."
+        description="Busque itens, comentários e pastas do workspace atual."
       >
         {/* The server already ranks and filters; cmdk's own filter would hide matches on the snippet. */}
         <Command shouldFilter={false}>
           <CommandInput
             value={text}
             onValueChange={setText}
-            placeholder="Buscar tarefas, comentários e projetos…"
+            placeholder="Buscar itens, comentários e pastas…"
           />
           <CommandList className="max-h-[60vh]">
             {text.trim().length < MIN_SEARCH_LENGTH ? (
@@ -135,9 +135,9 @@ export function GlobalSearch() {
                                 {result.snippet}
                               </span>
                             ) : null}
-                            {result.type !== "PROJECT" ? (
+                            {result.type !== "FOLDER" ? (
                               <span className="block text-[11px] text-muted-foreground">
-                                em {result.projectName}
+                                em {result.folderName}
                               </span>
                             ) : null}
                           </span>

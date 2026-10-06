@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 /**
  * Ready-made models so the tab never opens on a blank form: picking one
  * opens the builder already filled in, leaving only the workspace-specific
- * choices (which section, which project) to the user.
+ * choices (which section, which folder) to the user.
  */
 export function AutomationTemplatesGallery({
   onPick,
@@ -32,7 +32,7 @@ export function AutomationTemplatesGallery({
             Automatize o que se repete
           </h3>
           <p className="text-sm text-muted-foreground">
-            Uma automação faz algo sozinha quando algo acontece — por exemplo, mover a tarefa de
+            Uma automação faz algo sozinha quando algo acontece — por exemplo, mover o item de
             seção quando ela for concluída. Escolha um modelo pronto abaixo e ajuste do seu jeito.
           </p>
         </div>

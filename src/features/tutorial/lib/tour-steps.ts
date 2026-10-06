@@ -19,7 +19,7 @@ export interface TourStep {
   // were first shown on.
   route?: string;
   // Steps that only make sense together (they need the same optional data,
-  // e.g. "the workspace has at least one task"). When one of them can't find
+  // e.g. "the workspace has at least one item"). When one of them can't find
   // its target, the whole section is skipped.
   section?: string;
   // Skip the step instead of showing it centered when the target never
@@ -27,14 +27,14 @@ export interface TourStep {
   skipIfMissing?: boolean;
   // "open": pressing Next follows the link that the spotlighted element
   // points to (`href`, or `data-tour-href`) before moving on, so the tour can
-  // walk into a project, a task or a workspace.
+  // walk into a folder, an item or a workspace.
   advance?: "open";
 }
 
 // Shell steps (topbar + sidebar) work from any page and are dropped when their
 // target isn't on screen (e.g. the sidebar on mobile, or hidden by the user) —
 // see `TutorialTour`. The rest walk through the real pages, in the order a new
-// person would use them. Steps that target user data (projects, tasks,
+// person would use them. Steps that target user data (folders, items,
 // workspaces) are skipped, together with the rest of their section, for an
 // empty account.
 //
@@ -46,7 +46,7 @@ export const TOUR_STEPS: TourStep[] = [
     chapter: "Boas-vindas",
     title: "Bem-vindo ao TaskFlow!",
     description:
-      "Este tour leva cerca de 3 minutos e passa pelas telas reais do sistema: o menu, seus projetos, o quadro de tarefas, uma tarefa por dentro e os workspaces. Nada é criado ou alterado durante o tour.",
+      "Este tour leva cerca de 3 minutos e passa pelas telas reais do sistema: o menu, suas pastas, o quadro de itens, um item por dentro e os workspaces. Nada é criado ou alterado durante o tour.",
     details: [
       "Use as setas → e ← do teclado para avançar e voltar, ou Esc para sair.",
       "Ao terminar, você volta para a página em que estava.",
@@ -62,7 +62,7 @@ export const TOUR_STEPS: TourStep[] = [
     placement: "bottom",
     title: "Seu workspace",
     description:
-      "Um workspace é o espaço de uma equipe ou empresa: reúne projetos, tarefas e pessoas. Tudo o que você vê (projetos, atividade) pertence ao workspace selecionado aqui.",
+      "Um workspace é o espaço de uma equipe ou empresa: reúne pastas, itens e pessoas. Tudo o que você vê (pastas, atividade) pertence ao workspace selecionado aqui.",
     details: [
       "Clique para trocar de workspace ou criar um novo.",
       "Se algo parecer ter sumido, confira primeiro se o workspace certo está selecionado.",
@@ -77,7 +77,7 @@ export const TOUR_STEPS: TourStep[] = [
     title: "Menu de navegação",
     description: "É por aqui que você circula entre as áreas do sistema:",
     details: [
-      "Projetos: a página inicial, com todos os projetos do workspace, ativos e arquivados.",
+      "Pastas: a página inicial, com todas as pastas do workspace, ativas e arquivadas.",
       "Workspaces: membros, convites, atividade e automações.",
       "Perfil: sua conta, sua senha e seus dispositivos.",
     ],
@@ -90,7 +90,7 @@ export const TOUR_STEPS: TourStep[] = [
     skipIfMissing: true,
     title: "Mais espaço para o quadro",
     description:
-      "Este botão esconde e mostra o menu lateral. O navegador lembra a sua escolha, junto com o workspace atual e a forma de visualizar projetos e tarefas.",
+      "Este botão esconde e mostra o menu lateral. O navegador lembra a sua escolha, junto com o workspace atual e a forma de visualizar pastas e itens.",
   },
   {
     id: "assistant",
@@ -99,9 +99,9 @@ export const TOUR_STEPS: TourStep[] = [
     placement: "bottom",
     title: "Assistente de IA",
     description:
-      "Peça em linguagem natural para consultar ou alterar tarefas, projetos e pessoas. Um Proprietário do workspace precisa ativá-lo na página Assistente.",
+      "Peça em linguagem natural para consultar ou alterar itens, pastas e pessoas. Um Proprietário do workspace precisa ativá-lo na página Assistente.",
     details: [
-      "Exemplo: “crie uma tarefa Revisar contrato no projeto Jurídico”.",
+      "Exemplo: “crie um item Revisar contrato na pasta Jurídica”.",
       "Toda alteração aparece antes num cartão de ação pendente. Só o botão “Confirmar” executa; escrever “sim” no chat não basta.",
       "Ações críticas, como remover membros ou excluir o workspace, pedem também a sua senha ou o Google.",
     ],
@@ -131,68 +131,68 @@ export const TOUR_STEPS: TourStep[] = [
     ],
   },
 
-  // ------------------------------------------------------------ new project
+  // ------------------------------------------------------------ new folder
   {
-    id: "new-project",
-    chapter: "Projetos",
-    route: "/projects",
-    target: "new-project",
+    id: "new-folder",
+    chapter: "Pastas",
+    route: "/folders",
+    target: "new-folder",
     placement: "bottom",
     skipIfMissing: true,
-    title: "Crie um projeto",
+    title: "Crie uma pasta",
     description:
-      "Um projeto é um trabalho com começo e fim, ou uma área contínua da equipe. A página Projetos mostra todos os projetos do workspace, e é daqui que você cria o primeiro.",
+      "Uma pasta é um trabalho com começo e fim, ou uma área contínua da equipe. A página Pastas mostra todas as pastas do workspace, e é daqui que você cria a primeira.",
     details: [
-      "Clique em “Novo projeto”, dê um nome e, se quiser, uma descrição.",
-      "Um projeto pode ter sub-projetos, para separar fases ou frentes de trabalho.",
-      "Projetos não são excluídos: quando terminam, são arquivados.",
+      "Clique em “Nova pasta”, dê um nome e, se quiser, uma descrição.",
+      "Uma pasta pode ter subpastas, para separar fases ou frentes de trabalho.",
+      "Pastas não são excluídas: quando terminam, são arquivadas.",
     ],
   },
   {
-    id: "project-card",
-    chapter: "Projetos",
-    route: "/projects",
-    section: "project",
-    target: "project-card",
+    id: "folder-card",
+    chapter: "Pastas",
+    route: "/folders",
+    section: "folder",
+    target: "folder-card",
     placement: "bottom",
     skipIfMissing: true,
     advance: "open",
-    title: "Abra um projeto",
+    title: "Abra uma pasta",
     description:
-      "Cada cartão é um projeto. Clicar num cartão abre o quadro de tarefas dele. Ao avançar, o tour abre este primeiro projeto para você ver o quadro por dentro.",
+      "Cada cartão é uma pasta. Clicar num cartão abre o quadro de itens dela. Ao avançar, o tour abre esta primeira pasta para você ver o quadro por dentro.",
   },
 
   // ----------------------------------------------------------------- board
   {
-    id: "project-tabs",
+    id: "folder-tabs",
     chapter: "O quadro",
-    section: "project",
-    target: "project-tabs",
+    section: "folder",
+    target: "folder-tabs",
     placement: "bottom",
     skipIfMissing: true,
-    title: "As abas do projeto",
+    title: "As abas da pasta",
     description:
-      "Cada projeto tem várias abas, e uma frase logo abaixo explica a que está aberta. Você está em Tarefas, o quadro de trabalho.",
+      "Cada pasta tem várias abas, e uma frase logo abaixo explica a que está aberta. Você está em Itens, o quadro de trabalho.",
     details: [
-      "Tarefas: o quadro, com uma coluna por etapa do fluxo.",
-      "Estatísticas: os números do projeto, como quanto já foi feito e o que está atrasado.",
-      "Pessoas: quem tem acesso ao projeto.",
+      "Itens: o quadro, com uma coluna por etapa do fluxo.",
+      "Estatísticas: os números da pasta, como quanto já foi feito e o que está atrasado.",
+      "Pessoas: quem tem acesso à pasta.",
       "Convites: convide alguém por e-mail e acompanhe o aceite.",
-      "Campos extras: campos próprios em cada tarefa, como cliente ou valor.",
-      "Atividade: tudo que mudou no projeto, com quem fez e quando.",
+      "Campos extras: campos próprios em cada item, como cliente ou valor.",
+      "Atividade: tudo que mudou na pasta, com quem fez e quando.",
     ],
   },
   {
     id: "board-toolbar",
     chapter: "O quadro",
-    section: "project",
+    section: "folder",
     target: "board-toolbar",
     placement: "bottom",
     skipIfMissing: true,
-    title: "Crie tarefas e colunas",
+    title: "Crie itens e colunas",
     description: "A barra do quadro reúne as ações mais usadas:",
     details: [
-      "“Nova tarefa” cria na coluna padrão. Cada coluna também tem o seu próprio botão.",
+      "“Novo item” cria na coluna padrão. Cada coluna também tem o seu próprio botão.",
       "“Adicionar coluna” cria uma etapa do fluxo, como “A fazer”, “Em andamento” e “Concluído”.",
       "O seletor à direita troca os cartões por uma tabela no estilo planilha, onde status, prioridade, responsável e prazo se editam direto na célula.",
     ],
@@ -200,11 +200,11 @@ export const TOUR_STEPS: TourStep[] = [
   {
     id: "board-filters",
     chapter: "O quadro",
-    section: "project",
+    section: "folder",
     target: "board-filters",
     placement: "bottom",
     skipIfMissing: true,
-    title: "Encontre qualquer tarefa",
+    title: "Encontre qualquer item",
     description:
       "Todos os filtros valem ao mesmo tempo, então dá para combinar quantos quiser.",
     details: [
@@ -217,13 +217,13 @@ export const TOUR_STEPS: TourStep[] = [
   {
     id: "board-columns",
     chapter: "O quadro",
-    section: "project",
+    section: "folder",
     target: "board-columns",
     placement: "top",
     skipIfMissing: true,
     title: "Colunas e cartões",
     description:
-      "Cada coluna é uma etapa do trabalho, e cada cartão é uma tarefa. À medida que o trabalho avança, a tarefa anda pelo quadro.",
+      "Cada coluna é uma etapa do trabalho, e cada cartão é um item. À medida que o trabalho avança, o item anda pelo quadro.",
     details: [
       "Arraste um cartão para outra coluna para movê-lo, ou solte entre dois cartões para escolher a posição.",
       "Nos três pontos de cada coluna: renomear, criar subcoluna, mover e apagar (só colunas vazias).",
@@ -231,42 +231,42 @@ export const TOUR_STEPS: TourStep[] = [
     ],
   },
 
-  // ------------------------------------------------------------------ task
+  // ------------------------------------------------------------------ item
   {
-    id: "task-card",
-    chapter: "A tarefa",
-    section: "task",
-    target: "task-card",
+    id: "item-card",
+    chapter: "O item",
+    section: "item",
+    target: "item-card",
     placement: "right",
     skipIfMissing: true,
     advance: "open",
-    title: "Abra uma tarefa",
+    title: "Abra um item",
     description:
-      "O cartão mostra o essencial: título, prioridade, prazo, responsável e status, que dá para trocar direto nele. Clicar abre o detalhe num painel lateral. Ao avançar, o tour abre a página completa desta primeira tarefa.",
+      "O cartão mostra o essencial: título, prioridade, prazo, responsável e status, que dá para trocar direto nele. Clicar abre o detalhe num painel lateral. Ao avançar, o tour abre a página completa deste primeiro item.",
     details: [
-      "Para agir em várias tarefas de uma vez, marque a caixinha no canto do cartão ou use Ctrl/Shift + clique.",
+      "Para agir em vários itens de uma vez, marque a caixinha no canto do cartão ou use Ctrl/Shift + clique.",
     ],
   },
   {
-    id: "task-main",
-    chapter: "A tarefa",
-    section: "task",
-    target: "task-main",
+    id: "item-main",
+    chapter: "O item",
+    section: "item",
+    target: "item-main",
     placement: "bottom",
     skipIfMissing: true,
     title: "Título e descrição",
     description:
       "Edite direto no lugar: as alterações são salvas ao sair do campo, sem botão “Salvar”.",
     details: [
-      "Tarefas grandes se dividem em subtarefas, logo abaixo. Cada subtarefa tem seu próprio status, responsável e prazo, e a tarefa só pode ser concluída quando todas terminarem.",
+      "Itens grandes se dividem em subitens, logo abaixo. Cada subitem tem seu próprio status, responsável e prazo, e o item só pode ser concluído quando todos terminarem.",
       "Anexe arquivos de até 20 MB na seção Anexos.",
     ],
   },
   {
-    id: "task-fields",
-    chapter: "A tarefa",
-    section: "task",
-    target: "task-fields",
+    id: "item-fields",
+    chapter: "O item",
+    section: "item",
+    target: "item-fields",
     placement: "left",
     skipIfMissing: true,
     title: "Status, responsável e prazo",
@@ -276,18 +276,18 @@ export const TOUR_STEPS: TourStep[] = [
       "Coluna e Status (A fazer, Em progresso, Concluída) são coisas diferentes: um não muda o outro sozinho.",
       "Responsável é quem executa. Participantes só acompanham.",
       "Prioridade vai de Baixa a Urgente. Depois de definidos, prazo e prioridade só podem ser trocados por outro valor, não removidos.",
-      "Logo abaixo ficam os campos extras criados no projeto.",
+      "Logo abaixo ficam os campos extras criados na pasta.",
     ],
   },
   {
-    id: "task-comments",
-    chapter: "A tarefa",
-    section: "task",
-    target: "task-comments",
+    id: "item-comments",
+    chapter: "O item",
+    section: "item",
+    target: "item-comments",
     placement: "top",
     skipIfMissing: true,
     title: "Comentários e histórico",
-    description: "A conversa sobre a tarefa fica junto dela.",
+    description: "A conversa sobre o item fica junto dele.",
     details: [
       "Para avisar alguém, escolha as pessoas no seletor de menção antes de enviar.",
       "“Responder” abre uma conversa encadeada dentro do comentário.",
@@ -295,21 +295,21 @@ export const TOUR_STEPS: TourStep[] = [
     ],
   },
 
-  // -------------------------------------------------------------- projects
+  // -------------------------------------------------------------- folders
   {
-    id: "project-list",
-    chapter: "Projetos",
-    route: "/projects",
-    target: "project-list-controls",
+    id: "folder-list",
+    chapter: "Pastas",
+    route: "/folders",
+    target: "folder-list-controls",
     placement: "bottom",
     skipIfMissing: true,
-    title: "Todos os projetos",
+    title: "Todas as pastas",
     description:
-      "Os projetos arquivados continuam aqui, numa aba própria.",
+      "As pastas arquivadas continuam aqui, numa aba própria.",
     details: [
-      "As abas separam projetos Ativos e Arquivados.",
+      "As abas separam pastas Ativas e Arquivadas.",
       "O seletor à direita alterna entre a árvore de cartões e uma tabela, onde nome, descrição e status se editam na célula.",
-      "No menu de ações de cada projeto: criar sub-projeto, mover para dentro de outro e arquivar.",
+      "No menu de ações de cada pasta: criar subpasta, mover para dentro de outra e arquivar.",
     ],
   },
 
@@ -360,7 +360,7 @@ export const TOUR_STEPS: TourStep[] = [
     description:
       "Você já conhece o caminho principal do TaskFlow. Para um passo a passo de cada área, com perguntas frequentes e dicas, abra a página Tutorial.",
     details: [
-      "Um bom começo: crie um projeto, uma coluna e uma tarefa. O resto você refina conforme precisar.",
+      "Um bom começo: crie uma pasta, uma coluna e um item. O resto você refina conforme precisar.",
       "Dúvidas sobre dados e privacidade? Veja Privacidade e FAQ, no menu lateral.",
     ],
   },

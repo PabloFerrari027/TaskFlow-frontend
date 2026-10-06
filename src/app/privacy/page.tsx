@@ -129,7 +129,7 @@ export default function PrivacyPage() {
           <article className="min-w-0 max-w-3xl space-y-14">
             <Section id="resumo" title="Resumo">
               <p className="text-sm leading-relaxed text-muted-foreground">
-                O TaskFlow é uma plataforma de gestão de projetos e tarefas. Esta política
+                O TaskFlow é uma plataforma de gestão de pastas e itens. Esta política
                 descreve como tratamos dados pessoais em conformidade com a Lei Geral de Proteção
                 de Dados (Lei nº 13.709/2018 — LGPD).
               </p>

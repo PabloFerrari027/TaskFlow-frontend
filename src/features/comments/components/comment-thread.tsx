@@ -15,10 +15,10 @@ const MAX_INDENT_LEVEL = 3;
 interface CommentNodeProps {
   node: TreeNode<Comment>;
   level: number;
-  projectId: string;
+  folderId: string;
 }
 
-export function CommentNode({ node, level, projectId }: CommentNodeProps) {
+export function CommentNode({ node, level, folderId }: CommentNodeProps) {
   const [replying, setReplying] = React.useState(false);
   const comment = node.item;
 
@@ -33,7 +33,7 @@ export function CommentNode({ node, level, projectId }: CommentNodeProps) {
     <div>
       <CommentItem
         comment={comment}
-        projectId={projectId}
+        folderId={folderId}
         hasReplies={node.children.length > 0}
         onReply={() => setReplying((open) => !open)}
       />
@@ -42,15 +42,15 @@ export function CommentNode({ node, level, projectId }: CommentNodeProps) {
         <div className={nestedClassName}>
           {replying ? (
             <CommentComposer
-              taskId={comment.taskId}
-              projectId={projectId}
+              itemId={comment.itemId}
+              folderId={folderId}
               parentId={comment.id}
               onSubmitted={() => setReplying(false)}
               onCancel={() => setReplying(false)}
             />
           ) : null}
           {node.children.map((child) => (
-            <CommentNode key={child.item.id} node={child} level={level + 1} projectId={projectId} />
+            <CommentNode key={child.item.id} node={child} level={level + 1} folderId={folderId} />
           ))}
         </div>
       ) : null}

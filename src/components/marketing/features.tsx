@@ -10,33 +10,33 @@ import {
 const FEATURES = [
   {
     icon: Building2,
-    title: "Workspaces e projetos",
+    title: "Workspaces e pastas",
     description:
-      "Organize equipes em workspaces, cada um com múltiplos projetos ativos ou arquivados.",
+      "Organize equipes em workspaces, cada um com múltiplas pastas ativas ou arquivadas.",
   },
   {
     icon: ListChecks,
-    title: "Tarefas e subtarefas",
+    title: "Itens e subitens",
     description:
-      "Quebre o trabalho em tarefas com status (a fazer, em progresso, concluída) e subtarefas.",
+      "Quebre o trabalho em itens com status (a fazer, em progresso, concluída) e subitens.",
   },
   {
     icon: Paperclip,
-    title: "Anexos por tarefa",
+    title: "Anexos por item",
     description:
-      "Anexe arquivos de até 20MB diretamente na tarefa relevante, sem perder contexto.",
+      "Anexe arquivos de até 20MB diretamente no item relevante, sem perder contexto.",
   },
   {
     icon: SlidersHorizontal,
     title: "Campos personalizados",
     description:
-      "Crie campos de texto, número, data, seleção única/múltipla, checkbox ou pessoas por projeto.",
+      "Crie campos de texto, número, data, seleção única/múltipla, checkbox ou pessoas por pasta.",
   },
   {
     icon: UserPlus,
     title: "Convites com papéis",
     description:
-      "Convide por e-mail para o workspace ou para um projeto específico, com o papel certo para cada pessoa.",
+      "Convide por e-mail para o workspace ou para uma pasta específica, com o papel certo para cada pessoa.",
   },
   {
     icon: ShieldCheck,

@@ -43,17 +43,17 @@ import {
 } from "@/features/custom-fields/lib/option-colors";
 
 interface CreateCustomFieldDialogProps {
-  projectId: string;
+  folderId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
 export function CreateCustomFieldDialog({
-  projectId,
+  folderId,
   open,
   onOpenChange,
 }: CreateCustomFieldDialogProps) {
-  const createMutation = useCreateCustomFieldMutation(projectId);
+  const createMutation = useCreateCustomFieldMutation(folderId);
 
   const form = useForm<CreateCustomFieldFormValues>({
     resolver: zodResolver(createCustomFieldSchema),

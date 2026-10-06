@@ -6,16 +6,16 @@ import { TutorialGuideLink } from "@/components/shared/tutorial-guide-link";
 import {
   TemplateGallery,
   TemplateGridSkeleton,
-} from "@/features/project-templates/components/template-gallery";
-import { WorkspaceTemplatesSection } from "@/features/project-templates/components/workspace-templates-section";
-import { ApplyToBanner } from "@/features/project-templates/components/apply-to-banner";
+} from "@/features/folder-templates/components/template-gallery";
+import { WorkspaceTemplatesSection } from "@/features/folder-templates/components/workspace-templates-section";
+import { ApplyToBanner } from "@/features/folder-templates/components/apply-to-banner";
 
 export default function TemplatesPage() {
   return (
     <div className="space-y-6">
       <PageHeader
         title="Modelos"
-        description="Comece um projeto já organizado: escolha um modelo e o TaskFlow cria as colunas, os campos e tarefas de exemplo para você."
+        description="Comece uma pasta já organizada: escolha um modelo e o TaskFlow cria as colunas, os campos e itens de exemplo para você."
         actions={<TutorialGuideLink guideId="templates" />}
       />
       <Suspense fallback={null}>

@@ -27,7 +27,7 @@ interface InvitationAcceptPageProps<TPreview extends InvitationPreviewBase> {
   onAccepted: (preview: TPreview) => void;
 }
 
-/** Shared body of the project and workspace invite pages. */
+/** Shared body of the folder and workspace invite pages. */
 export function InvitationAcceptPage<TPreview extends InvitationPreviewBase>({
   token,
   invitePath,

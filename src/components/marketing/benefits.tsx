@@ -11,13 +11,13 @@ const BENEFITS = [
     icon: Lock,
     title: "Acesso sob controle",
     description:
-      "Papéis por workspace e por projeto garantem que cada pessoa veja e edite exatamente o que deveria.",
+      "Papéis por workspace e por pasta garantem que cada pessoa veja e edite exatamente o que deveria.",
   },
   {
     icon: Puzzle,
     title: "Flexível o suficiente",
     description:
-      "Campos personalizados adaptam cada projeto à sua realidade, sem exigir uma ferramenta nova para cada caso.",
+      "Campos personalizados adaptam cada pasta à sua realidade, sem exigir uma ferramenta nova para cada caso.",
   },
   {
     icon: Gauge,

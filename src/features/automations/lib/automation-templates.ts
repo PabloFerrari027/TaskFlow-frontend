@@ -25,20 +25,20 @@ const condition = (
 const fixed = (value = ""): ParamDraft => ({ ...emptyParam(), value });
 
 // Templates stop short of the values that only exist in the user's own
-// workspace (which section, which project): those stay blank and highlighted
+// workspace (which section, which folder): those stay blank and highlighted
 // in the builder. They are limited to what the trigger whitelist can express.
 export const AUTOMATION_TEMPLATES: AutomationTemplate[] = [
   {
     id: "done-move-section",
     title: "Mover para a seção de concluídas",
     description:
-      "Quando o status de uma tarefa virar Concluída, ela vai sozinha para a seção que você escolher.",
+      "Quando o status de um item virar Concluída, ele vai sozinho para a seção que você escolher.",
     build: () => ({
       ...emptyDraft(),
       name: "Mover para a seção de concluídas",
-      eventType: "tasks.task_status_changed",
+      eventType: "items.item_status_changed",
       conditions: [condition("toStatus", "equals", "DONE")],
-      tool: "move_task",
+      tool: "move_item",
       params: { sectionId: fixed() },
     }),
   },
@@ -46,16 +46,16 @@ export const AUTOMATION_TEMPLATES: AutomationTemplate[] = [
     id: "reopened-move-section",
     title: "Devolver ao Backlog ao reabrir",
     description:
-      "Quando uma tarefa concluída for reaberta, ela volta para a seção que você escolher (ex.: Backlog).",
+      "Quando um item concluído for reaberto, ele volta para a seção que você escolher (ex.: Backlog).",
     build: () => ({
       ...emptyDraft(),
       name: "Devolver ao Backlog ao reabrir",
-      eventType: "tasks.task_status_changed",
+      eventType: "items.item_status_changed",
       conditions: [
         condition("fromStatus", "equals", "DONE"),
         condition("toStatus", "notEquals", "DONE"),
       ],
-      tool: "move_task",
+      tool: "move_item",
       params: { sectionId: fixed() },
     }),
   },
@@ -63,66 +63,66 @@ export const AUTOMATION_TEMPLATES: AutomationTemplate[] = [
     id: "urgent-assign-actor",
     title: "Atribuir a quem marcar como Urgente",
     description:
-      "Quando a prioridade de uma tarefa virar Urgente, ela é atribuída a quem fez a alteração.",
+      "Quando a prioridade de um item virar Urgente, ele é atribuído a quem fez a alteração.",
     build: () => ({
       ...emptyDraft(),
       name: "Atribuir a quem marcar como Urgente",
-      eventType: "tasks.task_priority_changed",
+      eventType: "items.item_priority_changed",
       conditions: [condition("priority", "equals", "URGENT")],
-      tool: "assign_task",
+      tool: "assign_item",
       params: { assigneeId: { mode: "event", value: "", eventField: "actorId" } },
     }),
   },
   {
     id: "assigned-start",
-    title: "Iniciar a tarefa ao atribuir",
+    title: "Iniciar o item ao atribuir",
     description:
-      "Quando alguém for atribuído a uma tarefa, o status dela vira Em progresso.",
+      "Quando alguém for atribuído a um item, o status dele vira Em progresso.",
     build: () => ({
       ...emptyDraft(),
-      name: "Iniciar a tarefa ao atribuir",
-      eventType: "tasks.task_assigned",
+      name: "Iniciar o item ao atribuir",
+      eventType: "items.item_assigned",
       conditions: [],
-      tool: "change_task_status",
+      tool: "change_item_status",
       params: { status: fixed("IN_PROGRESS") },
     }),
   },
   {
     id: "overdue-urgent",
-    title: "Tarefa atrasada vira Urgente",
-    description: "Quando uma tarefa passar do prazo, a prioridade dela vira Urgente sozinha.",
+    title: "Item atrasado vira Urgente",
+    description: "Quando um item passar do prazo, a prioridade dele vira Urgente sozinha.",
     build: () => ({
       ...emptyDraft(),
-      name: "Tarefa atrasada vira Urgente",
-      eventType: "tasks.task_overdue",
+      name: "Item atrasado vira Urgente",
+      eventType: "items.item_overdue",
       conditions: [],
-      tool: "update_task",
+      tool: "update_item",
       params: { priority: fixed("URGENT") },
     }),
   },
   {
     id: "created-assign-actor",
-    title: "Quem cria a tarefa fica responsável",
-    description: "Toda tarefa nova é atribuída a quem a criou.",
+    title: "Quem cria o item fica responsável",
+    description: "Todo item novo é atribuído a quem o criou.",
     build: () => ({
       ...emptyDraft(),
-      name: "Quem cria a tarefa fica responsável",
-      eventType: "tasks.task_created",
+      name: "Quem cria o item fica responsável",
+      eventType: "items.item_created",
       conditions: [],
-      tool: "assign_task",
+      tool: "assign_item",
       params: { assigneeId: { mode: "event", value: "", eventField: "actorId" } },
     }),
   },
   {
     id: "approved-done",
     title: "Concluir ao ser aprovada",
-    description: "Quando um pedido de aprovação de uma tarefa for aprovado, ela vira Concluída.",
+    description: "Quando um pedido de aprovação de um item for aprovado, ele passa para Concluída.",
     build: () => ({
       ...emptyDraft(),
       name: "Concluir ao ser aprovada",
       eventType: "approvals.approval_decided",
       conditions: [condition("decision", "equals", "APPROVED")],
-      tool: "change_task_status",
+      tool: "change_item_status",
       params: { status: fixed("DONE") },
     }),
   },

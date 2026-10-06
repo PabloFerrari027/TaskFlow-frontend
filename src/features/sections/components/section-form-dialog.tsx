@@ -35,7 +35,7 @@ const sectionFormSchema = z.object({
 type SectionFormValues = z.infer<typeof sectionFormSchema>;
 
 interface SectionFormDialogProps {
-  projectId: string;
+  folderId: string;
   section?: Section;
   // When set (and not editing), creates a sub-section of this section.
   parent?: Section;
@@ -44,15 +44,15 @@ interface SectionFormDialogProps {
 }
 
 export function SectionFormDialog({
-  projectId,
+  folderId,
   section,
   parent,
   open,
   onOpenChange,
 }: SectionFormDialogProps) {
   const isEditing = Boolean(section);
-  const createMutation = useCreateSectionMutation(projectId);
-  const updateMutation = useUpdateSectionMutation(projectId);
+  const createMutation = useCreateSectionMutation(folderId);
+  const updateMutation = useUpdateSectionMutation(folderId);
   const isPending = createMutation.isPending || updateMutation.isPending;
 
   const form = useForm<SectionFormValues>({
@@ -95,8 +95,8 @@ export function SectionFormDialog({
           {!isEditing ? (
             <DialogDescription>
               {parent
-                ? `Uma subcoluna aparece dentro da coluna “${parent.name}”, para separar melhor as tarefas dela.`
-                : "Colunas ajudam a organizar as tarefas por etapa, como “A fazer”, “Em andamento” e “Concluído”."}
+                ? `Uma subcoluna aparece dentro da coluna “${parent.name}”, para separar melhor os itens dela.`
+                : "Colunas ajudam a organizar os itens por etapa, como “A fazer”, “Em andamento” e “Concluído”."}
             </DialogDescription>
           ) : null}
         </DialogHeader>

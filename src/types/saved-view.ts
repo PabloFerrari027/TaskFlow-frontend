@@ -1,10 +1,10 @@
-import type { TaskPriority, TaskStatus } from "@/types/task";
+import type { ItemPriority, ItemStatus } from "@/types/item";
 
 export type SavedViewType = "LIST" | "BOARD" | "CALENDAR" | "TIMELINE" | "TABLE";
-/** PERSONAL = only the owner sees it; SHARED = everyone in the project. */
+/** PERSONAL = only the owner sees it; SHARED = everyone in the folder. */
 export type SavedViewScope = "PERSONAL" | "SHARED";
 
-/** Native task fields, or a custom field as `cf:<id>`. */
+/** Native item fields, or a custom field as `cf:<id>`. */
 export type SavedViewFieldRef = string;
 
 /**
@@ -13,8 +13,8 @@ export type SavedViewFieldRef = string;
  */
 export interface SavedViewConfig {
   filters: {
-    status?: TaskStatus[];
-    priority?: TaskPriority[];
+    status?: ItemStatus[];
+    priority?: ItemPriority[];
     assigneeIds?: string[];
     /** "Only mine", resolved with whoever opens the view. */
     assignedToMe?: boolean;
@@ -31,13 +31,13 @@ export interface SavedViewConfig {
   sort: { field: SavedViewFieldRef; direction: "asc" | "desc" }[];
   groupBy: SavedViewFieldRef | null;
   columns: SavedViewFieldRef[];
-  showSubtasks: boolean;
+  showSubitems: boolean;
   showCompleted: boolean;
 }
 
 export interface SavedView {
   id: string;
-  projectId: string;
+  folderId: string;
   ownerId: string;
   scope: SavedViewScope;
   name: string;

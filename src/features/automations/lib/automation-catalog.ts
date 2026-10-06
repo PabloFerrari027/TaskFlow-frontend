@@ -8,21 +8,21 @@ import type { AutomationEntityType } from "@/types/automation";
  * or action. The backend validates every rule on save, so a stale entry here
  * fails loudly (INVALID_AUTOMATION_*), never silently.
  *
- * Wording note: event phrases follow "Quando [uma tarefa] [tiver o status
+ * Wording note: event phrases follow "Quando [um item] [tiver o status
  * alterado]…" — second-person/conditional, not the past tense that
  * `describeActivityEntry` uses for the (already happened) activity feed.
  */
 
 export type FieldKind =
   | "member"
-  | "project"
+  | "folder"
   | "section"
-  | "taskStatus"
-  // A project's workflow status (etapa): the value is `CATEGORY` (the
+  | "itemStatus"
+  // A folder's workflow status (etapa): the value is `CATEGORY` (the
   // category's default) or `CATEGORY:statusId` — sent as `status` + `statusId`.
   | "workflowStatus"
-  | "taskPriority"
-  | "projectStatus"
+  | "itemPriority"
+  | "folderStatus"
   | "approvalDecision"
   | "number"
   | "date"
@@ -41,26 +41,26 @@ export interface TriggerEventSpec {
   phrase: string;
   // Payload fields beyond the common `actorId` (see ACTOR_FIELD).
   fields: PayloadFieldSpec[];
-  // Which payload field holds the id of the affected task, when the event has
-  // one — what lets a task action target "the task this happened to".
-  taskIdField: "entityId" | "taskId" | null;
+  // Which payload field holds the id of the affected item, when the event has
+  // one — what lets an item action target "the item this happened to".
+  itemIdField: "entityId" | "itemId" | null;
 }
 
 export const ENTITY_LABEL: Record<AutomationEntityType, string> = {
-  TASK: "uma tarefa",
+  ITEM: "um item",
   COMMENT: "um comentário",
   SECTION: "uma seção",
-  PROJECT: "um projeto",
+  FOLDER: "uma pasta",
   CUSTOM_FIELD: "um campo personalizado",
   WORKSPACE: "o workspace",
 };
 
-// What the builder offers: things that happen *inside* a project, since
-// automations are only managed from a project's tab. PROJECT and WORKSPACE
+// What the builder offers: things that happen *inside* a folder, since
+// automations are only managed from a folder's tab. FOLDER and WORKSPACE
 // events stay in TRIGGER_EVENTS so older rules on them can still be read.
-export const ENTITY_TYPES: AutomationEntityType[] = ["TASK", "COMMENT", "SECTION", "CUSTOM_FIELD"];
+export const ENTITY_TYPES: AutomationEntityType[] = ["ITEM", "COMMENT", "SECTION", "CUSTOM_FIELD"];
 
-export function isInProjectEntity(entityType: string) {
+export function isInFolderEntity(entityType: string) {
   return (ENTITY_TYPES as string[]).includes(entityType);
 }
 
@@ -80,182 +80,182 @@ const f = (
   kind: FieldKind
 ): PayloadFieldSpec => ({ field, label, article, kind });
 
-const PROJECT_ID = f("projectId", "projeto", "o", "project");
+const FOLDER_ID = f("folderId", "pasta", "o", "folder");
 
 export const TRIGGER_EVENTS: TriggerEventSpec[] = [
-  // ---------------------------------------------------------------- TASK
+  // ---------------------------------------------------------------- ITEM
   {
-    entityType: "TASK",
-    eventType: "tasks.task_created",
+    entityType: "ITEM",
+    eventType: "items.item_created",
     phrase: "for criada",
-    fields: [PROJECT_ID, f("sectionId", "seção", "a", "section")],
-    taskIdField: "entityId",
+    fields: [FOLDER_ID, f("sectionId", "seção", "a", "section")],
+    itemIdField: "entityId",
   },
   // Time-based (no author): sent once per due date by the server's deadline scanner.
   {
-    entityType: "TASK",
-    eventType: "tasks.task_due_soon",
+    entityType: "ITEM",
+    eventType: "items.item_due_soon",
     phrase: "estiver com o prazo chegando",
-    fields: [PROJECT_ID],
-    taskIdField: "entityId",
+    fields: [FOLDER_ID],
+    itemIdField: "entityId",
   },
   {
-    entityType: "TASK",
-    eventType: "tasks.task_overdue",
+    entityType: "ITEM",
+    eventType: "items.item_overdue",
     phrase: "passar do prazo",
-    fields: [PROJECT_ID],
-    taskIdField: "entityId",
+    fields: [FOLDER_ID],
+    itemIdField: "entityId",
   },
   {
-    entityType: "TASK",
-    eventType: "tasks.task_status_changed",
+    entityType: "ITEM",
+    eventType: "items.item_status_changed",
     phrase: "tiver o status alterado",
     fields: [
-      PROJECT_ID,
-      f("fromStatus", "status anterior", "o", "taskStatus"),
-      f("toStatus", "novo status", "o", "taskStatus"),
+      FOLDER_ID,
+      f("fromStatus", "status anterior", "o", "itemStatus"),
+      f("toStatus", "novo status", "o", "itemStatus"),
     ],
-    taskIdField: "entityId",
+    itemIdField: "entityId",
   },
   {
-    entityType: "TASK",
-    eventType: "tasks.task_assigned",
+    entityType: "ITEM",
+    eventType: "items.item_assigned",
     phrase: "tiver o responsável alterado",
     fields: [
-      PROJECT_ID,
+      FOLDER_ID,
       f("assigneeId", "novo responsável", "o", "member"),
       f("previousAssigneeId", "responsável anterior", "o", "member"),
     ],
-    taskIdField: "entityId",
+    itemIdField: "entityId",
   },
   {
-    entityType: "TASK",
-    eventType: "tasks.task_moved",
+    entityType: "ITEM",
+    eventType: "items.item_moved",
     phrase: "mudar de seção",
     fields: [
-      PROJECT_ID,
+      FOLDER_ID,
       f("fromSectionId", "seção de origem", "a", "section"),
       f("toSectionId", "seção de destino", "a", "section"),
     ],
-    taskIdField: "entityId",
+    itemIdField: "entityId",
   },
   {
-    entityType: "TASK",
-    eventType: "tasks.task_parent_changed",
-    phrase: "virar subtarefa de outra tarefa",
+    entityType: "ITEM",
+    eventType: "items.item_parent_changed",
+    phrase: "virar subitem de outro item",
     fields: [
-      PROJECT_ID,
-      f("fromParentId", "tarefa principal anterior", "a", "text"),
-      f("toParentId", "nova tarefa principal", "a", "text"),
+      FOLDER_ID,
+      f("fromParentId", "item principal anterior", "a", "text"),
+      f("toParentId", "novo item principal", "a", "text"),
     ],
-    taskIdField: "entityId",
+    itemIdField: "entityId",
   },
   {
-    entityType: "TASK",
-    eventType: "tasks.task_due_date_changed",
+    entityType: "ITEM",
+    eventType: "items.item_due_date_changed",
     phrase: "tiver o prazo alterado",
-    fields: [PROJECT_ID, f("dueDate", "novo prazo", "o", "date")],
-    taskIdField: "entityId",
+    fields: [FOLDER_ID, f("dueDate", "novo prazo", "o", "date")],
+    itemIdField: "entityId",
   },
   {
-    entityType: "TASK",
-    eventType: "tasks.task_priority_changed",
+    entityType: "ITEM",
+    eventType: "items.item_priority_changed",
     phrase: "tiver a prioridade alterada",
-    fields: [PROJECT_ID, f("priority", "nova prioridade", "a", "taskPriority")],
-    taskIdField: "entityId",
+    fields: [FOLDER_ID, f("priority", "nova prioridade", "a", "itemPriority")],
+    itemIdField: "entityId",
   },
   {
-    entityType: "TASK",
-    eventType: "tasks.task_participant_added",
+    entityType: "ITEM",
+    eventType: "items.item_participant_added",
     phrase: "ganhar um participante",
     fields: [f("userId", "participante", "o", "member")],
-    taskIdField: "entityId",
+    itemIdField: "entityId",
   },
   {
-    entityType: "TASK",
-    eventType: "tasks.task_participant_removed",
+    entityType: "ITEM",
+    eventType: "items.item_participant_removed",
     phrase: "perder um participante",
     fields: [f("userId", "participante", "o", "member")],
-    taskIdField: "entityId",
+    itemIdField: "entityId",
   },
   {
-    entityType: "TASK",
-    eventType: "tasks.task_workflow_status_changed",
+    entityType: "ITEM",
+    eventType: "items.item_workflow_status_changed",
     phrase: "mudar de etapa",
-    fields: [PROJECT_ID, f("category", "tipo da nova etapa", "o", "taskStatus")],
-    taskIdField: "entityId",
+    fields: [FOLDER_ID, f("category", "tipo da nova etapa", "o", "itemStatus")],
+    itemIdField: "entityId",
   },
   {
-    entityType: "TASK",
-    eventType: "tasks.task_assignees_changed",
+    entityType: "ITEM",
+    eventType: "items.item_assignees_changed",
     phrase: "tiver os responsáveis alterados",
-    fields: [PROJECT_ID],
-    taskIdField: "entityId",
+    fields: [FOLDER_ID],
+    itemIdField: "entityId",
   },
   {
-    entityType: "TASK",
-    eventType: "tasks.task_schedule_changed",
+    entityType: "ITEM",
+    eventType: "items.item_schedule_changed",
     phrase: "tiver o início ou o marco alterado",
-    fields: [PROJECT_ID, f("startDate", "novo início", "o", "date")],
-    taskIdField: "entityId",
+    fields: [FOLDER_ID, f("startDate", "novo início", "o", "date")],
+    itemIdField: "entityId",
   },
   {
-    entityType: "TASK",
-    eventType: "tasks.task_estimate_changed",
+    entityType: "ITEM",
+    eventType: "items.item_estimate_changed",
     phrase: "tiver a estimativa alterada",
-    fields: [PROJECT_ID],
-    taskIdField: "entityId",
+    fields: [FOLDER_ID],
+    itemIdField: "entityId",
   },
   {
-    entityType: "TASK",
-    eventType: "tasks.task_dependency_added",
-    phrase: "passar a depender de outra tarefa",
-    fields: [PROJECT_ID],
-    taskIdField: "entityId",
+    entityType: "ITEM",
+    eventType: "items.item_dependency_added",
+    phrase: "passar a depender de outro item",
+    fields: [FOLDER_ID],
+    itemIdField: "entityId",
   },
   {
-    entityType: "TASK",
-    eventType: "tasks.task_dependency_removed",
-    phrase: "deixar de depender de outra tarefa",
-    fields: [PROJECT_ID],
-    taskIdField: "entityId",
+    entityType: "ITEM",
+    eventType: "items.item_dependency_removed",
+    phrase: "deixar de depender de outro item",
+    fields: [FOLDER_ID],
+    itemIdField: "entityId",
   },
   {
-    entityType: "TASK",
-    eventType: "tasks.task_restored",
+    entityType: "ITEM",
+    eventType: "items.item_restored",
     phrase: "for restaurada da lixeira",
-    fields: [PROJECT_ID],
-    taskIdField: "entityId",
+    fields: [FOLDER_ID],
+    itemIdField: "entityId",
   },
   {
-    entityType: "TASK",
+    entityType: "ITEM",
     eventType: "approvals.approval_requested",
     phrase: "tiver uma aprovação pedida",
-    fields: [PROJECT_ID, f("approverId", "quem vai aprovar", "o", "member")],
-    taskIdField: "entityId",
+    fields: [FOLDER_ID, f("approverId", "quem vai aprovar", "o", "member")],
+    itemIdField: "entityId",
   },
   {
-    entityType: "TASK",
+    entityType: "ITEM",
     eventType: "approvals.approval_decided",
     phrase: "tiver uma aprovação respondida",
     fields: [
-      PROJECT_ID,
+      FOLDER_ID,
       f("decision", "resposta", "a", "approvalDecision"),
       f("approverId", "quem respondeu", "o", "member"),
     ],
-    taskIdField: "entityId",
+    itemIdField: "entityId",
   },
   {
-    entityType: "TASK",
-    eventType: "custom_fields.task_custom_field_value_set",
+    entityType: "ITEM",
+    eventType: "custom_fields.item_custom_field_value_set",
     phrase: "tiver um campo personalizado alterado",
     fields: [
-      PROJECT_ID,
+      FOLDER_ID,
       f("definitionId", "campo personalizado", "o", "text"),
       f("previousValue", "valor anterior", "o", "text"),
       f("newValue", "novo valor", "o", "text"),
     ],
-    taskIdField: "entityId",
+    itemIdField: "entityId",
   },
   // ------------------------------------------------------------- COMMENT
   {
@@ -263,109 +263,109 @@ export const TRIGGER_EVENTS: TriggerEventSpec[] = [
     eventType: "comments.comment_created",
     phrase: "for criado",
     fields: [
-      f("taskId", "tarefa", "a", "text"),
+      f("itemId", "item", "a", "text"),
       f("authorId", "autor do comentário", "o", "member"),
       f("parentId", "comentário respondido", "o", "text"),
     ],
-    taskIdField: "taskId",
+    itemIdField: "itemId",
   },
   {
     entityType: "COMMENT",
     eventType: "comments.comment_edited",
     phrase: "for editado",
-    fields: [f("taskId", "tarefa", "a", "text")],
-    taskIdField: "taskId",
+    fields: [f("itemId", "item", "a", "text")],
+    itemIdField: "itemId",
   },
   // ------------------------------------------------------------- SECTION
   {
     entityType: "SECTION",
     eventType: "sections.section_created",
     phrase: "for criada",
-    fields: [PROJECT_ID, f("name", "nome", "o", "text")],
-    taskIdField: null,
+    fields: [FOLDER_ID, f("name", "nome", "o", "text")],
+    itemIdField: null,
   },
   {
     entityType: "SECTION",
     eventType: "sections.section_moved",
     phrase: "mudar de posição",
     fields: [
-      PROJECT_ID,
+      FOLDER_ID,
       f("fromPosition", "posição anterior", "a", "number"),
       f("toPosition", "nova posição", "a", "number"),
     ],
-    taskIdField: null,
+    itemIdField: null,
   },
   {
     entityType: "SECTION",
     eventType: "sections.section_parent_changed",
     phrase: "virar subseção de outra seção",
     fields: [
-      PROJECT_ID,
+      FOLDER_ID,
       f("fromParentId", "seção principal anterior", "a", "section"),
       f("toParentId", "nova seção principal", "a", "section"),
     ],
-    taskIdField: null,
+    itemIdField: null,
   },
-  // ------------------------------------------------------------- PROJECT
+  // ------------------------------------------------------------- FOLDER
   {
-    entityType: "PROJECT",
-    eventType: "projects.project_created",
+    entityType: "FOLDER",
+    eventType: "folders.folder_created",
     phrase: "for criado",
     fields: [],
-    taskIdField: null,
+    itemIdField: null,
   },
   {
-    entityType: "PROJECT",
-    eventType: "projects.project_updated",
+    entityType: "FOLDER",
+    eventType: "folders.folder_updated",
     phrase: "for editado",
     fields: [f("name", "nome", "o", "text"), f("description", "descrição", "a", "text")],
-    taskIdField: null,
+    itemIdField: null,
   },
   {
-    entityType: "PROJECT",
-    eventType: "projects.project_archived",
+    entityType: "FOLDER",
+    eventType: "folders.folder_archived",
     phrase: "for arquivado",
     fields: [],
-    taskIdField: null,
+    itemIdField: null,
   },
   {
-    entityType: "PROJECT",
-    eventType: "projects.project_parent_changed",
-    phrase: "virar subprojeto de outro projeto",
+    entityType: "FOLDER",
+    eventType: "folders.folder_parent_changed",
+    phrase: "virar subpasta de outra pasta",
     fields: [
-      f("fromParentId", "projeto principal anterior", "o", "project"),
-      f("toParentId", "novo projeto principal", "o", "project"),
+      f("fromParentId", "pasta principal anterior", "o", "folder"),
+      f("toParentId", "nova pasta principal", "o", "folder"),
     ],
-    taskIdField: null,
+    itemIdField: null,
   },
   {
-    entityType: "PROJECT",
-    eventType: "projects.member_removed",
+    entityType: "FOLDER",
+    eventType: "folders.member_removed",
     phrase: "perder um membro",
     fields: [f("userId", "membro removido", "o", "member")],
-    taskIdField: null,
+    itemIdField: null,
   },
   // --------------------------------------------------------- CUSTOM_FIELD
   {
     entityType: "CUSTOM_FIELD",
     eventType: "custom_fields.custom_field_created",
     phrase: "for criado",
-    fields: [PROJECT_ID, f("name", "nome", "o", "text"), f("type", "tipo", "o", "text")],
-    taskIdField: null,
+    fields: [FOLDER_ID, f("name", "nome", "o", "text"), f("type", "tipo", "o", "text")],
+    itemIdField: null,
   },
   {
     entityType: "CUSTOM_FIELD",
     eventType: "custom_fields.custom_field_options_updated",
     phrase: "tiver as opções alteradas",
-    fields: [PROJECT_ID],
-    taskIdField: null,
+    fields: [FOLDER_ID],
+    itemIdField: null,
   },
   {
     entityType: "CUSTOM_FIELD",
     eventType: "custom_fields.custom_field_archived",
     phrase: "for arquivado",
-    fields: [PROJECT_ID],
-    taskIdField: null,
+    fields: [FOLDER_ID],
+    itemIdField: null,
   },
   // ----------------------------------------------------------- WORKSPACE
   {
@@ -373,35 +373,35 @@ export const TRIGGER_EVENTS: TriggerEventSpec[] = [
     eventType: "workspaces.workspace_created",
     phrase: "for criado",
     fields: [f("name", "nome", "o", "text")],
-    taskIdField: null,
+    itemIdField: null,
   },
   {
     entityType: "WORKSPACE",
     eventType: "workspaces.workspace_renamed",
     phrase: "for renomeado",
     fields: [f("previousName", "nome anterior", "o", "text"), f("name", "novo nome", "o", "text")],
-    taskIdField: null,
+    itemIdField: null,
   },
   {
     entityType: "WORKSPACE",
     eventType: "workspaces.workspace_deleted",
     phrase: "for excluído",
     fields: [],
-    taskIdField: null,
+    itemIdField: null,
   },
   {
     entityType: "WORKSPACE",
     eventType: "workspaces.member_added",
     phrase: "ganhar um membro",
     fields: [f("userId", "novo membro", "o", "member"), f("role", "papel", "o", "text")],
-    taskIdField: null,
+    itemIdField: null,
   },
   {
     entityType: "WORKSPACE",
     eventType: "workspaces.member_removed",
     phrase: "perder um membro",
     fields: [f("userId", "membro removido", "o", "member")],
-    taskIdField: null,
+    itemIdField: null,
   },
   {
     entityType: "WORKSPACE",
@@ -412,7 +412,7 @@ export const TRIGGER_EVENTS: TriggerEventSpec[] = [
       f("fromRole", "papel anterior", "o", "text"),
       f("toRole", "novo papel", "o", "text"),
     ],
-    taskIdField: null,
+    itemIdField: null,
   },
 ];
 
@@ -463,65 +463,65 @@ export interface ActionSpec {
   tool: string;
   // The verb phrase shown in the tool chip.
   label: string;
-  // Needs "the task this happened to" — only offered for events that carry one.
-  needsTask: boolean;
+  // Needs "the item this happened to" — only offered for events that carry one.
+  needsItem: boolean;
   // Only the params the sentence builder edits; anything else a rule already
-  // carries (e.g. move_task's `position`) is preserved untouched on save.
+  // carries (e.g. move_item's `position`) is preserved untouched on save.
   params: ActionParamSpec[];
 }
 
 export const ACTIONS: ActionSpec[] = [
   {
-    tool: "move_task",
-    label: "mover a tarefa",
-    needsTask: true,
+    tool: "move_item",
+    label: "mover o item",
+    needsItem: true,
     params: [{ key: "sectionId", label: "seção", lead: "para a seção", kind: "section" }],
   },
   {
-    tool: "change_task_status",
-    label: "mudar o status da tarefa",
-    needsTask: true,
+    tool: "change_item_status",
+    label: "mudar o status do item",
+    needsItem: true,
     params: [{ key: "status", label: "etapa", lead: "para", kind: "workflowStatus" }],
   },
   {
-    tool: "assign_task",
-    label: "atribuir a tarefa",
-    needsTask: true,
+    tool: "assign_item",
+    label: "atribuir o item",
+    needsItem: true,
     params: [{ key: "assigneeId", label: "responsável", lead: "a", kind: "member" }],
   },
   {
-    tool: "update_task",
-    label: "mudar a prioridade da tarefa",
-    needsTask: true,
-    params: [{ key: "priority", label: "prioridade", lead: "para", kind: "taskPriority" }],
+    tool: "update_item",
+    label: "mudar a prioridade do item",
+    needsItem: true,
+    params: [{ key: "priority", label: "prioridade", lead: "para", kind: "itemPriority" }],
   },
   {
-    tool: "add_task_participant",
-    label: "adicionar participante à tarefa:",
-    needsTask: true,
+    tool: "add_item_participant",
+    label: "adicionar participante ao item:",
+    needsItem: true,
     params: [{ key: "userId", label: "participante", lead: "", kind: "member" }],
   },
   {
-    tool: "remove_task_participant",
-    label: "remover participante da tarefa:",
-    needsTask: true,
+    tool: "remove_item_participant",
+    label: "remover participante do item:",
+    needsItem: true,
     params: [{ key: "userId", label: "participante", lead: "", kind: "member" }],
   },
   {
-    tool: "request_task_approval",
-    label: "pedir a aprovação da tarefa",
-    needsTask: true,
+    tool: "request_item_approval",
+    label: "pedir a aprovação do item",
+    needsItem: true,
     params: [
       { key: "approverId", label: "aprovador", lead: "a", kind: "member" },
       { key: "note", label: "nota (opcional)", lead: "com a nota", kind: "text", optional: true },
     ],
   },
   {
-    tool: "create_task",
-    label: "criar uma tarefa",
-    needsTask: false,
+    tool: "create_item",
+    label: "criar um item",
+    needsItem: false,
     params: [
-      { key: "projectId", label: "projeto", lead: "no projeto", kind: "project" },
+      { key: "folderId", label: "pasta", lead: "na pasta", kind: "folder" },
       { key: "title", label: "título", lead: "com o título", kind: "text" },
     ],
   },
@@ -532,7 +532,7 @@ export function findAction(tool: string) {
 }
 
 export function actionsForEvent(event: TriggerEventSpec | undefined) {
-  return ACTIONS.filter((action) => !action.needsTask || event?.taskIdField);
+  return ACTIONS.filter((action) => !action.needsItem || event?.itemIdField);
 }
 
 /** Event fields that can feed a param of this kind ("Valor do evento" tab). */
@@ -540,13 +540,13 @@ export function eventFieldsForKind(
   event: TriggerEventSpec | undefined,
   kind: FieldKind
 ): PayloadFieldSpec[] {
-  // A free-text param (e.g. a task title) accepts any field's value; an etapa
+  // A free-text param (e.g. an item title) accepts any field's value; an etapa
   // accepts a status category (the category's default etapa).
   return payloadFieldsOf(event).filter(
     (field) =>
       kind === "text" ||
       field.kind === kind ||
-      (kind === "workflowStatus" && field.kind === "taskStatus")
+      (kind === "workflowStatus" && field.kind === "itemStatus")
   );
 }
 

@@ -5,10 +5,10 @@ import type { AnalyticsFilter } from "./analytics";
 // the whitelist itself, and a rule created elsewhere may use a value newer
 // than this list.
 export type AutomationEntityType =
-  | "TASK"
+  | "ITEM"
   | "COMMENT"
   | "SECTION"
-  | "PROJECT"
+  | "FOLDER"
   | "CUSTOM_FIELD"
   | "WORKSPACE";
 

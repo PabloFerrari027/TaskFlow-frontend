@@ -81,7 +81,7 @@ export function PageList({ workspaceId }: { workspaceId: string }) {
         <EmptyState
           icon={<LayoutDashboard className="size-6" />}
           title="Nenhuma página ainda"
-          description="Crie uma página e adicione gráficos das tarefas e projetos deste workspace."
+          description="Crie uma página e adicione gráficos dos itens e pastas deste workspace."
           action={
             <OnlineOnly isOnline={isOnline}>
               <Button onClick={() => setCreating(true)}>

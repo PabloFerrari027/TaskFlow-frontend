@@ -7,12 +7,12 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useSync } from "@/features/sync/context/sync-context";
 
 /**
- * Editing an *existing* task, project, section, or custom field definition
+ * Editing an *existing* item, folder, section, or custom field definition
  * (and deleting an existing section or comment) queues while offline.
  * Creating anything new stays online-only across the board — offline
  * creates need a client-generated id plus optimistic list rendering and
  * id reconciliation once synced, which is a distinct, larger feature than
- * queueing edits to things that already have a server id. Task custom
+ * queueing edits to things that already have a server id. Item custom
  * field values also stay online-only: unlike every other § 13 entity they
  * have no `version` field, so there's no `baseVersion` to key optimistic
  * concurrency off. This indicator just surfaces the edit/delete queue.
@@ -25,7 +25,7 @@ export function SyncStatusIndicator() {
   const label = !isOnline
     ? pendingCount > 0
       ? `Offline — ${pendingCount} alteração(ões) pendente(s) de sincronização.`
-      : "Você está offline. Alterações em tarefas e projetos serão salvas localmente."
+      : "Você está offline. Alterações em itens e pastas serão salvas localmente."
     : isSyncing
       ? "Sincronizando alterações pendentes…"
       : `${pendingCount} alteração(ões) aguardando sincronização.`;

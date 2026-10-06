@@ -8,17 +8,17 @@ import type {
 } from "@/types/section";
 
 export const sectionsService = {
-  async listByProject(projectId: string, params?: PaginationParams) {
+  async listByFolder(folderId: string, params?: PaginationParams) {
     const { data } = await apiClient.get<PaginatedResult<Section>>(
-      `/projects/${projectId}/sections`,
+      `/folders/${folderId}/sections`,
       { params }
     );
     return data;
   },
 
-  async create(projectId: string, payload: CreateSectionRequest) {
+  async create(folderId: string, payload: CreateSectionRequest) {
     const { data } = await apiClient.post<Section>(
-      `/projects/${projectId}/sections`,
+      `/folders/${folderId}/sections`,
       payload
     );
     return data;
@@ -35,7 +35,7 @@ export const sectionsService = {
   },
 
   async remove(sectionId: string) {
-    const { data } = await apiClient.delete<{ deleted: boolean; projectId: string }>(
+    const { data } = await apiClient.delete<{ deleted: boolean; folderId: string }>(
       `/sections/${sectionId}`
     );
     return data;

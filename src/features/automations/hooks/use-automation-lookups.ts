@@ -3,21 +3,21 @@
 import * as React from "react";
 import { useQueries } from "@tanstack/react-query";
 import {
-  PROJECT_STATUS_LABEL,
-  TASK_PRIORITY_LABEL,
-  TASK_STATUS_LABEL,
+  FOLDER_STATUS_LABEL,
+  ITEM_PRIORITY_LABEL,
+  ITEM_STATUS_LABEL,
 } from "@/components/shared/status-badge";
 import { sectionsService } from "@/features/sections/api/sections-service";
-import { tasksService } from "@/features/tasks/api/tasks-service";
+import { itemsService } from "@/features/items/api/items-service";
 import {
   STATUS_CATEGORIES,
   statusesOfCategory,
-} from "@/features/tasks/hooks/use-workflow-statuses";
+} from "@/features/items/hooks/use-workflow-statuses";
 import {
   parseWorkflowStatusValue,
   toWorkflowStatusValue,
 } from "@/features/automations/lib/automation-catalog";
-import { useProjectsQuery } from "@/features/projects/hooks/use-projects";
+import { useFoldersQuery } from "@/features/folders/hooks/use-folders";
 import { useWorkspaceQuery } from "@/features/workspaces/hooks/use-workspaces";
 import type { FieldKind } from "@/features/automations/lib/automation-catalog";
 import type { ValueLabeler } from "@/features/automations/lib/automation-draft";
@@ -27,12 +27,12 @@ import { queryKeys } from "@/lib/query-keys";
 import { buildTree, flattenTree, getAncestors } from "@/lib/tree";
 import { MAX_PAGE_SIZE } from "@/types/common";
 import type { Section } from "@/types/section";
-import type { WorkflowStatus } from "@/types/task";
+import type { WorkflowStatus } from "@/types/item";
 
 export interface PickerOption {
   value: string;
   label: string;
-  // Options sharing a group are listed under one heading (sections by project).
+  // Options sharing a group are listed under one heading (sections by folder).
   group?: string;
   keywords?: string[];
 }
@@ -43,13 +43,13 @@ export interface AutomationLookups extends ValueLabeler {
   isLoading: boolean;
 }
 
-const STATUS_OPTIONS: PickerOption[] = Object.entries(TASK_STATUS_LABEL).map(
+const STATUS_OPTIONS: PickerOption[] = Object.entries(ITEM_STATUS_LABEL).map(
   ([value, label]) => ({ value, label })
 );
-const PRIORITY_OPTIONS: PickerOption[] = Object.entries(TASK_PRIORITY_LABEL).map(
+const PRIORITY_OPTIONS: PickerOption[] = Object.entries(ITEM_PRIORITY_LABEL).map(
   ([value, label]) => ({ value, label })
 );
-const PROJECT_STATUS_OPTIONS: PickerOption[] = Object.entries(PROJECT_STATUS_LABEL).map(
+const FOLDER_STATUS_OPTIONS: PickerOption[] = Object.entries(FOLDER_STATUS_LABEL).map(
   ([value, label]) => ({ value, label })
 );
 
@@ -75,23 +75,23 @@ interface StatusesCombined {
 // What a rule without `statusId` does: the category's default etapa.
 const CATEGORY_DEFAULT_OPTIONS: PickerOption[] = STATUS_CATEGORIES.map((category) => ({
   value: category,
-  label: `${TASK_STATUS_LABEL[category]} (etapa padrão)`,
-  group: "Qualquer projeto",
+  label: `${ITEM_STATUS_LABEL[category]} (etapa padrão)`,
+  group: "Qualquer pasta",
 }));
 
 // Sections have no workspace-level endpoint, so a rule's section can only be
-// found by asking every project. The query key/fn are the same ones the board
-// uses (`useSectionsQuery`), so a project already opened is served from cache.
+// found by asking every folder. The query key/fn are the same ones the board
+// uses (`useSectionsQuery`), so a folder already opened is served from cache.
 export function useAutomationLookups(workspaceId: string): AutomationLookups {
   const { userId: currentUserId } = useAuth();
   const workspaceQuery = useWorkspaceQuery(workspaceId);
-  const projectsQuery = useProjectsQuery(workspaceId);
-  const projects = React.useMemo(() => projectsQuery.data?.data ?? [], [projectsQuery.data]);
+  const foldersQuery = useFoldersQuery(workspaceId);
+  const folders = React.useMemo(() => foldersQuery.data?.data ?? [], [foldersQuery.data]);
 
   const sectionsResult = useQueries({
-    queries: projects.map((project) => ({
-      queryKey: queryKeys.sections.all(project.id),
-      queryFn: () => sectionsService.listByProject(project.id, { limit: MAX_PAGE_SIZE }),
+    queries: folders.map((folder) => ({
+      queryKey: queryKeys.sections.all(folder.id),
+      queryFn: () => sectionsService.listByFolder(folder.id, { limit: MAX_PAGE_SIZE }),
     })),
     combine: (results): SectionsCombined => ({
       sections: results.flatMap((result) => result.data?.data ?? []),
@@ -99,11 +99,11 @@ export function useAutomationLookups(workspaceId: string): AutomationLookups {
     }),
   });
 
-  // Same key/fn as `useProjectStatusesQuery`, so an opened project is cached.
+  // Same key/fn as `useFolderStatusesQuery`, so an opened folder is cached.
   const statusesResult = useQueries({
-    queries: projects.map((project) => ({
-      queryKey: queryKeys.statuses.all(project.id),
-      queryFn: () => tasksService.listStatuses(project.id),
+    queries: folders.map((folder) => ({
+      queryKey: queryKeys.statuses.all(folder.id),
+      queryFn: () => itemsService.listStatuses(folder.id),
       staleTime: 5 * 60_000,
     })),
     combine: (results): StatusesCombined => ({
@@ -116,7 +116,7 @@ export function useAutomationLookups(workspaceId: string): AutomationLookups {
   const workflowStatuses = statusesResult.statuses;
   const isLoading =
     workspaceQuery.isLoading ||
-    projectsQuery.isLoading ||
+    foldersQuery.isLoading ||
     sectionsResult.isLoading ||
     statusesResult.isLoading;
 
@@ -129,38 +129,38 @@ export function useAutomationLookups(workspaceId: string): AutomationLookups {
         ? "Você"
         : memberNames.get(userId) || `Usuário ${shortenId(userId)}…`;
 
-    const projectLabels = new Map(
-      projects.map((project) => [
-        project.id,
-        [...getAncestors(projects, project.id), project].map((p) => p.name).join(" / "),
+    const folderLabels = new Map(
+      folders.map((folder) => [
+        folder.id,
+        [...getAncestors(folders, folder.id), folder].map((p) => p.name).join(" / "),
       ])
     );
 
-    const sectionsByProject = new Map<string, Section[]>();
+    const sectionsByFolder = new Map<string, Section[]>();
     for (const section of sectionsResult.sections) {
-      sectionsByProject.set(section.projectId, [
-        ...(sectionsByProject.get(section.projectId) ?? []),
+      sectionsByFolder.set(section.folderId, [
+        ...(sectionsByFolder.get(section.folderId) ?? []),
         section,
       ]);
     }
 
     // Sub-sections are listed under their parent with the full path as the
-    // label ("Backlog / Ideias"), the same as the task's own section select.
+    // label ("Backlog / Ideias"), the same as the item's own section select.
     const sectionOptions: PickerOption[] = [];
     const sectionLabels = new Map<string, string>();
-    for (const project of projects) {
-      const sections = sectionsByProject.get(project.id) ?? [];
-      const projectName = projectLabels.get(project.id) ?? project.name;
+    for (const folder of folders) {
+      const sections = sectionsByFolder.get(folder.id) ?? [];
+      const folderName = folderLabels.get(folder.id) ?? folder.name;
       for (const section of flattenTree(buildTree(sections))) {
         const path = [...getAncestors(sections, section.id), section].map((s) => s.name).join(" / ");
-        sectionLabels.set(section.id, `${projectName} / ${path}`);
-        sectionOptions.push({ value: section.id, label: path, group: projectName });
+        sectionLabels.set(section.id, `${folderName} / ${path}`);
+        sectionOptions.push({ value: section.id, label: path, group: folderName });
       }
     }
 
-    const projectOptions: PickerOption[] = projects.map((project) => ({
-      value: project.id,
-      label: projectLabels.get(project.id) ?? project.name,
+    const folderOptions: PickerOption[] = folders.map((folder) => ({
+      value: folder.id,
+      label: folderLabels.get(folder.id) ?? folder.name,
     }));
 
     const memberOptions: PickerOption[] = (members ?? []).map((member) => ({
@@ -169,21 +169,21 @@ export function useAutomationLookups(workspaceId: string): AutomationLookups {
       keywords: [member.role, member.userId],
     }));
 
-    // A custom etapa only exists in its own project, so options are grouped by
-    // project; the backend refuses one from another project when the rule runs.
+    // A custom etapa only exists in its own folder, so options are grouped by
+    // folder; the backend refuses one from another folder when the rule runs.
     const statusOptions: PickerOption[] = [...CATEGORY_DEFAULT_OPTIONS];
     const statusLabels = new Map<string, string>();
-    for (const project of projects) {
-      const projectName = projectLabels.get(project.id) ?? project.name;
-      const own = workflowStatuses.filter((status) => status.projectId === project.id);
+    for (const folder of folders) {
+      const folderName = folderLabels.get(folder.id) ?? folder.name;
+      const own = workflowStatuses.filter((status) => status.folderId === folder.id);
       for (const category of STATUS_CATEGORIES) {
         for (const status of statusesOfCategory(own, category)) {
-          statusLabels.set(status.id, `${status.name} (${projectName})`);
+          statusLabels.set(status.id, `${status.name} (${folderName})`);
           statusOptions.push({
             value: toWorkflowStatusValue(category, status.id),
             label: status.name,
-            group: projectName,
-            keywords: [TASK_STATUS_LABEL[category]],
+            group: folderName,
+            keywords: [ITEM_STATUS_LABEL[category]],
           });
         }
       }
@@ -195,20 +195,20 @@ export function useAutomationLookups(workspaceId: string): AutomationLookups {
       isLoading,
       optionsFor(kind) {
         switch (kind) {
-          case "taskStatus":
+          case "itemStatus":
             return STATUS_OPTIONS;
           case "workflowStatus":
             return statusOptions;
-          case "taskPriority":
+          case "itemPriority":
             return PRIORITY_OPTIONS;
-          case "projectStatus":
-            return PROJECT_STATUS_OPTIONS;
+          case "folderStatus":
+            return FOLDER_STATUS_OPTIONS;
           case "approvalDecision":
             return APPROVAL_DECISION_OPTIONS;
           case "member":
             return memberOptions;
-          case "project":
-            return projectOptions;
+          case "folder":
+            return folderOptions;
           case "section":
             return sectionOptions;
           default:
@@ -217,24 +217,24 @@ export function useAutomationLookups(workspaceId: string): AutomationLookups {
       },
       labelFor(kind, value) {
         switch (kind) {
-          case "taskStatus":
-            return (TASK_STATUS_LABEL as Record<string, string>)[value] ?? value;
+          case "itemStatus":
+            return (ITEM_STATUS_LABEL as Record<string, string>)[value] ?? value;
           case "workflowStatus": {
             const { status, statusId } = parseWorkflowStatusValue(value);
-            const category = (TASK_STATUS_LABEL as Record<string, string>)[status] ?? status;
+            const category = (ITEM_STATUS_LABEL as Record<string, string>)[status] ?? status;
             if (!statusId) return category;
             return statusLabels.get(statusId) ?? `${category} (etapa ${shortenId(statusId)}…)`;
           }
-          case "taskPriority":
-            return (TASK_PRIORITY_LABEL as Record<string, string>)[value] ?? value;
-          case "projectStatus":
-            return (PROJECT_STATUS_LABEL as Record<string, string>)[value] ?? value;
+          case "itemPriority":
+            return (ITEM_PRIORITY_LABEL as Record<string, string>)[value] ?? value;
+          case "folderStatus":
+            return (FOLDER_STATUS_LABEL as Record<string, string>)[value] ?? value;
           case "approvalDecision":
             return APPROVAL_DECISION_LABEL[value] ?? value;
           case "member":
             return memberLabel(value);
-          case "project":
-            return projectLabels.get(value) ?? unknown("projeto", value);
+          case "folder":
+            return folderLabels.get(value) ?? unknown("pasta", value);
           case "section":
             return sectionLabels.get(value) ?? unknown("seção", value);
           default:
@@ -246,7 +246,7 @@ export function useAutomationLookups(workspaceId: string): AutomationLookups {
     currentUserId,
     isLoading,
     members,
-    projects,
+    folders,
     sectionsResult.sections,
     workflowStatuses,
   ]);

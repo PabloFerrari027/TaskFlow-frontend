@@ -21,10 +21,10 @@ import {
 import type { AppNotification } from "@/types/notification";
 
 function notificationHref(notification: AppNotification) {
-  if (notification.projectId && notification.taskId) {
-    return `/projects/${notification.projectId}/tasks?taskId=${notification.taskId}`;
+  if (notification.folderId && notification.itemId) {
+    return `/folders/${notification.folderId}/items?itemId=${notification.itemId}`;
   }
-  if (notification.projectId) return `/projects/${notification.projectId}/tasks`;
+  if (notification.folderId) return `/folders/${notification.folderId}/items`;
   return null;
 }
 
@@ -47,8 +47,8 @@ export function NotificationBell() {
     if (!notification.read) markRead.mutate(notification.id);
     const href = notificationHref(notification);
     if (!href) return;
-    // The task lives in another workspace: switch to it first, or the
-    // project page would answer "not found" for the current one.
+    // The item lives in another workspace: switch to it first, or the
+    // folder page would answer "not found" for the current one.
     if (notification.workspaceId !== workspaceId) setWorkspaceId(notification.workspaceId);
     setOpen(false);
     router.push(href);

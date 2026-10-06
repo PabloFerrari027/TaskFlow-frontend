@@ -11,13 +11,13 @@ import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { useSelfIdentity } from "@/features/auth/hooks/use-current-user";
 import { HomeStatTiles } from "@/features/home/components/home-stat-tiles";
-import { HomeTasksByProject } from "@/features/home/components/home-tasks-by-project";
-import { HomeRecentProjects } from "@/features/home/components/home-recent-projects";
+import { HomeItemsByFolder } from "@/features/home/components/home-items-by-folder";
+import { HomeRecentFolders } from "@/features/home/components/home-recent-folders";
 import { PendingApprovalsCard } from "@/features/approvals/components/pending-approvals-card";
 import { useHomeStats } from "@/features/home/hooks/use-home-stats";
 import { readCount } from "@/features/home/lib/home-queries";
-import { CreateProjectDialog } from "@/features/projects/components/create-project-dialog";
-import { useProjectsQuery } from "@/features/projects/hooks/use-projects";
+import { CreateFolderDialog } from "@/features/folders/components/create-folder-dialog";
+import { useFoldersQuery } from "@/features/folders/hooks/use-folders";
 import { CreateWorkspaceDialog } from "@/features/workspaces/components/create-workspace-dialog";
 import { useCurrentWorkspace } from "@/features/workspaces/context/current-workspace-context";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -38,13 +38,13 @@ function todayLabel(date: Date) {
 function nudge(open: number, overdue: number, dueSoon: number) {
   if (overdue > 0) {
     return overdue === 1
-      ? "Você tem 1 tarefa atrasada. Que tal começar por ela?"
-      : `Você tem ${overdue} tarefas atrasadas. Que tal começar por elas?`;
+      ? "Você tem 1 item atrasado. Que tal começar por ele?"
+      : `Você tem ${overdue} itens atrasados. Que tal começar por eles?`;
   }
   if (dueSoon > 0) {
     return dueSoon === 1
-      ? "Tudo em dia! 1 tarefa vence nesta semana."
-      : `Tudo em dia! ${dueSoon} tarefas vencem nesta semana.`;
+      ? "Tudo em dia! 1 item vence nesta semana."
+      : `Tudo em dia! ${dueSoon} itens vencem nesta semana.`;
   }
   if (open > 0) return "Tudo em dia. Continue assim!";
   return "Nada pendente com você por enquanto.";
@@ -56,7 +56,7 @@ export default function HomePage() {
   const { name } = useSelfIdentity();
   const [createOpen, setCreateOpen] = React.useState(false);
   const [createWorkspaceOpen, setCreateWorkspaceOpen] = React.useState(false);
-  const projectsQuery = useProjectsQuery(workspaceId);
+  const foldersQuery = useFoldersQuery(workspaceId);
   const stats = useHomeStats(workspaceId, userId);
 
   const now = new Date();
@@ -78,7 +78,7 @@ export default function HomePage() {
         <EmptyState
           icon={<Building2 className="size-6" />}
           title="Vamos começar criando um workspace"
-          description="O workspace é o espaço da sua equipe: lá ficam os projetos, as tarefas e as pessoas."
+          description="O workspace é o espaço da sua equipe: lá ficam as pastas, os itens e as pessoas."
           action={
             <Button onClick={() => setCreateWorkspaceOpen(true)}>
               <Plus /> Criar workspace
@@ -90,7 +90,7 @@ export default function HomePage() {
     );
   }
 
-  const projects = projectsQuery.data?.data ?? [];
+  const folders = foldersQuery.data?.data ?? [];
 
   return (
     <div className="space-y-8">
@@ -100,7 +100,7 @@ export default function HomePage() {
         actions={
           workspaceId ? (
             <Button onClick={() => setCreateOpen(true)}>
-              <Plus /> Novo projeto
+              <Plus /> Nova pasta
             </Button>
           ) : null
         }
@@ -116,16 +116,16 @@ export default function HomePage() {
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <PendingApprovalsCard />
-          <HomeTasksByProject
-            openByProject={stats.openByProject}
-            overdueByProject={stats.overdueByProject}
-            projects={projects}
+          <HomeItemsByFolder
+            openByFolder={stats.openByFolder}
+            overdueByFolder={stats.overdueByFolder}
+            folders={folders}
           />
         </div>
         <div className="space-y-6">
-          <HomeRecentProjects
-            projects={projects}
-            isLoading={workspaceLoading || projectsQuery.isLoading}
+          <HomeRecentFolders
+            folders={folders}
+            isLoading={workspaceLoading || foldersQuery.isLoading}
           />
           <Card>
             <CardHeader>
@@ -147,7 +147,7 @@ export default function HomePage() {
       </div>
 
       {workspaceId ? (
-        <CreateProjectDialog workspaceId={workspaceId} open={createOpen} onOpenChange={setCreateOpen} />
+        <CreateFolderDialog workspaceId={workspaceId} open={createOpen} onOpenChange={setCreateOpen} />
       ) : null}
     </div>
   );

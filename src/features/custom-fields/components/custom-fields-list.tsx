@@ -24,14 +24,14 @@ import type { CustomFieldDefinition } from "@/types/custom-field";
 const SELECT_TYPES = ["SINGLE_SELECT", "MULTI_SELECT"];
 
 export function CustomFieldsList({
-  projectId,
+  folderId,
   canManage,
 }: {
-  projectId: string;
+  folderId: string;
   canManage: boolean;
 }) {
-  const fieldsQuery = useCustomFieldsQuery(projectId);
-  const archiveMutation = useArchiveCustomFieldMutation(projectId);
+  const fieldsQuery = useCustomFieldsQuery(folderId);
+  const archiveMutation = useArchiveCustomFieldMutation(folderId);
   const [createOpen, setCreateOpen] = React.useState(false);
   const [editingField, setEditingField] = React.useState<CustomFieldDefinition | null>(null);
 
@@ -57,7 +57,7 @@ export function CustomFieldsList({
         <EmptyState
           icon={<SlidersHorizontal className="size-6" />}
           title="Nenhum campo extra criado"
-          description="Crie campos como Cliente ou Valor para guardar mais informações em cada tarefa."
+          description="Crie campos como Cliente ou Valor para guardar mais informações em cada item."
           action={
             <RoleGate allowed={canManage}>
               <Button onClick={() => setCreateOpen(true)}>
@@ -122,11 +122,11 @@ export function CustomFieldsList({
         </div>
       )}
 
-      <CreateCustomFieldDialog projectId={projectId} open={createOpen} onOpenChange={setCreateOpen} />
+      <CreateCustomFieldDialog folderId={folderId} open={createOpen} onOpenChange={setCreateOpen} />
       {editingField ? (
         <EditOptionsDialog
           key={editingField.id}
-          projectId={projectId}
+          folderId={folderId}
           definition={editingField}
           open={Boolean(editingField)}
           onOpenChange={(open) => !open && setEditingField(null)}

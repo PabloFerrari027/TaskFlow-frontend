@@ -7,7 +7,7 @@ export interface DataJob {
   id: string;
   kind: DataJobKind;
   status: DataJobStatus;
-  projectId: string;
+  folderId: string;
   format: DataJobFormat;
   fileName: string | null;
   /** Import: counts and per-line errors (`ImportJobResult`). Export: counts. */
@@ -34,7 +34,7 @@ export interface ImportJobResult {
   errorsTruncated: boolean;
 }
 
-/** The task fields a column can fill. */
+/** The item fields a column can fill. */
 export const IMPORT_FIELDS = [
   "title",
   "description",

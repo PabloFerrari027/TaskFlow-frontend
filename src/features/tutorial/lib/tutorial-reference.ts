@@ -18,11 +18,11 @@ const MANAGERS: WorkspaceRole[] = ["OWNER", "ADMIN"];
 
 export const ROLE_PERMISSIONS: RolePermission[] = [
   { action: "Convidar pessoas e gerenciar membros do workspace", roles: MANAGERS },
-  { action: "Gerenciar pessoas e convites de um projeto", roles: MANAGERS },
+  { action: "Gerenciar pessoas e convites de uma pasta", roles: MANAGERS },
   { action: "Criar, editar e arquivar campos extras", roles: MANAGERS },
-  { action: "Criar projetos a partir de um modelo", roles: MANAGERS },
-  { action: "Publicar um projeto como modelo", roles: MANAGERS },
-  { action: "Arquivar projetos", roles: MANAGERS },
+  { action: "Criar pastas a partir de um modelo", roles: MANAGERS },
+  { action: "Publicar uma pasta como modelo", roles: MANAGERS },
+  { action: "Arquivar pastas", roles: MANAGERS },
   { action: "Criar e gerenciar automações", roles: MANAGERS },
   { action: "Apagar comentários de outras pessoas", roles: MANAGERS },
   { action: "Ligar ou desligar o assistente de IA", roles: ["OWNER"] },
@@ -38,44 +38,44 @@ export interface GlossaryTerm {
 export const GLOSSARY: GlossaryTerm[] = [
   {
     term: "Workspace",
-    definition: "O espaço da sua equipe ou empresa: reúne pessoas, projetos e configurações.",
+    definition: "O espaço da sua equipe ou empresa: reúne pessoas, pastas e configurações.",
   },
   {
-    term: "Projeto e sub-projeto",
-    definition: "Um conjunto de trabalho com seu próprio quadro. Um projeto pode conter sub-projetos.",
+    term: "Pasta e subpasta",
+    definition: "Um conjunto de trabalho com seu próprio quadro. Uma pasta pode conter subpastas.",
   },
   {
     term: "Modelo",
     definition:
-      "Um projeto pronto para copiar: já vem com colunas, campos extras e, às vezes, tarefas de exemplo. Pode ser grátis ou pago.",
+      "Uma pasta pronta para copiar: já vem com colunas, campos extras e, às vezes, itens de exemplo. Pode ser grátis ou pago.",
   },
   {
     term: "Coluna e subcoluna",
-    definition: "Uma etapa do quadro de um projeto. Uma subcoluna fica dentro de uma coluna.",
+    definition: "Uma etapa do quadro de uma pasta. Uma subcoluna fica dentro de uma coluna.",
   },
   {
-    term: "Tarefa e subtarefa",
-    definition: "Uma unidade de trabalho. Uma subtarefa é uma tarefa que faz parte de outra.",
+    term: "Item e subitem",
+    definition: "Uma unidade de trabalho. Um subitem é um item que faz parte de outro.",
   },
   {
     term: "Status",
-    definition: "O andamento da tarefa: A fazer, Em progresso ou Concluída. Independe da coluna.",
+    definition: "O andamento do item: A fazer, Em progresso ou Concluída. Independe da coluna.",
   },
   {
     term: "Responsável",
-    definition: "A pessoa que executa a tarefa. É uma só por tarefa.",
+    definition: "A pessoa que executa o item. É uma só por item.",
   },
   {
     term: "Participante",
-    definition: "Alguém que acompanha a tarefa sem ser o responsável.",
+    definition: "Alguém que acompanha o item sem ser o responsável.",
   },
   {
     term: "Menção",
-    definition: "Uma pessoa escolhida no seletor para ser avisada sobre um comentário ou uma tarefa.",
+    definition: "Uma pessoa escolhida no seletor para ser avisada sobre um comentário ou um item.",
   },
   {
     term: "Campo extra",
-    definition: "Um campo próprio que você acrescenta às tarefas de um projeto.",
+    definition: "Um campo próprio que você acrescenta aos itens de uma pasta.",
   },
   {
     term: "Automação",
@@ -87,11 +87,11 @@ export const GLOSSARY: GlossaryTerm[] = [
   },
   {
     term: "Arquivar",
-    definition: "Tirar do dia a dia sem excluir. Vale para projetos e campos extras.",
+    definition: "Tirar do dia a dia sem excluir. Vale para pastas e campos extras.",
   },
   {
     term: "Convite",
-    definition: "Um link enviado por e-mail para alguém entrar em um workspace ou projeto, com data de expiração.",
+    definition: "Um link enviado por e-mail para alguém entrar em um workspace ou pasta, com data de expiração.",
   },
   {
     term: "Sessão",

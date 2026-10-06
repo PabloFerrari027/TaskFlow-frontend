@@ -4,10 +4,10 @@
 export type ApiKeyEnvironment = "LIVE" | "TEST";
 
 export type ApiKeyScope =
-  | "tasks:read"
-  | "tasks:write"
-  | "projects:read"
-  | "projects:write"
+  | "items:read"
+  | "items:write"
+  | "folders:read"
+  | "folders:write"
   | "workspace:read"
   | "webhooks:manage";
 
@@ -48,24 +48,24 @@ export interface UpdateApiKeyRequest {
 // Same closed whitelist as the automations/activity event identifiers
 // (API.md § 14/21/22).
 export const WEBHOOK_EVENTS = [
-  "tasks.task_status_changed",
-  "tasks.task_assigned",
-  "tasks.task_moved",
-  "tasks.task_parent_changed",
-  "tasks.task_due_date_changed",
-  "tasks.task_priority_changed",
-  "tasks.task_participant_added",
-  "tasks.task_participant_removed",
-  "custom_fields.task_custom_field_value_set",
+  "items.item_status_changed",
+  "items.item_assigned",
+  "items.item_moved",
+  "items.item_parent_changed",
+  "items.item_due_date_changed",
+  "items.item_priority_changed",
+  "items.item_participant_added",
+  "items.item_participant_removed",
+  "custom_fields.item_custom_field_value_set",
   "comments.comment_created",
   "sections.section_created",
   "sections.section_moved",
   "sections.section_parent_changed",
-  "projects.project_created",
-  "projects.project_updated",
-  "projects.project_archived",
-  "projects.project_parent_changed",
-  "projects.member_removed",
+  "folders.folder_created",
+  "folders.folder_updated",
+  "folders.folder_archived",
+  "folders.folder_parent_changed",
+  "folders.member_removed",
   "custom_fields.custom_field_created",
   "custom_fields.custom_field_options_updated",
   "custom_fields.custom_field_archived",

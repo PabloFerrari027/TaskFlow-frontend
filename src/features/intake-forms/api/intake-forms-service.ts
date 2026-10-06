@@ -2,13 +2,13 @@ import { apiClient } from "@/lib/api/client";
 import type { IntakeForm, PublicIntakeForm, SaveIntakeFormRequest } from "@/types/intake-form";
 
 export const intakeFormsService = {
-  async list(projectId: string) {
-    const { data } = await apiClient.get<IntakeForm[]>(`/projects/${projectId}/forms`);
+  async list(folderId: string) {
+    const { data } = await apiClient.get<IntakeForm[]>(`/folders/${folderId}/forms`);
     return data;
   },
 
-  async create(projectId: string, payload: SaveIntakeFormRequest) {
-    const { data } = await apiClient.post<IntakeForm>(`/projects/${projectId}/forms`, payload);
+  async create(folderId: string, payload: SaveIntakeFormRequest) {
+    const { data } = await apiClient.post<IntakeForm>(`/folders/${folderId}/forms`, payload);
     return data;
   },
 

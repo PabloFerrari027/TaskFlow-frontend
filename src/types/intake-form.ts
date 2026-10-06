@@ -1,7 +1,7 @@
 export const INTAKE_FIELD_TYPES = ["TEXT", "LONG_TEXT", "EMAIL", "NUMBER", "DATE", "SELECT"] as const;
 export type IntakeFieldType = (typeof INTAKE_FIELD_TYPES)[number];
 
-/** Where an answer goes in the task. Without one, it is added to the description as "Label: value". */
+/** Where an answer goes in the item. Without one, it is added to the description as "Label: value". */
 export type IntakeFieldTarget = "title" | "description" | "dueDate" | "priority";
 
 export interface IntakeFormField {
@@ -18,7 +18,7 @@ export interface IntakeFormField {
 
 export interface IntakeForm {
   id: string;
-  projectId: string;
+  folderId: string;
   name: string;
   description: string | null;
   /** Off: the public link answers 404. */

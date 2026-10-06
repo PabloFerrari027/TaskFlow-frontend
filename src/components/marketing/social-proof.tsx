@@ -10,8 +10,8 @@ const TRUST_POINTS = [
   { icon: ShieldCheck, label: "Autenticação em duas etapas" },
   { icon: KeyRound, label: "Login com Google" },
   { icon: Users, label: "Papéis e permissões por workspace" },
-  { icon: Layers, label: "Múltiplos workspaces e projetos" },
-  { icon: SlidersHorizontal, label: "Campos personalizados por projeto" },
+  { icon: Layers, label: "Múltiplos workspaces e pastas" },
+  { icon: SlidersHorizontal, label: "Campos personalizados por pasta" },
 ];
 
 export function SocialProof() {

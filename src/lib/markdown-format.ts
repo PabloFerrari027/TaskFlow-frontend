@@ -13,7 +13,7 @@ export type MarkdownAction =
   | "quote"
   | "bullet"
   | "numbered"
-  | "task";
+  | "item";
 
 export interface TextEdit {
   value: string;
@@ -53,7 +53,7 @@ function linePrefix(action: MarkdownAction, level: number): LinePrefix | null {
       return { strip: /^[-*] (?!\[[ xX]\] )/, replace: ANY_LIST, add: () => "- " };
     case "numbered":
       return { strip: /^\d+\. /, replace: ANY_LIST, add: (i) => `${i + 1}. ` };
-    case "task":
+    case "item":
       return { strip: /^[-*] \[[ xX]\] /, replace: ANY_LIST, add: () => "- [ ] " };
     default:
       return null;
@@ -158,7 +158,7 @@ export function linkSelectionToUrl(
   return { value: value.slice(0, start) + inserted + value.slice(end), start: caret, end: caret };
 }
 
-// indent · marker (quote, bullet / task, numbered) · rest of the line.
+// indent · marker (quote, bullet / item, numbered) · rest of the line.
 const LIST_LINE = /^(\s*)(>\s?|[-*] (?:\[[ xX]\] )?|\d+\. )(.*)$/;
 
 function nextMarker(marker: string) {

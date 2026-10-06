@@ -8,7 +8,7 @@ import type { AnalyticsResult } from "@/types/analytics";
 /**
  * A single headline value — no plot, so no colour and no hover layer.
  * `label` replaces the metric's generic name ("Quantidade") when the caller
- * knows what is being counted ("Tarefas em aberto").
+ * knows what is being counted ("Itens em aberto").
  */
 export function NumberCardRenderer({ result, label }: { result: AnalyticsResult; label?: string }) {
   const [series] = buildSeries(result);

@@ -72,22 +72,22 @@ export interface TutorialGuide {
   faq?: GuideFaq[];
   // Ids of other guides worth reading next.
   related?: string[];
-  // Where the feature lives; omitted when it depends on a workspace or project
+  // Where the feature lives; omitted when it depends on a workspace or folder
   // id and so has no single URL.
   href?: string;
   hrefLabel?: string;
 }
 
 // The board's "seções" are called "colunas" everywhere in the UI, so the
-// guides do too. Labels in quotes ("Novo projeto", "Mover para…") are the real
+// guides do too. Labels in quotes ("Nova pasta", "Mover para…") are the real
 // button/menu texts — revisit them when the interface wording changes.
 export const TUTORIAL_GUIDES: TutorialGuide[] = [
   // ------------------------------------------------------------- start
   {
     id: "overview",
     group: "start",
-    title: "Visão geral e seu primeiro projeto",
-    summary: "Como o TaskFlow se organiza e como sair do zero até a primeira tarefa.",
+    title: "Visão geral e sua primeira pasta",
+    summary: "Como o TaskFlow se organiza e como sair do zero até o primeiro item.",
     icon: Rocket,
     sections: [
       {
@@ -95,32 +95,32 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         intro:
           "O TaskFlow tem poucas peças, sempre na mesma ordem de dentro para fora:",
         bullets: [
-          "Workspace: o espaço da sua equipe ou empresa. Reúne pessoas, projetos e configurações.",
-          "Projeto: um trabalho com começo e fim (ou uma área contínua). Pode ter sub-projetos.",
-          "Coluna: uma etapa do quadro do projeto, como “A fazer” ou “Em andamento”. Pode ter subcolunas.",
-          "Tarefa: uma unidade de trabalho, com responsável, prazo, prioridade e status. Pode ter subtarefas.",
+          "Workspace: o espaço da sua equipe ou empresa. Reúne pessoas, pastas e configurações.",
+          "Pasta: um trabalho com começo e fim (ou uma área contínua). Pode ter subpastas.",
+          "Coluna: uma etapa do quadro da pasta, como “A fazer” ou “Em andamento”. Pode ter subcolunas.",
+          "Item: uma unidade de trabalho, com responsável, prazo, prioridade e status. Pode ter subitens.",
         ],
         callouts: [
           {
             kind: "note",
-            text: "Status e coluna são coisas diferentes. O status (A fazer, Em progresso, Concluída) é um campo da tarefa; a coluna é onde ela aparece no quadro. Mudar um não muda o outro sozinho, a não ser que você crie uma automação para ligá-los (veja o guia de Automações).",
+            text: "Status e coluna são coisas diferentes. O status (A fazer, Em progresso, Concluída) é um campo do item; a coluna é onde ele aparece no quadro. Mudar um não muda o outro sozinho, a não ser que você crie uma automação para ligá-los (veja o guia de Automações).",
           },
         ],
       },
       {
-        heading: "Do zero à primeira tarefa",
+        heading: "Do zero ao primeiro item",
         steps: [
-          "Se você ainda não tem workspace, a página Projetos mostra “Você ainda não tem um workspace”. Crie um pelo seletor no topo, em “Novo workspace”.",
-          "Abra Projetos no menu lateral e clique em “Novo projeto”. Dê um nome e, se quiser, uma descrição.",
-          "Entre no projeto. A aba Tarefas mostra o quadro. Clique em “Adicionar coluna” e crie as etapas do seu fluxo, por exemplo “A fazer”, “Em andamento” e “Concluído”.",
-          "Clique em “Nova tarefa”, escreva o título e escolha coluna, responsável, prazo e prioridade. Só o título é obrigatório.",
-          "Arraste a tarefa de uma coluna para outra conforme ela avança. Clique nela para abrir o detalhe.",
+          "Se você ainda não tem workspace, a página Pastas mostra “Você ainda não tem um workspace”. Crie um pelo seletor no topo, em “Novo workspace”.",
+          "Abra Pastas no menu lateral e clique em “Nova pasta”. Dê um nome e, se quiser, uma descrição.",
+          "Entre na pasta. A aba Itens mostra o quadro. Clique em “Adicionar coluna” e crie as etapas do seu fluxo, por exemplo “A fazer”, “Em andamento” e “Concluído”.",
+          "Clique em “Novo item”, escreva o título e escolha coluna, responsável, prazo e prioridade. Só o título é obrigatório.",
+          "Arraste o item de uma coluna para outra conforme ele avança. Clique nele para abrir o detalhe.",
           "Para trazer a equipe, abra Workspaces, entre no seu workspace e use a seção Convites.",
         ],
         callouts: [
           {
             kind: "tip",
-            text: "Não precisa configurar tudo antes de começar. Crie o projeto, uma coluna e uma tarefa, e refine o resto conforme a necessidade aparecer.",
+            text: "Não precisa configurar tudo antes de começar. Crie a pasta, uma coluna e um item, e refine o resto conforme a necessidade aparecer.",
           },
         ],
       },
@@ -129,8 +129,8 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         intro:
           "O menu lateral é dividido em grupos (Trabalho, Equipe, Ajuda e Conta), do que você usa todo dia para o que usa de vez em quando.",
         bullets: [
-          "Início: seu resumo do dia, com as tarefas atribuídas a você, o que está atrasado e os projetos recentes. É a primeira tela depois do login.",
-          "Projetos: todos os projetos do workspace, ativos e arquivados, em árvore ou tabela.",
+          "Início: seu resumo do dia, com os itens atribuídos a você, o que está atrasado e as pastas recentes. É a primeira tela depois do login.",
+          "Pastas: todas as pastas do workspace, ativas e arquivadas, em árvore ou tabela.",
           "Desenvolvedores: chaves de API e webhooks do workspace atual (só Proprietário e Administrador veem este item).",
           "Assistente: liga ou desliga o assistente de IA do workspace atual.",
           "Workspaces: seus workspaces, membros, convites e a atividade do workspace atual.",
@@ -140,19 +140,19 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
     ],
     faq: [
       {
-        question: "Criei um projeto mas ele não aparece.",
+        question: "Criei uma pasta mas ela não aparece.",
         answer:
-          "Confira o workspace selecionado no topo: cada workspace tem seus próprios projetos. Projetos arquivados ficam na aba Arquivados da página Projetos.",
+          "Confira o workspace selecionado no topo: cada workspace tem suas próprias pastas. Pastas arquivadas ficam na aba Arquivadas da página Pastas.",
       },
       {
-        question: "Preciso criar as colunas antes das tarefas?",
+        question: "Preciso criar as colunas antes dos itens?",
         answer:
-          "Não necessariamente. Um projeto novo já tem uma coluna padrão, e as tarefas novas entram nela quando você não escolhe outra. Crie colunas quando quiser separar as etapas.",
+          "Não necessariamente. Uma pasta nova já tem uma coluna padrão, e os itens novos entram nela quando você não escolhe outra. Crie colunas quando quiser separar as etapas.",
       },
     ],
-    related: ["navigation", "board", "tasks"],
-    href: "/projects",
-    hrefLabel: "Ir para Projetos",
+    related: ["navigation", "board", "items"],
+    href: "/folders",
+    hrefLabel: "Ir para Pastas",
   },
   {
     id: "navigation",
@@ -165,7 +165,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         heading: "Barra superior",
         bullets: [
           "Botão de menu: esconde ou mostra o menu lateral no computador. No celular, o menu abre como uma gaveta.",
-          "Seletor de workspace: troca o workspace atual. Tudo que você vê (projetos, atividade) é do workspace selecionado.",
+          "Seletor de workspace: troca o workspace atual. Tudo que você vê (pastas, atividade) é do workspace selecionado.",
           "Ícone do assistente: abre o chat de IA (precisa estar ativado no workspace).",
           "Ícone de sincronização: só aparece quando você está offline, sincronizando ou com alterações pendentes.",
           "Tema: alterna entre claro, escuro e o padrão do sistema.",
@@ -179,7 +179,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         bullets: [
           "O workspace atual.",
           "Se o menu lateral está escondido.",
-          "O modo de visualização de projetos e de tarefas (cartões ou tabela).",
+          "O modo de visualização de pastas e de itens (cartões ou tabela).",
           "A largura de cada coluna do quadro.",
           "Se você já fez o tour guiado.",
         ],
@@ -193,7 +193,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Links compartilháveis",
         intro:
-          "Quando você abre uma tarefa no painel lateral do quadro, o endereço da página ganha um identificador da tarefa. Copie a URL e envie para alguém do projeto: ao abrir, a tarefa já vem aberta. Recarregar a página também mantém o painel aberto.",
+          "Quando você abre um item no painel lateral do quadro, o endereço da página ganha um identificador do item. Copie a URL e envie para alguém da pasta: ao abrir, o item já vem aberto. Recarregar a página também mantém o painel aberto.",
       },
     ],
     faq: [
@@ -222,40 +222,40 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "O que a tela mostra",
         intro:
-          "A tela Início reúne as tarefas em que você é o responsável, no workspace selecionado no topo:",
+          "A tela Início reúne os itens em que você é o responsável, no workspace selecionado no topo:",
         bullets: [
-          "Com você: quantas tarefas atribuídas a você ainda não foram concluídas.",
-          "Atrasadas: tarefas suas em aberto cujo prazo já passou.",
-          "Vencem em breve: tarefas suas em aberto com prazo nos próximos 7 dias.",
-          "Seu progresso: a porcentagem de todas as tarefas já atribuídas a você que estão concluídas.",
-          "Onde estão suas tarefas: os projetos em que há tarefas suas em aberto, com os atrasados primeiro. Clique num projeto para ir direto ao quadro.",
-          "Continue de onde parou: os projetos ativos alterados mais recentemente.",
+          "Com você: quantos itens atribuídos a você ainda não foram concluídos.",
+          "Atrasados: itens seus em aberto cujo prazo já passou.",
+          "Vencem em breve: itens seus em aberto com prazo nos próximos 7 dias.",
+          "Seu progresso: a porcentagem de todos os itens já atribuídos a você que estão concluídos.",
+          "Onde estão seus itens: as pastas em que há itens seus em aberto, com os atrasados primeiro. Clique numa pasta para ir direto ao quadro.",
+          "Continue de onde parou: as pastas ativas alteradas mais recentemente.",
         ],
         callouts: [
           {
             kind: "note",
-            text: "Só contam as tarefas em que você é o responsável. Ser participante ou ter sido mencionado numa tarefa não a coloca aqui.",
+            text: "Só contam os itens em que você é o responsável. Ser participante ou ter sido mencionado num item não o coloca aqui.",
           },
           {
             kind: "note",
-            text: "As tarefas de um sub-projeto aparecem somadas no projeto principal acima dele, igual à aba Estatísticas.",
+            text: "Os itens de uma subpasta aparecem somados na pasta principal acima dela, igual à aba Estatísticas.",
           },
         ],
       },
       {
-        heading: "Concluindo tarefas",
+        heading: "Concluindo itens",
         intro:
-          "Quando você muda o status de uma tarefa para Concluída, o TaskFlow comemora com uma pequena animação. Se o seu sistema estiver configurado para reduzir movimentos, a animação não aparece.",
+          "Quando você muda o status de um item para Concluída, o TaskFlow comemora com uma pequena animação. Se o seu sistema estiver configurado para reduzir movimentos, a animação não aparece.",
       },
     ],
     faq: [
       {
-        question: "Os números não batem com o que vejo num projeto.",
+        question: "Os números não batem com o que vejo numa pasta.",
         answer:
           "Confira o workspace selecionado no topo: a tela Início só conta o workspace atual. Os números também podem levar alguns segundos para atualizar depois de uma alteração.",
       },
     ],
-    related: ["tasks", "project-stats"],
+    related: ["items", "folder-stats"],
     href: "/home",
     hrefLabel: "Ir para o Início",
   },
@@ -284,7 +284,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         bullets: [
           "Membros: quem faz parte, com o papel de cada um.",
           "Convites: convites enviados e o estado de cada um (pendente, aceito, revogado ou expirado), com a data de expiração.",
-          "Atividade: a linha do tempo de tudo que aconteceu no workspace, de todos os projetos.",
+          "Atividade: a linha do tempo de tudo que aconteceu no workspace, de todas as pastas.",
         ],
         callouts: [
           {
@@ -331,9 +331,9 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
     ],
     faq: [
       {
-        question: "A pessoa aceitou o convite mas não vê os projetos.",
+        question: "A pessoa aceitou o convite mas não vê as pastas.",
         answer:
-          "Peça que ela confira o workspace selecionado no seletor do topo. Quem entra num workspace passa a ver os projetos dele automaticamente. Para projetos específicos, o convite pode ter sido feito no nível do projeto (veja o guia de Projetos).",
+          "Peça que ela confira o workspace selecionado no seletor do topo. Quem entra num workspace passa a ver as pastas dele automaticamente. Para pastas específicas, o convite pode ter sido feito no nível da pasta (veja o guia de Pastas).",
       },
       {
         question: "Não consigo mudar o papel de alguém para Proprietário.",
@@ -346,76 +346,76 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
           "Convidar exige o papel de Proprietário ou Administrador. Peça a alguém com esse papel.",
       },
     ],
-    related: ["projects", "automations", "assistant"],
+    related: ["folders", "automations", "assistant"],
   },
   {
-    id: "projects",
+    id: "folders",
     group: "daily",
-    title: "Projetos e sub-projetos",
-    summary: "Criar, organizar em hierarquia, dar acesso e arquivar projetos.",
+    title: "Pastas e subpastas",
+    summary: "Criar, organizar em hierarquia, dar acesso e arquivar pastas.",
     icon: FolderKanban,
-    href: "/projects",
-    hrefLabel: "Abrir projetos",
+    href: "/folders",
+    hrefLabel: "Abrir pastas",
     sections: [
       {
         heading: "Criar e editar",
         steps: [
-          "Em Projetos, clique em “Novo projeto”.",
-          "Para mudar nome e descrição depois, abra o projeto e use “Editar nome e descrição”.",
+          "Em Pastas, clique em “Nova pasta”.",
+          "Para mudar nome e descrição depois, abra a pasta e use “Editar nome e descrição”.",
         ],
       },
       {
-        heading: "Sub-projetos e hierarquia",
+        heading: "Subpastas e hierarquia",
         intro:
-          "Um projeto pode conter outros projetos, útil para separar fases ou frentes de trabalho.",
+          "Uma pasta pode conter outras pastas, útil para separar fases ou frentes de trabalho.",
         bullets: [
-          "“Criar sub-projeto” está no menu de ações do projeto (na lista) e no cabeçalho do próprio projeto.",
-          "“Mover para…” reposiciona um projeto dentro de outro. A lista de destinos não oferece o próprio projeto, os sub-projetos dele nem projetos arquivados.",
-          "Dentro de um sub-projeto aparece um caminho no topo (breadcrumb) para voltar aos projetos acima.",
+          "“Criar subpasta” está no menu de ações da pasta (na lista) e no cabeçalho da própria pasta.",
+          "“Mover para…” reposiciona uma pasta dentro de outra. A lista de destinos não oferece a própria pasta, as subpastas dela nem pastas arquivadas.",
+          "Dentro de uma subpasta aparece um caminho no topo (breadcrumb) para voltar às pastas acima.",
         ],
       },
       {
         heading: "Cartões ou tabela",
         intro:
-          "Na página Projetos, o seletor “Modo de visualização dos projetos” alterna entre a árvore de cartões e a tabela. A tabela mostra Projeto, Descrição, Status e Atualizado, deixa expandir e recolher sub-projetos e permite editar direto nas células.",
+          "Na página Pastas, o seletor “Modo de visualização das pastas” alterna entre a árvore de cartões e a tabela. A tabela mostra Pasta, Descrição, Status e Atualizado, deixa expandir e recolher subpastas e permite editar direto nas células.",
       },
       {
         heading: "Quem tem acesso",
-        intro: "Na aba Pessoas do projeto:",
+        intro: "Na aba Pessoas da pasta:",
         bullets: [
-          "Quem já é membro do workspace tem acesso automaticamente. Por isso a lista pode aparecer vazia: ela mostra só quem foi adicionado especificamente ao projeto.",
+          "Quem já é membro do workspace tem acesso automaticamente. Por isso a lista pode aparecer vazia: ela mostra só quem foi adicionado especificamente à pasta.",
           "Para dar acesso a alguém de fora do workspace, use a aba Convites e “Convidar pessoa”, escolhendo Membro ou Convidado.",
-          "“Remover do projeto” tira o acesso; você pode convidar de novo depois.",
+          "“Remover da pasta” tira o acesso; você pode convidar de novo depois.",
         ],
         callouts: [
           {
             kind: "note",
-            text: "Não existe papel de administrador dentro de um projeto. Gerenciar pessoas, campos extras e arquivamento depende do papel da pessoa no workspace (Proprietário ou Administrador).",
+            text: "Não existe papel de administrador dentro de uma pasta. Gerenciar pessoas, campos extras e arquivamento depende do papel da pessoa no workspace (Proprietário ou Administrador).",
           },
         ],
       },
       {
         heading: "Arquivar",
         intro:
-          "Projetos não são excluídos, apenas arquivados: eles passam para a aba Arquivados da página Projetos. Use “Arquivar projeto” no cabeçalho e confirme.",
+          "Pastas não são excluídas, apenas arquivadas: elas passam para a aba Arquivados da página Pastas. Use “Arquivar pasta” no cabeçalho e confirme.",
         callouts: [
           {
             kind: "warning",
-            text: "Um projeto que ainda tem sub-projetos não pode ser arquivado. Mova ou arquive os sub-projetos primeiro.",
+            text: "Uma pasta que ainda tem subpastas não pode ser arquivada. Mova ou arquive as subpastas primeiro.",
           },
         ],
       },
     ],
     faq: [
       {
-        question: "Não consigo escolher um projeto como destino em “Mover para…”.",
+        question: "Não consigo escolher uma pasta como destino em “Mover para…”.",
         answer:
-          "O destino não pode ser o próprio projeto, um sub-projeto dele (criaria um ciclo) nem um projeto arquivado.",
+          "O destino não pode ser a própria pasta, uma subpasta dela (criaria um ciclo) nem uma pasta arquivada.",
       },
       {
-        question: "Como apago um projeto?",
+        question: "Como apago uma pasta?",
         answer:
-          "Não é possível excluir projetos. Arquive-o para tirá-lo do dia a dia.",
+          "Não é possível excluir pastas. Arquive-a para tirá-la do dia a dia.",
       },
     ],
     related: ["board", "workspaces", "custom-fields"],
@@ -423,89 +423,89 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
   {
     id: "templates",
     group: "daily",
-    title: "Modelos de projeto",
-    summary: "Começar um projeto já organizado e salvar seus projetos como modelo.",
+    title: "Modelos de pasta",
+    summary: "Começar uma pasta já organizada e salvar suas pastas como modelo.",
     icon: LayoutTemplate,
     audience:
-      "Qualquer pessoa pode ver os modelos. Para usar um modelo ou salvar um projeto como modelo, é preciso ser Proprietário ou Administrador do workspace.",
+      "Qualquer pessoa pode ver os modelos. Para usar um modelo ou salvar uma pasta como modelo, é preciso ser Proprietário ou Administrador do workspace.",
     href: "/templates",
     hrefLabel: "Abrir modelos",
     sections: [
       {
         heading: "O que é um modelo",
         intro:
-          "Um modelo é um projeto pronto para copiar. Em vez de montar colunas e campos do zero, você escolhe um modelo e o TaskFlow cria o projeto já organizado. Existem dois tipos, e os dois são grátis:",
+          "Um modelo é uma pasta pronta para copiar. Em vez de montar colunas e campos do zero, você escolhe um modelo e o TaskFlow cria a pasta já organizada. Existem dois tipos, e os dois são grátis:",
         bullets: [
           "Modelos do TaskFlow: vêm prontos com o sistema e aparecem para todo mundo.",
-          "Modelos do workspace: salvos a partir de projetos do seu workspace. Só as pessoas desse workspace veem e usam.",
+          "Modelos do workspace: salvos a partir de pastas do seu workspace. Só as pessoas desse workspace veem e usam.",
         ],
       },
       {
         heading: "Usar um modelo",
         steps: [
-          "Abra Modelos no menu lateral (ou “Começar de um modelo”, na página Projetos).",
+          "Abra Modelos no menu lateral (ou “Começar de um modelo”, na página Pastas).",
           "No alto aparecem os modelos do seu workspace. Mais abaixo, os do TaskFlow, com busca (por nome, descrição ou tag), filtro por categoria e nível, e ordem por destaques, mais usados ou mais recentes.",
-          "Abra um modelo para ver a prévia: o guia, as colunas, as etapas, as tarefas de exemplo (com marcos e dependências), os campos, as automações, os formulários, as visões, os painéis e os subprojetos.",
-          "Clique em “Usar este modelo”, dê um nome ao projeto e responda o que o modelo perguntar (veja abaixo).",
-          "Acompanhe a barra de progresso. Quando terminar, você vai direto para o projeto criado.",
+          "Abra um modelo para ver a prévia: o guia, as colunas, as etapas, os itens de exemplo (com marcos e dependências), os campos, as automações, os formulários, as visões, os painéis e as subpastas.",
+          "Clique em “Usar este modelo”, dê um nome à pasta e responda o que o modelo perguntar (veja abaixo).",
+          "Acompanhe a barra de progresso. Quando terminar, você vai direto para a pasta criada.",
         ],
         callouts: [
           {
             kind: "tip",
-            text: "Também dá para escolher um modelo direto em “Novo projeto” ou “Criar sub-projeto”: os modelos aparecem logo abaixo do nome, começando pelos do seu workspace.",
+            text: "Também dá para escolher um modelo direto em “Nova pasta” ou “Criar subpasta”: os modelos aparecem logo abaixo do nome, começando pelos do seu workspace.",
           },
           {
             kind: "note",
-            text: "O projeto é criado no workspace que estiver selecionado no topo da tela. Só Proprietário e Administrador desse workspace podem usar modelos, porque o modelo cria campos extras e automações. Se o botão aparecer desativado, troque de workspace ou peça a um administrador.",
+            text: "A pasta é criada no workspace que estiver selecionado no topo da tela. Só Proprietário e Administrador desse workspace podem usar modelos, porque o modelo cria campos extras e automações. Se o botão aparecer desativado, troque de workspace ou peça a um administrador.",
           },
           {
             kind: "tip",
-            text: "Se algo der errado no meio da criação, nada fica pela metade: ou o projeto é criado inteiro, ou nada é criado.",
+            text: "Se algo der errado no meio da criação, nada fica pela metade: ou a pasta é criada inteira, ou nada é criado.",
           },
         ],
       },
       {
         heading: "O que o modelo pergunta",
-        intro: "Alguns modelos pedem informações antes de criar o projeto:",
+        intro: "Alguns modelos pedem informações antes de criar a pasta:",
         bullets: [
-          "Personalize: textos que entram nos nomes das colunas e tarefas, como o nome do cliente. Os marcados com * são obrigatórios.",
-          "Data de referência (por exemplo, “Data do evento”): os prazos são contados a partir dela, inclusive para trás (“14 dias antes”). Sem ela, o modelo usa a primeira data em que nenhuma tarefa nasce atrasada.",
+          "Personalize: textos que entram nos nomes das colunas e itens, como o nome do cliente. Os marcados com * são obrigatórios.",
+          "Data de referência (por exemplo, “Data do evento”): os prazos são contados a partir dela, inclusive para trás (“14 dias antes”). Sem ela, o modelo usa a primeira data em que nenhum item nasce atrasado.",
           "Partes opcionais: blocos que você liga ou desliga, como uma fase de testes. O que estiver desligado não é criado.",
-          "Quem faz o quê: escolha a pessoa de cada papel (por exemplo, Designer). Ela vira a responsável pelas tarefas desse papel. Sem ninguém, as tarefas ficam sem responsável.",
+          "Quem faz o quê: escolha a pessoa de cada papel (por exemplo, Designer). Ela vira a responsável pelos itens desse papel. Sem ninguém, os itens ficam sem responsável.",
         ],
       },
       {
-        heading: "Aplicar um modelo num projeto que já existe",
+        heading: "Aplicar um modelo numa pasta que já existe",
         steps: [
-          "No cabeçalho do projeto, clique em “Aplicar um modelo” e escolha o modelo. Ou, na página do modelo, clique em “Usar este modelo” e escolha a aba “Projeto existente”.",
-          "Responda o que o modelo perguntar e clique em “Aplicar ao projeto”.",
+          "No cabeçalho da pasta, clique em “Aplicar um modelo” e escolha o modelo. Ou, na página do modelo, clique em “Usar este modelo” e escolha a aba “Pasta existente”.",
+          "Responda o que o modelo perguntar e clique em “Aplicar à pasta”.",
         ],
         bullets: [
-          "Colunas e tarefas entram depois das que o projeto já tem.",
+          "Colunas e itens entram depois dos que a pasta já tem.",
           "Um campo extra com o mesmo nome e o mesmo tipo é reaproveitado. Se o nome for igual mas o tipo for outro, nada é aplicado e o aviso diz qual campo conflita.",
-          "Subprojetos do modelo viram subprojetos deste projeto.",
+          "Subpastas do modelo viram subpastas desta pasta.",
         ],
         callouts: [
           {
             kind: "tip",
-            text: "Quando um modelo que você já usou ganha uma versão nova, a página dele avisa. Aplicar de novo num projeto existente é o jeito de trazer as novidades.",
+            text: "Quando um modelo que você já usou ganha uma versão nova, a página dele avisa. Aplicar de novo numa pasta existente é o jeito de trazer as novidades.",
           },
         ],
       },
       {
-        heading: "O que vem no projeto criado",
+        heading: "O que vem na pasta criada",
         bullets: [
-          "As colunas do modelo, inclusive as subcolunas. A primeira coluna do modelo vira a coluna padrão do projeto.",
+          "As colunas do modelo, inclusive as subcolunas. A primeira coluna do modelo vira a coluna padrão da pasta.",
           "As etapas do fluxo (por exemplo, “Em revisão”), quando o modelo tem as suas.",
           "Os campos extras, com descrição, valor padrão e cores das opções.",
-          "As tarefas de exemplo, com subtarefas, prioridade, etapa, responsável (pelo papel), início, prazo, estimativa, marcos e dependências.",
-          "Um guia de uso como primeira tarefa (“Comece por aqui”), quando o modelo tem.",
-          "Automações, tarefas repetidas, formulários públicos, visões salvas, painéis e subprojetos, quando o modelo tem.",
+          "Os itens de exemplo, com subitens, prioridade, etapa, responsável (pelo papel), início, prazo, estimativa, marcos e dependências.",
+          "Um guia de uso como primeiro item (“Comece por aqui”), quando o modelo tem.",
+          "Automações, itens repetidos, formulários públicos, visões salvas, painéis e subpastas, quando o modelo tem.",
         ],
         callouts: [
           {
             kind: "note",
-            text: "Depois de criado, o projeto é todo seu: dá para mudar qualquer coisa. Mudar o projeto não muda o modelo, e mudanças no modelo não mudam projetos já criados.",
+            text: "Depois de criada, a pasta é toda sua: dá para mudar qualquer coisa. Mudar a pasta não muda o modelo, e mudanças no modelo não mudam pastas já criadas.",
           },
         ],
       },
@@ -514,31 +514,31 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         steps: [
           "Em Modelos, no quadro do seu workspace, clique em “Criar com IA” e descreva o que você quer organizar. Ou, na página de um modelo, clique em “Adaptar com IA” e diga o que mudar.",
           "Confira o rascunho: a prévia mostra tudo o que ele vai criar. Nada foi salvo ainda.",
-          "Clique em “Criar projeto” para usar o rascunho agora, ou em “Salvar como modelo” para guardá-lo no workspace.",
+          "Clique em “Criar pasta” para usar o rascunho agora, ou em “Salvar como modelo” para guardá-lo no workspace.",
         ],
         callouts: [
           {
             kind: "note",
-            text: "A IA cria colunas, campos, tarefas e um guia, mas não automações, painéis, papéis nem subprojetos. O pedido usa a cota de IA do seu plano.",
+            text: "A IA cria colunas, campos, itens e um guia, mas não automações, painéis, papéis nem subpastas. O pedido usa a cota de IA do seu plano.",
           },
         ],
       },
       {
-        heading: "Salvar um projeto seu como modelo",
+        heading: "Salvar uma pasta sua como modelo",
         steps: [
-          "Abra o projeto e clique em “Salvar como modelo”, no cabeçalho.",
+          "Abra a pasta e clique em “Salvar como modelo”, no cabeçalho.",
           "Escolha o que levar e, se quiser, escreva um guia de uso.",
           "Dê um nome, uma descrição e escolha a categoria. Clique em “Salvar modelo”.",
         ],
         bullets: [
           "Sempre vão: as colunas (com as subcolunas), os campos extras, as etapas, os formulários e as visões compartilhadas.",
-          "Você escolhe se vão: as tarefas (e se mantêm a etapa), os subprojetos, as tarefas repetidas, as automações do projeto e os gráficos de até 5 painéis.",
-          "Nunca vão: responsáveis, comentários, anexos e as pessoas do projeto.",
+          "Você escolhe se vão: os itens (e se mantêm a etapa), as subpastas, os itens repetidos, as automações da pasta e os gráficos de até 5 painéis.",
+          "Nunca vão: responsáveis, comentários, anexos e as pessoas da pasta.",
         ],
         callouts: [
           {
             kind: "note",
-            text: "O modelo é privado: só as pessoas do workspace veem e usam. Ele é uma cópia congelada do projeto. Para atualizá-lo, publique uma versão nova (veja abaixo).",
+            text: "O modelo é privado: só as pessoas do workspace veem e usam. Ele é uma cópia congelada da pasta. Para atualizá-lo, publique uma versão nova (veja abaixo).",
           },
         ],
       },
@@ -548,9 +548,9 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
           "Abra um modelo do seu workspace. Proprietários e Administradores veem o quadro “Gerenciar este modelo”:",
         bullets: [
           "“Editar modelo” muda nome, descrição, categoria, tags, nível, idioma e duração.",
-          "“Publicar versão nova” lê o projeto de origem de novo, como ele está agora. Escreva o que mudou: aparece no histórico de versões. Quem já usou o modelo é avisado de que há uma versão nova.",
+          "“Publicar versão nova” lê a pasta de origem de novo, como ela está agora. Escreva o que mudou: aparece no histórico de versões. Quem já usou o modelo é avisado de que há uma versão nova.",
           "Capa e imagens: a capa aparece no cartão do modelo; as imagens (até 6), na página dele. JPEG, PNG ou WebP de até 5MB.",
-          "“Excluir” apaga o modelo para todo o workspace. Projetos já criados com ele continuam iguais.",
+          "“Excluir” apaga o modelo para todo o workspace. Pastas já criadas com ele continuam iguais.",
         ],
         callouts: [
           {
@@ -572,29 +572,29 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
           "Só as pessoas do mesmo workspace. Quem é de fora não vê nem consegue usar.",
       },
       {
-        question: "Mudei meu projeto. O modelo que salvei muda junto?",
+        question: "Mudei minha pasta. O modelo que salvei muda junto?",
         answer:
           "Não. O modelo guarda a estrutura do dia em que foi salvo. Use “Publicar versão nova” na página do modelo para atualizá-lo.",
       },
       {
-        question: "Dá para aplicar um modelo num projeto que já existe?",
+        question: "Dá para aplicar um modelo numa pasta que já existe?",
         answer:
-          "Sim. Use “Aplicar um modelo” no cabeçalho do projeto, ou a aba “Projeto existente” ao usar o modelo. O conteúdo entra depois do que o projeto já tem.",
+          "Sim. Use “Aplicar um modelo” no cabeçalho da pasta, ou a aba “Pasta existente” ao usar o modelo. O conteúdo entra depois do que a pasta já tem.",
       },
     ],
-    related: ["projects", "custom-fields", "board"],
+    related: ["folders", "custom-fields", "board"],
   },
   {
     id: "board",
     group: "daily",
     title: "O quadro e as colunas",
-    summary: "Organizar o fluxo em colunas e subcolunas, arrastar tarefas e ajustar o quadro.",
+    summary: "Organizar o fluxo em colunas e subcolunas, arrastar itens e ajustar o quadro.",
     icon: Kanban,
     sections: [
       {
         heading: "Colunas",
         intro:
-          "A aba Tarefas de um projeto mostra o quadro: uma coluna por etapa, cada uma com suas tarefas.",
+          "A aba Itens de uma pasta mostra o quadro: uma coluna por etapa, cada uma com seus itens.",
         steps: [
           "Clique em “Adicionar coluna” e dê um nome.",
           "No menu “Ações da coluna” (os três pontos no topo dela) você encontra: Renomear coluna, Criar subcoluna, Colocar dentro de outra coluna, Mover para a esquerda, Mover para a direita e Apagar coluna.",
@@ -602,43 +602,43 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         callouts: [
           {
             kind: "warning",
-            text: "Só é possível apagar uma coluna vazia, sem tarefas e sem subcolunas. A coluna padrão do projeto não pode ser apagada.",
+            text: "Só é possível apagar uma coluna vazia, sem itens e sem subcolunas. A coluna padrão da pasta não pode ser apagada.",
           },
         ],
       },
       {
-        heading: "Arrastar tarefas",
+        heading: "Arrastar itens",
         bullets: [
-          "Arraste uma tarefa para outra coluna para movê-la.",
-          "Solte entre duas tarefas para escolher a posição exata. O sistema decide se entra acima ou abaixo pela posição do cursor sobre a tarefa.",
+          "Arraste um item para outra coluna para movê-lo.",
+          "Solte entre dois itens para escolher a posição exata. O sistema decide se entra acima ou abaixo pela posição do cursor sobre o item.",
           "Também funciona dentro da mesma coluna, para reordenar.",
         ],
         callouts: [
           {
             kind: "note",
-            text: "Arrastar só funciona entre colunas do mesmo nível. Para levar uma tarefa entre uma coluna e uma subcoluna, abra a tarefa e troque o campo Coluna nela; a lista mostra o caminho, como “Pai / Filha”.",
+            text: "Arrastar só funciona entre colunas do mesmo nível. Para levar um item entre uma coluna e uma subcoluna, abra o item e troque o campo Coluna nele; a lista mostra o caminho, como “Pai / Filha”.",
           },
         ],
       },
       {
         heading: "Subcolunas",
         intro:
-          "Uma subcoluna fica dentro da coluna pai e serve para separar melhor as tarefas dela (por exemplo, “Em andamento” dividida em “Design” e “Código”). No quadro elas aparecem recolhidas na coluna pai, com um contador de subcolunas; expanda para ver.",
+          "Uma subcoluna fica dentro da coluna pai e serve para separar melhor os itens dela (por exemplo, “Em andamento” dividida em “Design” e “Código”). No quadro elas aparecem recolhidas na coluna pai, com um contador de subcolunas; expanda para ver.",
       },
       {
         heading: "Ajustes de visualização",
         bullets: [
           "Arraste a borda direita de uma coluna para mudar a largura. Cada coluna lembra a sua neste navegador.",
-          "O seletor “Modo de visualização das tarefas” alterna entre cartões e tabela (veja o guia de Tabela e filtros).",
-          "Colunas com muitas tarefas são paginadas. Use os controles no rodapé da coluna.",
+          "O seletor “Modo de visualização dos itens” alterna entre cartões e tabela (veja o guia de Tabela e filtros).",
+          "Colunas com muitos itens são paginadas. Use os controles no rodapé da coluna.",
         ],
       },
     ],
     faq: [
       {
-        question: "Não consigo soltar a tarefa na coluna que quero.",
+        question: "Não consigo soltar o item na coluna que quero.",
         answer:
-          "Provavelmente a coluna está em outro nível (é uma subcoluna, ou a tarefa está em uma). Abra a tarefa e troque a coluna pelo campo Coluna.",
+          "Provavelmente a coluna está em outro nível (é uma subcoluna, ou o item está em uma). Abra o item e troque a coluna pelo campo Coluna.",
       },
       {
         question: "A ordem que defini não foi mantida ao reordenar sem internet.",
@@ -648,22 +648,22 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         question: "Não consigo apagar uma coluna.",
         answer:
-          "Ela precisa estar vazia. Mova ou apague as tarefas e subcolunas dela primeiro. A coluna padrão nunca pode ser apagada.",
+          "Ela precisa estar vazia. Mova ou apague os itens e subcolunas dela primeiro. A coluna padrão nunca pode ser apagada.",
       },
     ],
-    related: ["tasks", "task-views", "automations"],
+    related: ["items", "item-views", "automations"],
   },
   {
-    id: "tasks",
+    id: "items",
     group: "daily",
-    title: "Tarefas em detalhe",
-    summary: "Criar tarefas e usar todos os campos: status, prioridade, prazo, subtarefas e anexos.",
+    title: "Itens em detalhe",
+    summary: "Criar itens e usar todos os campos: status, prioridade, prazo, subitens e anexos.",
     icon: ListChecks,
     sections: [
       {
         heading: "Criar",
         intro:
-          "“Nova tarefa” aparece na barra do quadro (cai na coluna padrão) e no rodapé de cada coluna (cai naquela coluna). O formulário tem:",
+          "“Novo item” aparece na barra do quadro (cai na coluna padrão) e no rodapé de cada coluna (cai naquela coluna). O formulário tem:",
         bullets: [
           "Título (obrigatório).",
           "Descrição (opcional).",
@@ -674,30 +674,30 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         callouts: [
           {
             kind: "tip",
-            text: "Na visualização em tabela, a última linha aceita um título direto: digite e pressione Enter para criar a tarefa sem abrir formulário.",
+            text: "Na visualização em tabela, a última linha aceita um título direto: digite e pressione Enter para criar o item sem abrir formulário.",
           },
         ],
       },
       {
-        heading: "O painel da tarefa",
+        heading: "O painel do item",
         intro:
-          "Clicar numa tarefa abre um painel lateral sem tirar você do quadro. Existe também a página cheia da tarefa, com o mesmo conteúdo. Nele, de cima para baixo:",
+          "Clicar num item abre um painel lateral sem tirar você do quadro. Existe também a página cheia do item, com o mesmo conteúdo. Nele, de cima para baixo:",
         bullets: [
           "Título e descrição, editáveis no próprio lugar.",
-          "Subtarefas: use “Adicionar” para criar; clicar numa subtarefa abre o painel dela.",
+          "Subitens: use “Adicionar” para criar; clicar num subitem abre o painel dele.",
           "Dependências, Aprovações, Tempo e Anexos.",
           "Coluna, etapa, responsáveis, prazo, início, marco, estimativa e prioridade, cada um com seu seletor. Ao trocar, o valor é salvo na hora.",
           "Participantes.",
-          "Campos extras do projeto.",
+          "Campos extras da pasta.",
           "Comentários e o histórico de atividade, sempre por último.",
         ],
       },
       {
         heading: "Etapa, prioridade e prazo",
         bullets: [
-          "Etapa: por onde a tarefa está passando. Toda etapa é de um de três tipos — a fazer, em andamento ou concluída — e cada projeto pode criar as suas (ex.: “Em revisão”) na aba Configurações.",
+          "Etapa: por onde o item está passando. Toda etapa é de um de três tipos — a fazer, em andamento ou concluída — e cada pasta pode criar as suas (ex.: “Em revisão”) na aba Configurações.",
           "Prioridade: Baixa, Média, Alta ou Urgente.",
-          "Prazo: aparece como etiqueta colorida. Vermelho para atrasada, âmbar para vence hoje ou em breve, cinza para o restante. Uma tarefa concluída deixa de contar como atrasada.",
+          "Prazo: aparece como etiqueta colorida. Vermelho para atrasado, âmbar para vence hoje ou em breve, cinza para o restante. Um item concluído deixa de contar como atrasado.",
         ],
         callouts: [
           {
@@ -709,24 +709,24 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Início, marco e estimativa",
         bullets: [
-          "Começa em: a data em que o trabalho começa (opcional, nunca depois do prazo). Com início e prazo, a tarefa vira uma barra no Cronograma. Dá para tirar a data depois.",
-          "Marco: marque quando a tarefa é um ponto importante (uma entrega, uma aprovação) e não um período de trabalho.",
-          "Tempo estimado (horas e minutos) e Pontos de esforço: quanto a tarefa deve dar de trabalho. O tempo registrado aparece comparado com a estimativa.",
+          "Começa em: a data em que o trabalho começa (opcional, nunca depois do prazo). Com início e prazo, o item vira uma barra no Cronograma. Dá para tirar a data depois.",
+          "Marco: marque quando o item é um ponto importante (uma entrega, uma aprovação) e não um período de trabalho.",
+          "Tempo estimado (horas e minutos) e Pontos de esforço: quanto o item deve dar de trabalho. O tempo registrado aparece comparado com a estimativa.",
         ],
       },
       {
         heading: "Responsável e participantes",
         intro:
-          "Responsáveis são quem executa a tarefa — pode ser mais de uma pessoa. O primeiro da lista é o principal (aparece no cartão); a estrela torna outra pessoa a principal. Participantes são pessoas que acompanham, sem serem responsáveis: use “Adicionar participante” para incluir quem precisa ficar por dentro.",
+          "Responsáveis são quem executa o item — pode ser mais de uma pessoa. O primeiro da lista é o principal (aparece no cartão); a estrela torna outra pessoa a principal. Participantes são pessoas que acompanham, sem serem responsáveis: use “Adicionar participante” para incluir quem precisa ficar por dentro.",
       },
       {
-        heading: "Subtarefas",
+        heading: "Subitens",
         intro:
-          "Divida uma tarefa grande em partes com o botão “Adicionar” da seção Subtarefas. Cada subtarefa é uma tarefa completa, com seu próprio status, responsável e prazo, e a lista já deixa o status editável ali mesmo.",
+          "Divida um item grande em partes com o botão “Adicionar” da seção Subitens. Cada subitem é um item completo, com seu próprio status, responsável e prazo, e a lista já deixa o status editável ali mesmo.",
         callouts: [
           {
             kind: "warning",
-            text: "Não é possível concluir uma tarefa que ainda tem subtarefas pendentes. Conclua ou finalize as subtarefas antes.",
+            text: "Não é possível concluir um item que ainda tem subitens pendentes. Conclua ou finalize os subitens antes.",
           },
         ],
       },
@@ -740,17 +740,17 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Apagar e restaurar",
         intro:
-          "Selecione tarefas no quadro e use “Apagar”: elas vão para a Lixeira do projeto junto com as subtarefas. O aviso que aparece tem o botão “Desfazer”, e na aba Lixeira dá para restaurar por 30 dias. Depois disso, a tarefa é apagada de vez.",
+          "Selecione itens no quadro e use “Apagar”: eles vão para a Lixeira da pasta junto com os subitens. O aviso que aparece tem o botão “Desfazer”, e na aba Lixeira dá para restaurar por 30 dias. Depois disso, o item é apagado de vez.",
       },
     ],
     faq: [
       {
-        question: "Não consigo concluir a tarefa.",
+        question: "Não consigo concluir o item.",
         answer:
-          "Provavelmente ela tem subtarefas pendentes. O aviso é “Conclua ou finalize as subtarefas pendentes antes de concluir esta tarefa”.",
+          "Provavelmente ele tem subitens pendentes. O aviso é “Conclua ou finalize os subitens pendentes antes de concluir este item”.",
       },
       {
-        question: "Quero tirar o prazo (ou a prioridade) de uma tarefa.",
+        question: "Quero tirar o prazo (ou a prioridade) de um item.",
         answer:
           "Não dá para remover: depois de definidos, só podem ser substituídos por outro valor.",
       },
@@ -760,28 +760,28 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
           "O limite é de 20 MB por arquivo. Se for maior, comprima ou divida antes de enviar.",
       },
       {
-        question: "Editei a tarefa e apareceu um aviso de que ela foi alterada por outra pessoa.",
+        question: "Editei o item e apareceu um aviso de que ele foi alterado por outra pessoa.",
         answer:
           "Duas pessoas editaram ao mesmo tempo. Atualize a tela para ver a versão mais recente e refaça a sua alteração.",
       },
     ],
-    related: ["collaboration", "custom-fields", "task-views", "dependencies", "time-tracking"],
+    related: ["collaboration", "custom-fields", "item-views", "dependencies", "time-tracking"],
   },
   {
-    id: "task-views",
+    id: "item-views",
     group: "daily",
-    title: "Tabela e filtros de tarefas",
-    summary: "Editar tarefas em lote na tabela e encontrar qualquer coisa com os filtros.",
+    title: "Tabela e filtros de itens",
+    summary: "Editar itens em lote na tabela e encontrar qualquer coisa com os filtros.",
     icon: Table2,
     sections: [
       {
         heading: "Visualização em tabela",
         intro:
-          "Use o seletor “Modo de visualização das tarefas” para trocar cartões por uma tabela no estilo planilha, com as colunas Tarefa, Status, Prioridade, Responsável e Prazo.",
+          "Use o seletor “Modo de visualização dos itens” para trocar cartões por uma tabela no estilo planilha, com as colunas Item, Status, Prioridade, Responsável e Prazo.",
         bullets: [
           "Status, Prioridade, Responsável e Prazo são editáveis direto na célula: cada alteração é salva sozinha, sem botão “Salvar”.",
-          "Clique no título para abrir a tarefa.",
-          "Crie tarefas na última linha: digite o título e pressione Enter.",
+          "Clique no título para abrir o item.",
+          "Crie itens na última linha: digite o título e pressione Enter.",
         ],
       },
       {
@@ -789,9 +789,9 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         intro: "Combine quantos filtros quiser. Todos se aplicam ao mesmo tempo:",
         bullets: [
           "Busca: procura no título e na descrição. Não diferencia maiúsculas nem acentos (“acao” encontra “Ação”).",
-          "Status e Prioridade: escolha um ou mais valores. Em Prioridade também há a opção de tarefas sem prioridade.",
-          "Responsável: escolha pessoas ou tarefas sem responsável.",
-          "Prazo: Atrasadas (não concluídas), Vencem hoje, Próximos 7 dias ou Sem prazo.",
+          "Status e Prioridade: escolha um ou mais valores. Em Prioridade também há a opção de itens sem prioridade.",
+          "Responsável: escolha pessoas ou itens sem responsável.",
+          "Prazo: Atrasados (não concluídos), Vencem hoje, Próximos 7 dias ou Sem prazo.",
         ],
       },
       {
@@ -800,8 +800,8 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         bullets: [
           "Prazo entre, Criada entre e Atualizada entre: intervalos de datas (você pode preencher só um dos lados).",
           "Participante, Mencionado(a) na descrição e Criada por: filtram por pessoa.",
-          "Anexos e Descrição: mostram só tarefas que têm (ou não têm) anexo ou descrição.",
-          "Tipo: tarefas, subtarefas, ou ambas.",
+          "Anexos e Descrição: mostram só itens que têm (ou não têm) anexo ou descrição.",
+          "Tipo: itens, subitens, ou ambas.",
         ],
         callouts: [
           {
@@ -815,7 +815,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         intro:
           "Usa sempre os mesmos filtros? Monte-os e escolha “Visões” → “Salvar filtros atuais como visão…”. Depois é um clique para voltar a eles.",
         bullets: [
-          "Marque “Compartilhar com o projeto” para que todas as pessoas do projeto vejam a visão.",
+          "Marque “Compartilhar com a pasta” para que todas as pessoas da pasta vejam a visão.",
           "Com uma visão aberta, “Atualizar” guarda nela os filtros de agora.",
           "Alguns filtros avançados (datas de criação/atualização, participante, menção, anexos, descrição) ainda não ficam salvos — o aviso diz quais.",
         ],
@@ -823,70 +823,70 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
     ],
     faq: [
       {
-        question: "O filtro não acha uma tarefa que sei que existe.",
+        question: "O filtro não acha um item que sei que existe.",
         answer:
           "Veja se há filtros ativos (o botão “Mais filtros” indica a quantidade) e se o intervalo de datas não está restringindo demais. “Limpar filtros” resolve rápido.",
       },
       {
-        question: "Uma tarefa com prazo vencido não aparece em “Atrasadas”.",
+        question: "Um item com prazo vencido não aparece em “Atrasados”.",
         answer:
-          "Tarefas concluídas não contam como atrasadas, mesmo com o prazo no passado.",
+          "Itens concluídos não contam como atrasados, mesmo com o prazo no passado.",
       },
     ],
-    related: ["board", "tasks"],
+    related: ["board", "items"],
   },
   {
-    id: "project-stats",
+    id: "folder-stats",
     group: "daily",
-    title: "Estatísticas do projeto",
-    summary: "Entenda em números como o projeto está andando: o que já foi feito, o que atrasou e quem está com mais tarefas.",
+    title: "Estatísticas da pasta",
+    summary: "Entenda em números como a pasta está andando: o que já foi feito, o que atrasou e quem está com mais itens.",
     icon: BarChart3,
     sections: [
       {
         heading: "Onde ficam",
         intro:
-          "Dentro do projeto, na aba Estatísticas, logo depois de Tarefas. Qualquer pessoa do projeto vê essa aba, inclusive em projetos arquivados. Ela só mostra números: nada ali altera as tarefas.",
+          "Dentro da pasta, na aba Estatísticas, logo depois de Itens. Qualquer pessoa da pasta vê essa aba, inclusive em pastas arquivadas. Ela só mostra números: nada ali altera os itens.",
         callouts: [
           {
             kind: "note",
-            text: "Os números incluem os sub-projetos. Se “Site” tem o sub-projeto “Blog”, as tarefas do Blog também entram nas estatísticas do Site.",
+            text: "Os números incluem as subpastas. Se “Site” tem a subpasta “Blog”, os itens do Blog também entram nas estatísticas do Site.",
           },
         ],
       },
       {
         heading: "Os números do topo",
         bullets: [
-          "Total de tarefas: todas as tarefas do projeto, concluídas ou não.",
-          "Tarefas em aberto: as que ainda não foram concluídas (estão em “A fazer” ou “Em progresso”).",
-          "Taxa de conclusão: quanto do total já foi concluído. Se 3 de 10 tarefas estão concluídas, a taxa é de 30%.",
-          "Taxa de atraso: das tarefas que têm prazo, quantas passaram do prazo sem ser concluídas.",
-          "Tempo médio de conclusão: quanto tempo, em média, uma tarefa leva desde que foi criada até ser concluída.",
-          "Urgentes em aberto: tarefas com prioridade Urgente que ainda não foram concluídas.",
+          "Total de itens: todos os itens da pasta, concluídos ou não.",
+          "Itens em aberto: os que ainda não foram concluídos (estão em “A fazer” ou “Em progresso”).",
+          "Taxa de conclusão: quanto do total já foi concluído. Se 3 de 10 itens estão concluídos, a taxa é de 30%.",
+          "Taxa de atraso: dos itens que têm prazo, quantos passaram do prazo sem ser concluídos.",
+          "Tempo médio de conclusão: quanto tempo, em média, um item leva desde que foi criado até ser concluído.",
+          "Urgentes em aberto: itens com prioridade Urgente que ainda não foram concluídos.",
         ],
       },
       {
         heading: "O que conta como atrasada",
         intro:
-          "Uma tarefa está atrasada quando o prazo dela já passou e ela ainda não foi concluída. Tarefas sem prazo nunca contam como atrasadas e também ficam fora da conta da taxa de atraso: não é justo cobrar prazo de quem nunca teve um.",
+          "Um item está atrasado quando o prazo dele já passou e ele ainda não foi concluído. Itens sem prazo nunca contam como atrasados e também ficam fora da conta da taxa de atraso: não é justo cobrar prazo de quem nunca teve um.",
         callouts: [
           {
             kind: "tip",
-            text: "Se a taxa de atraso aparece como “Sem dados”, nenhuma tarefa do projeto tem prazo ainda. Defina prazos nas tarefas para acompanhar esse número.",
+            text: "Se a taxa de atraso aparece como “Sem dados”, nenhum item da pasta tem prazo ainda. Defina prazos nos itens para acompanhar esse número.",
           },
         ],
       },
       {
         heading: "Tempo médio de conclusão",
         intro:
-          "Só entram na conta as tarefas concluídas depois que o TaskFlow passou a guardar a data de conclusão. Tarefas concluídas antes disso não têm essa data e ficam de fora. Se nenhuma tarefa tiver a data, o número aparece como “Sem dados”, e não como zero.",
+          "Só entram na conta os itens concluídos depois que o TaskFlow passou a guardar a data de conclusão. Itens concluídos antes disso não têm essa data e ficam de fora. Se nenhum item tiver a data, o número aparece como “Sem dados”, e não como zero.",
       },
       {
         heading: "Os gráficos",
         bullets: [
-          "Tarefas por status: como as tarefas se dividem entre A fazer, Em progresso e Concluída.",
-          "Tarefas por prioridade: quantas tarefas há em cada nível, de Baixa a Urgente.",
-          "Tarefas criadas ao longo do tempo: quantas tarefas foram criadas em cada semana, nas últimas 12 semanas. As semanas começam na segunda-feira.",
-          "Tarefas por responsável: quantas tarefas estão com cada pessoa. As que ninguém assumiu aparecem como “Sem responsável”.",
+          "Itens por status: como os itens se dividem entre A fazer, Em progresso e Concluída.",
+          "Itens por prioridade: quantos itens há em cada nível, de Baixa a Urgente.",
+          "Itens criados ao longo do tempo: quantos itens foram criados em cada semana, nas últimas 12 semanas. As semanas começam na segunda-feira.",
+          "Itens por responsável: quantos itens estão com cada pessoa. Os que ninguém assumiu aparecem como “Sem responsável”.",
         ],
         callouts: [
           {
@@ -900,78 +900,78 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         question: "O total não bate com o que vejo no quadro.",
         answer:
-          "As estatísticas somam também as tarefas dos sub-projetos, que não aparecem no quadro deste projeto. Confira também se há filtros ativos no quadro.",
+          "As estatísticas somam também os itens das subpastas, que não aparecem no quadro desta pasta. Confira também se há filtros ativos no quadro.",
       },
       {
-        question: "Mudei uma tarefa e o número não mudou.",
+        question: "Mudei um item e o número não mudou.",
         answer:
           "Os números se atualizam sozinhos logo depois de uma mudança, inclusive as feitas por outras pessoas. Se algo parecer desatualizado, recarregue a página.",
       },
       {
         question: "Aparece “Sem dados” em vez de um número.",
         answer:
-          "Significa que ainda não há informação suficiente para calcular aquele número, por exemplo nenhuma tarefa com prazo ou nenhuma tarefa concluída. Não é o mesmo que zero.",
+          "Significa que ainda não há informação suficiente para calcular aquele número, por exemplo nenhum item com prazo ou nenhum item concluído. Não é o mesmo que zero.",
       },
     ],
-    related: ["tasks", "task-views", "projects"],
+    related: ["items", "item-views", "folders"],
   },
   {
     id: "dependencies",
     group: "daily",
     title: "Dependências e cronograma",
-    summary: "Diga que uma tarefa só começa depois de outra e veja tudo numa linha do tempo.",
+    summary: "Diga que um item só começa depois de outro e veja tudo numa linha do tempo.",
     icon: CalendarRange,
     sections: [
       {
-        heading: "Ligar tarefas",
+        heading: "Ligar itens",
         steps: [
-          "Abra a tarefa que precisa esperar.",
-          "Em Dependências, use “Esta tarefa depende de…” e busque a outra tarefa pelo nome.",
+          "Abra o item que precisa esperar.",
+          "Em Dependências, use “Este item depende de…” e busque o outro item pelo nome.",
           "Pronto: enquanto a outra não terminar, aparece o aviso “Ainda falta terminar…”.",
         ],
         callouts: [
           {
             kind: "note",
-            text: "Quando todas as tarefas de que ela depende terminam, o responsável recebe a notificação “Tarefa liberada”.",
+            text: "Quando todos os itens de que ele depende terminam, o responsável recebe a notificação “Item liberado”.",
           },
         ],
       },
       {
         heading: "Concluir antes da hora",
         intro:
-          "Na aba Configurações do projeto você escolhe o que acontece se alguém concluir uma tarefa que ainda depende de outras: deixar e avisar, ou não deixar.",
+          "Na aba Configurações da pasta você escolhe o que acontece se alguém concluir um item que ainda depende de outros: deixar e avisar, ou não deixar.",
       },
       {
         heading: "Cronograma",
         bullets: [
-          "A aba Cronograma mostra as tarefas com datas como barras, do início ao prazo.",
+          "A aba Cronograma mostra os itens com datas como barras, do início ao prazo.",
           "As setas ligam o que precisa terminar antes. Marcos aparecem como losangos.",
           "As cores dizem a situação: a fazer, em andamento, concluída ou atrasada. A linha azul é hoje.",
-          "Clique numa barra para abrir a tarefa. Use Dias, Semanas ou Meses para mudar o zoom.",
+          "Clique numa barra para abrir o item. Use Dias, Semanas ou Meses para mudar o zoom.",
         ],
       },
     ],
-    related: ["tasks"],
+    related: ["items"],
   },
   {
-    id: "recurring-tasks",
+    id: "recurring-items",
     group: "daily",
-    title: "Tarefas repetidas",
+    title: "Itens repetidos",
     summary: "Deixe o TaskFlow cadastrar sozinho o que se repete: contas, relatórios, compras.",
     icon: Repeat,
     sections: [
       {
         heading: "Criar uma repetição",
         steps: [
-          "No projeto, abra a aba Repetições e clique em “Nova repetição”.",
-          "Dê o título da tarefa e, se quiser, coluna, responsável, prioridade e prazo (em dias depois de criada).",
+          "Na pasta, abra a aba Repetições e clique em “Nova repetição”.",
+          "Dê o título do item e, se quiser, coluna, responsável, prioridade e prazo (em dias depois de criado).",
           "Escolha quando repete: todo dia, toda semana (e em quais dias), todo mês (e em qual dia) ou todo ano — e o horário.",
           "Confira as próximas datas que aparecem embaixo e salve.",
         ],
         callouts: [
           {
             kind: "tip",
-            text: "Use “Inserir no título” para colocar a data, o dia da semana, o mês ou o ano no nome da tarefa: “Compras — 05/10/2026”.",
+            text: "Use “Inserir no título” para colocar a data, o dia da semana, o mês ou o ano no nome do item: “Compras — 05/10/2026”.",
           },
           {
             kind: "note",
@@ -982,17 +982,17 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Pausar e retomar",
         intro:
-          "A chave de cada repetição pausa e liga de novo. Se quem criou perder o acesso ao projeto, ou o projeto for arquivado, ela é pausada sozinha e o motivo aparece na lista.",
+          "A chave de cada repetição pausa e liga de novo. Se quem criou perder o acesso à pasta, ou a pasta for arquivada, ela é pausada sozinha e o motivo aparece na lista.",
       },
     ],
     faq: [
       {
-        question: "A tarefa não apareceu no horário exato.",
+        question: "O item não apareceu no horário exato.",
         answer: "Ela é criada até 1 minuto depois do horário escolhido.",
       },
       {
-        question: "Apaguei a repetição. As tarefas somem?",
-        answer: "Não. Só param de ser criadas novas; as que já existem continuam no projeto.",
+        question: "Apaguei a repetição. Os itens somem?",
+        answer: "Não. Só param de ser criados novos; os que já existem continuam na pasta.",
       },
     ],
     related: ["templates"],
@@ -1001,15 +1001,15 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
     id: "time-tracking",
     group: "daily",
     title: "Controle de tempo",
-    summary: "Marque quanto tempo cada tarefa levou, com cronômetro ou à mão.",
+    summary: "Marque quanto tempo cada item levou, com cronômetro ou à mão.",
     icon: Timer,
     sections: [
       {
         heading: "Cronômetro",
         bullets: [
-          "Na seção Tempo da tarefa, clique em “Iniciar cronômetro”.",
+          "Na seção Tempo do item, clique em “Iniciar cronômetro”.",
           "Enquanto ele roda, um contador verde fica no topo da tela, em qualquer página. Clique no quadrado para parar e salvar.",
-          "Só existe um cronômetro por pessoa: iniciar em outra tarefa para o anterior e salva o tempo dele.",
+          "Só existe um cronômetro por pessoa: iniciar em outro item para o anterior e salva o tempo dele.",
         ],
       },
       {
@@ -1020,22 +1020,22 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Relatório",
         intro:
-          "Na aba Estatísticas do projeto, “Tempo registrado” mostra o total por pessoa ou por tarefa, no período que você escolher.",
+          "Na aba Estatísticas da pasta, “Tempo registrado” mostra o total por pessoa ou por item, no período que você escolher.",
       },
     ],
-    related: ["tasks", "project-stats"],
+    related: ["items", "folder-stats"],
   },
   {
     id: "approvals",
     group: "daily",
     title: "Aprovações",
-    summary: "Peça o “ok” de alguém numa tarefa e acompanhe a resposta.",
+    summary: "Peça o “ok” de alguém num item e acompanhe a resposta.",
     icon: BadgeCheck,
     sections: [
       {
         heading: "Pedir",
         steps: [
-          "Abra a tarefa e, em Aprovações, clique em “Pedir aprovação”.",
+          "Abra o item e, em Aprovações, clique em “Pedir aprovação”.",
           "Escolha a pessoa (pode ser um convidado, como um cliente) e deixe um recado se quiser.",
           "Ela recebe uma notificação. Enquanto não responder, você pode cancelar o pedido.",
         ],
@@ -1043,7 +1043,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Responder",
         intro:
-          "Os pedidos para você aparecem na própria tarefa e no Início, em “Aguardando sua aprovação”. Aprove ou recuse, com um comentário opcional — quem pediu é avisado.",
+          "Os pedidos para você aparecem no próprio item e no Início, em “Aguardando sua aprovação”. Aprove ou recuse, com um comentário opcional — quem pediu é avisado.",
         callouts: [
           {
             kind: "tip",
@@ -1065,8 +1065,8 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         heading: "O sino",
         bullets: [
           "O número vermelho no sino, no topo da tela, é quantos avisos você ainda não leu.",
-          "Clique num aviso para ir direto à tarefa. “Marcar todas como lidas” limpa o contador.",
-          "Você é avisado quando: é mencionado, vira responsável, comentam numa tarefa sua, uma tarefa sua muda de status, o prazo chega ou vence, uma tarefa é liberada, e em pedidos e respostas de aprovação.",
+          "Clique num aviso para ir direto ao item. “Marcar todas como lidas” limpa o contador.",
+          "Você é avisado quando: é mencionado, vira responsável, comentam num item seu, um item seu muda de status, o prazo chega ou vence, um item é liberado, e em pedidos e respostas de aprovação.",
         ],
       },
       {
@@ -1077,7 +1077,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Busca",
         intro:
-          "Clique em “Buscar” no topo ou aperte Ctrl+K (⌘K no Mac). Digite parte das palavras — sem se preocupar com acentos — e escolha uma tarefa, um comentário ou um projeto.",
+          "Clique em “Buscar” no topo ou aperte Ctrl+K (⌘K no Mac). Digite parte das palavras — sem se preocupar com acentos — e escolha um item, um comentário ou uma pasta.",
       },
     ],
     href: "/settings/notifications",
@@ -1088,16 +1088,16 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
     id: "intake-forms",
     group: "advanced",
     title: "Formulários e importação",
-    summary: "Receba pedidos de quem não usa o TaskFlow e traga tarefas de planilhas.",
+    summary: "Receba pedidos de quem não usa o TaskFlow e traga itens de planilhas.",
     icon: FileInput,
     sections: [
       {
         heading: "Formulários de pedidos",
         steps: [
-          "No projeto, abra Configurações → Formulários de pedidos → “Novo formulário”.",
-          "Monte as perguntas. Uma delas vira o título da tarefa; as outras podem virar descrição, prazo ou prioridade.",
+          "Na pasta, abra Configurações → Formulários de pedidos → “Novo formulário”.",
+          "Monte as perguntas. Uma delas vira o título do item; as outras podem virar descrição, prazo ou prioridade.",
           "Copie o link e mande para quem quiser — não precisa ter conta.",
-          "Cada resposta vira uma tarefa na coluna escolhida.",
+          "Cada resposta vira um item na coluna escolhida.",
         ],
         callouts: [
           {
@@ -1118,24 +1118,24 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Exportar",
         intro:
-          "Escolha Planilha (CSV, só as tarefas) ou Cópia completa (JSON, com colunas, comentários e dependências), clique em “Preparar arquivo” e depois em “Baixar”.",
+          "Escolha Planilha (CSV, só os itens) ou Cópia completa (JSON, com colunas, comentários e dependências), clique em “Preparar arquivo” e depois em “Baixar”.",
       },
     ],
-    related: ["projects"],
+    related: ["folders"],
   },
   {
     id: "collaboration",
     group: "daily",
     title: "Comentários, menções e atividade",
-    summary: "Converse dentro da tarefa, avise pessoas e acompanhe o que mudou.",
+    summary: "Converse dentro do item, avise pessoas e acompanhe o que mudou.",
     icon: MessageSquare,
     sections: [
       {
         heading: "Comentar",
         steps: [
-          "Abra a tarefa e escreva no campo de comentário, na parte de baixo do painel.",
+          "Abra o item e escreva no campo de comentário, na parte de baixo do painel.",
           "Para avisar alguém, escolha as pessoas no seletor de menção antes de enviar.",
-          "Envie. O comentário entra na lista da tarefa.",
+          "Envie. O comentário entra na lista do item.",
         ],
         callouts: [
           {
@@ -1166,15 +1166,15 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Histórico de atividade",
         intro:
-          "Sob os comentários, a linha do tempo da tarefa registra cada mudança: status, responsável, movimentação de coluna e novos comentários. Os comentários aparecem nos dois lugares de propósito: acima com o texto completo, e aqui como parte do resumo cronológico.",
+          "Sob os comentários, a linha do tempo do item registra cada mudança: status, responsável, movimentação de coluna e novos comentários. Os comentários aparecem nos dois lugares de propósito: acima com o texto completo, e aqui como parte do resumo cronológico.",
       },
       {
-        heading: "Atividade do projeto e do workspace",
+        heading: "Atividade da pasta e do workspace",
         intro:
           "A mesma linha do tempo existe em dois tamanhos, sempre em ordem cronológica e paginada. É a melhor forma de responder “quem mudou isso e quando?”.",
         bullets: [
-          "Do projeto: na aba Atividade, dentro do projeto. Mostra só o que mudou nele: tarefas, comentários, colunas e campos extras.",
-          "Do workspace: na página Workspaces, na seção Atividade. Mostra tudo, de todos os projetos, mais o que é do workspace (membros, automações, chaves de API).",
+          "Da pasta: na aba Atividade, dentro da pasta. Mostra só o que mudou nela: itens, comentários, colunas e campos extras.",
+          "Do workspace: na página Workspaces, na seção Atividade. Mostra tudo, de todas as pastas, mais o que é do workspace (membros, automações, chaves de API).",
         ],
       },
     ],
@@ -1190,7 +1190,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
           "Se ele tiver respostas, só é possível apagar depois de apagar as respostas.",
       },
     ],
-    related: ["tasks", "workspaces"],
+    related: ["items", "workspaces"],
   },
 
   // ---------------------------------------------------------- advanced
@@ -1198,14 +1198,14 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
     id: "custom-fields",
     group: "advanced",
     title: "Campos extras",
-    summary: "Acrescente informações próprias às tarefas de um projeto, do jeito da sua equipe.",
+    summary: "Acrescente informações próprias aos itens de uma pasta, do jeito da sua equipe.",
     icon: SlidersHorizontal,
-    audience: "Criar e editar: Proprietário e Administrador. Preencher: quem edita tarefas.",
+    audience: "Criar e editar: Proprietário e Administrador. Preencher: quem edita itens.",
     sections: [
       {
         heading: "Criar um campo",
         steps: [
-          "No projeto, abra a aba Campos extras e clique em “Novo campo”.",
+          "Na pasta, abra a aba Campos extras e clique em “Novo campo”.",
           "Dê um nome (mínimo de 2 caracteres) e escolha o tipo.",
           "Nos tipos de seleção, informe pelo menos uma opção.",
         ],
@@ -1225,7 +1225,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Preencher, editar e arquivar",
         bullets: [
-          "Os valores são preenchidos no painel de cada tarefa, na área de campos personalizados.",
+          "Os valores são preenchidos no painel de cada item, na área de campos personalizados.",
           "Nos campos de seleção, edite as opções quando quiser.",
           "Campos não são excluídos, são arquivados.",
         ],
@@ -1244,12 +1244,12 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
           "Gerenciar campos exige o papel de Proprietário ou Administrador no workspace.",
       },
       {
-        question: "O campo que criei não aparece na tarefa.",
+        question: "O campo que criei não aparece no item.",
         answer:
-          "Os campos são por projeto. Confira se a tarefa é do mesmo projeto em que o campo foi criado.",
+          "Os campos são por pasta. Confira se o item é da mesma pasta em que o campo foi criado.",
       },
     ],
-    related: ["tasks"],
+    related: ["items"],
   },
   {
     id: "automations",
@@ -1258,34 +1258,34 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
     summary: "Regras “quando isso acontecer, faça aquilo” que rodam sozinhas.",
     icon: Workflow,
     audience: "Proprietário e Administrador",
-    href: "/projects",
-    hrefLabel: "Ir para Projetos",
+    href: "/folders",
+    hrefLabel: "Ir para Pastas",
     sections: [
       {
         heading: "O que são",
         intro:
-          "Uma automação observa um evento e executa uma ação, sem ninguém precisar confirmar. Ótimo para tirar trabalho repetitivo da equipe, e justamente por rodar sozinha exige cuidado. Fica na aba Automações de cada projeto (só aparece para Proprietário e Administrador).",
+          "Uma automação observa um evento e executa uma ação, sem ninguém precisar confirmar. Ótimo para tirar trabalho repetitivo da equipe, e justamente por rodar sozinha exige cuidado. Fica na aba Automações de cada pasta (só aparece para Proprietário e Administrador).",
       },
       {
         heading: "Comece por um template",
         intro:
-          "Sem regras no projeto ainda, a galeria de modelos ocupa a aba. Escolha um e o formulário abre já preenchido, faltando só o que é do seu workspace (por exemplo, qual coluna). Esses campos ficam destacados em âmbar.",
+          "Sem regras na pasta ainda, a galeria de modelos ocupa a aba. Escolha um e o formulário abre já preenchido, faltando só o que é do seu workspace (por exemplo, qual coluna). Esses campos ficam destacados em âmbar.",
         bullets: [
-          "Mover para a coluna de concluídas: quando o status virar Concluída, a tarefa vai para a coluna que você escolher.",
-          "Devolver ao Backlog ao reabrir: quando uma tarefa concluída for reaberta, ela volta para a coluna que você escolher.",
-          "Atribuir a quem marcar como Urgente: a tarefa fica com quem mudou a prioridade para Urgente.",
-          "Iniciar a tarefa ao atribuir: ao definir um responsável, o status vira Em progresso.",
+          "Mover para a coluna de concluídas: quando o status virar Concluída, o item vai para a coluna que você escolher.",
+          "Devolver ao Backlog ao reabrir: quando um item concluído for reaberto, ele volta para a coluna que você escolher.",
+          "Atribuir a quem marcar como Urgente: o item fica com quem mudou a prioridade para Urgente.",
+          "Iniciar o item ao atribuir: ao definir um responsável, o status vira Em progresso.",
         ],
       },
       {
         heading: "Montar uma regra",
         intro:
-          "A regra é construída como uma frase: “Quando [uma tarefa] [tiver o status alterado] e [o novo status] [for] [Concluída], então [mover a tarefa] para a coluna [Concluída]”. Cada trecho entre colchetes é um campo que você clica para escolher.",
+          "A regra é construída como uma frase: “Quando [um item] [tiver o status alterado] e [o novo status] [for] [Concluída], então [mover o item] para a coluna [Concluída]”. Cada trecho entre colchetes é um campo que você clica para escolher.",
         steps: [
-          "Escolha o que observar: tarefa, comentário, coluna ou campo extra.",
-          "Escolha o evento. Exemplos para tarefas: status alterado, responsável alterado, mudar de coluna, prazo alterado, prioridade alterada, ganhar ou perder participante.",
+          "Escolha o que observar: item, comentário, coluna ou campo extra.",
+          "Escolha o evento. Exemplos para itens: status alterado, responsável alterado, mudar de coluna, prazo alterado, prioridade alterada, ganhar ou perder participante.",
           "Opcional: adicione condições para a regra só valer em certos casos (por exemplo, “o novo status for Concluída”).",
-          "Escolha a ação: mover a tarefa, mudar a etapa (uma das etapas do projeto ou a padrão de A fazer, Em andamento ou Concluída), atribuir a tarefa, mudar a prioridade, adicionar ou remover participante, ou pedir a aprovação de alguém (com uma nota opcional).",
+          "Escolha a ação: mover o item, mudar a etapa (uma das etapas da pasta ou a padrão de A fazer, Em andamento ou Concluída), atribuir o item, mudar a prioridade, adicionar ou remover participante, ou pedir a aprovação de alguém (com uma nota opcional).",
           "Preencha os valores da ação e confira a frase de prévia no topo do formulário, que muda a cada escolha.",
           "Salve. O nome é opcional: se você deixar em branco, a própria frase vira o nome.",
         ],
@@ -1293,7 +1293,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Valor fixo ou valor do evento",
         intro:
-          "Em cada parâmetro da ação você escolhe entre um “Valor fixo” (sempre o mesmo) e um “Valor do evento” (algo que veio do que aconteceu). Assim, uma regra pode atribuir a tarefa a “quem fez a alteração” em vez de sempre à mesma pessoa. Não é preciso digitar nenhuma sintaxe: você escolhe o campo do evento numa lista compatível.",
+          "Em cada parâmetro da ação você escolhe entre um “Valor fixo” (sempre o mesmo) e um “Valor do evento” (algo que veio do que aconteceu). Assim, uma regra pode atribuir o item a “quem fez a alteração” em vez de sempre à mesma pessoa. Não é preciso digitar nenhuma sintaxe: você escolhe o campo do evento numa lista compatível.",
       },
       {
         heading: "Gerenciar regras",
@@ -1304,14 +1304,14 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         ],
       },
       {
-        heading: "Automações de um projeto",
+        heading: "Automações de uma pasta",
         intro:
-          "Dentro de cada projeto há a aba Automações. Ali você vê só o que age naquele projeto e pode ligar, pausar, editar ou excluir sem sair dele.",
+          "Dentro de cada pasta há a aba Automações. Ali você vê só o que age naquela pasta e pode ligar, pausar, editar ou excluir sem sair dela.",
         bullets: [
-          "“Automações deste projeto”: as que valem só para ele. Uma automação criada por essa aba já nasce limitada ao projeto.",
-          "“Automações de todo o workspace”: as que valem para todos os projetos, e por isso também agem neste. Mudar uma delas muda o que acontece em todos os projetos.",
-          "Se, ao montar a regra, ela deixar de estar limitada ao projeto, um aviso em âmbar mostra isso e oferece “Limitar a este projeto”.",
-          "“Automações antigas do workspace”: regras criadas antes, que reagem a algo fora dos projetos (como alguém entrar no workspace). Não dá mais para criar ou editar regras assim, só pausar ou excluir.",
+          "“Automações desta pasta”: as que valem só para ela. Uma automação criada por essa aba já nasce limitada à pasta.",
+          "“Automações de todo o workspace”: as que valem para todas as pastas, e por isso também agem nesta. Mudar uma delas muda o que acontece em todas as pastas.",
+          "Se, ao montar a regra, ela deixar de estar limitada à pasta, um aviso em âmbar mostra isso e oferece “Limitar a esta pasta”.",
+          "“Automações antigas do workspace”: regras criadas antes, que reagem a algo fora das pastas (como alguém entrar no workspace). Não dá mais para criar ou editar regras assim, só pausar ou excluir.",
         ],
       },
       {
@@ -1325,21 +1325,21 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
           },
           {
             kind: "note",
-            text: "Ainda não existe um teste de regra nem um histórico de execuções. Comece com regras simples e observe o resultado na aba Atividade do projeto.",
+            text: "Ainda não existe um teste de regra nem um histórico de execuções. Comece com regras simples e observe o resultado na aba Atividade da pasta.",
           },
         ],
       },
     ],
     faq: [
       {
-        question: "Não vejo a aba Automações no projeto.",
+        question: "Não vejo a aba Automações na pasta.",
         answer:
-          "Ela só aparece para Proprietários e Administradores do workspace do projeto.",
+          "Ela só aparece para Proprietários e Administradores do workspace da pasta.",
       },
       {
         question: "Uma regra parou de funcionar.",
         answer:
-          "Veja se ela está marcada como Desativada. Se estiver, ligue-a novamente. Se o problema voltar, revise as condições e se a coluna ou o projeto escolhidos ainda existem.",
+          "Veja se ela está marcada como Desativada. Se estiver, ligue-a novamente. Se o problema voltar, revise as condições e se a coluna ou a pasta escolhidas ainda existem.",
       },
       {
         question: "Ao salvar, aparece um erro dizendo que a automação é inválida.",
@@ -1347,7 +1347,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
           "O servidor valida cada regra. Pode ser que um evento, uma condição ou uma ação escolhida deixou de ser suportado. Escolha outra combinação ou comece de um template.",
       },
     ],
-    related: ["board", "tasks", "workspaces", "developers"],
+    related: ["board", "items", "workspaces", "developers"],
   },
   {
     id: "developers",
@@ -1365,7 +1365,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
           "Isso é para quando existe (ou vai existir) um sistema seu — um site, uma planilha automatizada, um bot — que precisa conversar com o TaskFlow sem uma pessoa clicando na tela. Se sua equipe só usa a interface do TaskFlow no dia a dia, pode pular esta seção sem perder nada: nada aqui muda o funcionamento normal do workspace.",
         bullets: [
           "Chave de API: uma senha especial para um programa se identificar como o workspace, no lugar de uma pessoa.",
-          "Webhook: um aviso automático que o TaskFlow manda para um endereço seu toda vez que algo escolhido acontece — por exemplo, uma tarefa mudar de status.",
+          "Webhook: um aviso automático que o TaskFlow manda para um endereço seu toda vez que algo escolhido acontece — por exemplo, um item mudar de status.",
         ],
         callouts: [
           {
@@ -1405,7 +1405,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
           "Um webhook é o oposto de ficar checando o TaskFlow toda hora: você cadastra um endereço seu (precisa ser https e público na internet — não funciona com endereços locais) e uma lista de eventos, e o TaskFlow avisa sozinho, na hora, sempre que um deles acontecer.",
         steps: [
           "Na página Desenvolvedores → Webhooks, clique em “Novo webhook”.",
-          "Informe a URL (https://…) que vai receber os avisos e escolha os eventos, como “tarefa mudou de status” ou “membro adicionado ao workspace”.",
+          "Informe a URL (https://…) que vai receber os avisos e escolha os eventos, como “item mudou de status” ou “membro adicionado ao workspace”.",
           "Use o botão de “ping” para mandar um evento de teste e confirmar que seu sistema está recebendo e respondendo corretamente, antes de contar com eventos de verdade.",
         ],
         bullets: [
@@ -1475,11 +1475,11 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         intro:
           "Clique no ícone do assistente na barra superior. Peça o que precisa em linguagem natural. Ele consegue, por exemplo:",
         bullets: [
-          "Criar e atualizar workspaces, projetos e tarefas.",
-          "Atribuir tarefas, mudar o status, mover entre colunas e adicionar ou remover participantes.",
-          "Pedir a aprovação de uma tarefa a alguém.",
+          "Criar e atualizar workspaces, pastas e itens.",
+          "Atribuir itens, mudar o status, mover entre colunas e adicionar ou remover participantes.",
+          "Pedir a aprovação de um item a alguém.",
           "Convidar e remover membros do workspace.",
-          "Arquivar projetos, revogar sessões e excluir workspaces (ações críticas).",
+          "Arquivar pastas, revogar sessões e excluir workspaces (ações críticas).",
         ],
       },
       {
@@ -1487,12 +1487,12 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         bullets: [
           "Use o clipe para enviar imagens, PDFs, planilhas e outros documentos, ou o microfone para falar em vez de digitar.",
           "O assistente só lê o conteúdo de um arquivo quando você pede (“leia”, “resuma”, “qual o total da nota?”). Sem esse pedido, ele só sabe o nome e o tipo do arquivo.",
-          "Para guardar um arquivo numa tarefa, diga onde: “anexe na tarefa Contrato” ou “crie a tarefa Nota fiscal com este arquivo”. Dá para pedir isso numa mensagem seguinte, por até 30 minutos depois do envio.",
+          "Para guardar um arquivo num item, diga onde: “anexe no item Contrato” ou “crie o item Nota fiscal com este arquivo”. Dá para pedir isso numa mensagem seguinte, por até 30 minutos depois do envio.",
         ],
         callouts: [
           {
             kind: "note",
-            text: "Arquivos muito grandes (acima de 5MB, ou PDFs com mais de 20 páginas) não são lidos, mas ainda podem ser anexados a uma tarefa.",
+            text: "Arquivos muito grandes (acima de 5MB, ou PDFs com mais de 20 páginas) não são lidos, mas ainda podem ser anexados a um item.",
           },
         ],
       },
@@ -1514,7 +1514,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Ações críticas",
         intro:
-          "Ações de maior risco (excluir workspace, remover membro, arquivar projeto e revogar sessão) pedem uma confirmação extra de identidade numa janela que não fecha ao clicar fora:",
+          "Ações de maior risco (excluir workspace, remover membro, arquivar pasta e revogar sessão) pedem uma confirmação extra de identidade numa janela que não fecha ao clicar fora:",
         bullets: [
           "Com senha: digite sua senha atual.",
           "Com Google: use “Confirmar com Google”. Se sua conta tem os dois, você escolhe.",
@@ -1594,8 +1594,8 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         heading: "O que funciona sem conexão",
         intro: "Sem internet você ainda pode alterar coisas que já existem:",
         bullets: [
-          "Editar tarefas (título, descrição, status, coluna, responsável, prazo, prioridade).",
-          "Editar projetos e colunas, e arquivar projetos.",
+          "Editar itens (título, descrição, status, coluna, responsável, prazo, prioridade).",
+          "Editar pastas e colunas, e arquivar pastas.",
           "Editar opções e arquivar campos extras.",
           "Apagar colunas e comentários.",
         ],
@@ -1603,10 +1603,10 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "O que exige conexão",
         bullets: [
-          "Criar qualquer coisa nova (tarefa, projeto, coluna, comentário…).",
+          "Criar qualquer coisa nova (item, pasta, coluna, comentário…).",
           "Preencher valores de campos extras.",
           "Alterar menções.",
-          "Mover projetos de lugar na hierarquia.",
+          "Mover pastas de lugar na hierarquia.",
           "Anexos e convites.",
         ],
       },
@@ -1647,7 +1647,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
           "Ela só é enviada ao voltar a conexão. Confira o ícone de sincronização: se ainda houver pendências, use-o para forçar o envio.",
       },
     ],
-    related: ["navigation", "tasks"],
+    related: ["navigation", "items"],
   },
   {
     id: "account",

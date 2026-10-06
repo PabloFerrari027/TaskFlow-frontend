@@ -29,10 +29,10 @@ import {
   type RuleDraft,
 } from "@/features/automations/lib/automation-draft";
 import {
-  canLimitToProject,
-  isDraftLimitedToProject,
-  scopeDraftToProject,
-} from "@/features/automations/lib/project-scope";
+  canLimitToFolder,
+  isDraftLimitedToFolder,
+  scopeDraftToFolder,
+} from "@/features/automations/lib/folder-scope";
 import type { AutomationRule } from "@/types/automation";
 
 interface AutomationRuleFormDialogProps {
@@ -42,8 +42,8 @@ interface AutomationRuleFormDialogProps {
   // Editing an existing rule; otherwise creating (from `initialDraft` if given).
   rule?: AutomationRule | null;
   initialDraft?: RuleDraft | null;
-  // Opened from a project's tab: says whether the rule is limited to it.
-  project?: { id: string; name: string } | null;
+  // Opened from a folder's tab: says whether the rule is limited to it.
+  folder?: { id: string; name: string } | null;
 }
 
 // The draft lives in this component's state and is seeded once, so the parent
@@ -54,7 +54,7 @@ export function AutomationRuleFormDialog({
   onOpenChange,
   rule,
   initialDraft,
-  project,
+  folder,
 }: AutomationRuleFormDialogProps) {
   const [draft, setDraft] = React.useState<RuleDraft>(() =>
     rule ? fromRule(rule) : (initialDraft ?? emptyDraft())
@@ -97,8 +97,8 @@ export function AutomationRuleFormDialog({
 
           <AutomationLivePreview draft={draft} lookups={lookups} />
 
-          {project ? (
-            <ProjectScopeNote draft={draft} project={project} onChange={setDraft} />
+          {folder ? (
+            <FolderScopeNote draft={draft} folder={folder} onChange={setDraft} />
           ) : null}
 
           <div className="space-y-2">
@@ -132,44 +132,44 @@ export function AutomationRuleFormDialog({
   );
 }
 
-// Picking an event without a project (e.g. "ganhar um participante") drops the
-// project condition, silently widening the rule to the whole workspace — this
+// Picking an event without a folder (e.g. "ganhar um participante") drops the
+// folder condition, silently widening the rule to the whole workspace — this
 // note makes that visible and offers the way back.
-function ProjectScopeNote({
+function FolderScopeNote({
   draft,
-  project,
+  folder,
   onChange,
 }: {
   draft: RuleDraft;
-  project: { id: string; name: string };
+  folder: { id: string; name: string };
   onChange: (draft: RuleDraft) => void;
 }) {
-  if (isDraftLimitedToProject(draft, project.id)) {
+  if (isDraftLimitedToFolder(draft, folder.id)) {
     return (
       <p className="flex items-center gap-2 text-sm text-muted-foreground">
         <FolderKanban className="size-4 shrink-0" aria-hidden />
-        Vale só para o projeto “{project.name}”.
+        Vale só para a pasta “{folder.name}”.
       </p>
     );
   }
 
-  const canLimit = canLimitToProject(draft);
+  const canLimit = canLimitToFolder(draft);
   return (
     <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-sm text-amber-700 dark:text-amber-400">
       <p className="flex items-center gap-2">
         <Globe className="size-4 shrink-0" aria-hidden />
         {canLimit
-          ? "Do jeito que está, esta automação vale para todos os projetos do workspace."
-          : "Este tipo de acontecimento não pode ser limitado a um projeto: a automação vai valer para todo o workspace."}
+          ? "Do jeito que está, esta automação vale para todas as pastas do workspace."
+          : "Este tipo de acontecimento não pode ser limitado a uma pasta: a automação vai valer para todo o workspace."}
       </p>
       {canLimit ? (
         <Button
           type="button"
           variant="outline"
           size="sm"
-          onClick={() => onChange(scopeDraftToProject(draft, project.id))}
+          onClick={() => onChange(scopeDraftToFolder(draft, folder.id))}
         >
-          Limitar a este projeto
+          Limitar a esta pasta
         </Button>
       ) : null}
     </div>

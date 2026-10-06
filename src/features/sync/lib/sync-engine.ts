@@ -9,7 +9,7 @@ import {
   invalidateWorkspaceData,
 } from "@/features/sync/lib/invalidate-entity";
 import { queryKeys } from "@/lib/query-keys";
-import type { Project } from "@/types/project";
+import type { Folder } from "@/types/folder";
 import type { Section } from "@/types/section";
 import type {
   QueuedOperation,
@@ -17,16 +17,16 @@ import type {
   SyncOperation,
   SyncOperationResult,
 } from "@/types/sync";
-import type { DeletedTask, Task } from "@/types/task";
+import type { DeletedItem, Item } from "@/types/item";
 
 export function isOffline() {
   return typeof navigator !== "undefined" && !navigator.onLine;
 }
 
 /**
- * Queues an offline UPDATE for an existing entity (task, project, section or
+ * Queues an offline UPDATE for an existing entity (item, folder, section or
  * custom field definition — see `SyncStatusIndicator` for why comments and
- * task custom field values aren't queueable this way), and returns an
+ * item custom field values aren't queueable this way), and returns an
  * optimistic copy of `current` with `payload` applied so the calling
  * mutation's `onSuccess` can update the cache exactly as it would online.
  */
@@ -57,8 +57,8 @@ export function queueEntityUpdate<T extends { version: number }>({
 }
 
 /** Queues an offline DELETE for an entity that supports deletion through
- * sync: `SECTION` and `COMMENT` (hard delete) and `TASK` (soft delete — only used
- * offline; online, tasks are deleted through `POST /tasks/bulk-delete`). `PROJECT` and
+ * sync: `SECTION` and `COMMENT` (hard delete) and `ITEM` (soft delete — only used
+ * offline; online, items are deleted through `POST /items/bulk-delete`). `FOLDER` and
  * `CUSTOM_FIELD_DEFINITION` always come back `REJECTED` for DELETE. */
 export function queueEntityDelete({
   workspaceId,
@@ -101,8 +101,8 @@ function invalidateForEntity(queryClient: QueryClient, op: QueuedOperation) {
     entityType: op.entityType,
     entityId: op.entityId,
     workspaceId: op.workspaceId,
-    projectId: op.meta?.projectId,
-    taskId: op.meta?.taskId,
+    folderId: op.meta?.folderId,
+    itemId: op.meta?.itemId,
   });
 }
 
@@ -114,53 +114,53 @@ function applyServerState(
   state: Record<string, unknown>
 ) {
   switch (op.entityType) {
-    case "TASK": {
-      // An applied DELETE answers with what's left of the task (the same
-      // `DeletedTask` as `POST /tasks/bulk-delete`), not the task itself — the
-      // cascade took every subtask along. A DELETE that hit a CONFLICT still
-      // carries the full, surviving task and falls through below.
-      if (op.operationType === "DELETE" && Array.isArray(state.deletedSubtaskIds)) {
-        const deleted = state as unknown as DeletedTask;
-        for (const taskId of [deleted.id, ...deleted.deletedSubtaskIds]) {
-          queryClient.removeQueries({ queryKey: queryKeys.tasks.detail(taskId) });
+    case "ITEM": {
+      // An applied DELETE answers with what's left of the item (the same
+      // `DeletedItem` as `POST /items/bulk-delete`), not the item itself — the
+      // cascade took every subitem along. A DELETE that hit a CONFLICT still
+      // carries the full, surviving item and falls through below.
+      if (op.operationType === "DELETE" && Array.isArray(state.deletedSubitemIds)) {
+        const deleted = state as unknown as DeletedItem;
+        for (const itemId of [deleted.id, ...deleted.deletedSubitemIds]) {
+          queryClient.removeQueries({ queryKey: queryKeys.items.detail(itemId) });
         }
         invalidateByEntityChange(queryClient, {
           entityType: op.entityType,
           entityId: deleted.id,
           workspaceId: op.workspaceId,
-          projectId: deleted.projectId,
+          folderId: deleted.folderId,
         });
-        if (deleted.parentTaskId) {
+        if (deleted.parentItemId) {
           queryClient.invalidateQueries({
-            queryKey: queryKeys.tasks.subtasks(deleted.parentTaskId),
+            queryKey: queryKeys.items.subitems(deleted.parentItemId),
           });
         }
         return;
       }
-      const task = state as unknown as Task;
-      queryClient.setQueryData(queryKeys.tasks.detail(task.id), task);
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all(task.projectId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.projectStats.root() });
+      const item = state as unknown as Item;
+      queryClient.setQueryData(queryKeys.items.detail(item.id), item);
+      queryClient.invalidateQueries({ queryKey: queryKeys.items.all(item.folderId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.items.bySectionAll() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.folderStats.root() });
       queryClient.invalidateQueries({ queryKey: queryKeys.home.root() });
       return;
     }
-    case "PROJECT": {
-      const project = state as unknown as Project;
-      queryClient.setQueryData(queryKeys.projects.detail(project.id), project);
-      queryClient.invalidateQueries({ queryKey: queryKeys.projects.all(project.workspaceId) });
+    case "FOLDER": {
+      const folder = state as unknown as Folder;
+      queryClient.setQueryData(queryKeys.folders.detail(folder.id), folder);
+      queryClient.invalidateQueries({ queryKey: queryKeys.folders.all(folder.workspaceId) });
       return;
     }
     case "SECTION": {
       const section = state as unknown as Section;
-      queryClient.invalidateQueries({ queryKey: queryKeys.sections.all(section.projectId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.sections.all(section.folderId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.items.bySectionAll() });
       return;
     }
     case "CUSTOM_FIELD_DEFINITION": {
-      const projectId = (state.projectId as string | undefined) ?? op.meta?.projectId;
-      if (projectId) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.customFields.all(projectId) });
+      const folderId = (state.folderId as string | undefined) ?? op.meta?.folderId;
+      if (folderId) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.customFields.all(folderId) });
       }
       return;
     }
@@ -197,8 +197,8 @@ function applyResult(
 
 /**
  * Pushes a single operation right away instead of queueing it — used for the
- * one write the REST surface genuinely cannot express (clearing a task's
- * `assigneeId`; see `useUnassignTaskMutation`), which always has to go
+ * one write the REST surface genuinely cannot express (clearing an item's
+ * `assigneeId`; see `useUnassignItemMutation`), which always has to go
  * through `/sync/push` even while online.
  */
 export async function pushImmediate(
@@ -263,7 +263,7 @@ export async function flushOutbox(queryClient: QueryClient) {
 /** Pulls every page of changes since the last cursor for a workspace. The
  * exact shape of a change is left opaque by the API — rather than guess a
  * schema to merge by hand, any non-empty pull just invalidates this
- * workspace's synced query groups (tasks, projects, sections, custom fields,
+ * workspace's synced query groups (items, folders, sections, custom fields,
  * comments, activity, analytics) so they refetch from the REST endpoints,
  * which are the actual source of truth.
  *

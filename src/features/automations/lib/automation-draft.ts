@@ -49,7 +49,7 @@ export interface RuleDraft {
   tool: string;
   params: Record<string, ParamDraft>;
   // Params the sentence doesn't edit (a rule created via the API can carry
-  // e.g. move_task's `position`, or a hand-written `taskId`) — kept as-is so
+  // e.g. move_item's `position`, or a hand-written `itemId`) — kept as-is so
   // editing a rule here never silently drops them.
   extraParams: Record<string, unknown>;
 }
@@ -67,10 +67,10 @@ export function emptyParam(): ParamDraft {
 }
 
 export function emptyDraft(): RuleDraft {
-  const first = eventsOfEntity("TASK")[0];
+  const first = eventsOfEntity("ITEM")[0];
   return {
     name: "",
-    entityType: "TASK",
+    entityType: "ITEM",
     eventType: first?.eventType ?? "",
     conditions: [],
     tool: "",
@@ -213,9 +213,9 @@ export function toRequest(draft: RuleDraft, fallbackName: string): CreateAutomat
   const spec = findAction(draft.tool);
 
   const params: Record<string, unknown> = {};
-  // "The task this happened to" is implied by the trigger, never asked.
-  if (spec?.needsTask && event?.taskIdField && !("taskId" in draft.extraParams)) {
-    params.taskId = toPlaceholder(event.taskIdField);
+  // "The item this happened to" is implied by the trigger, never asked.
+  if (spec?.needsItem && event?.itemIdField && !("itemId" in draft.extraParams)) {
+    params.itemId = toPlaceholder(event.itemIdField);
   }
   for (const param of spec?.params ?? []) {
     const draftParam = draft.params[param.key];
@@ -298,7 +298,7 @@ export interface SentenceSegment {
 }
 
 // Resolves an id/enum to what a person would call it. Implemented by
-// `useAutomationLookups` (needs the workspace's projects/sections/members).
+// `useAutomationLookups` (needs the workspace's folders/sections/members).
 export interface ValueLabeler {
   labelFor(kind: FieldKind, value: string): string;
 }

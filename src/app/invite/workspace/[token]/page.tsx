@@ -19,7 +19,7 @@ export default function WorkspaceInvitePage() {
       previewQuery={useWorkspaceInvitationPreviewQuery(token)}
       acceptMutation={useAcceptWorkspaceInvitationMutation()}
       getEntityName={(preview) => preview.workspaceName}
-      onAccepted={() => router.push("/projects")}
+      onAccepted={() => router.push("/folders")}
     />
   );
 }

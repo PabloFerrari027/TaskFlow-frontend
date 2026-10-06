@@ -60,7 +60,7 @@ export function formatDueDate(value: string): { label: string; urgency: DueDateU
     if (isTomorrow(date)) return { label: "Vence amanhã", urgency: "soon" };
 
     const daysDiff = differenceInCalendarDays(date, new Date());
-    if (daysDiff < 0) return { label: `Atrasada (${formatDate(value)})`, urgency: "overdue" };
+    if (daysDiff < 0) return { label: `Atrasado (${formatDate(value)})`, urgency: "overdue" };
     if (daysDiff <= 7) return { label: `Vence em ${daysDiff} dias`, urgency: "soon" };
     return { label: `Vence em ${formatDate(value)}`, urgency: "normal" };
   } catch {
@@ -124,7 +124,7 @@ export function formatRatio(value: number): string {
 const HOURS_PER_DAY = 24;
 
 // average_completion_time/cycle_time come back as a raw hour count — shown
-// as "3d 4h" instead, since nobody reads project timelines in hours.
+// as "3d 4h" instead, since nobody reads folder timelines in hours.
 export function formatDurationHours(hours: number): string {
   const totalHours = Math.round(hours);
   const days = Math.floor(totalHours / HOURS_PER_DAY);

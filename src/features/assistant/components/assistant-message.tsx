@@ -25,8 +25,8 @@ const STAGE_LABEL: Record<Exclude<AssistantChatStage, "running_tool">, string> =
 // Read-only tools; every other tool registers an action for the user to
 // confirm, so it gets the generic "preparing" label.
 const READ_TOOL_LABEL: Record<string, string> = {
-  list_tasks: "Consultando as tarefas...",
-  list_projects: "Consultando os projetos...",
+  list_items: "Consultando os itens...",
+  list_folders: "Consultando as pastas...",
   list_workspaces: "Consultando os workspaces...",
   list_sessions: "Consultando suas sessões...",
 };

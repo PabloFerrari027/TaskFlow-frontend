@@ -1,4 +1,4 @@
-// The API returns hierarchies (projects, sections, comments) as flat lists
+// The API returns hierarchies (folders, sections, comments) as flat lists
 // with a `parentId`. These helpers rebuild the tree client-side from the list
 // already in cache, so no extra request is needed to render or validate it.
 

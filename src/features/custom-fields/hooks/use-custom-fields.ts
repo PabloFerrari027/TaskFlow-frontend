@@ -12,28 +12,28 @@ import type { PaginatedResult } from "@/types/common";
 import type {
   CreateCustomFieldDefinitionRequest,
   CustomFieldDefinition,
-  SetTaskCustomFieldValueRequest,
+  SetItemCustomFieldValueRequest,
   UpdateCustomFieldOptionsRequest,
 } from "@/types/custom-field";
 
-// Custom field definitions per project are realistically few — fetch the
+// Custom field definitions per folder are realistically few — fetch the
 // max page size once rather than paging.
-export function useCustomFieldsQuery(projectId: string) {
+export function useCustomFieldsQuery(folderId: string) {
   return useQuery({
-    queryKey: queryKeys.customFields.all(projectId),
-    queryFn: () => customFieldsService.listByProject(projectId, { limit: MAX_PAGE_SIZE }),
+    queryKey: queryKeys.customFields.all(folderId),
+    queryFn: () => customFieldsService.listByFolder(folderId, { limit: MAX_PAGE_SIZE }),
     select: (result) => result.data,
   });
 }
 
-export function useCreateCustomFieldMutation(projectId: string) {
+export function useCreateCustomFieldMutation(folderId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (payload: CreateCustomFieldDefinitionRequest) =>
-      customFieldsService.create(projectId, payload),
+      customFieldsService.create(folderId, payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.customFields.all(projectId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.customFields.all(folderId) });
       toast.success("Campo personalizado criado.");
     },
     onError: (error) => toast.error(getErrorMessage(error)),
@@ -42,11 +42,11 @@ export function useCreateCustomFieldMutation(projectId: string) {
 
 function findCachedDefinition(
   queryClient: ReturnType<typeof useQueryClient>,
-  projectId: string,
+  folderId: string,
   definitionId: string
 ) {
   const cached = queryClient.getQueryData<{ data: CustomFieldDefinition[] }>(
-    queryKeys.customFields.all(projectId)
+    queryKeys.customFields.all(folderId)
   );
   return cached?.data.find((definition) => definition.id === definitionId);
 }
@@ -57,17 +57,17 @@ function findCachedDefinition(
 // archive wouldn't show up in the list until reconnect.
 async function patchCachedDefinition(
   queryClient: ReturnType<typeof useQueryClient>,
-  projectId: string,
+  folderId: string,
   definitionId: string,
   patch: Partial<CustomFieldDefinition>
 ) {
-  await queryClient.cancelQueries({ queryKey: queryKeys.customFields.all(projectId) });
+  await queryClient.cancelQueries({ queryKey: queryKeys.customFields.all(folderId) });
   const previous = queryClient.getQueryData<PaginatedResult<CustomFieldDefinition>>(
-    queryKeys.customFields.all(projectId)
+    queryKeys.customFields.all(folderId)
   );
   if (previous) {
     queryClient.setQueryData<PaginatedResult<CustomFieldDefinition>>(
-      queryKeys.customFields.all(projectId),
+      queryKeys.customFields.all(folderId),
       {
         ...previous,
         data: previous.data.map((definition) =>
@@ -79,7 +79,7 @@ async function patchCachedDefinition(
   return { previous };
 }
 
-export function useUpdateCustomFieldOptionsMutation(projectId: string) {
+export function useUpdateCustomFieldOptionsMutation(folderId: string) {
   const queryClient = useQueryClient();
   const { workspaceId } = useCurrentWorkspace();
 
@@ -91,7 +91,7 @@ export function useUpdateCustomFieldOptionsMutation(projectId: string) {
       definitionId: string;
       payload: UpdateCustomFieldOptionsRequest;
     }) => {
-      const current = findCachedDefinition(queryClient, projectId, definitionId);
+      const current = findCachedDefinition(queryClient, folderId, definitionId);
       if (isOffline() && workspaceId && current) {
         queueEntityUpdate({
           workspaceId,
@@ -99,7 +99,7 @@ export function useUpdateCustomFieldOptionsMutation(projectId: string) {
           entityId: definitionId,
           payload: payload as unknown as Record<string, unknown>,
           current,
-          meta: { projectId },
+          meta: { folderId },
         });
         return Promise.resolve();
       }
@@ -113,9 +113,9 @@ export function useUpdateCustomFieldOptionsMutation(projectId: string) {
       );
     },
     onMutate: ({ definitionId, payload }) =>
-      patchCachedDefinition(queryClient, projectId, definitionId, payload),
+      patchCachedDefinition(queryClient, folderId, definitionId, payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.customFields.all(projectId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.customFields.all(folderId) });
       toast.success(
         isOffline()
           ? "Alteração salva offline — será sincronizada quando a conexão voltar."
@@ -124,20 +124,20 @@ export function useUpdateCustomFieldOptionsMutation(projectId: string) {
     },
     onError: (error, _vars, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(queryKeys.customFields.all(projectId), context.previous);
+        queryClient.setQueryData(queryKeys.customFields.all(folderId), context.previous);
       }
       toast.error(getErrorMessage(error));
     },
   });
 }
 
-export function useArchiveCustomFieldMutation(projectId: string) {
+export function useArchiveCustomFieldMutation(folderId: string) {
   const queryClient = useQueryClient();
   const { workspaceId } = useCurrentWorkspace();
 
   return useMutation({
     mutationFn: (definitionId: string) => {
-      const current = findCachedDefinition(queryClient, projectId, definitionId);
+      const current = findCachedDefinition(queryClient, folderId, definitionId);
       if (isOffline() && workspaceId && current) {
         queueEntityUpdate({
           workspaceId,
@@ -145,16 +145,16 @@ export function useArchiveCustomFieldMutation(projectId: string) {
           entityId: definitionId,
           payload: { archived: true },
           current,
-          meta: { projectId },
+          meta: { folderId },
         });
         return Promise.resolve();
       }
       return customFieldsService.archive(definitionId).then(() => undefined);
     },
     onMutate: (definitionId) =>
-      patchCachedDefinition(queryClient, projectId, definitionId, { archived: true }),
+      patchCachedDefinition(queryClient, folderId, definitionId, { archived: true }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.customFields.all(projectId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.customFields.all(folderId) });
       toast.success(
         isOffline()
           ? "Arquivamento salvo offline — será sincronizado quando a conexão voltar."
@@ -163,23 +163,23 @@ export function useArchiveCustomFieldMutation(projectId: string) {
     },
     onError: (error, _definitionId, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(queryKeys.customFields.all(projectId), context.previous);
+        queryClient.setQueryData(queryKeys.customFields.all(folderId), context.previous);
       }
       toast.error(getErrorMessage(error));
     },
   });
 }
 
-// Bounded by the number of field definitions on the project — always small.
-export function useTaskCustomFieldValuesQuery(taskId: string) {
+// Bounded by the number of field definitions on the folder — always small.
+export function useItemCustomFieldValuesQuery(itemId: string) {
   return useQuery({
-    queryKey: queryKeys.tasks.customFieldValues(taskId),
-    queryFn: () => customFieldsService.listTaskValues(taskId, { limit: MAX_PAGE_SIZE }),
+    queryKey: queryKeys.items.customFieldValues(itemId),
+    queryFn: () => customFieldsService.listItemValues(itemId, { limit: MAX_PAGE_SIZE }),
     select: (result) => result.data,
   });
 }
 
-export function useSetTaskCustomFieldValueMutation(taskId: string) {
+export function useSetItemCustomFieldValueMutation(itemId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -188,10 +188,10 @@ export function useSetTaskCustomFieldValueMutation(taskId: string) {
       payload,
     }: {
       definitionId: string;
-      payload: SetTaskCustomFieldValueRequest;
-    }) => customFieldsService.setTaskValue(taskId, definitionId, payload),
+      payload: SetItemCustomFieldValueRequest;
+    }) => customFieldsService.setItemValue(itemId, definitionId, payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.customFieldValues(taskId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.items.customFieldValues(itemId) });
     },
     onError: (error) => toast.error(getErrorMessage(error)),
   });

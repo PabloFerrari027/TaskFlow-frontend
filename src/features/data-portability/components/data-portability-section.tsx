@@ -52,10 +52,10 @@ function JobProgress({ label }: { label: string }) {
   );
 }
 
-function ExportBlock({ projectId }: { projectId: string }) {
+function ExportBlock({ folderId }: { folderId: string }) {
   const [format, setFormat] = React.useState<DataJobFormat>("CSV");
   const [jobId, setJobId] = React.useState<string | null>(null);
-  const exportMutation = useStartExportMutation(projectId);
+  const exportMutation = useStartExportMutation(folderId);
   const downloadMutation = useDownloadDataJobMutation();
   const job = useDataJobQuery(jobId).data;
 
@@ -64,7 +64,7 @@ function ExportBlock({ projectId }: { projectId: string }) {
       <div>
         <h3 className="text-sm font-medium">Exportar</h3>
         <p className="text-xs text-muted-foreground">
-          Baixe as tarefas deste projeto para abrir no Excel ou guardar uma cópia.
+          Baixe os itens desta pasta para abrir no Excel ou guardar uma cópia.
         </p>
       </div>
       <div className="flex flex-wrap items-center gap-2">
@@ -73,7 +73,7 @@ function ExportBlock({ projectId }: { projectId: string }) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="CSV">Planilha (CSV) — só as tarefas</SelectItem>
+            <SelectItem value="CSV">Planilha (CSV) — só os itens</SelectItem>
             <SelectItem value="JSON">Cópia completa (JSON) — com colunas, comentários e dependências</SelectItem>
           </SelectContent>
         </Select>
@@ -98,7 +98,7 @@ function ExportBlock({ projectId }: { projectId: string }) {
           onClick={() =>
             downloadMutation.mutate({
               jobId: job.id,
-              fileName: job.fileName ?? `projeto.${job.format.toLowerCase()}`,
+              fileName: job.fileName ?? `pasta.${job.format.toLowerCase()}`,
             })
           }
         >
@@ -109,14 +109,14 @@ function ExportBlock({ projectId }: { projectId: string }) {
   );
 }
 
-function ImportBlock({ projectId }: { projectId: string }) {
+function ImportBlock({ folderId }: { folderId: string }) {
   const fileInput = React.useRef<HTMLInputElement>(null);
   const [file, setFile] = React.useState<File | null>(null);
   const [mapping, setMapping] = React.useState<ImportMapping>({});
   const [skipInvalid, setSkipInvalid] = React.useState(false);
   const [jobId, setJobId] = React.useState<string | null>(null);
-  const previewMutation = usePreviewImportMutation(projectId);
-  const importMutation = useStartImportMutation(projectId);
+  const previewMutation = usePreviewImportMutation(folderId);
+  const importMutation = useStartImportMutation(folderId);
   const job = useDataJobQuery(jobId).data;
   const preview = previewMutation.data;
 
@@ -163,7 +163,7 @@ function ImportBlock({ projectId }: { projectId: string }) {
       <div>
         <h3 className="text-sm font-medium">Importar</h3>
         <p className="text-xs text-muted-foreground">
-          Traga tarefas de uma planilha (CSV, até 2 MB) — inclusive exportada do Asana, Jira ou
+          Traga itens de uma planilha (CSV, até 2 MB) — inclusive exportada do Asana, Jira ou
           Trello. Você confere tudo antes de importar.
         </p>
       </div>
@@ -172,7 +172,7 @@ function ImportBlock({ projectId }: { projectId: string }) {
         <div className="space-y-2 rounded-lg border border-emerald-500/40 bg-emerald-500/5 p-3 text-sm">
           <p className="flex items-center gap-2 font-medium">
             <CheckCircle2 className="size-4 text-emerald-600" />
-            {result.created === 1 ? "1 tarefa importada" : `${result.created} tarefas importadas`}
+            {result.created === 1 ? "1 item importado" : `${result.created} itens importados`}
             {result.skipped > 0 ? `, ${result.skipped} linhas puladas` : ""}.
           </p>
           {result.createdSections.length > 0 ? (
@@ -274,14 +274,14 @@ function ImportBlock({ projectId }: { projectId: string }) {
                     )
                   }
                 >
-                  <Upload /> Importar {preview.invalidRows > 0 && skipInvalid ? preview.validRows : preview.totalRows} tarefas
+                  <Upload /> Importar {preview.invalidRows > 0 && skipInvalid ? preview.validRows : preview.totalRows} itens
                 </Button>
                 <Button variant="ghost" onClick={reset}>
                   Cancelar
                 </Button>
               </div>
               {!mapping.title ? (
-                <p className="text-xs text-destructive">Escolha a coluna que tem o título das tarefas.</p>
+                <p className="text-xs text-destructive">Escolha a coluna que tem o título dos itens.</p>
               ) : null}
             </div>
           ) : null}
@@ -291,17 +291,17 @@ function ImportBlock({ projectId }: { projectId: string }) {
   );
 }
 
-export function DataPortabilitySection({ projectId }: { projectId: string }) {
+export function DataPortabilitySection({ folderId }: { folderId: string }) {
   return (
     <Card>
       <CardHeader>
         <CardTitle>Importar e exportar</CardTitle>
-        <CardDescription>Leve suas tarefas para dentro ou para fora do TaskFlow.</CardDescription>
+        <CardDescription>Leve seus itens para dentro ou para fora do TaskFlow.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <ImportBlock projectId={projectId} />
+        <ImportBlock folderId={folderId} />
         <Separator />
-        <ExportBlock projectId={projectId} />
+        <ExportBlock folderId={folderId} />
       </CardContent>
     </Card>
   );

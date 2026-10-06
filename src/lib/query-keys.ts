@@ -2,9 +2,9 @@ import type { ClientStatus } from "@/types/client";
 import type { AnalyticsQuery } from "@/types/analytics";
 import type { AiUsageFeature } from "@/types/ai-usage";
 import type {
-  AdminProjectTemplateFilters,
-  ProjectTemplateFilters,
-} from "@/types/project-template";
+  AdminFolderTemplateFilters,
+  FolderTemplateFilters,
+} from "@/types/folder-template";
 import type { SearchParams } from "@/types/search";
 import type { ListChannelConversationsParams } from "@/types/assistant-channel";
 import type { ListCouponsParams } from "@/types/plan";
@@ -64,107 +64,107 @@ export const queryKeys = {
     invitationPreview: (token: string) =>
       ["workspaces", "invitations", token, "preview"] as const,
   },
-  projects: {
-    all: (workspaceId: string) => ["projects", "workspace", workspaceId] as const,
-    detail: (projectId: string) => ["projects", projectId] as const,
-    members: (projectId: string) => ["projects", projectId, "members"] as const,
-    invitations: (projectId: string, page?: number) =>
+  folders: {
+    all: (workspaceId: string) => ["folders", "workspace", workspaceId] as const,
+    detail: (folderId: string) => ["folders", folderId] as const,
+    members: (folderId: string) => ["folders", folderId, "members"] as const,
+    invitations: (folderId: string, page?: number) =>
       page
-        ? (["projects", projectId, "invitations", { page }] as const)
-        : (["projects", projectId, "invitations"] as const),
+        ? (["folders", folderId, "invitations", { page }] as const)
+        : (["folders", folderId, "invitations"] as const),
     invitationPreview: (token: string) =>
-      ["projects", "invitations", token, "preview"] as const,
+      ["folders", "invitations", token, "preview"] as const,
   },
-  tasks: {
-    all: (projectId: string, page?: number) =>
+  items: {
+    all: (folderId: string, page?: number) =>
       page
-        ? (["tasks", "project", projectId, { page }] as const)
-        : (["tasks", "project", projectId] as const),
-    detail: (taskId: string) => ["tasks", taskId] as const,
-    subtasks: (taskId: string) => ["tasks", taskId, "subtasks"] as const,
-    customFieldValues: (taskId: string) =>
-      ["tasks", taskId, "custom-field-values"] as const,
-    dependencies: (taskId: string) => ["tasks", taskId, "dependencies"] as const,
-    // Under the `tasks` root, so every task-wide invalidation refreshes it too.
-    timeline: (projectId: string) => ["tasks", "timeline", projectId] as const,
-    trash: (projectId: string, page?: number) =>
+        ? (["items", "folder", folderId, { page }] as const)
+        : (["items", "folder", folderId] as const),
+    detail: (itemId: string) => ["items", itemId] as const,
+    subitems: (itemId: string) => ["items", itemId, "subitems"] as const,
+    customFieldValues: (itemId: string) =>
+      ["items", itemId, "custom-field-values"] as const,
+    dependencies: (itemId: string) => ["items", itemId, "dependencies"] as const,
+    // Under the `items` root, so every item-wide invalidation refreshes it too.
+    timeline: (folderId: string) => ["items", "timeline", folderId] as const,
+    trash: (folderId: string, page?: number) =>
       page
-        ? (["tasks", "trash", projectId, { page }] as const)
-        : (["tasks", "trash", projectId] as const),
+        ? (["items", "trash", folderId, { page }] as const)
+        : (["items", "trash", folderId] as const),
     // Binary downloads (attachments, covers) deliberately live under their own
-    // root, not `["tasks", taskId, ...]`: the bulk `tasks` invalidations run on
+    // root, not `["items", itemId, ...]`: the bulk `items` invalidations run on
     // every realtime signal / non-empty pull, and would otherwise re-download
     // every visible cover and attachment blob each time.
-    attachmentFile: (taskId: string, attachmentId: string) =>
-      ["task-files", taskId, "attachments", attachmentId] as const,
+    attachmentFile: (itemId: string, attachmentId: string) =>
+      ["item-files", itemId, "attachments", attachmentId] as const,
     // `version` is part of the key: any edit bumps it, and that's the only
     // signal a cover was replaced by someone else (the URL never changes).
-    cover: (taskId: string, version?: number) =>
+    cover: (itemId: string, version?: number) =>
       version === undefined
-        ? (["task-files", taskId, "cover"] as const)
-        : (["task-files", taskId, "cover", version] as const),
-    // Untyped `["tasks", "section"]` prefix (no sectionId) is used to
-    // invalidate every column's task list at once when a task is created
+        ? (["item-files", itemId, "cover"] as const)
+        : (["item-files", itemId, "cover", version] as const),
+    // Untyped `["items", "section"]` prefix (no sectionId) is used to
+    // invalidate every column's item list at once when an item is created
     // or moved, since we don't always know which section(s) were affected.
-    bySectionAll: () => ["tasks", "section"] as const,
-    // Same idea for every project's task list, when the project isn't known
-    // (e.g. a realtime change signal only carries the task id).
-    byProjectAll: () => ["tasks", "project"] as const,
+    bySectionAll: () => ["items", "section"] as const,
+    // Same idea for every folder's item list, when the folder isn't known
+    // (e.g. a realtime change signal only carries the item id).
+    byFolderAll: () => ["items", "folder"] as const,
     bySection: (sectionId: string, page?: number) =>
       page
-        ? (["tasks", "section", sectionId, { page }] as const)
-        : (["tasks", "section", sectionId] as const),
+        ? (["items", "section", sectionId, { page }] as const)
+        : (["items", "section", sectionId] as const),
   },
   dataJobs: {
     detail: (jobId: string) => ["data-jobs", jobId] as const,
   },
   intakeForms: {
-    all: (projectId: string) => ["intake-forms", projectId] as const,
+    all: (folderId: string) => ["intake-forms", folderId] as const,
     // Anonymous: its own root, nothing signed-in reuses it.
     public: (token: string) => ["public-intake-form", token] as const,
   },
   savedViews: {
-    all: (projectId: string) => ["saved-views", projectId] as const,
+    all: (folderId: string) => ["saved-views", folderId] as const,
   },
   approvals: {
     root: () => ["approvals"] as const,
-    task: (taskId: string) => ["approvals", "task", taskId] as const,
+    item: (itemId: string) => ["approvals", "item", itemId] as const,
     pending: () => ["approvals", "pending"] as const,
   },
   timeTracking: {
     root: () => ["time-tracking"] as const,
     running: () => ["time-tracking", "running"] as const,
-    task: (taskId: string, page?: number) =>
+    item: (itemId: string, page?: number) =>
       page
-        ? (["time-tracking", "task", taskId, { page }] as const)
-        : (["time-tracking", "task", taskId] as const),
-    report: (projectId: string, params: { groupBy: string; from?: string }) =>
-      ["time-tracking", "report", projectId, params] as const,
+        ? (["time-tracking", "item", itemId, { page }] as const)
+        : (["time-tracking", "item", itemId] as const),
+    report: (folderId: string, params: { groupBy: string; from?: string }) =>
+      ["time-tracking", "report", folderId, params] as const,
   },
   // Never cached server-side either: nextRunAt/lastRunAt/enabled change on their own.
-  recurringTasks: {
-    all: (projectId: string) => ["recurring-tasks", projectId] as const,
-    preview: (projectId: string, schedule: unknown) =>
-      ["recurring-tasks", projectId, "preview", stableStringify(schedule)] as const,
+  recurringItems: {
+    all: (folderId: string) => ["recurring-items", folderId] as const,
+    preview: (folderId: string, schedule: unknown) =>
+      ["recurring-items", folderId, "preview", stableStringify(schedule)] as const,
   },
-  // A project's custom statuses (etapas). Configuration, not synced.
+  // A folder's custom statuses (etapas). Configuration, not synced.
   statuses: {
-    all: (projectId: string) => ["statuses", "project", projectId] as const,
+    all: (folderId: string) => ["statuses", "folder", folderId] as const,
   },
   sections: {
-    all: (projectId: string) => ["sections", "project", projectId] as const,
-    byProjectAll: () => ["sections", "project"] as const,
+    all: (folderId: string) => ["sections", "folder", folderId] as const,
+    byFolderAll: () => ["sections", "folder"] as const,
   },
   customFields: {
-    all: (projectId: string) => ["custom-fields", "project", projectId] as const,
-    byProjectAll: () => ["custom-fields", "project"] as const,
+    all: (folderId: string) => ["custom-fields", "folder", folderId] as const,
+    byFolderAll: () => ["custom-fields", "folder"] as const,
   },
   comments: {
-    all: (taskId: string, page?: number) =>
+    all: (itemId: string, page?: number) =>
       page
-        ? (["comments", "task", taskId, { page }] as const)
-        : (["comments", "task", taskId] as const),
-    byTaskAll: () => ["comments", "task"] as const,
+        ? (["comments", "item", itemId, { page }] as const)
+        : (["comments", "item", itemId] as const),
+    byItemAll: () => ["comments", "item"] as const,
   },
   activity: {
     root: () => ["activity"] as const,
@@ -172,14 +172,14 @@ export const queryKeys = {
       page
         ? (["activity", "workspace", workspaceId, { page }] as const)
         : (["activity", "workspace", workspaceId] as const),
-    project: (projectId: string, page?: number) =>
+    folder: (folderId: string, page?: number) =>
       page
-        ? (["activity", "project", projectId, { page }] as const)
-        : (["activity", "project", projectId] as const),
-    task: (taskId: string, page?: number) =>
+        ? (["activity", "folder", folderId, { page }] as const)
+        : (["activity", "folder", folderId] as const),
+    item: (itemId: string, page?: number) =>
       page
-        ? (["activity", "task", taskId, { page }] as const)
-        : (["activity", "task", taskId] as const),
+        ? (["activity", "item", itemId, { page }] as const)
+        : (["activity", "item", itemId] as const),
   },
   aiUsage: {
     me: (params: { days: number; feature?: AiUsageFeature; page: number }) =>
@@ -194,29 +194,29 @@ export const queryKeys = {
   // switching workspace never refetches it — only `workspace` depends on one.
   // The filter objects go in as is — TanStack hashes object keys sorted, and
   // drops `undefined` fields.
-  projectTemplates: {
-    all: () => ["project-templates"] as const,
-    lists: () => ["project-templates", "list"] as const,
-    list: (filters: ProjectTemplateFilters) =>
-      ["project-templates", "list", filters] as const,
-    categories: () => ["project-templates", "categories"] as const,
+  folderTemplates: {
+    all: () => ["folder-templates"] as const,
+    lists: () => ["folder-templates", "list"] as const,
+    list: (filters: FolderTemplateFilters) =>
+      ["folder-templates", "list", filters] as const,
+    categories: () => ["folder-templates", "categories"] as const,
     // Answers differ per user (private templates 404 for non-members), so it is never
     // seeded from a list cache.
-    detail: (templateId: string) => ["project-templates", "detail", templateId] as const,
+    detail: (templateId: string) => ["folder-templates", "detail", templateId] as const,
     workspace: (workspaceId: string) =>
-      ["project-templates", "workspace", workspaceId] as const,
-    versions: (templateId: string) => ["project-templates", "versions", templateId] as const,
+      ["folder-templates", "workspace", workspaceId] as const,
+    versions: (templateId: string) => ["folder-templates", "versions", templateId] as const,
     instantiation: (instantiationId: string) =>
-      ["project-templates", "instantiation", instantiationId] as const,
+      ["folder-templates", "instantiation", instantiationId] as const,
     // Binary images (cover / screenshot N). The URL never changes when an
     // image is replaced, so `stamp` (the template's `updatedAt`) is in the key.
     image: (templateId: string, image: "cover" | number, stamp?: string) =>
       stamp === undefined
         ? (["template-images", templateId, image] as const)
         : (["template-images", templateId, image, stamp] as const),
-    adminLists: () => ["project-templates", "admin"] as const,
-    adminList: (filters: AdminProjectTemplateFilters) =>
-      ["project-templates", "admin", filters] as const,
+    adminLists: () => ["folder-templates", "admin"] as const,
+    adminList: (filters: AdminFolderTemplateFilters) =>
+      ["folder-templates", "admin", filters] as const,
   },
   // Per user, not per workspace: the inbox mixes every workspace (filtered
   // client-side by the `workspaceId` param when asked).
@@ -247,7 +247,7 @@ export const queryKeys = {
   dashboardPages: {
     all: (workspaceId: string) => ["dashboard-pages", "workspace", workspaceId] as const,
     // Every page detail shares this prefix (and nothing else does): their
-    // charts come back already executed, so any task/project/section change
+    // charts come back already executed, so any item/folder/section change
     // makes all of them stale at once.
     details: () => ["dashboard-pages", "detail"] as const,
     detail: (pageId: string) => ["dashboard-pages", "detail", pageId] as const,
@@ -265,18 +265,18 @@ export const queryKeys = {
     query: (request: AnalyticsQuery) =>
       ["analytics", "query", stableStringify(request)] as const,
   },
-  // The project's Estatísticas tab. Its own root (not `analytics`): each
+  // The folder's Estatísticas tab. Its own root (not `analytics`): each
   // indicator's request depends on "now" (date filters), so it is keyed by
-  // what it shows, not by its body. Every task change invalidates the whole
-  // root — a task in a sub-project also moves its ancestors' numbers.
-  projectStats: {
-    root: () => ["project-stats"] as const,
-    indicator: (projectId: string, indicator: string) =>
-      ["project-stats", projectId, indicator] as const,
+  // what it shows, not by its body. Every item change invalidates the whole
+  // root — an item in a sub-folder also moves its ancestors' numbers.
+  folderStats: {
+    root: () => ["folder-stats"] as const,
+    indicator: (folderId: string, indicator: string) =>
+      ["folder-stats", folderId, indicator] as const,
   },
-  // The Início page: the signed-in user's own task numbers in a workspace.
-  // Same rules as projectStats (keyed by indicator, "now" read at request
-  // time) and invalidated at the same points — every task change.
+  // The Início page: the signed-in user's own item numbers in a workspace.
+  // Same rules as folderStats (keyed by indicator, "now" read at request
+  // time) and invalidated at the same points — every item change.
   home: {
     root: () => ["home"] as const,
     indicator: (workspaceId: string, userId: string, indicator: string) =>

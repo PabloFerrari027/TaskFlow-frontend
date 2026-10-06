@@ -5,22 +5,22 @@ import { useMoveSectionMutation } from "@/features/sections/hooks/use-sections";
 import type { Section } from "@/types/section";
 
 interface MoveSectionDialogProps {
-  projectId: string;
+  folderId: string;
   section: Section;
-  // Every section of the project — the destination list (same project only).
+  // Every section of the folder — the destination list (same folder only).
   sections: Section[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
 export function MoveSectionDialog({
-  projectId,
+  folderId,
   section,
   sections,
   open,
   onOpenChange,
 }: MoveSectionDialogProps) {
-  const moveMutation = useMoveSectionMutation(projectId);
+  const moveMutation = useMoveSectionMutation(folderId);
 
   return (
     <ParentPickerDialog

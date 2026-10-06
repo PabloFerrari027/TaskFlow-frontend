@@ -19,7 +19,7 @@ export interface ParentPickerItem {
   parentId: string | null;
   name: string;
   // Extra reason (beyond "is/under the moved item") that makes this
-  // destination invalid, e.g. an archived project.
+  // destination invalid, e.g. an archived folder.
   disabledReason?: string;
 }
 

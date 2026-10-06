@@ -1,10 +1,10 @@
 import type { DragEvent } from "react";
 
-// Distinct dataTransfer MIME types let a column tell apart a task being
+// Distinct dataTransfer MIME types let a column tell apart o item being
 // dropped into it from another column being dropped onto it, since both
 // gestures land on the same element (the section column) and `dragover`
 // only exposes `types` (not the payload) to decide how to react.
-export const TASK_DRAG_MIME = "application/x-taskflow-task";
+export const ITEM_DRAG_MIME = "application/x-taskflow-item";
 export const SECTION_DRAG_MIME = "application/x-taskflow-section";
 
 // Native HTML5 drag-and-drop paints its drag image semi-transparent — browsers
@@ -70,7 +70,7 @@ export function setLiftedDragImage(event: DragEvent<HTMLElement>, target?: HTMLE
   }
 
   document.addEventListener("dragover", move, true);
-  // The source can unmount mid-drag (a dropped task moves to another column),
+  // The source can unmount mid-drag (a dropped item moves to another column),
   // in which case its own `dragend` never fires — `drop` covers that path.
   document.addEventListener("drop", cleanup, true);
   document.addEventListener("dragend", cleanup, true);
