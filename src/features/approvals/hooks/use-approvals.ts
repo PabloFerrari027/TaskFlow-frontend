@@ -7,10 +7,10 @@ import { queryKeys } from "@/lib/query-keys";
 import { getErrorMessage } from "@/lib/errors";
 import type { RequestApprovalRequest } from "@/types/approval";
 
-export function useTaskApprovalsQuery(taskId: string) {
+export function useItemApprovalsQuery(itemId: string) {
   return useQuery({
-    queryKey: queryKeys.approvals.task(taskId),
-    queryFn: () => approvalsService.listForTask(taskId),
+    queryKey: queryKeys.approvals.item(itemId),
+    queryFn: () => approvalsService.listForItem(itemId),
   });
 }
 
@@ -30,11 +30,11 @@ function useInvalidateApprovals() {
   };
 }
 
-export function useRequestApprovalMutation(taskId: string) {
+export function useRequestApprovalMutation(itemId: string) {
   const invalidate = useInvalidateApprovals();
 
   return useMutation({
-    mutationFn: (payload: RequestApprovalRequest) => approvalsService.request(taskId, payload),
+    mutationFn: (payload: RequestApprovalRequest) => approvalsService.request(itemId, payload),
     onSuccess: () => {
       invalidate();
       toast.success("Pedido de aprovação enviado.");
@@ -58,7 +58,7 @@ export function useDecideApprovalMutation() {
     }) => approvalsService.decide(approvalId, decision, note),
     onSuccess: (approval) => {
       invalidate();
-      toast.success(approval.status === "APPROVED" ? "Tarefa aprovada." : "Tarefa recusada.");
+      toast.success(approval.status === "APPROVED" ? "Item aprovado." : "Item recusado.");
     },
     onError: (error) => toast.error(getErrorMessage(error)),
   });

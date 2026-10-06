@@ -39,33 +39,33 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   INVITATION_EXPIRED: "Este convite expirou.",
   INVITATION_EMAIL_MISMATCH:
     "Este convite foi enviado para outro e-mail. Entre com a conta correta.",
-  PROJECT_NOT_FOUND: "Projeto não encontrado.",
-  TASK_NOT_FOUND: "Tarefa não encontrada.",
-  BULK_BATCH_TOO_LARGE: "Muitas tarefas de uma vez. Faça a ação em grupos menores.",
+  FOLDER_NOT_FOUND: "Pasta não encontrada.",
+  ITEM_NOT_FOUND: "Item não encontrado.",
+  BULK_BATCH_TOO_LARGE: "Muitos itens de uma vez. Faça a ação em grupos menores.",
   ATTACHMENT_NOT_FOUND: "Anexo não encontrado.",
-  INVALID_TASK_COVER: "Use uma imagem JPEG, PNG ou WebP de até 10MB.",
-  TASK_COVER_NOT_FOUND: "Esta tarefa não tem capa.",
-  SUBTASK_PROJECT_MISMATCH: "A subtarefa precisa pertencer ao mesmo projeto da tarefa pai.",
-  TASK_HAS_PENDING_SUBTASKS:
-    "Conclua ou finalize as subtarefas pendentes antes de concluir esta tarefa.",
+  INVALID_ITEM_COVER: "Use uma imagem JPEG, PNG ou WebP de até 10MB.",
+  ITEM_COVER_NOT_FOUND: "Este item não tem capa.",
+  SUBITEM_FOLDER_MISMATCH: "O subitem precisa pertencer à mesma pasta do item pai.",
+  ITEM_HAS_PENDING_SUBITEMS:
+    "Conclua ou finalize os subitens pendentes antes de concluir este item.",
   SECTION_NOT_FOUND: "Coluna não encontrada.",
-  SECTION_PROJECT_MISMATCH: "A coluna precisa pertencer ao mesmo projeto da tarefa.",
-  DEFAULT_SECTION_NOT_DELETABLE: "A coluna padrão do projeto não pode ser apagada.",
-  SECTION_NOT_EMPTY: "Mova ou apague as tarefas desta coluna antes de excluí-la.",
+  SECTION_FOLDER_MISMATCH: "A coluna precisa pertencer à mesma pasta do item.",
+  DEFAULT_SECTION_NOT_DELETABLE: "A coluna padrão da pasta não pode ser apagada.",
+  SECTION_NOT_EMPTY: "Mova ou apague os itens desta coluna antes de excluí-la.",
   CANNOT_BE_OWN_PARENT: "Um item não pode ser pai dele mesmo.",
   CANNOT_MOVE_INTO_OWN_DESCENDANT:
     "Não é possível mover um item para dentro de um dos seus próprios descendentes.",
   PARENT_OUT_OF_SCOPE:
-    "O destino precisa estar no mesmo escopo do item (workspace, projeto ou tarefa).",
-  PARENT_PROJECT_ARCHIVED: "Não é possível colocar um projeto dentro de um projeto arquivado.",
-  PROJECT_HAS_CHILDREN:
-    "Este projeto tem sub-projetos. Mova ou arquive os sub-projetos primeiro.",
+    "O destino precisa estar no mesmo escopo do item (workspace, pasta ou item).",
+  PARENT_FOLDER_ARCHIVED: "Não é possível colocar uma pasta dentro de uma pasta arquivada.",
+  FOLDER_HAS_CHILDREN:
+    "Esta pasta tem subpastas. Mova ou arquive as subpastas primeiro.",
   SECTION_HAS_CHILDREN:
     "Esta coluna tem subseções. Mova ou apague as subseções antes de excluí-la.",
   COMMENT_HAS_CHILDREN: "Apague as respostas deste comentário antes de apagá-lo.",
-  ASSIGNEE_NOT_PROJECT_MEMBER: "Esta pessoa não tem acesso ao projeto e não pode ser responsável pela tarefa.",
-  MENTIONED_USER_NOT_PROJECT_MEMBER:
-    "Alguém que você mencionou não tem acesso ao projeto. Remova a menção ou convide a pessoa primeiro.",
+  ASSIGNEE_NOT_FOLDER_MEMBER: "Esta pessoa não tem acesso à pasta e não pode ser responsável pelo item.",
+  MENTIONED_USER_NOT_FOLDER_MEMBER:
+    "Alguém que você mencionou não tem acesso à pasta. Remova a menção ou convide a pessoa primeiro.",
   CUSTOM_FIELD_NOT_FOUND: "Campo customizado não encontrado.",
   CUSTOM_FIELD_VALUE_INVALID: "Valor incompatível com o tipo deste campo.",
   SYNC_VERSION_CONFLICT: "Este item foi alterado por outra pessoa. Atualize e tente novamente.",
@@ -141,9 +141,9 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
     "Você convidou muitas pessoas por e-mail em pouco tempo. Tente novamente em 1 hora.",
   PAGE_ACCESS_TOKEN_INVALID: "Este link não é válido ou foi revogado.",
   INVALID_CHART_DEFINITION: "Este gráfico não pode ser montado com as opções escolhidas.",
-  PROJECT_TEMPLATE_NOT_FOUND: "Este modelo não está mais disponível.",
-  INVALID_PROJECT_TEMPLATE_SKELETON: "O modelo tem um problema que impede salvá-lo.",
-  INVALID_PROJECT_TEMPLATE_CATEGORY: "Escolha uma das categorias da lista.",
+  FOLDER_TEMPLATE_NOT_FOUND: "Este modelo não está mais disponível.",
+  INVALID_FOLDER_TEMPLATE_SKELETON: "O modelo tem um problema que impede salvá-lo.",
+  INVALID_FOLDER_TEMPLATE_CATEGORY: "Escolha uma das categorias da lista.",
   ACCOUNT_ALREADY_HAS_GOOGLE:
     "Sua conta já tem uma conta Google vinculada.",
   INVALID_USER_NAME:
@@ -156,26 +156,26 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
     "Muitas alterações pendentes de uma vez. Tente sincronizar novamente.",
   UNSUPPORTED_DERIVED_METRIC:
     "Este indicador não está disponível.",
-  INVALID_TASK_SCHEDULE:
+  INVALID_ITEM_SCHEDULE:
     "A data de início precisa ser antes do prazo (ou no mesmo dia).",
-  TASK_NOT_IN_TRASH:
-    "Esta tarefa não está na lixeira.",
-  TASK_PARENT_IN_TRASH:
-    "A tarefa principal desta subtarefa também está na lixeira. Restaure ela primeiro.",
-  INVALID_TASK_DEPENDENCY:
-    "Essa ligação não pode ser feita. Escolha outra tarefa do mesmo projeto.",
-  TASK_DEPENDENCY_CYCLE:
-    "Isso criaria um ciclo: uma tarefa acabaria esperando por ela mesma.",
-  TASK_DEPENDENCY_NOT_FOUND:
-    "Essa ligação entre tarefas não existe mais.",
-  TASK_HAS_OPEN_BLOCKERS:
-    "Esta tarefa ainda depende de outras que não foram concluídas.",
+  ITEM_NOT_IN_TRASH:
+    "Este item não está na lixeira.",
+  ITEM_PARENT_IN_TRASH:
+    "O item principal deste subitem também está na lixeira. Restaure-o primeiro.",
+  INVALID_ITEM_DEPENDENCY:
+    "Essa ligação não pode ser feita. Escolha outro item da mesma pasta.",
+  ITEM_DEPENDENCY_CYCLE:
+    "Isso criaria um ciclo: um item acabaria esperando por ele mesmo.",
+  ITEM_DEPENDENCY_NOT_FOUND:
+    "Essa ligação entre itens não existe mais.",
+  ITEM_HAS_OPEN_BLOCKERS:
+    "Este item ainda depende de outros que não foram concluídos.",
   WORKFLOW_STATUS_NOT_FOUND:
     "Esta etapa não existe mais.",
   INVALID_WORKFLOW_STATUS:
     "Confira o nome e a cor da etapa.",
   LAST_STATUS_OF_CATEGORY:
-    "O projeto precisa de pelo menos uma etapa de cada tipo (a fazer, em andamento e concluída).",
+    "A pasta precisa de pelo menos uma etapa de cada tipo (a fazer, em andamento e concluída).",
   COMMENT_EDIT_NOT_ALLOWED:
     "Só quem escreveu o comentário pode editá-lo.",
   INVALID_COMMENT_REACTION:
@@ -184,12 +184,12 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
     "Esta notificação não existe mais.",
   INVALID_SEARCH_QUERY:
     "Digite pelo menos uma palavra para buscar.",
-  INVALID_TASK_RECURRENCE:
+  INVALID_ITEM_RECURRENCE:
     "Confira a repetição: dias, horário, datas e os campos escolhidos.",
-  TASK_RECURRENCE_NOT_FOUND:
-    "Esta tarefa repetida não existe mais.",
-  TASK_RECURRENCE_LIMIT_REACHED:
-    "O projeto já tem 50 tarefas repetidas, que é o máximo.",
+  ITEM_RECURRENCE_NOT_FOUND:
+    "Este item repetido não existe mais.",
+  ITEM_RECURRENCE_LIMIT_REACHED:
+    "A pasta já tem 50 itens repetidos, que é o máximo.",
   TIME_ENTRY_NOT_FOUND:
     "Este registro de tempo não existe mais.",
   INVALID_TIME_ENTRY:
@@ -206,11 +206,11 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
     "O formulário tem um problema. Confira os campos.",
   INVALID_FORM_SUBMISSION:
     "Confira as respostas do formulário.",
-  TASK_APPROVAL_NOT_FOUND:
+  ITEM_APPROVAL_NOT_FOUND:
     "Este pedido de aprovação não existe mais.",
-  INVALID_TASK_APPROVAL:
+  INVALID_ITEM_APPROVAL:
     "Este pedido de aprovação não pode ser feito.",
-  TASK_APPROVAL_CLOSED:
+  ITEM_APPROVAL_CLOSED:
     "Este pedido de aprovação já foi respondido ou cancelado.",
   INVALID_IMPORT_FILE:
     "Não foi possível ler o arquivo. Use uma planilha CSV ou um arquivo JSON exportado do TaskFlow.",
@@ -223,10 +223,10 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   INVALID_TEMPLATE_INSTANTIATION:
     "Confira as escolhas do modelo: campos obrigatórios, pessoas e datas.",
   TEMPLATE_INSTANTIATION_NOT_FOUND:
-    "Não encontramos a criação deste projeto.",
+    "Não encontramos a criação desta pasta.",
   INVALID_TEMPLATE_MEDIA:
     "Use uma imagem JPEG, PNG ou WebP.",
-  INVALID_PROJECT_TEMPLATE_LISTING:
+  INVALID_FOLDER_TEMPLATE_LISTING:
     "Confira as informações do modelo.",
   TEMPLATE_AI_RATE_LIMIT_EXCEEDED:
     "Muitos pedidos à IA em pouco tempo. Aguarde um pouco e tente de novo.",

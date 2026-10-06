@@ -29,7 +29,7 @@ NEXT_PUBLIC_GOOGLE_CLIENT_ID=   # opcional — login com Google fica oculto se v
 Feature-first / vertical slice: `src/features/<domínio>/{api,hooks,components,schemas}`. Fluxo de dados: Componente → hook do TanStack Query → serviço → `src/lib/api/client.ts` (axios) → API. Componentes de UI nunca chamam a API diretamente.
 
 - `src/app` — rotas (App Router)
-- `src/features` — auth, sessions, workspaces, projects, tasks, sections, custom-fields, comments, activity, analytics, assistant, admin, sync, realtime
+- `src/features` — auth, sessions, workspaces, folders, items, sections, custom-fields, comments, activity, analytics, assistant, admin, sync, realtime
 - `src/components/ui` — primitivos shadcn/ui
 - `src/components/{layout,marketing,shared}` — composições reutilizáveis
 - `src/lib` — cliente HTTP, autenticação/tokens, permissões, mapeamento de erros
@@ -40,5 +40,5 @@ Documentação detalhada (roteamento completo, autenticação, permissões, sinc
 ## Limitações conhecidas (vêm da própria API)
 
 - Não há endpoint de perfil do usuário autenticado — nome/e-mail exibidos vêm da decodificação do JWT.
-- Membros de workspace/projeto expõem apenas `userId`, sem nome ou e-mail.
-- Não há exclusão de projeto/tarefa — apenas arquivamento (projeto) e mudança de status (tarefa).
+- Membros de workspace/pasta expõem apenas `userId`, sem nome ou e-mail.
+- Não há exclusão de pasta/item — apenas arquivamento (pasta) e mudança de status (item).

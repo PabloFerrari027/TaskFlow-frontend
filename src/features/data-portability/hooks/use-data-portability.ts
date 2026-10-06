@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { dataPortabilityService } from "@/features/data-portability/api/data-portability-service";
-import { scheduleTaskListsRefresh } from "@/features/tasks/lib/task-list-refresh";
+import { scheduleItemListsRefresh } from "@/features/items/lib/item-list-refresh";
 import { queryKeys } from "@/lib/query-keys";
 import { getErrorMessage, getServerErrorMessage } from "@/lib/errors";
 import type { DataJobFormat, ImportMapping } from "@/types/data-job";
@@ -15,10 +15,10 @@ export function useDataJobQuery(jobId: string | null) {
     queryKey: queryKeys.dataJobs.detail(jobId ?? ""),
     queryFn: async () => {
       const job = await dataPortabilityService.getJob(jobId!);
-      // A finished import put new tasks (and maybe columns) in the project.
+      // A finished import put new items (and maybe columns) in the folder.
       if (job.kind === "IMPORT" && job.status === "DONE") {
-        scheduleTaskListsRefresh(queryClient);
-        queryClient.invalidateQueries({ queryKey: queryKeys.sections.all(job.projectId) });
+        scheduleItemListsRefresh(queryClient);
+        queryClient.invalidateQueries({ queryKey: queryKeys.sections.all(job.folderId) });
       }
       return job;
     },
@@ -34,15 +34,15 @@ function toastWithDetail(error: unknown) {
   toast.error(getErrorMessage(error), { description: getServerErrorMessage(error) ?? undefined });
 }
 
-export function usePreviewImportMutation(projectId: string) {
+export function usePreviewImportMutation(folderId: string) {
   return useMutation({
     mutationFn: ({ file, mapping }: { file: File; mapping?: ImportMapping }) =>
-      dataPortabilityService.previewImport(projectId, file, mapping),
+      dataPortabilityService.previewImport(folderId, file, mapping),
     onError: toastWithDetail,
   });
 }
 
-export function useStartImportMutation(projectId: string) {
+export function useStartImportMutation(folderId: string) {
   return useMutation({
     mutationFn: ({
       file,
@@ -52,14 +52,14 @@ export function useStartImportMutation(projectId: string) {
       file: File;
       mapping: ImportMapping;
       skipInvalidRows: boolean;
-    }) => dataPortabilityService.startImport(projectId, file, mapping, skipInvalidRows),
+    }) => dataPortabilityService.startImport(folderId, file, mapping, skipInvalidRows),
     onError: toastWithDetail,
   });
 }
 
-export function useStartExportMutation(projectId: string) {
+export function useStartExportMutation(folderId: string) {
   return useMutation({
-    mutationFn: (format: DataJobFormat) => dataPortabilityService.startExport(projectId, format),
+    mutationFn: (format: DataJobFormat) => dataPortabilityService.startExport(folderId, format),
     onError: (error) => toast.error(getErrorMessage(error)),
   });
 }

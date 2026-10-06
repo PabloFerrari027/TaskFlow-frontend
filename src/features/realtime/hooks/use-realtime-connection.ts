@@ -8,7 +8,7 @@ import {
   invalidateByEntityChange,
   invalidateDerivedData,
 } from "@/features/sync/lib/invalidate-entity";
-import { pendingTaskMutations } from "@/features/tasks/lib/task-list-refresh";
+import { pendingItemMutations } from "@/features/items/lib/item-list-refresh";
 import { setRealtimeConnected } from "@/features/realtime/lib/connection-state";
 import { pullChanges } from "@/features/sync/lib/sync-engine";
 import { queryKeys } from "@/lib/query-keys";
@@ -74,11 +74,11 @@ export function useRealtimeConnection() {
     };
 
     const flushChanges = () => {
-      // A refetch now could answer from before this client's own pending task
-      // writes and briefly bring back a deleted task or undo a move. Those
+      // A refetch now could answer from before this client's own pending item
+      // writes and briefly bring back a deleted item or undo a move. Those
       // writes trigger a refresh of their own once they settle, which also
       // covers these signals — so just wait.
-      if (pendingTaskMutations(queryClient) > 0) {
+      if (pendingItemMutations(queryClient) > 0) {
         flushTimer = setTimeout(flushChanges, CHANGE_BATCH_MS);
         return;
       }

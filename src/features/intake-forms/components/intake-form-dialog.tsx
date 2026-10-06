@@ -22,8 +22,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { AssigneeSelect } from "@/features/tasks/components/assignee-select";
-import { SectionSelect } from "@/features/tasks/components/section-select";
+import { AssigneeSelect } from "@/features/items/components/assignee-select";
+import { SectionSelect } from "@/features/items/components/section-select";
 import {
   useCreateIntakeFormMutation,
   useUpdateIntakeFormMutation,
@@ -46,10 +46,10 @@ export const FIELD_TYPE_LABEL: Record<IntakeFieldType, string> = {
 
 const TARGET_LABEL: Record<IntakeFieldTarget | "none", string> = {
   none: "Vai para a descrição",
-  title: "Vira o título da tarefa",
-  description: "Vira a descrição da tarefa",
-  dueDate: "Vira o prazo da tarefa",
-  priority: "Vira a prioridade da tarefa",
+  title: "Vira o título do item",
+  description: "Vira a descrição do item",
+  dueDate: "Vira o prazo do item",
+  priority: "Vira a prioridade do item",
 };
 
 // What each target accepts (backend `form-fields.ts`).
@@ -97,18 +97,18 @@ const DEFAULT_FIELDS: IntakeFormField[] = [
 ];
 
 export function IntakeFormDialog({
-  projectId,
+  folderId,
   form,
   open,
   onOpenChange,
 }: {
-  projectId: string;
+  folderId: string;
   form?: IntakeForm;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const createMutation = useCreateIntakeFormMutation(projectId);
-  const updateMutation = useUpdateIntakeFormMutation(projectId);
+  const createMutation = useCreateIntakeFormMutation(folderId);
+  const updateMutation = useUpdateIntakeFormMutation(folderId);
   const [name, setName] = React.useState(form?.name ?? "");
   const [description, setDescription] = React.useState(form?.description ?? "");
   const [sectionId, setSectionId] = React.useState<string | undefined>(form?.targetSectionId ?? undefined);
@@ -119,7 +119,7 @@ export function IntakeFormDialog({
   const titleField = fields.find((field) => field.mapsTo === "title");
   const problems: string[] = [];
   if (!name.trim()) problems.push("Dê um nome ao formulário.");
-  if (!titleField) problems.push("Escolha um campo que vire o título da tarefa.");
+  if (!titleField) problems.push("Escolha um campo que vire o título do item.");
   if (fields.some((field) => !field.label.trim())) problems.push("Todo campo precisa de uma pergunta.");
   if (fields.some((field) => field.type === "SELECT" && !field.optionsText.trim()))
     problems.push("Listas de opções precisam de pelo menos uma opção.");
@@ -204,7 +204,7 @@ export function IntakeFormDialog({
           <DialogTitle>{form ? "Editar formulário" : "Novo formulário"}</DialogTitle>
           <DialogDescription>
             Qualquer pessoa com o link preenche — sem precisar de conta — e cada resposta vira uma
-            tarefa neste projeto.
+            item nesta pasta.
           </DialogDescription>
         </DialogHeader>
 
@@ -231,17 +231,17 @@ export function IntakeFormDialog({
               />
             </div>
             <div className="space-y-1.5">
-              <Label>As tarefas entram na coluna</Label>
+              <Label>Os itens entram na coluna</Label>
               <SectionSelect
-                projectId={projectId}
+                folderId={folderId}
                 value={sectionId}
                 onChange={setSectionId}
-                placeholder="A coluna padrão do projeto"
+                placeholder="A coluna padrão da pasta"
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Responsável pelas tarefas</Label>
-              <AssigneeSelect projectId={projectId} value={assigneeId} onChange={setAssigneeId} />
+              <Label>Responsável pelos itens</Label>
+              <AssigneeSelect folderId={folderId} value={assigneeId} onChange={setAssigneeId} />
             </div>
           </div>
 

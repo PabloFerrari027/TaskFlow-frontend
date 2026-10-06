@@ -24,10 +24,10 @@ function publicUrl(form: IntakeForm) {
   return typeof window === "undefined" ? form.publicPath : `${window.location.origin}${form.publicPath}`;
 }
 
-function FormRow({ form, projectId, onEdit }: { form: IntakeForm; projectId: string; onEdit: () => void }) {
-  const updateMutation = useUpdateIntakeFormMutation(projectId);
-  const regenerateMutation = useRegenerateIntakeFormTokenMutation(projectId);
-  const deleteMutation = useDeleteIntakeFormMutation(projectId);
+function FormRow({ form, folderId, onEdit }: { form: IntakeForm; folderId: string; onEdit: () => void }) {
+  const updateMutation = useUpdateIntakeFormMutation(folderId);
+  const regenerateMutation = useRegenerateIntakeFormTokenMutation(folderId);
+  const deleteMutation = useDeleteIntakeFormMutation(folderId);
 
   async function copyLink() {
     try {
@@ -92,7 +92,7 @@ function FormRow({ form, projectId, onEdit }: { form: IntakeForm; projectId: str
             </Button>
           }
           title={`Apagar “${form.name}”?`}
-          description="O link para de funcionar. As tarefas que o formulário já criou continuam no projeto."
+          description="O link para de funcionar. Os itens que o formulário já criou continuam na pasta."
           confirmLabel="Apagar"
           isLoading={deleteMutation.isPending}
           onConfirm={() => deleteMutation.mutate(form.id)}
@@ -102,8 +102,8 @@ function FormRow({ form, projectId, onEdit }: { form: IntakeForm; projectId: str
   );
 }
 
-export function IntakeFormsSection({ projectId }: { projectId: string }) {
-  const formsQuery = useIntakeFormsQuery(projectId);
+export function IntakeFormsSection({ folderId }: { folderId: string }) {
+  const formsQuery = useIntakeFormsQuery(folderId);
   const [creating, setCreating] = React.useState(false);
   const [editing, setEditing] = React.useState<IntakeForm | null>(null);
   const forms = formsQuery.data ?? [];
@@ -114,7 +114,7 @@ export function IntakeFormsSection({ projectId }: { projectId: string }) {
         <CardTitle>Formulários de pedidos</CardTitle>
         <CardDescription>
           Um link que qualquer pessoa preenche, sem conta no TaskFlow — clientes, colegas de outra
-          área. Cada resposta vira uma tarefa aqui.
+          área. Cada resposta vira um item aqui.
         </CardDescription>
         <CardAction>
           <Button size="sm" onClick={() => setCreating(true)}>
@@ -132,17 +132,17 @@ export function IntakeFormsSection({ projectId }: { projectId: string }) {
         ) : (
           <ul className="divide-y">
             {forms.map((form) => (
-              <FormRow key={form.id} form={form} projectId={projectId} onEdit={() => setEditing(form)} />
+              <FormRow key={form.id} form={form} folderId={folderId} onEdit={() => setEditing(form)} />
             ))}
           </ul>
         )}
       </CardContent>
 
-      {creating ? <IntakeFormDialog projectId={projectId} open onOpenChange={setCreating} /> : null}
+      {creating ? <IntakeFormDialog folderId={folderId} open onOpenChange={setCreating} /> : null}
       {editing ? (
         <IntakeFormDialog
           key={editing.id}
-          projectId={projectId}
+          folderId={folderId}
           form={editing}
           open
           onOpenChange={(open) => !open && setEditing(null)}

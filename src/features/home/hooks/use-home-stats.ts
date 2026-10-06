@@ -4,9 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 import { runAnalyticsQuery } from "@/features/analytics/api/analytics-service";
 import {
   dueSoonQuery,
-  openByProjectQuery,
+  openByFolderQuery,
   openQuery,
-  overdueByProjectQuery,
+  overdueByFolderQuery,
   overdueQuery,
   progressQuery,
 } from "@/features/home/lib/home-queries";
@@ -14,7 +14,7 @@ import { queryKeys } from "@/lib/query-keys";
 import type { AnalyticsQuery } from "@/types/analytics";
 
 // One query per indicator, so each card loads and fails on its own — same
-// shape as the project's Estatísticas tab. "Now" is read when the request is
+// shape as the folder's Estatísticas tab. "Now" is read when the request is
 // sent, never at render, so it stays out of the key.
 function useHomeStatQuery(
   workspaceId: string | null,
@@ -36,12 +36,12 @@ export function useHomeStats(workspaceId: string | null, userId: string | null) 
     open: useHomeStatQuery(workspaceId, userId, "open", openQuery),
     overdue: useHomeStatQuery(workspaceId, userId, "overdue", overdueQuery),
     dueSoon: useHomeStatQuery(workspaceId, userId, "due-soon", dueSoonQuery),
-    openByProject: useHomeStatQuery(workspaceId, userId, "open-by-project", openByProjectQuery),
-    overdueByProject: useHomeStatQuery(
+    openByFolder: useHomeStatQuery(workspaceId, userId, "open-by-folder", openByFolderQuery),
+    overdueByFolder: useHomeStatQuery(
       workspaceId,
       userId,
-      "overdue-by-project",
-      overdueByProjectQuery
+      "overdue-by-folder",
+      overdueByFolderQuery
     ),
   };
 }

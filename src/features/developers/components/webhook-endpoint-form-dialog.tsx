@@ -139,7 +139,7 @@ export function WebhookEndpointFormDialog({
                   <FormLabel>Descrição (opcional)</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Envia eventos de tarefas para o nosso relay do Slack"
+                      placeholder="Envia eventos de itens para o nosso relay do Slack"
                       rows={2}
                       {...field}
                     />

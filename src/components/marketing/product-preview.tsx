@@ -8,7 +8,7 @@ const COLUMNS = [
     status: "TODO" as const,
     title: "A fazer",
     icon: Circle,
-    tasks: [
+    items: [
       { title: "Definir escopo do onboarding", attachments: 0, tag: "Descoberta" },
       { title: "Revisar copy da landing page", attachments: 1, tag: "Marketing" },
     ],
@@ -17,7 +17,7 @@ const COLUMNS = [
     status: "IN_PROGRESS" as const,
     title: "Em progresso",
     icon: CircleDot,
-    tasks: [
+    items: [
       { title: "Implementar convite por e-mail", attachments: 2, tag: "Backend" },
       { title: "Ajustar responsividade do dashboard", attachments: 0, tag: "Frontend" },
     ],
@@ -26,7 +26,7 @@ const COLUMNS = [
     status: "DONE" as const,
     title: "Concluída",
     icon: CircleCheck,
-    tasks: [
+    items: [
       { title: "Configurar autenticação 2FA", attachments: 1, tag: "Segurança" },
     ],
   },
@@ -61,32 +61,32 @@ export function ProductPreview() {
                 {column.title}
               </span>
               <span className="text-xs text-muted-foreground">
-                {column.tasks.length}
+                {column.items.length}
               </span>
             </div>
 
             <div className="space-y-2">
-              {column.tasks.map((task) => (
+              {column.items.map((item) => (
                 <div
-                  key={task.title}
+                  key={item.title}
                   className="rounded-lg border border-border/60 bg-background p-3 text-left shadow-sm"
                 >
                   <Badge variant="outline" className="mb-2 font-normal">
-                    {task.tag}
+                    {item.tag}
                   </Badge>
                   <p className="text-sm font-medium text-foreground">
-                    {task.title}
+                    {item.title}
                   </p>
                   <div className="mt-3 flex items-center justify-between">
                     <Avatar className="size-6">
                       <AvatarFallback className="text-[10px]">
-                        {task.tag.slice(0, 2).toUpperCase()}
+                        {item.tag.slice(0, 2).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
-                    {task.attachments > 0 ? (
+                    {item.attachments > 0 ? (
                       <span className="flex items-center gap-1 text-xs text-muted-foreground">
                         <Paperclip className="size-3" />
-                        {task.attachments}
+                        {item.attachments}
                       </span>
                     ) : null}
                   </div>

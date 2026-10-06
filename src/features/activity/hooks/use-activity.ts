@@ -2,8 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import {
-  getProjectActivity,
-  getTaskActivity,
+  getFolderActivity,
+  getItemActivity,
   getWorkspaceActivity,
 } from "@/features/activity/api/activity-service";
 import { queryKeys } from "@/lib/query-keys";
@@ -18,18 +18,18 @@ export function useWorkspaceActivityQuery(workspaceId: string, page = 1) {
   });
 }
 
-export function useProjectActivityQuery(projectId: string, page = 1) {
+export function useFolderActivityQuery(folderId: string, page = 1) {
   return useQuery({
-    queryKey: queryKeys.activity.project(projectId, page),
-    queryFn: () => getProjectActivity(projectId, { page }),
+    queryKey: queryKeys.activity.folder(folderId, page),
+    queryFn: () => getFolderActivity(folderId, { page }),
     placeholderData: (previous) => previous,
   });
 }
 
-export function useTaskActivityQuery(taskId: string, page = 1) {
+export function useItemActivityQuery(itemId: string, page = 1) {
   return useQuery({
-    queryKey: queryKeys.activity.task(taskId, page),
-    queryFn: () => getTaskActivity(taskId, { page }),
+    queryKey: queryKeys.activity.item(itemId, page),
+    queryFn: () => getItemActivity(itemId, { page }),
     placeholderData: (previous) => previous,
   });
 }

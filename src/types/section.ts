@@ -1,7 +1,7 @@
 export interface Section {
   id: string;
-  projectId: string;
-  // null for a root column; otherwise the parent section within the project.
+  folderId: string;
+  // null for a root column; otherwise the parent section within the folder.
   parentId: string | null;
   name: string;
   position: number;
@@ -17,7 +17,7 @@ export interface CreateSectionRequest {
 }
 
 export interface MoveSectionRequest {
-  // null promotes the section to a root column of the project.
+  // null promotes the section to a root column of the folder.
   parentId: string | null;
   position?: number;
 }

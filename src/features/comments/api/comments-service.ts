@@ -7,21 +7,21 @@ import type {
   UpdateCommentRequest,
 } from "@/types/comment";
 
-export async function listComments(taskId: string, params?: PaginationParams) {
+export async function listComments(itemId: string, params?: PaginationParams) {
   const { data } = await apiClient.get<PaginatedResult<Comment>>(
-    `/tasks/${taskId}/comments`,
+    `/items/${itemId}/comments`,
     { params }
   );
   return data;
 }
 
-export async function createComment(taskId: string, payload: CreateCommentRequest) {
-  const { data } = await apiClient.post<Comment>(`/tasks/${taskId}/comments`, payload);
+export async function createComment(itemId: string, payload: CreateCommentRequest) {
+  const { data } = await apiClient.post<Comment>(`/items/${itemId}/comments`, payload);
   return data;
 }
 
 export async function deleteComment(commentId: string) {
-  const { data } = await apiClient.delete<{ id: string; taskId: string }>(
+  const { data } = await apiClient.delete<{ id: string; itemId: string }>(
     `/comments/${commentId}`
   );
   return data;
@@ -35,7 +35,7 @@ export async function updateComment(commentId: string, payload: UpdateCommentReq
 
 export interface CommentReactionsResult {
   commentId: string;
-  taskId: string;
+  itemId: string;
   reactions: CommentReaction[];
 }
 

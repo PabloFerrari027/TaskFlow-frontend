@@ -1,7 +1,7 @@
 import {
-  PROJECT_STATUS_LABEL,
-  TASK_PRIORITY_LABEL,
-  TASK_STATUS_LABEL,
+  FOLDER_STATUS_LABEL,
+  ITEM_PRIORITY_LABEL,
+  ITEM_STATUS_LABEL,
 } from "@/components/shared/status-badge";
 import type { FieldKind, PayloadFieldSpec } from "@/features/automations/lib/automation-catalog";
 import {
@@ -100,8 +100,8 @@ export function chartTypeSpec(type: DashboardChartType): ChartTypeSpec {
 // ---------------------------------------------------------------- entities
 
 export const ENTITY_OPTIONS: { value: AnalyticsEntity; label: string; plural: string }[] = [
-  { value: "tasks", label: "Tarefas", plural: "tarefas" },
-  { value: "projects", label: "Projetos", plural: "projetos" },
+  { value: "items", label: "Itens", plural: "itens" },
+  { value: "folders", label: "Pastas", plural: "pastas" },
 ];
 
 function entityPlural(entity: AnalyticsEntity) {
@@ -128,8 +128,8 @@ function derived(name: AnalyticsDerivedMetricName, unit: MetricUnit): MetricOpti
     label: DERIVED_METRIC_LABEL[name],
     metric: { type: "derived", name },
     unit,
-    // Derived metrics are task formulas — the backend rejects them for projects.
-    entities: ["tasks"],
+    // Derived metrics are item formulas — the backend rejects them for folders.
+    entities: ["items"],
   };
 }
 
@@ -141,7 +141,7 @@ export const METRIC_OPTIONS: MetricOption[] = [
     label: "Quantidade",
     metric: { type: "count", field: "id" },
     unit: "count",
-    entities: ["tasks", "projects"],
+    entities: ["items", "folders"],
   },
   derived("completion_rate", "ratio"),
   derived("overdue_rate", "ratio"),
@@ -178,27 +178,27 @@ export interface GroupFieldSpec {
 }
 
 export const CATEGORICAL_FIELDS: Record<AnalyticsEntity, GroupFieldSpec[]> = {
-  tasks: [
-    { field: "status", label: "Status", kind: "taskStatus" },
-    { field: "priority", label: "Prioridade", kind: "taskPriority" },
+  items: [
+    { field: "status", label: "Status", kind: "itemStatus" },
+    { field: "priority", label: "Prioridade", kind: "itemPriority" },
     { field: "assigneeId", label: "Responsável", kind: "member" },
-    { field: "projectId", label: "Projeto", kind: "project" },
+    { field: "folderId", label: "Pasta", kind: "folder" },
     { field: "sectionId", label: "Coluna", kind: "section" },
     { field: "createdBy", label: "Quem criou", kind: "member" },
   ],
-  projects: [
-    { field: "status", label: "Status", kind: "projectStatus" },
+  folders: [
+    { field: "status", label: "Status", kind: "folderStatus" },
     { field: "createdBy", label: "Quem criou", kind: "member" },
   ],
 };
 
 export const TEMPORAL_FIELDS: Record<AnalyticsEntity, GroupFieldSpec[]> = {
-  tasks: [
+  items: [
     { field: "createdAt", label: "Data de criação", kind: "date" },
     { field: "updatedAt", label: "Última atualização", kind: "date" },
     { field: "dueDate", label: "Prazo", kind: "date" },
   ],
-  projects: [{ field: "createdAt", label: "Data de criação", kind: "date" }],
+  folders: [{ field: "createdAt", label: "Data de criação", kind: "date" }],
 };
 
 export type TemporalUnit = "day" | "week" | "month";
@@ -239,16 +239,16 @@ function isTemporalField(entity: AnalyticsEntity, field: string) {
 // Dates are left out: the shared condition picker only offers
 // equals / not equals / one of, which never make sense for a timestamp.
 export const FILTER_FIELDS: Record<AnalyticsEntity, PayloadFieldSpec[]> = {
-  tasks: [
-    { field: "status", label: "status", article: "o", kind: "taskStatus" },
-    { field: "priority", label: "prioridade", article: "a", kind: "taskPriority" },
+  items: [
+    { field: "status", label: "status", article: "o", kind: "itemStatus" },
+    { field: "priority", label: "prioridade", article: "a", kind: "itemPriority" },
     { field: "assigneeId", label: "responsável", article: "o", kind: "member" },
-    { field: "projectId", label: "projeto", article: "o", kind: "project" },
+    { field: "folderId", label: "pasta", article: "o", kind: "folder" },
     { field: "sectionId", label: "coluna", article: "a", kind: "section" },
     { field: "createdBy", label: "criador", article: "o", kind: "member" },
   ],
-  projects: [
-    { field: "status", label: "status", article: "o", kind: "projectStatus" },
+  folders: [
+    { field: "status", label: "status", article: "o", kind: "folderStatus" },
     { field: "createdBy", label: "criador", article: "o", kind: "member" },
   ],
 };
@@ -258,7 +258,7 @@ export const FILTER_FIELDS: Record<AnalyticsEntity, PayloadFieldSpec[]> = {
 /**
  * Turns one group value from a result row into text. `lookups` resolves ids
  * to names inside the signed-in app; the anonymous viewer has no access to
- * members/projects, so there ids fall back to a short, neutral reference.
+ * members/folders, so there ids fall back to a short, neutral reference.
  */
 export function groupValueLabel(
   entity: AnalyticsEntity,
@@ -293,16 +293,16 @@ function fieldValueLabel(kind: FieldKind, text: string, lookups?: ValueLabeler):
   if (lookups) return lookups.labelFor(kind, text);
 
   switch (kind) {
-    case "taskStatus":
-      return (TASK_STATUS_LABEL as Record<string, string>)[text] ?? text;
-    case "taskPriority":
-      return (TASK_PRIORITY_LABEL as Record<string, string>)[text] ?? text;
-    case "projectStatus":
-      return (PROJECT_STATUS_LABEL as Record<string, string>)[text] ?? text;
+    case "itemStatus":
+      return (ITEM_STATUS_LABEL as Record<string, string>)[text] ?? text;
+    case "itemPriority":
+      return (ITEM_PRIORITY_LABEL as Record<string, string>)[text] ?? text;
+    case "folderStatus":
+      return (FOLDER_STATUS_LABEL as Record<string, string>)[text] ?? text;
     case "member":
       return `Pessoa ${shortenId(text, 4)}`;
-    case "project":
-      return `Projeto ${shortenId(text, 4)}`;
+    case "folder":
+      return `Pasta ${shortenId(text, 4)}`;
     case "section":
       return `Coluna ${shortenId(text, 4)}`;
     default:
@@ -338,7 +338,7 @@ function describeFilter(entity: AnalyticsEntity, filter: AnalyticsFilter, lookup
 
 /**
  * What a chart shows, in the words of someone who didn't build it:
- * ["Quantidade de tarefas", "por semana (data de criação)", "prioridade: Alta"].
+ * ["Quantidade de itens", "por semana (data de criação)", "prioridade: Alta"].
  * The card joins the parts on one line; the expanded view shows them whole.
  * Built from the saved query only — nothing here is typed by the user.
  */
@@ -389,7 +389,7 @@ export interface ChartDraft {
 
 export const EMPTY_DRAFT: ChartDraft = {
   chartType: null,
-  entity: "tasks",
+  entity: "items",
   metricKeys: [],
   groupField: "",
   temporalUnit: "week",
@@ -485,7 +485,7 @@ export function draftFromChart(chart: ChartDefinition): ChartDraft {
   };
 }
 
-/** "Tarefas por status", "Taxa de conclusão por semana"… — a starting point the user can edit. */
+/** "Itens por status", "Taxa de conclusão por semana"… — a starting point the user can edit. */
 export function suggestChartName(draft: ChartDraft): string {
   if (!draft.chartType) return "";
   const metrics = draft.metricKeys.map((key) => findMetricOption(key));

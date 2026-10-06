@@ -1,8 +1,8 @@
 import type { AnalyticsFilter, AnalyticsQuery, AnalyticsResult } from "@/types/analytics";
 
 /**
- * The Início page's numbers: tasks assigned to the signed-in user in the
- * current workspace. There is no "my tasks" endpoint, so everything is an
+ * The Início page's numbers: items assigned to the signed-in user in the
+ * current workspace. There is no "my items" endpoint, so everything is an
  * analytics count filtered by `assigneeId` (API.md § 12) — participants and
  * mentions don't count, only the main assignee. Builders that filter by date
  * take "now" as a parameter so they stay pure.
@@ -28,7 +28,7 @@ function count(
   groupBy: string[] = []
 ): AnalyticsQuery {
   return {
-    entity: "tasks",
+    entity: "items",
     workspaceId,
     filters,
     groupBy,
@@ -39,7 +39,7 @@ function count(
 /** Everything ever assigned to me, and how much of it is done. */
 export function progressQuery(workspaceId: string, userId: string): AnalyticsQuery {
   return {
-    entity: "tasks",
+    entity: "items",
     workspaceId,
     filters: mine(userId),
     metrics: [
@@ -68,20 +68,20 @@ export function dueSoonQuery(workspaceId: string, userId: string, now: Date): An
   );
 }
 
-/** One row per root project (the backend rolls sub-projects up). */
-export function openByProjectQuery(workspaceId: string, userId: string): AnalyticsQuery {
-  return count(workspaceId, mine(userId, [NOT_DONE]), ["projectId"]);
+/** One row per root folder (the backend rolls sub-folders up). */
+export function openByFolderQuery(workspaceId: string, userId: string): AnalyticsQuery {
+  return count(workspaceId, mine(userId, [NOT_DONE]), ["folderId"]);
 }
 
-export function overdueByProjectQuery(
+export function overdueByFolderQuery(
   workspaceId: string,
   userId: string,
   now: Date
 ): AnalyticsQuery {
-  return count(workspaceId, mine(userId, [NOT_DONE, overdue(now)]), ["projectId"]);
+  return count(workspaceId, mine(userId, [NOT_DONE, overdue(now)]), ["folderId"]);
 }
 
-/** The value of the result's first metric in its only row; 0 when no task matched. */
+/** The value of the result's first metric in its only row; 0 when no item matched. */
 export function readCount(result: AnalyticsResult | undefined): number {
   const alias = result?.metrics[0]?.alias;
   const value = alias ? result?.data[0]?.[alias] : undefined;
@@ -95,15 +95,15 @@ export function readDerived(result: AnalyticsResult | undefined, name: string): 
   return typeof value === "number" ? value : null;
 }
 
-/** `projectId → count` out of a result grouped by project. */
-export function countsByProject(result: AnalyticsResult | undefined): Map<string, number> {
+/** `folderId → count` out of a result grouped by folder. */
+export function countsByFolder(result: AnalyticsResult | undefined): Map<string, number> {
   const alias = result?.metrics[0]?.alias;
   const counts = new Map<string, number>();
   if (!result || !alias) return counts;
   for (const row of result.data) {
     const value = row[alias];
-    if (typeof row.projectId === "string" && typeof value === "number") {
-      counts.set(row.projectId, value);
+    if (typeof row.folderId === "string" && typeof value === "number") {
+      counts.set(row.folderId, value);
     }
   }
   return counts;

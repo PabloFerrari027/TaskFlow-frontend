@@ -9,8 +9,8 @@ import { useCommentsQuery } from "@/features/comments/hooks/use-comments";
 import { CommentNode } from "@/features/comments/components/comment-thread";
 import { buildTree } from "@/lib/tree";
 
-export function CommentList({ taskId, projectId }: { taskId: string; projectId: string }) {
-  const commentsQuery = useCommentsQuery(taskId);
+export function CommentList({ itemId, folderId }: { itemId: string; folderId: string }) {
+  const commentsQuery = useCommentsQuery(itemId);
   const comments = commentsQuery.data ?? [];
   // Replies arrive as a flat list (oldest first) linked by parentId; rebuild the
   // thread client-side. Replies whose parent is gone just render where they land.
@@ -35,7 +35,7 @@ export function CommentList({ taskId, projectId }: { taskId: string; projectId: 
       <EmptyState
         icon={<MessageSquare className="size-5" />}
         title="Nenhum comentário ainda"
-        description="Seja o primeiro a comentar nesta tarefa."
+        description="Seja o primeiro a comentar neste item."
       />
     );
   }
@@ -43,7 +43,7 @@ export function CommentList({ taskId, projectId }: { taskId: string; projectId: 
   return (
     <div className="space-y-3">
       {threads.map((thread) => (
-        <CommentNode key={thread.item.id} node={thread} level={0} projectId={projectId} />
+        <CommentNode key={thread.item.id} node={thread} level={0} folderId={folderId} />
       ))}
     </div>
   );

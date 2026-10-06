@@ -10,17 +10,17 @@ export async function getWorkspaceActivity(workspaceId: string, params?: Paginat
   return data;
 }
 
-export async function getProjectActivity(projectId: string, params?: PaginationParams) {
+export async function getFolderActivity(folderId: string, params?: PaginationParams) {
   const { data } = await apiClient.get<PaginatedResult<ActivityLogEntry>>(
-    `/projects/${projectId}/activity`,
+    `/folders/${folderId}/activity`,
     { params }
   );
   return data;
 }
 
-export async function getTaskActivity(taskId: string, params?: PaginationParams) {
+export async function getItemActivity(itemId: string, params?: PaginationParams) {
   const { data } = await apiClient.get<PaginatedResult<ActivityLogEntry>>(
-    `/tasks/${taskId}/activity`,
+    `/items/${itemId}/activity`,
     { params }
   );
   return data;

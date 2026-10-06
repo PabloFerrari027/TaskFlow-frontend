@@ -3,24 +3,24 @@ import type { PaginatedResult, PaginationParams } from "@/types/common";
 import type {
   CreateCustomFieldDefinitionRequest,
   CustomFieldDefinition,
-  SetTaskCustomFieldValueRequest,
-  TaskCustomFieldValue,
+  SetItemCustomFieldValueRequest,
+  ItemCustomFieldValue,
   UpdateCustomFieldDetailsRequest,
   UpdateCustomFieldOptionsRequest,
 } from "@/types/custom-field";
 
 export const customFieldsService = {
-  async listByProject(projectId: string, params?: PaginationParams) {
+  async listByFolder(folderId: string, params?: PaginationParams) {
     const { data } = await apiClient.get<PaginatedResult<CustomFieldDefinition>>(
-      `/projects/${projectId}/custom-fields`,
+      `/folders/${folderId}/custom-fields`,
       { params }
     );
     return data;
   },
 
-  async create(projectId: string, payload: CreateCustomFieldDefinitionRequest) {
+  async create(folderId: string, payload: CreateCustomFieldDefinitionRequest) {
     const { data } = await apiClient.post<CustomFieldDefinition>(
-      `/projects/${projectId}/custom-fields`,
+      `/folders/${folderId}/custom-fields`,
       payload
     );
     return data;
@@ -49,21 +49,21 @@ export const customFieldsService = {
     return data;
   },
 
-  async listTaskValues(taskId: string, params?: PaginationParams) {
-    const { data } = await apiClient.get<PaginatedResult<TaskCustomFieldValue>>(
-      `/tasks/${taskId}/custom-field-values`,
+  async listItemValues(itemId: string, params?: PaginationParams) {
+    const { data } = await apiClient.get<PaginatedResult<ItemCustomFieldValue>>(
+      `/items/${itemId}/custom-field-values`,
       { params }
     );
     return data;
   },
 
-  async setTaskValue(
-    taskId: string,
+  async setItemValue(
+    itemId: string,
     definitionId: string,
-    payload: SetTaskCustomFieldValueRequest
+    payload: SetItemCustomFieldValueRequest
   ) {
-    const { data } = await apiClient.patch<TaskCustomFieldValue>(
-      `/tasks/${taskId}/custom-field-values/${definitionId}`,
+    const { data } = await apiClient.patch<ItemCustomFieldValue>(
+      `/items/${itemId}/custom-field-values/${definitionId}`,
       payload
     );
     return data;

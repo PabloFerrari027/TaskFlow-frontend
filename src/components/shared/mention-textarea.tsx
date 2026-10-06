@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/auth/auth-context";
 import { shortenId } from "@/lib/format";
 import { mentionToken } from "@/lib/mentions";
 import { cn } from "@/lib/utils";
-import { useAssignableMembers } from "@/features/tasks/hooks/use-assignable-members";
+import { useAssignableMembers } from "@/features/items/hooks/use-assignable-members";
 
 // An `@` at the start of a word, followed by the (possibly empty) query being
 // typed — up to three words, so full names can be searched.
@@ -20,7 +20,7 @@ type ListPosition = {
 };
 
 type MentionTextareaProps = Omit<React.ComponentProps<typeof Textarea>, "onChange" | "value"> & {
-  projectId: string;
+  folderId: string;
   value: string;
   onChange: (value: string) => void;
 };
@@ -34,7 +34,7 @@ type MentionTextareaProps = Omit<React.ComponentProps<typeof Textarea>, "onChang
  * used to hide it.
  */
 export function MentionTextarea({
-  projectId,
+  folderId,
   value,
   onChange,
   className,
@@ -44,7 +44,7 @@ export function MentionTextarea({
   ...props
 }: MentionTextareaProps) {
   const { userId: currentUserId } = useAuth();
-  const { userIds, names } = useAssignableMembers(projectId);
+  const { userIds, names } = useAssignableMembers(folderId);
   const innerRef = React.useRef<HTMLTextAreaElement | null>(null);
   const [query, setQuery] = React.useState<string | null>(null);
   const [active, setActive] = React.useState(0);

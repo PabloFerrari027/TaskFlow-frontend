@@ -7,16 +7,16 @@ import { queryKeys } from "@/lib/query-keys";
 import { getErrorMessage, getServerErrorMessage } from "@/lib/errors";
 import type { SaveIntakeFormRequest } from "@/types/intake-form";
 
-export function useIntakeFormsQuery(projectId: string) {
+export function useIntakeFormsQuery(folderId: string) {
   return useQuery({
-    queryKey: queryKeys.intakeForms.all(projectId),
-    queryFn: () => intakeFormsService.list(projectId),
+    queryKey: queryKeys.intakeForms.all(folderId),
+    queryFn: () => intakeFormsService.list(folderId),
   });
 }
 
-function useInvalidate(projectId: string) {
+function useInvalidate(folderId: string) {
   const queryClient = useQueryClient();
-  return () => queryClient.invalidateQueries({ queryKey: queryKeys.intakeForms.all(projectId) });
+  return () => queryClient.invalidateQueries({ queryKey: queryKeys.intakeForms.all(folderId) });
 }
 
 // INVALID_INTAKE_FORM's server text says which field is wrong.
@@ -24,10 +24,10 @@ function toastFormError(error: unknown) {
   toast.error(getErrorMessage(error), { description: getServerErrorMessage(error) ?? undefined });
 }
 
-export function useCreateIntakeFormMutation(projectId: string) {
-  const invalidate = useInvalidate(projectId);
+export function useCreateIntakeFormMutation(folderId: string) {
+  const invalidate = useInvalidate(folderId);
   return useMutation({
-    mutationFn: (payload: SaveIntakeFormRequest) => intakeFormsService.create(projectId, payload),
+    mutationFn: (payload: SaveIntakeFormRequest) => intakeFormsService.create(folderId, payload),
     onSuccess: () => {
       invalidate();
       toast.success("Formulário criado. Copie o link e compartilhe.");
@@ -36,8 +36,8 @@ export function useCreateIntakeFormMutation(projectId: string) {
   });
 }
 
-export function useUpdateIntakeFormMutation(projectId: string) {
-  const invalidate = useInvalidate(projectId);
+export function useUpdateIntakeFormMutation(folderId: string) {
+  const invalidate = useInvalidate(folderId);
   return useMutation({
     mutationFn: ({ formId, payload }: { formId: string; payload: Partial<SaveIntakeFormRequest> }) =>
       intakeFormsService.update(formId, payload),
@@ -49,8 +49,8 @@ export function useUpdateIntakeFormMutation(projectId: string) {
   });
 }
 
-export function useRegenerateIntakeFormTokenMutation(projectId: string) {
-  const invalidate = useInvalidate(projectId);
+export function useRegenerateIntakeFormTokenMutation(folderId: string) {
+  const invalidate = useInvalidate(folderId);
   return useMutation({
     mutationFn: (formId: string) => intakeFormsService.regenerateToken(formId),
     onSuccess: () => {
@@ -61,13 +61,13 @@ export function useRegenerateIntakeFormTokenMutation(projectId: string) {
   });
 }
 
-export function useDeleteIntakeFormMutation(projectId: string) {
-  const invalidate = useInvalidate(projectId);
+export function useDeleteIntakeFormMutation(folderId: string) {
+  const invalidate = useInvalidate(folderId);
   return useMutation({
     mutationFn: (formId: string) => intakeFormsService.remove(formId),
     onSuccess: () => {
       invalidate();
-      toast.success("Formulário apagado. As tarefas que ele criou continuam no projeto.");
+      toast.success("Formulário apagado. Os itens que ele criou continuam na pasta.");
     },
     onError: (error) => toast.error(getErrorMessage(error)),
   });

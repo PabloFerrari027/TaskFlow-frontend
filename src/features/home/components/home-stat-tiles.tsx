@@ -91,7 +91,7 @@ export function HomeStatTiles({
         label="Com você"
         query={open}
         value={String(openCount)}
-        hint={openCount === 1 ? "tarefa em aberto" : "tarefas em aberto"}
+        hint={openCount === 1 ? "item em aberto" : "itens em aberto"}
       />
       <StatTile
         icon={<AlertTriangle />}
@@ -117,8 +117,8 @@ export function HomeStatTiles({
         value={rate === null ? "—" : formatRatio(rate)}
         hint={
           total === 0
-            ? "nenhuma tarefa atribuída a você ainda"
-            : `das ${total} tarefas atribuídas a você estão concluídas`
+            ? "nenhum item atribuído a você ainda"
+            : `dos ${total} itens atribuídos a você estão concluídos`
         }
       >
         {rate !== null ? (
@@ -128,7 +128,7 @@ export function HomeStatTiles({
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={Math.round(rate * 100)}
-            aria-label="Tarefas concluídas"
+            aria-label="Itens concluídos"
           >
             <div
               className="h-full rounded-full bg-success transition-[width] duration-700 ease-out"

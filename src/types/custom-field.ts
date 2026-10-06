@@ -9,7 +9,7 @@ export type CustomFieldType =
 
 export interface CustomFieldDefinition {
   id: string;
-  projectId: string;
+  folderId: string;
   name: string;
   type: CustomFieldType;
   options: string[] | null;
@@ -43,14 +43,14 @@ export type CustomFieldValue =
   | string[]
   | null;
 
-export interface TaskCustomFieldValue {
+export interface ItemCustomFieldValue {
   id: string;
-  taskId: string;
+  itemId: string;
   fieldDefinitionId: string;
   value: CustomFieldValue;
   updatedAt: string;
 }
 
-export interface SetTaskCustomFieldValueRequest {
+export interface SetItemCustomFieldValueRequest {
   value: CustomFieldValue;
 }

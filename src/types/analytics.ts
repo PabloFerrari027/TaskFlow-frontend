@@ -1,4 +1,4 @@
-export type AnalyticsEntity = "tasks" | "projects";
+export type AnalyticsEntity = "items" | "folders";
 
 export type AnalyticsOperator =
   | "equals"

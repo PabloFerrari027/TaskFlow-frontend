@@ -3,9 +3,9 @@ import type { WorkspaceRole } from "@/types/workspace";
 
 /**
  * The API scopes admin-style actions (rename workspace, invite, manage
- * members/custom fields, archive projects) to workspace ADMIN/OWNER — project
+ * members/custom fields, archive folders) to workspace ADMIN/OWNER — folder
  * membership only has MEMBER/GUEST, with no elevated role of its own, so
- * project-level management is gated by the caller's workspace role too.
+ * folder-level management is gated by the caller's workspace role too.
  */
 const MANAGER_ROLES: WorkspaceRole[] = ["OWNER", "ADMIN"];
 
@@ -27,7 +27,7 @@ export function canManageWorkspaceMembers(role: WorkspaceRole | null | undefined
   return canManageWorkspace(role);
 }
 
-export function canManageProjectMembers(role: WorkspaceRole | null | undefined) {
+export function canManageFolderMembers(role: WorkspaceRole | null | undefined) {
   return canManageWorkspace(role);
 }
 
@@ -35,7 +35,7 @@ export function canManageCustomFields(role: WorkspaceRole | null | undefined) {
   return canManageWorkspace(role);
 }
 
-export function canArchiveProject(role: WorkspaceRole | null | undefined) {
+export function canArchiveFolder(role: WorkspaceRole | null | undefined) {
   return canManageWorkspace(role);
 }
 
@@ -77,10 +77,10 @@ export function canPublishDashboardPage(role: WorkspaceRole | null | undefined) 
   return canManageWorkspace(role);
 }
 
-// Stricter than creating a blank project (which MEMBER can do): a template
+// Stricter than creating a blank folder (which MEMBER can do): a template
 // creates custom fields, which are OWNER/ADMIN only. The API applies the rule
 // even to templates without fields (API.md § 26.3), and so does this.
-export function canInstantiateProjectTemplate(role: WorkspaceRole | null | undefined) {
+export function canInstantiateFolderTemplate(role: WorkspaceRole | null | undefined) {
   return canManageWorkspace(role);
 }
 

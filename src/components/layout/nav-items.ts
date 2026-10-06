@@ -49,7 +49,7 @@ export interface NavItem {
 export const NAV_ITEMS: NavItem[] = [
   // Uso diário: onde o trabalho acontece.
   { href: "/home", label: "Início", icon: House, group: "work" },
-  { href: "/projects", label: "Projetos", icon: FolderKanban, group: "work" },
+  { href: "/folders", label: "Pastas", icon: FolderKanban, group: "work" },
   {
     href: "/workspaces/pages",
     label: "Páginas",

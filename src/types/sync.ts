@@ -1,9 +1,9 @@
 export type SyncEntityType =
-  | "PROJECT"
-  | "TASK"
+  | "FOLDER"
+  | "ITEM"
   | "SECTION"
   | "CUSTOM_FIELD_DEFINITION"
-  | "TASK_CUSTOM_FIELD_VALUE"
+  | "ITEM_CUSTOM_FIELD_VALUE"
   | "COMMENT";
 
 export type SyncOperationType = "CREATE" | "UPDATE" | "DELETE";
@@ -56,7 +56,7 @@ export interface QueuedOperation extends SyncOperation {
   // Cache-invalidation hints for when a push result carries no
   // `serverEntityState` to read them from (REJECTED, or a bare DUPLICATE).
   meta?: {
-    projectId?: string;
-    taskId?: string;
+    folderId?: string;
+    itemId?: string;
   };
 }

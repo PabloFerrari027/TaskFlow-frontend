@@ -19,32 +19,32 @@ import { isOffline, queueEntityDelete } from "@/features/sync/lib/sync-engine";
 import type { PaginatedResult } from "@/types/common";
 import type { Comment, CreateCommentRequest, UpdateCommentRequest } from "@/types/comment";
 
-// A task's comment thread is realistically short — fetch the max page size
-// once instead of paging a chat-style feed, same call as `useSubtasksQuery`.
-export function useCommentsQuery(taskId: string) {
+// An item's comment thread is realistically short — fetch the max page size
+// once instead of paging a chat-style feed, same call as `useSubitemsQuery`.
+export function useCommentsQuery(itemId: string) {
   return useQuery({
-    queryKey: queryKeys.comments.all(taskId),
-    queryFn: () => listComments(taskId, { limit: MAX_PAGE_SIZE }),
+    queryKey: queryKeys.comments.all(itemId),
+    queryFn: () => listComments(itemId, { limit: MAX_PAGE_SIZE }),
     select: (result) => result.data,
   });
 }
 
-export function useCreateCommentMutation(taskId: string) {
+export function useCreateCommentMutation(itemId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (payload: CreateCommentRequest) => createComment(taskId, payload),
+    mutationFn: (payload: CreateCommentRequest) => createComment(itemId, payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.comments.all(taskId) });
-      // The task's unified activity timeline includes comment events too
+      queryClient.invalidateQueries({ queryKey: queryKeys.comments.all(itemId) });
+      // The item's unified activity timeline includes comment events too
       // (API.md § 14), so a new comment needs to invalidate both.
-      queryClient.invalidateQueries({ queryKey: queryKeys.activity.task(taskId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.activity.item(itemId) });
     },
     onError: (error) => toast.error(getErrorMessage(error)),
   });
 }
 
-export function useDeleteCommentMutation(taskId: string) {
+export function useDeleteCommentMutation(itemId: string) {
   const queryClient = useQueryClient();
   const { workspaceId } = useCurrentWorkspace();
 
@@ -59,7 +59,7 @@ export function useDeleteCommentMutation(taskId: string) {
           entityType: "COMMENT",
           entityId: commentId,
           baseVersion: null,
-          meta: { taskId },
+          meta: { itemId },
         });
         return Promise.resolve();
       }
@@ -70,12 +70,12 @@ export function useDeleteCommentMutation(taskId: string) {
     // then — without this optimistic removal, a comment deleted offline
     // would stay visible until reconnect instead of disappearing right away.
     onMutate: async (commentId) => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.comments.all(taskId) });
+      await queryClient.cancelQueries({ queryKey: queryKeys.comments.all(itemId) });
       const previous = queryClient.getQueryData<PaginatedResult<Comment>>(
-        queryKeys.comments.all(taskId)
+        queryKeys.comments.all(itemId)
       );
       if (previous) {
-        queryClient.setQueryData<PaginatedResult<Comment>>(queryKeys.comments.all(taskId), {
+        queryClient.setQueryData<PaginatedResult<Comment>>(queryKeys.comments.all(itemId), {
           ...previous,
           data: previous.data.filter((comment) => comment.id !== commentId),
         });
@@ -83,7 +83,7 @@ export function useDeleteCommentMutation(taskId: string) {
       return { previous };
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.comments.all(taskId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.comments.all(itemId) });
       toast.success(
         isOffline()
           ? "Exclusão salva offline — será sincronizada quando a conexão voltar."
@@ -92,7 +92,7 @@ export function useDeleteCommentMutation(taskId: string) {
     },
     onError: (error, _commentId, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(queryKeys.comments.all(taskId), context.previous);
+        queryClient.setQueryData(queryKeys.comments.all(itemId), context.previous);
       }
       toast.error(getErrorMessage(error));
     },
@@ -101,26 +101,26 @@ export function useDeleteCommentMutation(taskId: string) {
 
 function patchComment(
   queryClient: ReturnType<typeof useQueryClient>,
-  taskId: string,
+  itemId: string,
   commentId: string,
   patch: (comment: Comment) => Comment
 ) {
-  queryClient.setQueryData<PaginatedResult<Comment>>(queryKeys.comments.all(taskId), (current) =>
+  queryClient.setQueryData<PaginatedResult<Comment>>(queryKeys.comments.all(itemId), (current) =>
     current
       ? { ...current, data: current.data.map((c) => (c.id === commentId ? patch(c) : c)) }
       : current
   );
 }
 
-export function useUpdateCommentMutation(taskId: string) {
+export function useUpdateCommentMutation(itemId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ commentId, payload }: { commentId: string; payload: UpdateCommentRequest }) =>
       updateComment(commentId, payload),
     onSuccess: (comment) => {
-      patchComment(queryClient, taskId, comment.id, () => comment);
-      queryClient.invalidateQueries({ queryKey: queryKeys.activity.task(taskId) });
+      patchComment(queryClient, itemId, comment.id, () => comment);
+      queryClient.invalidateQueries({ queryKey: queryKeys.activity.item(itemId) });
       toast.success("Comentário editado.");
     },
     onError: (error) => toast.error(getErrorMessage(error)),
@@ -128,7 +128,7 @@ export function useUpdateCommentMutation(taskId: string) {
 }
 
 /** Toggles the signed-in user's reaction with `emoji` (adds if absent, removes if present). */
-export function useToggleCommentReactionMutation(taskId: string, currentUserId: string | null) {
+export function useToggleCommentReactionMutation(itemId: string, currentUserId: string | null) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -136,10 +136,10 @@ export function useToggleCommentReactionMutation(taskId: string, currentUserId: 
       reacted ? removeCommentReaction(commentId, emoji) : addCommentReaction(commentId, emoji),
     // The chip flips right away; the server's summary replaces it.
     onMutate: async ({ commentId, emoji, reacted }) => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.comments.all(taskId) });
-      const previous = queryClient.getQueryData<PaginatedResult<Comment>>(queryKeys.comments.all(taskId));
+      await queryClient.cancelQueries({ queryKey: queryKeys.comments.all(itemId) });
+      const previous = queryClient.getQueryData<PaginatedResult<Comment>>(queryKeys.comments.all(itemId));
       if (currentUserId) {
-        patchComment(queryClient, taskId, commentId, (comment) => {
+        patchComment(queryClient, itemId, commentId, (comment) => {
           const reactions = (comment.reactions ?? [])
             .map((r) =>
               r.emoji !== emoji
@@ -158,12 +158,12 @@ export function useToggleCommentReactionMutation(taskId: string, currentUserId: 
       return { previous };
     },
     onSuccess: (result: CommentReactionsResult) =>
-      patchComment(queryClient, taskId, result.commentId, (comment) => ({
+      patchComment(queryClient, itemId, result.commentId, (comment) => ({
         ...comment,
         reactions: result.reactions,
       })),
     onError: (error, _vars, context) => {
-      if (context?.previous) queryClient.setQueryData(queryKeys.comments.all(taskId), context.previous);
+      if (context?.previous) queryClient.setQueryData(queryKeys.comments.all(itemId), context.previous);
       toast.error(getErrorMessage(error));
     },
   });

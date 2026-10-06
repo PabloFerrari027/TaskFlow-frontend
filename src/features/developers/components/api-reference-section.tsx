@@ -47,8 +47,8 @@ import { buildAuthEndpoints } from "@/features/developers/lib/api-reference/auth
 import { buildAutomationEndpoints } from "@/features/developers/lib/api-reference/automation";
 import { buildBillingEndpoints } from "@/features/developers/lib/api-reference/billing";
 import { buildDataEndpoints } from "@/features/developers/lib/api-reference/data";
-import { buildCommentEndpoints, buildCustomFieldEndpoints, buildTaskEndpoints } from "@/features/developers/lib/api-reference/tasks";
-import { buildProjectEndpoints } from "@/features/developers/lib/api-reference/projects";
+import { buildCommentEndpoints, buildCustomFieldEndpoints, buildItemEndpoints } from "@/features/developers/lib/api-reference/items";
+import { buildFolderEndpoints } from "@/features/developers/lib/api-reference/folders";
 import { buildWorkspaceEndpoints } from "@/features/developers/lib/api-reference/workspaces";
 
 function SectionCard({
@@ -98,8 +98,8 @@ function EndpointGroup({ title, endpoints }: { title?: string; endpoints: ApiEnd
 const TOC = [
   { id: "auth", label: "Autenticação e sessões" },
   { id: "workspaces", label: "Workspaces e convites" },
-  { id: "projects", label: "Projetos e seções" },
-  { id: "tasks", label: "Tarefas, campos e comentários" },
+  { id: "folders", label: "Pastas e seções" },
+  { id: "items", label: "Itens, campos e comentários" },
   { id: "data", label: "Analytics, sync e atividade" },
   { id: "realtime-automation", label: "Tempo real e automações" },
   { id: "assistant", label: "Assistente de IA" },
@@ -112,8 +112,8 @@ const TOC = [
 export function ApiReferenceSection({ workspaceId }: { workspaceId: string }) {
   const authEndpoints = React.useMemo(() => buildAuthEndpoints(), []);
   const workspaceEndpoints = React.useMemo(() => buildWorkspaceEndpoints(workspaceId), [workspaceId]);
-  const projectEndpoints = React.useMemo(() => buildProjectEndpoints(workspaceId), [workspaceId]);
-  const taskEndpoints = React.useMemo(() => buildTaskEndpoints(), []);
+  const folderEndpoints = React.useMemo(() => buildFolderEndpoints(workspaceId), [workspaceId]);
+  const itemEndpoints = React.useMemo(() => buildItemEndpoints(), []);
   const customFieldEndpoints = React.useMemo(() => buildCustomFieldEndpoints(), []);
   const commentEndpoints = React.useMemo(() => buildCommentEndpoints(), []);
   const dataEndpoints = React.useMemo(() => buildDataEndpoints(workspaceId), [workspaceId]);
@@ -174,7 +174,7 @@ export function ApiReferenceSection({ workspaceId }: { workspaceId: string }) {
         <div className="flex gap-2 rounded-md border border-emerald-500/20 bg-emerald-500/5 p-2.5 text-xs text-emerald-700 dark:text-emerald-400">
           <ShieldCheck className="mt-0.5 size-4 shrink-0" />
           <span>
-            Uma chave de API já autentica chamadas de verdade a esta API — envie <code className="rounded bg-background/60 px-1 py-0.5 font-mono">Authorization: Bearer &lt;chave&gt;</code> no lugar do token de login em rotas como <code className="rounded bg-background/60 px-1 py-0.5 font-mono">GET /tasks</code>. Cada rota exige o escopo correspondente (ex.: uma chave só com <code className="rounded bg-background/60 px-1 py-0.5 font-mono">tasks:read</code> não consegue criar/editar tarefas), e chamadas por chave têm seu próprio limite — <strong>300 requisições / 60s por chave</strong>, independente do rate limit por IP.
+            Uma chave de API já autentica chamadas de verdade a esta API — envie <code className="rounded bg-background/60 px-1 py-0.5 font-mono">Authorization: Bearer &lt;chave&gt;</code> no lugar do token de login em rotas como <code className="rounded bg-background/60 px-1 py-0.5 font-mono">GET /items</code>. Cada rota exige o escopo correspondente (ex.: uma chave só com <code className="rounded bg-background/60 px-1 py-0.5 font-mono">items:read</code> não consegue criar/editar itens), e chamadas por chave têm seu próprio limite — <strong>300 requisições / 60s por chave</strong>, independente do rate limit por IP.
           </span>
         </div>
       </Card>
@@ -198,21 +198,21 @@ export function ApiReferenceSection({ workspaceId }: { workspaceId: string }) {
       </SectionCard>
 
       <SectionCard
-        id="projects"
+        id="folders"
         icon={FolderKanban}
-        title="Projetos e seções"
-        description="Sub-projetos de profundidade arbitrária, membros de projeto e as colunas (sections) de cada quadro."
+        title="Pastas e seções"
+        description="Subpastas de profundidade arbitrária, membros de pasta e as colunas (sections) de cada quadro."
       >
-        <EndpointGroup endpoints={projectEndpoints} />
+        <EndpointGroup endpoints={folderEndpoints} />
       </SectionCard>
 
       <SectionCard
-        id="tasks"
+        id="items"
         icon={ListTodo}
-        title="Tarefas, campos personalizados e comentários"
-        description="O maior grupo de rotas: CRUD de tasks, anexos, capa, operações em massa, campos personalizados e comentários com threading."
+        title="Itens, campos personalizados e comentários"
+        description="O maior grupo de rotas: CRUD de items, anexos, capa, operações em massa, campos personalizados e comentários com threading."
       >
-        <EndpointGroup title="Tarefas" endpoints={taskEndpoints} />
+        <EndpointGroup title="Itens" endpoints={itemEndpoints} />
         <EndpointGroup title="Campos personalizados" endpoints={customFieldEndpoints} />
         <EndpointGroup title="Comentários" endpoints={commentEndpoints} />
       </SectionCard>

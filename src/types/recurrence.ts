@@ -1,4 +1,4 @@
-import type { TaskPriority } from "@/types/task";
+import type { ItemPriority } from "@/types/item";
 
 export type RecurrenceFrequency = "DAILY" | "WEEKLY" | "MONTHLY" | "YEARLY";
 
@@ -28,19 +28,19 @@ export type NormalizedRecurrenceSchedule = Required<Omit<RecurrenceSchedule, "da
   endDate: string | null;
 };
 
-export type RecurrenceDisabledReason = "AUTHORITY_LOST" | "PROJECT_INACTIVE";
+export type RecurrenceDisabledReason = "AUTHORITY_LOST" | "FOLDER_INACTIVE";
 
-export interface TaskRecurrence {
+export interface ItemRecurrence {
   id: string;
   workspaceId: string;
-  projectId: string;
+  folderId: string;
   createdBy: string;
   enabled: boolean;
   disabledReason: RecurrenceDisabledReason | null;
   title: string;
   description: string | null;
   sectionId: string | null;
-  priority: TaskPriority | null;
+  priority: ItemPriority | null;
   assigneeId: string | null;
   dueInDays: number | null;
   customFieldValues: Record<string, unknown>;
@@ -48,19 +48,19 @@ export interface TaskRecurrence {
   nextRunAt: string | null;
   upcomingOccurrences: string[];
   lastRunAt: string | null;
-  lastTaskId: string | null;
-  /** A warning from the last occurrence (the task was still created). */
+  lastItemId: string | null;
+  /** A warning from the last occurrence (the item was still created). */
   lastError: string | null;
   occurrenceCount: number;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface CreateTaskRecurrenceRequest {
+export interface CreateItemRecurrenceRequest {
   title: string;
   description?: string;
   sectionId?: string;
-  priority?: TaskPriority;
+  priority?: ItemPriority;
   assigneeId?: string;
   dueInDays?: number;
   customFieldValues?: Record<string, unknown>;
@@ -68,11 +68,11 @@ export interface CreateTaskRecurrenceRequest {
 }
 
 /** `null` clears the nullable fields; `schedule` replaces the whole schedule. */
-export interface UpdateTaskRecurrenceRequest {
+export interface UpdateItemRecurrenceRequest {
   title?: string;
   description?: string | null;
   sectionId?: string | null;
-  priority?: TaskPriority | null;
+  priority?: ItemPriority | null;
   assigneeId?: string | null;
   dueInDays?: number | null;
   customFieldValues?: Record<string, unknown>;

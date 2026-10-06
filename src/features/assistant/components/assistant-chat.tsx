@@ -521,9 +521,9 @@ export function AssistantChat() {
                 </p>
               ) : files.some((file) => !isAudioFile(file)) ? (
                 // The server only reads a file's content when the message asks
-                // for it; otherwise it is kept (30 min) to attach to a task.
+                // for it; otherwise it is kept (30 min) to attach to an item.
                 <p className="text-xs text-muted-foreground">
-                  Peça para ler, resumir ou extrair algo do arquivo, ou diga em que tarefa anexá-lo.
+                  Peça para ler, resumir ou extrair algo do arquivo, ou diga em que item anexá-lo.
                 </p>
               ) : null}
 

@@ -15,12 +15,12 @@ import {
 } from "@/components/ui/form";
 import { commentFormSchema, type CommentFormValues } from "@/features/comments/schemas";
 import { useCreateCommentMutation } from "@/features/comments/hooks/use-comments";
-import { useAssignableMembers } from "@/features/tasks/hooks/use-assignable-members";
+import { useAssignableMembers } from "@/features/items/hooks/use-assignable-members";
 import { extractMentionedUserIds } from "@/lib/mentions";
 
 interface CommentComposerProps {
-  taskId: string;
-  projectId: string;
+  itemId: string;
+  folderId: string;
   // When set, the composer posts a reply to this comment instead of a new
   // top-level comment, and is rendered inline under it.
   parentId?: string;
@@ -29,15 +29,15 @@ interface CommentComposerProps {
 }
 
 export function CommentComposer({
-  taskId,
-  projectId,
+  itemId,
+  folderId,
   parentId,
   onSubmitted,
   onCancel,
 }: CommentComposerProps) {
-  const createMutation = useCreateCommentMutation(taskId);
+  const createMutation = useCreateCommentMutation(itemId);
   const isReply = Boolean(parentId);
-  const { userIds: memberIds, names } = useAssignableMembers(projectId);
+  const { userIds: memberIds, names } = useAssignableMembers(folderId);
 
   const form = useForm<CommentFormValues>({
     resolver: zodResolver(commentFormSchema),
@@ -71,7 +71,7 @@ export function CommentComposer({
             <FormItem className="flex-1">
               <FormControl>
                 <MentionTextarea
-                  projectId={projectId}
+                  folderId={folderId}
                   rows={2}
                   autoFocus={isReply}
                   placeholder={

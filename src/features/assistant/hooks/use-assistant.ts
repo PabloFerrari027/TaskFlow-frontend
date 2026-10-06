@@ -13,9 +13,9 @@ import {
   buildAiUsageDateRange,
   type AiUsageFeature,
 } from "@/types/ai-usage";
-import type { Project } from "@/types/project";
-import type { Task } from "@/types/task";
-import type { TaskApproval } from "@/types/approval";
+import type { Folder } from "@/types/folder";
+import type { Item } from "@/types/item";
+import type { ItemApproval } from "@/types/approval";
 
 // Conversation state (transcript, pending action status) lives in the chat
 // component's own reducer, never in TanStack Query — it's an ephemeral
@@ -91,66 +91,66 @@ function applyConfirmedActionEffects(
     case "remove_workspace_member":
       queryClient.setQueryData(queryKeys.workspaces.detail(workspaceId), result);
       return;
-    case "create_project":
-      queryClient.invalidateQueries({ queryKey: queryKeys.projects.all(workspaceId) });
+    case "create_folder":
+      queryClient.invalidateQueries({ queryKey: queryKeys.folders.all(workspaceId) });
       return;
-    case "update_project":
-    case "archive_project": {
-      const project = result as Project;
-      queryClient.setQueryData(queryKeys.projects.detail(project.id), project);
-      queryClient.invalidateQueries({ queryKey: queryKeys.projects.all(workspaceId) });
+    case "update_folder":
+    case "archive_folder": {
+      const folder = result as Folder;
+      queryClient.setQueryData(queryKeys.folders.detail(folder.id), folder);
+      queryClient.invalidateQueries({ queryKey: queryKeys.folders.all(workspaceId) });
       return;
     }
-    case "create_task": {
-      const task = result as Task;
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all(task.projectId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.projectStats.root() });
+    case "create_item": {
+      const item = result as Item;
+      queryClient.invalidateQueries({ queryKey: queryKeys.items.all(item.folderId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.items.bySectionAll() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.folderStats.root() });
       queryClient.invalidateQueries({ queryKey: queryKeys.home.root() });
       return;
     }
-    case "update_task":
-    case "assign_task":
-    case "move_task": {
-      const task = result as Task;
-      queryClient.setQueryData(queryKeys.tasks.detail(task.id), task);
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all(task.projectId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.projectStats.root() });
+    case "update_item":
+    case "assign_item":
+    case "move_item": {
+      const item = result as Item;
+      queryClient.setQueryData(queryKeys.items.detail(item.id), item);
+      queryClient.invalidateQueries({ queryKey: queryKeys.items.all(item.folderId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.items.bySectionAll() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.folderStats.root() });
       queryClient.invalidateQueries({ queryKey: queryKeys.home.root() });
       return;
     }
-    case "change_task_status": {
-      const task = result as Task;
-      queryClient.setQueryData(queryKeys.tasks.detail(task.id), task);
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all(task.projectId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.projectStats.root() });
+    case "change_item_status": {
+      const item = result as Item;
+      queryClient.setQueryData(queryKeys.items.detail(item.id), item);
+      queryClient.invalidateQueries({ queryKey: queryKeys.items.all(item.folderId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.items.bySectionAll() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.folderStats.root() });
       queryClient.invalidateQueries({ queryKey: queryKeys.home.root() });
-      if (task.parentTaskId) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.tasks.subtasks(task.parentTaskId) });
+      if (item.parentItemId) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.items.subitems(item.parentItemId) });
       }
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.subtasks(task.id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.items.subitems(item.id) });
       return;
     }
-    case "add_task_participant":
-    case "remove_task_participant": {
-      const task = result as Task;
-      queryClient.setQueryData(queryKeys.tasks.detail(task.id), task);
+    case "add_item_participant":
+    case "remove_item_participant": {
+      const item = result as Item;
+      queryClient.setQueryData(queryKeys.items.detail(item.id), item);
       return;
     }
-    case "request_task_approval": {
-      const approval = result as TaskApproval;
-      queryClient.invalidateQueries({ queryKey: queryKeys.approvals.task(approval.taskId) });
+    case "request_item_approval": {
+      const approval = result as ItemApproval;
+      queryClient.invalidateQueries({ queryKey: queryKeys.approvals.item(approval.itemId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.approvals.pending() });
       queryClient.invalidateQueries({ queryKey: queryKeys.home.root() });
       return;
     }
-    // `{ taskId, attached }` — the task may also be new (projectId + title).
-    case "attach_files_to_task": {
-      const { taskId } = result as { taskId: string };
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.detail(taskId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.bySectionAll() });
+    // `{ itemId, attached }` — the item may also be new (folderId + title).
+    case "attach_files_to_item": {
+      const { itemId } = result as { itemId: string };
+      queryClient.invalidateQueries({ queryKey: queryKeys.items.detail(itemId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.items.bySectionAll() });
       queryClient.invalidateQueries({ queryKey: queryKeys.home.root() });
       return;
     }

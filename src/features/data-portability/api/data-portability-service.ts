@@ -14,24 +14,24 @@ function importForm(file: File, mapping?: ImportMapping, skipInvalidRows?: boole
 
 export const dataPortabilityService = {
   // Dry run: reads the whole file and says what would happen. Saves nothing.
-  async previewImport(projectId: string, file: File, mapping?: ImportMapping) {
+  async previewImport(folderId: string, file: File, mapping?: ImportMapping) {
     const { data } = await apiClient.post<ImportPreview>(
-      `/projects/${projectId}/imports/preview`,
+      `/folders/${folderId}/imports/preview`,
       importForm(file, mapping)
     );
     return data;
   },
 
-  async startImport(projectId: string, file: File, mapping: ImportMapping, skipInvalidRows: boolean) {
+  async startImport(folderId: string, file: File, mapping: ImportMapping, skipInvalidRows: boolean) {
     const { data } = await apiClient.post<DataJob>(
-      `/projects/${projectId}/imports`,
+      `/folders/${folderId}/imports`,
       importForm(file, mapping, skipInvalidRows)
     );
     return data;
   },
 
-  async startExport(projectId: string, format: DataJobFormat) {
-    const { data } = await apiClient.post<DataJob>(`/projects/${projectId}/exports`, { format });
+  async startExport(folderId: string, format: DataJobFormat) {
+    const { data } = await apiClient.post<DataJob>(`/folders/${folderId}/exports`, { format });
     return data;
   },
 

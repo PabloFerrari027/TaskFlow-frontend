@@ -3,7 +3,7 @@
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/shared/page-header";
-import { AdminTemplatesTable } from "@/features/project-templates/components/admin-templates-table";
+import { AdminTemplatesTable } from "@/features/folder-templates/components/admin-templates-table";
 
 export default function AdminTemplatesPage() {
   return (

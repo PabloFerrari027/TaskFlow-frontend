@@ -26,7 +26,7 @@ export function WorkspaceAssistantSettingsPanel({
           <h3 className="text-base font-semibold text-foreground">Assistente de IA</h3>
           <p className="text-sm text-muted-foreground">
             Converse com um assistente que lê os dados deste workspace e sugere ações, como
-            criar tarefas. Nada é alterado sem a sua confirmação.
+            criar itens. Nada é alterado sem a sua confirmação.
           </p>
         </div>
         <Switch

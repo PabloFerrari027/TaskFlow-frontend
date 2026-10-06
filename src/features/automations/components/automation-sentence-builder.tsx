@@ -68,8 +68,8 @@ const ROW_CLASS = "flex flex-wrap items-center gap-x-1.5 gap-y-2 text-sm leading
 /**
  * The rule as three labelled steps — 1. when it happens, 2. only if (optional),
  * 3. what to do. Read top to bottom they still form one sentence ("Quando
- * [uma tarefa] [tiver o status alterado]. Somente se [o novo status] [for]
- * [Concluída]. Então [mover a tarefa] para a seção [X]."), and every bracketed
+ * [um item] [tiver o status alterado]. Somente se [o novo status] [for]
+ * [Concluída]. Então [mover o item] para a seção [X]."), and every bracketed
  * part is an inline field, but each step says what it is for, so nobody has to
  * guess what a blank chip in the middle of a paragraph wants.
  */
@@ -94,7 +94,7 @@ export function AutomationSentenceBuilder({
     label: action.label,
   }));
   const extraKeys = Object.keys(draft.extraParams).filter(
-    (key) => !(key === "taskId" && spec?.needsTask)
+    (key) => !(key === "itemId" && spec?.needsItem)
   );
 
   function updateCondition(next: ConditionDraft) {
@@ -203,10 +203,10 @@ export function AutomationSentenceBuilder({
             </span>
           ))}
         </div>
-        {event && !event.taskIdField ? (
+        {event && !event.itemIdField ? (
           <p className="text-xs text-muted-foreground">
-            O que aconteceu no passo 1 não envolve uma tarefa específica, então aqui só dá para
-            criar uma tarefa nova.
+            O que aconteceu no passo 1 não envolve um item específico, então aqui só dá para
+            criar um item novo.
           </p>
         ) : null}
         {extraKeys.length > 0 ? (

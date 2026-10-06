@@ -113,7 +113,7 @@ function TourOverlay() {
   // backs out of that step, so it can undo the push with `router.back()`
   // instead of trying to recompute and re-assert a "current" URL (which
   // fights any redirect the destination page does on its own, e.g. a
-  // project's bare URL bouncing to its tasks tab).
+  // folder's bare URL bouncing to its items tab).
   const navEnteredRef = React.useRef<Record<number, boolean>>({});
   // Whether we just triggered a route change to reach the current index, so
   // the target-search below knows to wait longer for the new page to load.
@@ -181,7 +181,7 @@ function TourOverlay() {
   };
 
   // Resolves each step: search for its target on whatever page we're on.
-  // Steps whose target never shows up (no project/task/workspace to
+  // Steps whose target never shows up (no folder/item/workspace to
   // demonstrate with yet) are skipped automatically when `skipIfMissing` is
   // set — in the same direction the tour was already moving.
   React.useEffect(() => {

@@ -62,12 +62,12 @@ export const DATA_CATEGORIES: DataCategory[] = [
   },
   {
     category: "Conteúdo de trabalho",
-    data: "Workspaces, projetos, seções, tarefas, campos personalizados, comentários, menções e convites que você cria ou recebe.",
+    data: "Workspaces, pastas, seções, itens, campos personalizados, comentários, menções e convites que você cria ou recebe.",
     purpose: "Entregar a funcionalidade principal do produto e permitir a colaboração com sua equipe.",
   },
   {
     category: "Histórico de atividade",
-    data: "Registro de quem alterou o quê e quando dentro de um workspace ou tarefa.",
+    data: "Registro de quem alterou o quê e quando dentro de um workspace ou item.",
     purpose: "Dar transparência à equipe e permitir acompanhar o que mudou.",
   },
   {
@@ -78,10 +78,10 @@ export const DATA_CATEGORIES: DataCategory[] = [
 ];
 
 export const USAGE_PURPOSES = [
-  "Prestar o serviço: autenticar você, exibir seus projetos e tarefas e sincronizar alterações entre dispositivos e integrantes da equipe.",
+  "Prestar o serviço: autenticar você, exibir suas pastas e itens e sincronizar alterações entre dispositivos e integrantes da equipe.",
   "Proteger sua conta: verificação em duas etapas por e-mail, controle de sessões e confirmação extra em ações sensíveis.",
   "Enviar comunicações necessárias ao serviço, como códigos de verificação, redefinição de senha e convites.",
-  "Notificar você quando for mencionado ou convidado para um projeto ou workspace.",
+  "Notificar você quando for mencionado ou convidado para uma pasta ou workspace.",
   "Gerar análises e métricas sobre o seu próprio trabalho.",
   "Manter e melhorar o produto, corrigir falhas e prevenir fraudes e abusos.",
   "Cumprir obrigações legais e regulatórias, quando aplicável.",
@@ -89,7 +89,7 @@ export const USAGE_PURPOSES = [
 
 export const NOT_DONE = [
   "Não vendemos seus dados pessoais.",
-  "Não usamos o conteúdo dos seus projetos para publicidade.",
+  "Não usamos o conteúdo das suas pastas para publicidade.",
   "Não lemos seu conteúdo de trabalho para fins que não sejam operar, proteger e dar suporte ao serviço.",
 ];
 
@@ -102,7 +102,7 @@ export const AI_POINTS = [
 
 export const SHARING_POINTS = [
   {
-    title: "Integrantes do seu workspace e projetos",
+    title: "Integrantes do seu workspace e pastas",
     description:
       "Seu nome, e-mail, comentários, menções e atividades ficam visíveis para as pessoas com quem você colabora, de acordo com o papel de cada uma.",
   },
@@ -147,7 +147,7 @@ export const SECURITY_POINTS = [
   "Verificação em duas etapas por código enviado ao seu e-mail no login com senha.",
   "Lista de sessões ativas, com opção de encerrar qualquer uma delas.",
   "Confirmação de identidade adicional antes de ações críticas feitas pelo assistente.",
-  "Controle de acesso por papéis em workspaces e projetos.",
+  "Controle de acesso por papéis em workspaces e pastas.",
   "Comunicação entre o aplicativo e a API protegida por conexão criptografada (HTTPS).",
 ];
 
@@ -170,17 +170,17 @@ export const FAQ: FaqItem[] = [
   {
     question: "Quais dados pessoais o TaskFlow coleta?",
     answer:
-      "Nome, e-mail, informações de sessão (dispositivo e IP) e o conteúdo que você cria no produto, como projetos, tarefas e comentários. A tabela na seção “Dados que coletamos” detalha cada categoria e sua finalidade.",
+      "Nome, e-mail, informações de sessão (dispositivo e IP) e o conteúdo que você cria no produto, como pastas, itens e comentários. A tabela na seção “Dados que coletamos” detalha cada categoria e sua finalidade.",
   },
   {
     question: "Vocês vendem ou compartilham meus dados com anunciantes?",
     answer:
-      "Não. Não vendemos dados pessoais e não usamos o conteúdo dos seus projetos para publicidade. O compartilhamento acontece apenas com as pessoas do seu workspace, com prestadores de serviço necessários à operação e quando a lei exige.",
+      "Não. Não vendemos dados pessoais e não usamos o conteúdo das suas pastas para publicidade. O compartilhamento acontece apenas com as pessoas do seu workspace, com prestadores de serviço necessários à operação e quando a lei exige.",
   },
   {
-    question: "Quem consegue ver minhas tarefas e projetos?",
+    question: "Quem consegue ver meus itens e pastas?",
     answer:
-      "Somente os integrantes dos workspaces e projetos dos quais você faz parte, conforme o papel de cada um. Ninguém fora deles enxerga o seu conteúdo.",
+      "Somente os integrantes dos workspaces e pastas dos quais você faz parte, conforme o papel de cada um. Ninguém fora deles enxerga o seu conteúdo.",
   },
   {
     question: "Como funciona o login com Google? Vocês acessam minha conta do Google?",

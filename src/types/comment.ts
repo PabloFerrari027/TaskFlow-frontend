@@ -1,6 +1,6 @@
 export interface Comment {
   id: string;
-  taskId: string;
+  itemId: string;
   // null for a top-level comment; otherwise the comment this one replies to.
   parentId: string | null;
   authorId: string;

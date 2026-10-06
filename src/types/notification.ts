@@ -1,11 +1,11 @@
 export const NOTIFICATION_TYPES = [
   "MENTION",
-  "TASK_ASSIGNED",
-  "TASK_COMMENTED",
-  "TASK_STATUS_CHANGED",
-  "TASK_DUE_SOON",
-  "TASK_OVERDUE",
-  "TASK_UNBLOCKED",
+  "ITEM_ASSIGNED",
+  "ITEM_COMMENTED",
+  "ITEM_STATUS_CHANGED",
+  "ITEM_DUE_SOON",
+  "ITEM_OVERDUE",
+  "ITEM_UNBLOCKED",
   "APPROVAL_REQUESTED",
   "APPROVAL_DECIDED",
 ] as const;
@@ -18,10 +18,10 @@ export interface AppNotification {
   workspaceId: string;
   /** `null` for system notices (due date reminders). */
   actorId: string | null;
-  entityType: "TASK" | "COMMENT";
+  entityType: "ITEM" | "COMMENT";
   entityId: string;
-  taskId: string | null;
-  projectId: string | null;
+  itemId: string | null;
+  folderId: string | null;
   /** Already in pt-BR, written by the server. */
   title: string;
   body: string;

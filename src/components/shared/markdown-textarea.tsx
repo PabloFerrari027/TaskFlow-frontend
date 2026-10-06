@@ -48,7 +48,7 @@ const TOOLBAR_GROUPS: ToolbarItem[][] = [
   [
     { action: "bullet", label: "Lista", shortcut: "Ctrl+Shift+8", icon: List },
     { action: "numbered", label: "Lista numerada", shortcut: "Ctrl+Shift+7", icon: ListOrdered },
-    { action: "task", label: "Lista de tarefas", shortcut: "Ctrl+Shift+9", icon: ListChecks },
+    { action: "item", label: "Lista de itens", shortcut: "Ctrl+Shift+9", icon: ListChecks },
   ],
   [{ action: "link", label: "Link", shortcut: "Ctrl+K", icon: LinkIcon }],
 ];
@@ -59,7 +59,7 @@ const KEY_ACTIONS: Record<string, MarkdownAction> = { b: "bold", i: "italic", e:
 const SHIFT_CODE_ACTIONS: Record<string, MarkdownAction> = {
   Digit7: "numbered",
   Digit8: "bullet",
-  Digit9: "task",
+  Digit9: "item",
   Period: "quote",
 };
 const HEADING_LEVELS: Record<string, 1 | 2 | 3> = { Digit1: 1, Digit2: 2, Digit3: 3 };

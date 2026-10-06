@@ -144,7 +144,7 @@ function PreviewPanel({
   const settled = useDebouncedValue(pending, PREVIEW_DELAY_MS);
   const preview = useAnalyticsQuery(
     settled.query ? workspaceId : null,
-    settled.query ?? { entity: "tasks", metrics: [] },
+    settled.query ?? { entity: "items", metrics: [] },
     { keepPreviousResult: true, retry: false }
   );
   const [shownType, setShownType] = React.useState(settled.chartType);
@@ -328,8 +328,8 @@ export function ChartBuilderDialog({
                   hint={
                     spec.countOnly
                       ? "Pizza divide uma quantidade em partes — por isso só mede quantidades."
-                      : draft.entity === "projects"
-                        ? "Taxas e tempos existem só para tarefas."
+                      : draft.entity === "folders"
+                        ? "Taxas e tempos existem só para itens."
                         : spec.multiMetric
                           ? "Pode adicionar mais de uma medida do mesmo tipo (ex.: duas taxas)."
                           : undefined
@@ -457,7 +457,7 @@ export function ChartBuilderDialog({
                     id="chart-name"
                     value={draft.name}
                     maxLength={120}
-                    placeholder="Ex.: Tarefas por status"
+                    placeholder="Ex.: Itens por status"
                     onChange={(event) => {
                       setNameTouched(true);
                       setDraft((current) => ({ ...current, name: event.target.value }));

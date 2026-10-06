@@ -21,7 +21,7 @@ export default function NotFound() {
           <Link href="/">Ir para a home</Link>
         </Button>
         <Button asChild>
-          <Link href="/projects">Ir para os projetos</Link>
+          <Link href="/folders">Ir para as pastas</Link>
         </Button>
       </div>
     </div>

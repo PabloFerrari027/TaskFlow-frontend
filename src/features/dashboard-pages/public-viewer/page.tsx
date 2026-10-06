@@ -38,7 +38,7 @@ function Message({
  * login screen in disguise. Charts are drawn by the same renderers as the
  * signed-in page, in the same (fixed) layout; only where the data comes
  * from differs. Ids can't be resolved to names here (the viewer has no
- * access to members or projects), so those show as short references.
+ * access to members or folders), so those show as short references.
  */
 export function SharedPageViewer({ kind, token }: { kind: SharedPageLinkKind; token: string }) {
   const pageQuery = useSharedDashboardPageQuery(kind, token);

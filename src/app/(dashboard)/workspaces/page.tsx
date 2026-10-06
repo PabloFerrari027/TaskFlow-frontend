@@ -201,7 +201,7 @@ function CurrentWorkspaceSettings({ workspaceId }: { workspaceId: string }) {
         <div>
           <h3 className="text-base font-semibold text-foreground">Atividade</h3>
           <p className="text-sm text-muted-foreground">
-            A linha do tempo de tudo que aconteceu neste workspace. Para ver só um projeto, abra a
+            A linha do tempo de tudo que aconteceu neste workspace. Para ver só uma pasta, abra a
             aba Atividade dentro dele.
           </p>
         </div>

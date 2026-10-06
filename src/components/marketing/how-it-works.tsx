@@ -7,21 +7,21 @@ const STEPS = [
   },
   {
     step: "02",
-    title: "Monte seus projetos",
+    title: "Monte suas pastas",
     description:
-      "Adicione projetos, convide colaboradores por e-mail e defina o papel de cada um.",
+      "Adicione pastas, convide colaboradores por e-mail e defina o papel de cada um.",
   },
   {
     step: "03",
-    title: "Divida em tarefas",
+    title: "Divida em itens",
     description:
-      "Crie tarefas, atribua responsáveis, quebre em subtarefas e anexe os arquivos necessários.",
+      "Crie itens, atribua responsáveis, quebre em subitens e anexe os arquivos necessários.",
   },
   {
     step: "04",
     title: "Acompanhe o progresso",
     description:
-      "Mude o status conforme o trabalho avança e use campos personalizados para o que for específico do seu projeto.",
+      "Mude o status conforme o trabalho avança e use campos personalizados para o que for específico da sua pasta.",
   },
 ];
 
@@ -33,7 +33,7 @@ export function HowItWorks() {
           Como funciona
         </h2>
         <p className="mt-3 text-muted-foreground">
-          Do cadastro ao primeiro projeto rodando, em quatro passos.
+          Do cadastro à primeira pasta rodando, em quatro passos.
         </p>
       </div>
 

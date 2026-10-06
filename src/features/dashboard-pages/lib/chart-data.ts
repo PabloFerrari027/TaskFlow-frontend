@@ -1,7 +1,7 @@
 import {
-  PROJECT_STATUS_LABEL,
-  TASK_PRIORITY_LABEL,
-  TASK_STATUS_LABEL,
+  FOLDER_STATUS_LABEL,
+  ITEM_PRIORITY_LABEL,
+  ITEM_STATUS_LABEL,
 } from "@/components/shared/status-badge";
 import type { ValueLabeler } from "@/features/automations/lib/automation-draft";
 import {
@@ -61,9 +61,9 @@ export function isTemporalResult(result: AnalyticsResult) {
 // (and their colour follows the value, not its rank in this particular
 // result); everything else is ranked by the first metric, largest first.
 const ENUM_ORDER: Record<string, string[]> = {
-  "tasks:status": Object.keys(TASK_STATUS_LABEL),
-  "tasks:priority": Object.keys(TASK_PRIORITY_LABEL),
-  "projects:status": Object.keys(PROJECT_STATUS_LABEL),
+  "items:status": Object.keys(ITEM_STATUS_LABEL),
+  "items:priority": Object.keys(ITEM_PRIORITY_LABEL),
+  "folders:status": Object.keys(FOLDER_STATUS_LABEL),
 };
 
 export function enumOrderFor(result: AnalyticsResult): string[] | undefined {

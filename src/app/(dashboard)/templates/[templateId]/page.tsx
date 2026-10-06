@@ -2,7 +2,7 @@
 
 import { Suspense, use } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TemplateDetailView } from "@/features/project-templates/components/template-detail-view";
+import { TemplateDetailView } from "@/features/folder-templates/components/template-detail-view";
 
 export default function TemplateDetailPage(props: PageProps<"/templates/[templateId]">) {
   const { templateId } = use(props.params);

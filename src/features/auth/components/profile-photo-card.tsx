@@ -54,7 +54,7 @@ export function ProfilePhotoCard() {
       <CardHeader>
         <CardTitle>Foto de perfil</CardTitle>
         <CardDescription>
-          Aparece para os outros membros nas tarefas, comentários e listas.
+          Aparece para os outros membros nos itens, comentários e listas.
           JPEG, PNG ou WebP de até 5MB.
         </CardDescription>
       </CardHeader>

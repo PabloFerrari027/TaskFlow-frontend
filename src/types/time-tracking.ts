@@ -2,8 +2,8 @@ import type { PaginatedResult } from "@/types/common";
 
 export interface TimeEntry {
   id: string;
-  taskId: string;
-  projectId: string;
+  itemId: string;
+  folderId: string;
   userId: string;
   startedAt: string;
   /** `null` while the timer is running. */
@@ -14,14 +14,14 @@ export interface TimeEntry {
   note: string | null;
 }
 
-export interface TaskTimeEntries extends PaginatedResult<TimeEntry> {
-  /** Everyone's time on the task. */
+export interface ItemTimeEntries extends PaginatedResult<TimeEntry> {
+  /** Everyone's time on the item. */
   totalSeconds: number;
 }
 
 export interface StartTimerResult {
   running: TimeEntry;
-  /** The timer that was running on another task, stopped by this start. */
+  /** The timer that was running on another item, stopped by this start. */
   stopped: TimeEntry | null;
 }
 
@@ -38,20 +38,20 @@ export interface UpdateTimeEntryRequest {
   note?: string | null;
 }
 
-export type TimeReportGroupBy = "user" | "task";
+export type TimeReportGroupBy = "user" | "item";
 
 export interface TimeReportRow {
-  /** userId or taskId, per the grouping. */
+  /** userId or itemId, per the grouping. */
   key: string;
   label: string;
   totalSeconds: number;
   entries: number;
-  /** Only when grouped by task. */
+  /** Only when grouped by item. */
   estimateMinutes?: number | null;
 }
 
-export interface ProjectTimeReport {
-  projectId: string;
+export interface FolderTimeReport {
+  folderId: string;
   groupBy: TimeReportGroupBy;
   totalSeconds: number;
   rows: TimeReportRow[];

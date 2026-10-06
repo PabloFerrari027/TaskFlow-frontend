@@ -5,22 +5,22 @@ import { BadgeCheck } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatRelativeTime } from "@/lib/format";
-import { useTaskQuery } from "@/features/tasks/hooks/use-tasks";
+import { useItemQuery } from "@/features/items/hooks/use-items";
 import { ApprovalDecisionButtons } from "@/features/approvals/components/approval-decision-buttons";
 import { useMyPendingApprovalsQuery } from "@/features/approvals/hooks/use-approvals";
-import type { TaskApproval } from "@/types/approval";
+import type { ItemApproval } from "@/types/approval";
 
-function PendingItem({ approval }: { approval: TaskApproval }) {
-  const taskQuery = useTaskQuery(approval.taskId);
+function PendingItem({ approval }: { approval: ItemApproval }) {
+  const itemQuery = useItemQuery(approval.itemId);
 
   return (
     <li className="space-y-2 py-3">
       <div>
         <Link
-          href={`/projects/${approval.projectId}/tasks?taskId=${approval.taskId}`}
+          href={`/folders/${approval.folderId}/items?itemId=${approval.itemId}`}
           className="text-sm font-medium hover:underline"
         >
-          {taskQuery.data?.title ?? "Carregando…"}
+          {itemQuery.data?.title ?? "Carregando…"}
         </Link>
         <p className="text-xs text-muted-foreground">
           Pedido {formatRelativeTime(approval.requestedAt)}
@@ -48,8 +48,8 @@ export function PendingApprovalsCard() {
         </CardTitle>
         <CardDescription>
           {pending.length === 1
-            ? "1 tarefa espera o seu “ok”."
-            : `${pending.length} tarefas esperam o seu “ok”.`}
+            ? "1 item espera o seu “ok”."
+            : `${pending.length} itens esperam o seu “ok”.`}
         </CardDescription>
       </CardHeader>
       <CardContent>

@@ -21,7 +21,7 @@ import {
 import type { CustomFieldDefinition } from "@/types/custom-field";
 
 interface EditOptionsDialogProps {
-  projectId: string;
+  folderId: string;
   definition: CustomFieldDefinition;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -33,12 +33,12 @@ interface OptionRow {
 }
 
 export function EditOptionsDialog({
-  projectId,
+  folderId,
   definition,
   open,
   onOpenChange,
 }: EditOptionsDialogProps) {
-  const updateMutation = useUpdateCustomFieldOptionsMutation(projectId);
+  const updateMutation = useUpdateCustomFieldOptionsMutation(folderId);
   // Parent remounts this component (via `key={definition.id}`) whenever a
   // different definition is being edited, so a lazy initializer is enough —
   // no effect needed to resync `options` when `definition` changes. Each row

@@ -103,7 +103,7 @@
   --sidebar-border: oklch(0.915 0.01 275);
   --sidebar-ring: oklch(0.6 0.2 275);
 
-  /* Categorical palette for analytics charts (e.g. tasks-by-project) — kept
+  /* Categorical palette for analytics charts (e.g. items-by-folder) — kept
      separate from --chart-1..5 above, whose first two steps (both violet)
      fail CVD-safe separation for adjacent categories. Values + ordering are
      the dataviz skill's validated reference palette. */

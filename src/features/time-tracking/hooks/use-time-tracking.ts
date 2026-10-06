@@ -59,12 +59,12 @@ export function useStartTimerMutation() {
   const invalidate = useInvalidateTime();
 
   return useMutation({
-    mutationFn: ({ taskId }: { taskId: string }) => timeTrackingService.start(taskId),
+    mutationFn: ({ itemId }: { itemId: string }) => timeTrackingService.start(itemId),
     onSuccess: ({ running, stopped }) => {
       queryClient.setQueryData(queryKeys.timeTracking.running(), running);
       invalidate();
       toast.success(
-        stopped ? "Cronômetro trocado para esta tarefa (o anterior foi parado e salvo)." : "Cronômetro iniciado."
+        stopped ? "Cronômetro trocado para este item (o anterior foi parado e salvo)." : "Cronômetro iniciado."
       );
     },
     onError: (error) => toast.error(getErrorMessage(error)),
@@ -90,19 +90,19 @@ export function useStopTimerMutation() {
   });
 }
 
-export function useTaskTimeEntriesQuery(taskId: string, page = 1) {
+export function useItemTimeEntriesQuery(itemId: string, page = 1) {
   return useQuery({
-    queryKey: queryKeys.timeTracking.task(taskId, page),
-    queryFn: () => timeTrackingService.listForTask(taskId, { page, limit: 10 }),
+    queryKey: queryKeys.timeTracking.item(itemId, page),
+    queryFn: () => timeTrackingService.listForItem(itemId, { page, limit: 10 }),
     placeholderData: keepPreviousData,
   });
 }
 
-export function useLogTimeEntryMutation(taskId: string) {
+export function useLogTimeEntryMutation(itemId: string) {
   const invalidate = useInvalidateTime();
 
   return useMutation({
-    mutationFn: (payload: LogTimeEntryRequest) => timeTrackingService.log(taskId, payload),
+    mutationFn: (payload: LogTimeEntryRequest) => timeTrackingService.log(itemId, payload),
     onSuccess: () => {
       invalidate();
       toast.success("Tempo registrado.");
@@ -135,10 +135,10 @@ export function useDeleteTimeEntryMutation() {
   });
 }
 
-export function useProjectTimeReportQuery(projectId: string, groupBy: TimeReportGroupBy, from?: string) {
+export function useFolderTimeReportQuery(folderId: string, groupBy: TimeReportGroupBy, from?: string) {
   return useQuery({
-    queryKey: queryKeys.timeTracking.report(projectId, { groupBy, from }),
-    queryFn: () => timeTrackingService.report(projectId, { groupBy, from }),
+    queryKey: queryKeys.timeTracking.report(folderId, { groupBy, from }),
+    queryFn: () => timeTrackingService.report(folderId, { groupBy, from }),
     placeholderData: keepPreviousData,
   });
 }

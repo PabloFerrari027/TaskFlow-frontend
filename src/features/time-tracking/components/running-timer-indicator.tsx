@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Square, Timer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatClock } from "@/lib/format";
-import { useTaskQuery } from "@/features/tasks/hooks/use-tasks";
+import { useItemQuery } from "@/features/items/hooks/use-items";
 import {
   useElapsedSeconds,
   useRunningTimerQuery,
@@ -14,15 +14,15 @@ import type { TimeEntry } from "@/types/time-tracking";
 
 function RunningPill({ entry }: { entry: TimeEntry }) {
   const elapsed = useElapsedSeconds(entry);
-  const taskQuery = useTaskQuery(entry.taskId);
+  const itemQuery = useItemQuery(entry.itemId);
   const stopMutation = useStopTimerMutation();
-  const title = taskQuery.data?.title ?? "Tarefa";
+  const title = itemQuery.data?.title ?? "Item";
 
   return (
     <div className="flex items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/10 py-0.5 pr-0.5 pl-2.5 text-sm">
       <Timer className="size-4 text-emerald-600 dark:text-emerald-400" aria-hidden />
       <Link
-        href={`/projects/${entry.projectId}/tasks?taskId=${entry.taskId}`}
+        href={`/folders/${entry.folderId}/items?itemId=${entry.itemId}`}
         className="flex items-center gap-1.5 hover:underline"
         title={`Cronômetro rodando em “${title}”`}
       >

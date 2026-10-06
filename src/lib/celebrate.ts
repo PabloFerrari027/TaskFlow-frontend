@@ -1,5 +1,5 @@
 /**
- * A short confetti burst for finishing something (a task marked done). Plain
+ * A short confetti burst for finishing something (an item marked done). Plain
  * DOM + Web Animations API, no dependency: ~40 small pieces that fly out from
  * where the user last clicked and fade away in about a second. Skipped
  * entirely for users who asked the OS for reduced motion.
@@ -17,7 +17,7 @@ const PIECES = 40;
 let lastPointer: { x: number; y: number } | null = null;
 
 if (typeof window !== "undefined") {
-  // The burst starts where the click that finished the task happened (the
+  // The burst starts where the click that finished the item happened (the
   // status select, a checkbox…). Captured, so nothing can swallow it.
   window.addEventListener(
     "pointerdown",

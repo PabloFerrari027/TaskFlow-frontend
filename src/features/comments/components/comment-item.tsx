@@ -12,29 +12,29 @@ import { formatRelativeTime } from "@/lib/format";
 import { extractMentionedUserIds, splitMentions } from "@/lib/mentions";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth/auth-context";
-import { useAssignableMembers } from "@/features/tasks/hooks/use-assignable-members";
-import { useProjectPermission } from "@/features/projects/hooks/use-project-permission";
+import { useAssignableMembers } from "@/features/items/hooks/use-assignable-members";
+import { useFolderPermission } from "@/features/folders/hooks/use-folder-permission";
 import {
   useDeleteCommentMutation,
   useToggleCommentReactionMutation,
   useUpdateCommentMutation,
 } from "@/features/comments/hooks/use-comments";
-import { useMemberName } from "@/features/tasks/components/task-assignees-field";
+import { useMemberName } from "@/features/items/components/item-assignees-field";
 import type { Comment } from "@/types/comment";
 
 interface CommentItemProps {
   comment: Comment;
-  projectId: string;
+  folderId: string;
   hasReplies: boolean;
   onReply: () => void;
 }
 
 const QUICK_EMOJIS = ["👍", "❤️", "🎉", "😄", "👀", "🙏", "✅", "🔥"];
 
-function Reactions({ comment, projectId }: { comment: Comment; projectId: string }) {
+function Reactions({ comment, folderId }: { comment: Comment; folderId: string }) {
   const { userId: currentUserId } = useAuth();
-  const memberName = useMemberName(projectId);
-  const toggle = useToggleCommentReactionMutation(comment.taskId, currentUserId);
+  const memberName = useMemberName(folderId);
+  const toggle = useToggleCommentReactionMutation(comment.itemId, currentUserId);
   const [pickerOpen, setPickerOpen] = React.useState(false);
   const reactions = comment.reactions ?? [];
 
@@ -96,12 +96,12 @@ function Reactions({ comment, projectId }: { comment: Comment; projectId: string
   );
 }
 
-export function CommentItem({ comment, projectId, hasReplies, onReply }: CommentItemProps) {
+export function CommentItem({ comment, folderId, hasReplies, onReply }: CommentItemProps) {
   const { userId: currentUserId } = useAuth();
-  const { canManage } = useProjectPermission(projectId);
-  const deleteMutation = useDeleteCommentMutation(comment.taskId);
-  const updateMutation = useUpdateCommentMutation(comment.taskId);
-  const { userIds: memberIds, names } = useAssignableMembers(projectId);
+  const { canManage } = useFolderPermission(folderId);
+  const deleteMutation = useDeleteCommentMutation(comment.itemId);
+  const updateMutation = useUpdateCommentMutation(comment.itemId);
+  const { userIds: memberIds, names } = useAssignableMembers(folderId);
   const [editing, setEditing] = React.useState(false);
   const [draft, setDraft] = React.useState(comment.content);
 
@@ -189,7 +189,7 @@ export function CommentItem({ comment, projectId, hasReplies, onReply }: Comment
         {editing ? (
           <div className="mt-1 space-y-2">
             <MentionTextarea
-              projectId={projectId}
+              folderId={folderId}
               rows={3}
               autoFocus
               value={draft}
@@ -220,7 +220,7 @@ export function CommentItem({ comment, projectId, hasReplies, onReply }: Comment
           )}
         </p>
         )}
-        <Reactions comment={comment} projectId={projectId} />
+        <Reactions comment={comment} folderId={folderId} />
       </div>
     </div>
   );

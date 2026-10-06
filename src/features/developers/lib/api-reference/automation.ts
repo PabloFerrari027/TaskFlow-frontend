@@ -29,18 +29,18 @@ export function buildAutomationEndpoints(workspaceId: string): ApiEndpoint[] {
       responseExample: [
         "data: {\"type\":\"sync\"}",
         "",
-        'data: {"type":"change","entityType":"TASK","entityId":"...","eventType":"tasks.task_status_changed","workspaceId":"...","occurredAt":"..."}',
+        'data: {"type":"change","entityType":"ITEM","entityId":"...","eventType":"items.item_status_changed","workspaceId":"...","occurredAt":"..."}',
       ].join("\n"),
       notes: [
         "Ticket já usado/expirado (401 `REALTIME_TICKET_INVALID`) faz o auto-reconnect nativo do `EventSource` falhar — peça um ticket novo e reabra a conexão no `onerror`.",
-        "Nem toda mudança gera `change`: hoje não avisam criar/excluir task, nem editar/excluir section ou excluir comentário.",
+        "Nem toda mudança gera `change`: hoje não avisam criar/excluir item, nem editar/excluir section ou excluir comentário.",
       ],
     },
     {
       method: "POST",
       path: base,
       summary: "Criar uma regra de automação",
-      description: "\"Quando X acontecer, executa Y\" sem confirmação humana. Requer `OWNER`/`ADMIN`. `action.tool` só aceita as tools de task do assistente (nunca `read`/`critical`).",
+      description: "\"Quando X acontecer, executa Y\" sem confirmação humana. Requer `OWNER`/`ADMIN`. `action.tool` só aceita as tools de item do assistente (nunca `read`/`critical`).",
       bodyParams: [
         { name: "name", type: "string", required: true, notes: "1 a 120 caracteres" },
         { name: "trigger", type: "{ entityType, eventType, conditions? }", required: true },
@@ -52,8 +52,8 @@ export function buildAutomationEndpoints(workspaceId: string): ApiEndpoint[] {
         '  -H "Content-Type: application/json" \\',
         "  -d '{",
         '    "name": "Concluída -> mover para Done",',
-        '    "trigger": { "entityType": "TASK", "eventType": "tasks.task_status_changed", "conditions": [{ "field": "toStatus", "operator": "equals", "value": "DONE" }] },',
-        '    "action": { "tool": "move_task", "params": { "taskId": "{{payload.entityId}}", "sectionId": "SECTION_ID" } }',
+        '    "trigger": { "entityType": "ITEM", "eventType": "items.item_status_changed", "conditions": [{ "field": "toStatus", "operator": "equals", "value": "DONE" }] },',
+        '    "action": { "tool": "move_item", "params": { "itemId": "{{payload.entityId}}", "sectionId": "SECTION_ID" } }',
         "  }'",
       ].join("\n"),
       responseStatus: "201 Created",

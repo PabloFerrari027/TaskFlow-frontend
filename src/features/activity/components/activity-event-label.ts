@@ -1,15 +1,15 @@
-import { TASK_PRIORITY_LABEL, TASK_STATUS_LABEL } from "@/components/shared/status-badge";
+import { ITEM_PRIORITY_LABEL, ITEM_STATUS_LABEL } from "@/components/shared/status-badge";
 import { formatDate, formatMinutes } from "@/lib/format";
 import { formatCustomFieldValue } from "@/features/custom-fields/lib/format-custom-field-value";
 import type { ActivityLogEntry } from "@/types/activity";
-import type { TaskPriority, TaskStatus } from "@/types/task";
+import type { ItemPriority, ItemStatus } from "@/types/item";
 
-function isTaskStatus(value: unknown): value is TaskStatus {
-  return typeof value === "string" && value in TASK_STATUS_LABEL;
+function isItemStatus(value: unknown): value is ItemStatus {
+  return typeof value === "string" && value in ITEM_STATUS_LABEL;
 }
 
-function isTaskPriority(value: unknown): value is TaskPriority {
-  return typeof value === "string" && value in TASK_PRIORITY_LABEL;
+function isItemPriority(value: unknown): value is ItemPriority {
+  return typeof value === "string" && value in ITEM_PRIORITY_LABEL;
 }
 
 function formatDateValue(value: unknown) {
@@ -17,7 +17,7 @@ function formatDateValue(value: unknown) {
 }
 
 /**
- * Confirmed against the backend source (task.events.ts / comment.events.ts):
+ * Confirmed against the backend source (item.events.ts / comment.events.ts):
  * every `eventType` this handles is a fixed literal string returned by an
  * `eventName` getter, passed straight through to the DB and the API
  * response with no transformation — the backend IS consistent and exactly
@@ -36,7 +36,7 @@ export interface ActivityFieldChange {
 }
 
 export interface ActivityDescribeContext {
-  /** sectionId → name, so section moves can show "Coluna A → Coluna B". Only available where the project is known. */
+  /** sectionId → name, so section moves can show "Coluna A → Coluna B". Only available where the folder is known. */
   sectionNames?: ReadonlyMap<string, string>;
 }
 
@@ -57,22 +57,22 @@ function readTextChange(value: unknown): { from: string | null; to: string | nul
 }
 
 const EXACT_LABELS: Record<string, string> = {
-  "recurring_tasks.task_recurrence_created": "criou uma tarefa repetida",
-  "recurring_tasks.task_recurrence_updated": "editou uma tarefa repetida",
-  "recurring_tasks.task_recurrence_deleted": "removeu uma tarefa repetida",
-  "recurring_tasks.task_recurrence_enabled_changed": "ligou ou desligou uma tarefa repetida",
-  "recurring_tasks.task_recurrence_auto_disabled": "uma tarefa repetida foi desligada automaticamente",
-  "tasks.task_workflow_status_changed": "mudou a etapa",
-  "tasks.task_assignees_changed": "alterou os responsáveis",
-  "tasks.task_schedule_changed": "alterou o início ou o marco",
-  "tasks.task_estimate_changed": "alterou a estimativa",
-  "tasks.task_dependency_added": "ligou a tarefa a outra da qual ela depende",
-  "tasks.task_dependency_removed": "removeu uma dependência",
-  "tasks.task_restored": "restaurou a tarefa da lixeira",
-  "tasks.task_deleted": "mandou a tarefa para a lixeira",
-  "tasks.task_unblocked": "a tarefa foi liberada (as dependências terminaram)",
-  "tasks.task_due_soon": "o prazo está chegando",
-  "tasks.task_overdue": "a tarefa passou do prazo",
+  "recurring_items.item_recurrence_created": "criou um item repetido",
+  "recurring_items.item_recurrence_updated": "editou um item repetido",
+  "recurring_items.item_recurrence_deleted": "removeu um item repetido",
+  "recurring_items.item_recurrence_enabled_changed": "ligou ou desligou um item repetido",
+  "recurring_items.item_recurrence_auto_disabled": "um item repetido foi desligado automaticamente",
+  "items.item_workflow_status_changed": "mudou a etapa",
+  "items.item_assignees_changed": "alterou os responsáveis",
+  "items.item_schedule_changed": "alterou o início ou o marco",
+  "items.item_estimate_changed": "alterou a estimativa",
+  "items.item_dependency_added": "ligou o item a outro do qual ele depende",
+  "items.item_dependency_removed": "removeu uma dependência",
+  "items.item_restored": "restaurou o item da lixeira",
+  "items.item_deleted": "mandou o item para a lixeira",
+  "items.item_unblocked": "o item foi liberado (as dependências terminaram)",
+  "items.item_due_soon": "o prazo está chegando",
+  "items.item_overdue": "o item passou do prazo",
   "approvals.approval_requested": "pediu aprovação",
   "approvals.approval_decided": "respondeu um pedido de aprovação",
 };
@@ -81,19 +81,19 @@ function describeExactDetail(type: string, payload: Record<string, unknown>): st
   if (type === "approvals.approval_decided") {
     return payload.decision === "APPROVED" ? "aprovada" : payload.decision === "REJECTED" ? "recusada" : null;
   }
-  if (type === "tasks.task_schedule_changed") {
+  if (type === "items.item_schedule_changed") {
     return formatDateValue(payload.startDate);
   }
-  if (type === "tasks.task_estimate_changed") {
+  if (type === "items.item_estimate_changed") {
     const parts: string[] = [];
     if (typeof payload.estimateMinutes === "number") parts.push(formatMinutes(payload.estimateMinutes));
     if (typeof payload.storyPoints === "number") parts.push(`${payload.storyPoints} pontos`);
     return parts.length > 0 ? parts.join(" · ") : null;
   }
-  if (type === "tasks.task_workflow_status_changed" && isTaskStatus(payload.category)) {
-    return TASK_STATUS_LABEL[payload.category];
+  if (type === "items.item_workflow_status_changed" && isItemStatus(payload.category)) {
+    return ITEM_STATUS_LABEL[payload.category];
   }
-  if (type === "recurring_tasks.task_recurrence_created" || type === "recurring_tasks.task_recurrence_updated") {
+  if (type === "recurring_items.item_recurrence_created" || type === "recurring_items.item_recurrence_updated") {
     return typeof payload.title === "string" ? payload.title : null;
   }
   return null;
@@ -114,14 +114,14 @@ export function describeActivityEntry(
     if (entry.eventType.toLowerCase().includes("edited")) {
       return { label: "editou um comentário", detail: null };
     }
-    return { label: "comentou nesta tarefa", detail: null };
+    return { label: "comentou neste item", detail: null };
   }
 
   const type = entry.eventType.toLowerCase();
   const payload = entry.payload ?? {};
 
   // Exact labels for the events whose names would otherwise trip the
-  // substring matching below ("task_recurrence_created" → "criou a tarefa").
+  // substring matching below ("item_recurrence_created" → "criou o item").
   const exact = EXACT_LABELS[type];
   if (exact) {
     return { label: exact, detail: describeExactDetail(type, payload) };
@@ -129,8 +129,8 @@ export function describeActivityEntry(
 
   // Checked before the generic eventType substring matching below — a
   // "sections.section_created"/"sections.section_moved" eventType would
-  // otherwise match the "created"/"section" branches meant for tasks (see
-  // module doc comment above) and render a wrong, task-flavored label.
+  // otherwise match the "created"/"section" branches meant for items (see
+  // module doc comment above) and render a wrong, item-flavored label.
   if (entry.entityType === "SECTION") {
     if (type.includes("moved")) {
       return { label: "moveu a seção", detail: null };
@@ -173,7 +173,7 @@ export function describeActivityEntry(
   if (type.includes("parent")) {
     const to = payload.toParentId;
     return {
-      label: typeof to === "string" ? "transformou a tarefa em subtarefa" : "promoveu a subtarefa a tarefa principal",
+      label: typeof to === "string" ? "transformou o item em subitem" : "promoveu o subitem o item principal",
       detail: null,
     };
   }
@@ -184,8 +184,8 @@ export function describeActivityEntry(
     return {
       label: "mudou o status",
       detail:
-        isTaskStatus(from) && isTaskStatus(to)
-          ? `${TASK_STATUS_LABEL[from]} → ${TASK_STATUS_LABEL[to]}`
+        isItemStatus(from) && isItemStatus(to)
+          ? `${ITEM_STATUS_LABEL[from]} → ${ITEM_STATUS_LABEL[to]}`
           : null,
     };
   }
@@ -206,7 +206,7 @@ export function describeActivityEntry(
   if (type.includes("moved") || type.includes("position") || type.includes("section")) {
     const from = sectionLabel(payload.fromSectionId, context);
     const to = sectionLabel(payload.toSectionId, context);
-    return { label: "moveu a tarefa", detail: from && to ? `${from} → ${to}` : null };
+    return { label: "moveu o item", detail: from && to ? `${from} → ${to}` : null };
   }
 
   if (type.includes("due_date") || type.includes("duedate")) {
@@ -220,12 +220,12 @@ export function describeActivityEntry(
 
   if (type.includes("priority")) {
     const rawTo = payload.toPriority ?? payload.priority;
-    const to = isTaskPriority(rawTo) ? TASK_PRIORITY_LABEL[rawTo] : "sem prioridade";
+    const to = isItemPriority(rawTo) ? ITEM_PRIORITY_LABEL[rawTo] : "sem prioridade";
     const rawFrom = payload.previousPriority;
     const from =
       "previousPriority" in payload
-        ? isTaskPriority(rawFrom)
-          ? TASK_PRIORITY_LABEL[rawFrom]
+        ? isItemPriority(rawFrom)
+          ? ITEM_PRIORITY_LABEL[rawFrom]
           : "sem prioridade"
         : null;
     return { label: "alterou a prioridade", detail: from ? `${from} → ${to}` : to };
@@ -239,11 +239,11 @@ export function describeActivityEntry(
   }
 
   if (type.includes("created")) {
-    return { label: "criou a tarefa", detail: null };
+    return { label: "criou o item", detail: null };
   }
 
   // Unrecognized event class — still show something rather than nothing,
-  // humanized from the raw eventType (e.g. "tasks.task_reopened" → "task reopened").
+  // humanized from the raw eventType (e.g. "items.item_reopened" → "item reopened").
   const humanized = entry.eventType.split(".").pop()?.replace(/_/g, " ") ?? entry.eventType;
   return { label: humanized, detail: null };
 }
