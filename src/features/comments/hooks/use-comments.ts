@@ -15,7 +15,7 @@ import { queryKeys } from "@/lib/query-keys";
 import { getErrorMessage } from "@/lib/errors";
 import { MAX_PAGE_SIZE } from "@/types/common";
 import { useCurrentWorkspace } from "@/features/workspaces/context/current-workspace-context";
-import { isOffline, queueEntityDelete } from "@/features/sync/lib/sync-engine";
+import { isOffline, OFFLINE_CAPABLE_MUTATION, queueEntityDelete } from "@/features/sync/lib/sync-engine";
 import type { PaginatedResult } from "@/types/common";
 import type { Comment, CreateCommentRequest, UpdateCommentRequest } from "@/types/comment";
 
@@ -49,6 +49,7 @@ export function useDeleteCommentMutation(itemId: string) {
   const { workspaceId } = useCurrentWorkspace();
 
   return useMutation({
+    ...OFFLINE_CAPABLE_MUTATION,
     mutationFn: (commentId: string) => {
       if (isOffline() && workspaceId) {
         // Comments aren't versioned (API.md § 17) — there's no baseVersion

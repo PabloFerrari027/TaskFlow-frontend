@@ -7,7 +7,7 @@ import { queryKeys } from "@/lib/query-keys";
 import { getErrorMessage } from "@/lib/errors";
 import { MAX_PAGE_SIZE } from "@/types/common";
 import { useCurrentWorkspace } from "@/features/workspaces/context/current-workspace-context";
-import { isOffline, queueEntityUpdate } from "@/features/sync/lib/sync-engine";
+import { isOffline, OFFLINE_CAPABLE_MUTATION, queueEntityUpdate } from "@/features/sync/lib/sync-engine";
 import type { PaginatedResult } from "@/types/common";
 import type {
   CreateCustomFieldDefinitionRequest,
@@ -84,6 +84,7 @@ export function useUpdateCustomFieldOptionsMutation(folderId: string) {
   const { workspaceId } = useCurrentWorkspace();
 
   return useMutation({
+    ...OFFLINE_CAPABLE_MUTATION,
     mutationFn: ({
       definitionId,
       payload,
@@ -136,6 +137,7 @@ export function useArchiveCustomFieldMutation(folderId: string) {
   const { workspaceId } = useCurrentWorkspace();
 
   return useMutation({
+    ...OFFLINE_CAPABLE_MUTATION,
     mutationFn: (definitionId: string) => {
       const current = findCachedDefinition(queryClient, folderId, definitionId);
       if (isOffline() && workspaceId && current) {

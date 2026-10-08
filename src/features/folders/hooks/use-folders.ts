@@ -7,7 +7,7 @@ import { queryKeys } from "@/lib/query-keys";
 import { getErrorMessage } from "@/lib/errors";
 import { MAX_PAGE_SIZE } from "@/types/common";
 import { useCurrentWorkspace } from "@/features/workspaces/context/current-workspace-context";
-import { isOffline, queueEntityUpdate } from "@/features/sync/lib/sync-engine";
+import { isOffline, OFFLINE_CAPABLE_MUTATION, queueEntityUpdate } from "@/features/sync/lib/sync-engine";
 import type { PaginatedResult } from "@/types/common";
 import type {
   CreateFolderRequest,
@@ -98,6 +98,7 @@ export function useUpdateFolderMutation(
   const { workspaceId } = useCurrentWorkspace();
 
   return useMutation({
+    ...OFFLINE_CAPABLE_MUTATION,
     mutationFn: (payload: UpdateFolderRequest) => {
       // The detail cache is only filled once a folder is opened, but the
       // table edits straight from the list — fall back to its copy (its
@@ -182,6 +183,7 @@ export function useArchiveFolderMutation(folderId: string) {
   const { workspaceId } = useCurrentWorkspace();
 
   return useMutation({
+    ...OFFLINE_CAPABLE_MUTATION,
     mutationFn: () => {
       const current = queryClient.getQueryData<Folder>(queryKeys.folders.detail(folderId));
       if (isOffline() && workspaceId && current) {
