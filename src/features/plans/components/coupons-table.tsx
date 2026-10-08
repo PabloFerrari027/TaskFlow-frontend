@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import axios from "axios";
 import { Pencil, Power, Search, Ticket, Trash2, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -45,6 +44,7 @@ import {
 import { describeDiscount, formatPriceCents } from "@/features/plans/lib/price";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { formatDate, formatDateTime } from "@/lib/format";
+import { isForbiddenError } from "@/lib/errors";
 import type { Coupon, CouponStatusFilter } from "@/types/plan";
 
 const PAGE_SIZE = 20;
@@ -162,8 +162,7 @@ export function CouponsTable() {
   React.useEffect(() => {
     if (
       couponsQuery.isError &&
-      axios.isAxiosError(couponsQuery.error) &&
-      couponsQuery.error.response?.status === 403
+      isForbiddenError(couponsQuery.error)
     ) {
       router.replace("/403");
     }

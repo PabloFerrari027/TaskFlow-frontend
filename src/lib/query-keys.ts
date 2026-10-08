@@ -65,6 +65,7 @@ export const queryKeys = {
       ["workspaces", "invitations", token, "preview"] as const,
   },
   folders: {
+    root: () => ["folders"] as const,
     all: (workspaceId: string) => ["folders", "workspace", workspaceId] as const,
     detail: (folderId: string) => ["folders", folderId] as const,
     members: (folderId: string) => ["folders", folderId, "members"] as const,
@@ -76,6 +77,7 @@ export const queryKeys = {
       ["folders", "invitations", token, "preview"] as const,
   },
   items: {
+    root: () => ["items"] as const,
     all: (folderId: string, page?: number) =>
       page
         ? (["items", "folder", folderId, { page }] as const)
@@ -91,6 +93,8 @@ export const queryKeys = {
       page
         ? (["items", "trash", folderId, { page }] as const)
         : (["items", "trash", folderId] as const),
+    // Every folder's trash, when the folder isn't known (capture undo).
+    trashAll: () => ["items", "trash"] as const,
     // Binary downloads (attachments, covers) deliberately live under their own
     // root, not `["items", itemId, ...]`: the bulk `items` invalidations run on
     // every realtime signal / non-empty pull, and would otherwise re-download
@@ -150,6 +154,7 @@ export const queryKeys = {
   // A folder's custom statuses (etapas). Configuration, not synced.
   statuses: {
     all: (folderId: string) => ["statuses", "folder", folderId] as const,
+    byFolderAll: () => ["statuses", "folder"] as const,
   },
   sections: {
     all: (folderId: string) => ["sections", "folder", folderId] as const,

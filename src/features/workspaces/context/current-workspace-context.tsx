@@ -77,6 +77,12 @@ export function CurrentWorkspaceProvider({
   );
 }
 
+// For shared components that may also render outside the dashboard (public
+// pages): `null` there instead of throwing.
+export function useOptionalCurrentWorkspace() {
+  return React.useContext(CurrentWorkspaceContext);
+}
+
 export function useCurrentWorkspace() {
   const context = React.useContext(CurrentWorkspaceContext);
   if (!context) {

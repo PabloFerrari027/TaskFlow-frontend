@@ -20,9 +20,20 @@ export interface PendingAction {
   // own documented mitigation for `reply` being persuasive-but-not-authoritative
   // text (API.md § 16, "Risco residual"). Never hide this.
   params: Record<string, unknown>;
+  // Only for tools that change an existing field (update_*, assign_item,
+  // move_item, change_item_status): one entry per field the action will
+  // actually change, `from` read by the backend from the real current state.
+  // Omitted (not `[]`) for create_* tools (API.md § 16).
+  diff?: PendingActionFieldDiff[];
   // Only ever true for a `revoke_session` action targeting the caller's own
   // current session.
   isCurrentSession?: boolean;
+}
+
+export interface PendingActionFieldDiff {
+  field: string;
+  from: unknown;
+  to: unknown;
 }
 
 export interface ExecutedAction {

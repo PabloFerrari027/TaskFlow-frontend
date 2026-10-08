@@ -29,7 +29,7 @@ export function FolderStatusBadge({ status }: { status: FolderStatus }) {
 
 export const ITEM_STATUS_LABEL: Record<ItemStatus, string> = {
   TODO: "A fazer",
-  IN_PROGRESS: "Em progresso",
+  IN_PROGRESS: "Em andamento",
   DONE: "Concluída",
 };
 
@@ -86,7 +86,7 @@ export function ItemDueDateBadge({ dueDate }: { dueDate: string }) {
   );
 }
 
-const WORKSPACE_ROLE_LABEL: Record<WorkspaceRole, string> = {
+export const WORKSPACE_ROLE_LABEL: Record<WorkspaceRole, string> = {
   OWNER: "Proprietário",
   ADMIN: "Administrador",
   MEMBER: "Membro",

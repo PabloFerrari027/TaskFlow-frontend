@@ -2,34 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { formatTime } from "@/lib/format";
+import { toolLabel } from "@/features/assistant/lib/tool-labels";
 import type { ConfirmedActionSummary } from "@/features/assistant/types";
-
-// Readable past-tense label per tool — falls back to the raw name for any
-// tool this map hasn't been updated for yet.
-const TOOL_PAST_LABEL: Record<string, string> = {
-  create_workspace: "Workspace criado",
-  update_workspace: "Workspace atualizado",
-  invite_workspace_member: "Membro convidado",
-  delete_workspace: "Workspace apagado",
-  remove_workspace_member: "Membro removido",
-  create_folder: "Pasta criada",
-  update_folder: "Pasta atualizada",
-  archive_folder: "Pasta arquivada",
-  create_item: "Item criado",
-  update_item: "Item atualizado",
-  assign_item: "Item atribuído",
-  move_item: "Item movido",
-  change_item_status: "Status do item alterado",
-  add_item_participant: "Participante adicionado",
-  remove_item_participant: "Participante removido",
-  request_item_approval: "Aprovação pedida",
-  attach_files_to_item: "Arquivos anexados",
-  revoke_session: "Sessão encerrada",
-};
-
-function toolLabel(tool: string): string {
-  return TOOL_PAST_LABEL[tool] ?? tool;
-}
 
 // Shown when the user clicks "Encerrar e revisar" — a deliberate pause
 // before the Sheet actually closes, listing every action confirmed this

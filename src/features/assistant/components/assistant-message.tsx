@@ -5,6 +5,7 @@ import { MarkdownContent } from "@/components/shared/markdown-content";
 import { cn } from "@/lib/utils";
 import { PendingActionCard } from "@/features/assistant/components/pending-action-card";
 import { TypingIndicator } from "@/features/assistant/components/typing-indicator";
+import { toolLabel } from "@/features/assistant/lib/tool-labels";
 import type {
   AssistantChatStage,
   AssistantChatStatus,
@@ -22,13 +23,20 @@ const STAGE_LABEL: Record<Exclude<AssistantChatStage, "running_tool">, string> =
   checking_content: "Revisando a resposta...",
 };
 
-// Read-only tools; every other tool registers an action for the user to
-// confirm, so it gets the generic "preparing" label.
+// Tools that run right away: reads, plus the capture tools that write without
+// a confirmation. Any other tool registers an action for the user to confirm,
+// so it gets the generic "preparing" label.
 const READ_TOOL_LABEL: Record<string, string> = {
   list_items: "Consultando os itens...",
   list_folders: "Consultando as pastas...",
   list_workspaces: "Consultando os workspaces...",
   list_sessions: "Consultando suas sessões...",
+  find_information: "Procurando nas suas anotações...",
+  suggest_organization: "Vendo como organizar suas anotações...",
+  save_information: "Guardando a informação...",
+  undo_saved_information: "Desfazendo...",
+  // Runs right away only when the destination already exists.
+  relocate_information: "Vendo para onde levar...",
 };
 
 function streamingStatusLabel(status: AssistantChatStatus): string {
@@ -103,14 +111,14 @@ export function AssistantMessage({
           </div>
         ) : null}
 
-        {/* Always empty in v1 (API.md § 16) — rendered defensively for when
-            that changes, per the transparency requirement: a concluded
+        {/* Reads and the capture tools (which run without a confirmation)
+            land here. Transparency requirement (API.md § 16): a concluded
             action is shown, never just implied by the reply text. */}
         {message.executedActions && message.executedActions.length > 0 ? (
           <div className="space-y-1">
             {message.executedActions.map((action, index) => (
               <p key={index} className="text-xs text-muted-foreground">
-                ✅ {action.tool}
+                ✅ {toolLabel(action.tool)}
               </p>
             ))}
           </div>

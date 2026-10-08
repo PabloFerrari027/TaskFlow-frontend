@@ -15,7 +15,7 @@ const COLUMNS = [
   },
   {
     status: "IN_PROGRESS" as const,
-    title: "Em progresso",
+    title: "Em andamento",
     icon: CircleDot,
     items: [
       { title: "Implementar convite por e-mail", attachments: 2, tag: "Backend" },

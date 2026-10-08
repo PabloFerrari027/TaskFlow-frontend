@@ -73,8 +73,8 @@ export function MembersTable({
             <TableRow key={member.userId}>
               <TableCell>
                 <div className="flex items-center gap-2">
-                  <MemberAvatar userId={member.userId} />
-                  <MemberIdLabel userId={member.userId} />
+                  <MemberAvatar userId={member.userId} name={member.name} />
+                  <MemberIdLabel userId={member.userId} name={member.name} />
                 </div>
               </TableCell>
               <TableCell>

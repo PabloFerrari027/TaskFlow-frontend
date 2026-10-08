@@ -169,14 +169,26 @@ function applyServerState(
   }
 }
 
+const REJECTED_ENTITY_LABEL: Record<SyncEntityType, string> = {
+  ITEM: "em um item",
+  FOLDER: "em uma pasta",
+  SECTION: "em uma coluna",
+  CUSTOM_FIELD_DEFINITION: "em um campo personalizado",
+  ITEM_CUSTOM_FIELD_VALUE: "em um campo personalizado",
+  COMMENT: "em um comentário",
+};
+
 function applyResult(
   queryClient: QueryClient,
   op: QueuedOperation,
   result: SyncOperationResult
 ) {
   if (result.status === "REJECTED") {
+    // The server's reason is English and carries no error code to translate:
+    // keep it for debugging only and tell the user what they will see.
+    if (result.message) console.warn(`Sync operation rejected: ${result.message}`);
     toast.error(
-      `Uma alteração foi rejeitada pelo servidor${result.message ? `: ${result.message}` : "."}`
+      `Uma alteração feita offline ${REJECTED_ENTITY_LABEL[op.entityType]} não pôde ser salva e foi desfeita.`
     );
     invalidateForEntity(queryClient, op);
     return;

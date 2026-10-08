@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import axios from "axios";
 import { Pencil, Wallet } from "lucide-react";
 import {
   Table,
@@ -27,6 +26,7 @@ import {
   formatTokensHuman,
 } from "@/features/plans/lib/plan-caps";
 import type { Plan } from "@/types/plan";
+import { isForbiddenError } from "@/lib/errors";
 import { formatPriceCents } from "@/features/plans/lib/price";
 
 const numberFormat = new Intl.NumberFormat("pt-BR");
@@ -42,8 +42,7 @@ export function PlansTable() {
   React.useEffect(() => {
     if (
       plansQuery.isError &&
-      axios.isAxiosError(plansQuery.error) &&
-      plansQuery.error.response?.status === 403
+      isForbiddenError(plansQuery.error)
     ) {
       router.replace("/403");
     }

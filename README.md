@@ -29,7 +29,7 @@ NEXT_PUBLIC_GOOGLE_CLIENT_ID=   # opcional — login com Google fica oculto se v
 Feature-first / vertical slice: `src/features/<domínio>/{api,hooks,components,schemas}`. Fluxo de dados: Componente → hook do TanStack Query → serviço → `src/lib/api/client.ts` (axios) → API. Componentes de UI nunca chamam a API diretamente.
 
 - `src/app` — rotas (App Router)
-- `src/features` — auth, sessions, workspaces, folders, items, sections, custom-fields, comments, activity, analytics, assistant, admin, sync, realtime
+- `src/features` — um diretório por domínio (auth, workspaces, folders, items, sections, assistant, sync, realtime, plans, time-tracking... — lista completa em [ARCHITECTURE.md §2](./ARCHITECTURE.md#2-estrutura-de-pastas))
 - `src/components/ui` — primitivos shadcn/ui
 - `src/components/{layout,marketing,shared}` — composições reutilizáveis
 - `src/lib` — cliente HTTP, autenticação/tokens, permissões, mapeamento de erros
@@ -37,8 +37,8 @@ Feature-first / vertical slice: `src/features/<domínio>/{api,hooks,components,s
 
 Documentação detalhada (roteamento completo, autenticação, permissões, sincronização offline, cada domínio de negócio, design system): [ARCHITECTURE.md](./ARCHITECTURE.md).
 
-## Limitações conhecidas (vêm da própria API)
+## Limitações conhecidas
 
-- Não há endpoint de perfil do usuário autenticado — nome/e-mail exibidos vêm da decodificação do JWT.
-- Membros de workspace/pasta expõem apenas `userId`, sem nome ou e-mail.
-- Não há exclusão de pasta/item — apenas arquivamento (pasta) e mudança de status (item).
+- Não há exclusão de pasta — apenas arquivamento. Itens apagados vão para a lixeira da pasta (30 dias).
+- O pagamento de planos pagos (Stripe) já existe na API, mas o front ainda não abre o checkout.
+- Lista completa em [ARCHITECTURE.md §15](./ARCHITECTURE.md#15-limitações-conhecidas).

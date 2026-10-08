@@ -29,6 +29,8 @@ const AI_USAGE_PAGE_SIZE = 20;
 // `onEvent` as they arrive, and the mutation resolves with the final
 // `done.result` — the same shape the JSON endpoint returns.
 export function useSendChatMessageMutation(workspaceId: string) {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: ({
       message,
@@ -47,6 +49,14 @@ export function useSendChatMessageMutation(workspaceId: string) {
         onEvent,
         signal,
       }),
+    // Writes that ran without a confirmation (capture tools) come back here,
+    // not through `confirm` — apply the same cache effects to them. Read tools
+    // fall through the switch's default.
+    onSuccess: (data) => {
+      for (const action of data.executedActions) {
+        applyConfirmedActionEffects(queryClient, workspaceId, action.tool, action.result);
+      }
+    },
     onError: (error, variables) => {
       // Aborted on purpose (the user closed the chat) — nothing to report.
       if (variables.signal?.aborted) return;
@@ -58,6 +68,17 @@ export function useSendChatMessageMutation(workspaceId: string) {
       toast.error(getErrorMessage(error));
     },
   });
+}
+
+function invalidateCapturedPlaces(queryClient: QueryClient, workspaceId: string) {
+  queryClient.invalidateQueries({ queryKey: queryKeys.folders.all(workspaceId) });
+  queryClient.invalidateQueries({ queryKey: queryKeys.sections.byFolderAll() });
+  queryClient.invalidateQueries({ queryKey: queryKeys.items.byFolderAll() });
+  queryClient.invalidateQueries({ queryKey: queryKeys.items.bySectionAll() });
+  queryClient.invalidateQueries({ queryKey: queryKeys.items.trashAll() });
+  queryClient.invalidateQueries({ queryKey: queryKeys.comments.byItemAll() });
+  queryClient.invalidateQueries({ queryKey: queryKeys.folderStats.root() });
+  queryClient.invalidateQueries({ queryKey: queryKeys.home.root() });
 }
 
 /**
@@ -154,6 +175,16 @@ function applyConfirmedActionEffects(
       queryClient.invalidateQueries({ queryKey: queryKeys.home.root() });
       return;
     }
+    // Capture tools run without confirmation and arrive as `executedActions`.
+    // Their results name places by label only (no folderId), and one call may
+    // create a folder, create an item, append a comment, move items or send an
+    // item to the trash — so they refresh those families broadly.
+    case "save_information":
+    case "undo_saved_information":
+    case "relocate_information":
+    case "organize_information":
+      invalidateCapturedPlaces(queryClient, workspaceId);
+      return;
     case "revoke_session":
       queryClient.invalidateQueries({ queryKey: queryKeys.sessions.all() });
       return;

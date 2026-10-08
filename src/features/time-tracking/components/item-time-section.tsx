@@ -1,10 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { Play, Plus, Square, Timer, Trash2 } from "lucide-react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { Loader2, Play, Plus, Square, Timer, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MemberAvatar } from "@/components/shared/member-avatar";
 import { Pager } from "@/components/shared/pager";
@@ -19,6 +21,11 @@ import {
   useStopTimerMutation,
   useItemTimeEntriesQuery,
 } from "@/features/time-tracking/hooks/use-time-tracking";
+import {
+  logTimeEntrySchema,
+  toLogTimeEntryRequest,
+  type LogTimeEntryFormValues,
+} from "@/features/time-tracking/schemas";
 
 function nowInputs() {
   const now = new Date();
@@ -31,88 +38,96 @@ function nowInputs() {
 
 function LogTimeForm({ itemId, onDone }: { itemId: string; onDone: () => void }) {
   const logMutation = useLogTimeEntryMutation(itemId);
-  const [when, setWhen] = React.useState(nowInputs);
-  const [hours, setHours] = React.useState("");
-  const [minutes, setMinutes] = React.useState("");
-  const [note, setNote] = React.useState("");
-
-  const total = Math.round(Number(hours || 0) * 60 + Number(minutes || 0));
-  const valid = Number.isFinite(total) && total >= 1 && total <= 1440 && !!when.date && !!when.time;
+  const form = useForm<LogTimeEntryFormValues>({
+    resolver: zodResolver(logTimeEntrySchema),
+    defaultValues: { ...nowInputs(), hours: "", minutes: "", note: "" },
+  });
 
   return (
-    <form
-      className="space-y-3 rounded-lg border border-border/60 p-3"
-      onSubmit={(event) => {
-        event.preventDefault();
-        if (!valid) return;
-        // The person types their own local start time.
-        const startedAt = new Date(`${when.date}T${when.time}:00`).toISOString();
-        logMutation.mutate(
-          { startedAt, durationMinutes: total, note: note.trim() || undefined },
-          { onSuccess: onDone }
-        );
-      }}
-    >
-      <div className="grid gap-2 sm:grid-cols-2">
-        <div className="space-y-1">
-          <Label htmlFor="log-date">Dia</Label>
-          <Input
-            id="log-date"
-            type="date"
-            value={when.date}
-            onChange={(e) => setWhen({ ...when, date: e.target.value })}
+    <Form {...form}>
+      <form
+        className="space-y-3 rounded-lg border border-border/60 p-3"
+        onSubmit={form.handleSubmit((values) =>
+          logMutation.mutate(toLogTimeEntryRequest(values), { onSuccess: onDone })
+        )}
+      >
+        <div className="grid gap-2 sm:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="date"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Dia</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="time"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Começou às</FormLabel>
+                <FormControl>
+                  <Input type="time" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
         </div>
-        <div className="space-y-1">
-          <Label htmlFor="log-time">Começou às</Label>
-          <Input
-            id="log-time"
-            type="time"
-            value={when.time}
-            onChange={(e) => setWhen({ ...when, time: e.target.value })}
-          />
+        <FormField
+          control={form.control}
+          name="hours"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Quanto tempo</FormLabel>
+              <div className="flex items-center gap-2">
+                <FormControl>
+                  <Input type="number" min={0} max={24} className="w-20" aria-label="Horas" {...field} />
+                </FormControl>
+                <span className="text-sm text-muted-foreground">h</span>
+                <Input
+                  type="number"
+                  min={0}
+                  max={59}
+                  className="w-20"
+                  aria-label="Minutos"
+                  {...form.register("minutes")}
+                />
+                <span className="text-sm text-muted-foreground">min</span>
+              </div>
+              {/* Duration errors (both inputs) are reported on `hours`. */}
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="note"
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <Input placeholder="O que foi feito? (opcional)" maxLength={500} {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="ghost" size="sm" onClick={onDone}>
+            Cancelar
+          </Button>
+          <Button type="submit" size="sm" disabled={logMutation.isPending}>
+            {logMutation.isPending ? <Loader2 className="animate-spin" /> : null}
+            Registrar
+          </Button>
         </div>
-      </div>
-      <div className="space-y-1">
-        <Label>Quanto tempo</Label>
-        <div className="flex items-center gap-2">
-          <Input
-            type="number"
-            min={0}
-            max={24}
-            className="w-20"
-            aria-label="Horas"
-            value={hours}
-            onChange={(e) => setHours(e.target.value)}
-          />
-          <span className="text-sm text-muted-foreground">h</span>
-          <Input
-            type="number"
-            min={0}
-            max={59}
-            className="w-20"
-            aria-label="Minutos"
-            value={minutes}
-            onChange={(e) => setMinutes(e.target.value)}
-          />
-          <span className="text-sm text-muted-foreground">min</span>
-        </div>
-      </div>
-      <Input
-        placeholder="O que foi feito? (opcional)"
-        maxLength={500}
-        value={note}
-        onChange={(e) => setNote(e.target.value)}
-      />
-      <div className="flex justify-end gap-2">
-        <Button type="button" variant="ghost" size="sm" onClick={onDone}>
-          Cancelar
-        </Button>
-        <Button type="submit" size="sm" disabled={!valid || logMutation.isPending}>
-          Registrar
-        </Button>
-      </div>
-    </form>
+      </form>
+    </Form>
   );
 }
 

@@ -59,7 +59,7 @@ export const GLOSSARY: GlossaryTerm[] = [
   },
   {
     term: "Status",
-    definition: "O andamento do item: A fazer, Em progresso ou Concluída. Independe da coluna.",
+    definition: "O andamento do item: A fazer, Em andamento ou Concluída. Independe da coluna.",
   },
   {
     term: "Responsável",

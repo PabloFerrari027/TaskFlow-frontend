@@ -229,7 +229,6 @@ export function AssistantChat() {
   // recording is in progress (attach a file, type text) and the "stop mic →
   // send" step should still use whatever is current at that moment.
   const filesRef = React.useRef<File[]>(files);
-  filesRef.current = files;
   const sendMessageRef = React.useRef<(filesToSend: File[]) => void>(() => {});
 
   // Recording finishing is itself the send trigger (voice-message style: stop
@@ -367,7 +366,12 @@ export function AssistantChat() {
       }
     );
   }
-  sendMessageRef.current = sendMessage;
+  // Refs are written after render, not during it (react-hooks/refs); a layout
+  // effect still lands before any recorder `onstop` event can read them.
+  React.useLayoutEffect(() => {
+    filesRef.current = files;
+    sendMessageRef.current = sendMessage;
+  });
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();

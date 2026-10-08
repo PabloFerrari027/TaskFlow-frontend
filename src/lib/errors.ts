@@ -254,6 +254,24 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   CHANNEL_VERIFICATION_MAX_ATTEMPTS_EXCEEDED: "Tentativas esgotadas. Peça um novo código.",
   ASSISTANT_CHANNEL_LINK_NOT_FOUND: "Nenhum número vinculado a este canal.",
   ASSISTANT_CHANNEL_CONVERSATION_NOT_FOUND: "Conversa não encontrada.",
+  ITEM_NOT_MOVABLE_TO_FOLDER:
+    "Só dá para levar para outra pasta (do mesmo workspace) um item solto: sem ser subitem, sem subitens, sem dependências e sem campos personalizados preenchidos.",
+  CAPTURE_NOT_FOUND: "Não há nada recente para desfazer ou mudar de lugar. Pode ter passado tempo demais.",
+  CAPTURE_DESTINATION_NOT_FOUND: "Não encontramos uma pasta com esse nome.",
+  CAPTURE_NOTHING_TO_SAVE: "Não há nada escrito para guardar.",
+  INVALID_ASSISTANT_PREFERRED_NAME:
+    "Use só o seu nome, com até 40 letras (espaços, apóstrofos, hífens e pontos valem).",
+  BILLING_NOT_CONFIGURED: "Pagamentos estão indisponíveis no momento. Tente mais tarde.",
+  INVALID_BILLING_WEBHOOK: "Não foi possível confirmar o pagamento.",
+  PLAN_REQUIRES_CHECKOUT: "Este plano é pago. Assine pelo botão de pagamento.",
+  PLAN_NOT_PURCHASABLE: "Este plano é gratuito e não precisa de pagamento.",
+  SUBSCRIPTION_ALREADY_ACTIVE: "Você já tem uma assinatura ativa. Troque de plano por ela.",
+  NO_ACTIVE_SUBSCRIPTION: "Você não tem uma assinatura ativa.",
+  ALREADY_ON_PLAN: "Sua assinatura já está neste plano.",
+  CHECKOUT_ALREADY_COMPLETED: "Seu pagamento anterior acabou de ser aprovado. A assinatura está sendo ativada.",
+  CHECKOUT_IN_PROGRESS: "Já estamos abrindo um pagamento para você. Aguarde um instante e tente de novo.",
+  SUBSCRIPTION_NOT_SCHEDULED_TO_CANCEL: "Sua assinatura não está marcada para cancelar.",
+  BILLING_ACCOUNT_NOT_FOUND: "Você ainda não tem dados de cobrança. Assine um plano primeiro.",
   // Sent as the final `error` frame of the assistant's chat stream, whose
   // server-side messages are in English.
   REQUEST_TIMEOUT: "O assistente demorou demais para responder. Tente de novo.",
@@ -313,6 +331,12 @@ export function getServerErrorMessage(error: unknown): string | null {
     return error.response.data.message || null;
   }
   return null;
+}
+
+// Pages backed by an OWNER/ADMIN- or SUPER_ADMIN-only endpoint redirect to
+// /403 on this, so components don't reach for axios themselves.
+export function isForbiddenError(error: unknown): boolean {
+  return axios.isAxiosError(error) && error.response?.status === 403;
 }
 
 export function getErrorCode(error: unknown): ErrorCode | null {
