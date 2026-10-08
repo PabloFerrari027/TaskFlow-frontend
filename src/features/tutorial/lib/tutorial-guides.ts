@@ -103,7 +103,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         callouts: [
           {
             kind: "note",
-            text: "Status e coluna são coisas diferentes. O status (A fazer, Em progresso, Concluída) é um campo do item; a coluna é onde ele aparece no quadro. Mudar um não muda o outro sozinho, a não ser que você crie uma automação para ligá-los (veja o guia de Automações).",
+            text: "Status e coluna são coisas diferentes. O status (A fazer, Em andamento, Concluída) é um campo do item; a coluna é onde ele aparece no quadro. Mudar um não muda o outro sozinho, a não ser que você crie uma automação para ligá-los (veja o guia de Automações).",
           },
         ],
       },
@@ -857,7 +857,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         heading: "Os números do topo",
         bullets: [
           "Total de itens: todos os itens da pasta, concluídos ou não.",
-          "Itens em aberto: os que ainda não foram concluídos (estão em “A fazer” ou “Em progresso”).",
+          "Itens em aberto: os que ainda não foram concluídos (estão em “A fazer” ou “Em andamento”).",
           "Taxa de conclusão: quanto do total já foi concluído. Se 3 de 10 itens estão concluídos, a taxa é de 30%.",
           "Taxa de atraso: dos itens que têm prazo, quantos passaram do prazo sem ser concluídos.",
           "Tempo médio de conclusão: quanto tempo, em média, um item leva desde que foi criado até ser concluído.",
@@ -883,7 +883,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Os gráficos",
         bullets: [
-          "Itens por status: como os itens se dividem entre A fazer, Em progresso e Concluída.",
+          "Itens por status: como os itens se dividem entre A fazer, Em andamento e Concluída.",
           "Itens por prioridade: quantos itens há em cada nível, de Baixa a Urgente.",
           "Itens criados ao longo do tempo: quantos itens foram criados em cada semana, nas últimas 12 semanas. As semanas começam na segunda-feira.",
           "Itens por responsável: quantos itens estão com cada pessoa. Os que ninguém assumiu aparecem como “Sem responsável”.",
@@ -1274,7 +1274,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
           "Mover para a coluna de concluídas: quando o status virar Concluída, o item vai para a coluna que você escolher.",
           "Devolver ao Backlog ao reabrir: quando um item concluído for reaberto, ele volta para a coluna que você escolher.",
           "Atribuir a quem marcar como Urgente: o item fica com quem mudou a prioridade para Urgente.",
-          "Iniciar o item ao atribuir: ao definir um responsável, o status vira Em progresso.",
+          "Iniciar o item ao atribuir: ao definir um responsável, o status vira Em andamento.",
         ],
       },
       {

@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import axios from "axios";
 import { Image as ImageIcon, LayoutTemplate, SearchX, Trash2 } from "lucide-react";
 import {
   Dialog,
@@ -36,6 +35,7 @@ import {
   useFolderTemplateCategoriesQuery,
 } from "@/features/folder-templates/hooks/use-folder-templates";
 import type { FolderTemplateSummary } from "@/types/folder-template";
+import { isForbiddenError } from "@/lib/errors";
 
 const PAGE_SIZE = 20;
 type PendingAction =
@@ -65,8 +65,7 @@ export function AdminTemplatesTable() {
   React.useEffect(() => {
     if (
       templatesQuery.isError &&
-      axios.isAxiosError(templatesQuery.error) &&
-      templatesQuery.error.response?.status === 403
+      isForbiddenError(templatesQuery.error)
     ) {
       router.replace("/403");
     }

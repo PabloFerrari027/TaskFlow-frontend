@@ -3,7 +3,6 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import axios from "axios";
 import { CheckCircle2, ShieldOff, Users, XCircle } from "lucide-react";
 import {
   Table,
@@ -37,6 +36,7 @@ import {
   useSuspendClientMutation,
 } from "@/features/admin/hooks/use-clients";
 import type { ClientStatus } from "@/types/client";
+import { isForbiddenError } from "@/lib/errors";
 
 const STATUS_FILTER_OPTIONS: { value: ClientStatus | "ALL"; label: string }[] = [
   { value: "ALL", label: "Todos os status" },
@@ -73,8 +73,7 @@ export function ClientsTable() {
   React.useEffect(() => {
     if (
       clientsQuery.isError &&
-      axios.isAxiosError(clientsQuery.error) &&
-      clientsQuery.error.response?.status === 403
+      isForbiddenError(clientsQuery.error)
     ) {
       router.replace("/403");
     }

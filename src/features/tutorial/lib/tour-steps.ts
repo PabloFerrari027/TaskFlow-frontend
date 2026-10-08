@@ -273,7 +273,7 @@ export const TOUR_STEPS: TourStep[] = [
     description:
       "Cada campo é salvo assim que você escolhe um valor.",
     details: [
-      "Coluna e Status (A fazer, Em progresso, Concluída) são coisas diferentes: um não muda o outro sozinho.",
+      "Coluna e Status (A fazer, Em andamento, Concluída) são coisas diferentes: um não muda o outro sozinho.",
       "Responsável é quem executa. Participantes só acompanham.",
       "Prioridade vai de Baixa a Urgente. Depois de definidos, prazo e prioridade só podem ser trocados por outro valor, não removidos.",
       "Logo abaixo ficam os campos extras criados na pasta.",

@@ -41,8 +41,8 @@ export type FolderRole = "MEMBER" | "GUEST";
 
 export interface FolderMember {
   userId: string;
-  // Display name, used for `@` mentions. Absent/null until the backend exposes it.
-  name?: string | null;
+  // Profile name (also used for `@` mentions); null for an account without one.
+  name: string | null;
   role: FolderRole;
   createdAt: string;
 }

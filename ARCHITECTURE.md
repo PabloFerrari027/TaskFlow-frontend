@@ -64,7 +64,7 @@ src/
   types/                   # Tipos alinhados 1:1 aos DTOs da API
 ```
 
-Features existentes: `auth`, `sessions`, `workspaces`, `folders`, `folder-templates`, `items`, `sections`, `custom-fields`, `comments`, `activity`, `analytics`, `automations`, `assistant`, `admin`, `sync`, `realtime`, `tutorial`, `notifications`, `search`, `recurring-items`, `time-tracking`, `approvals`, `intake-forms`, `data-portability`.
+Features existentes: `activity`, `admin`, `analytics`, `approvals`, `assistant`, `assistant-channels`, `auth`, `automations`, `comments`, `custom-fields`, `dashboard-pages`, `data-portability`, `developers`, `folder-stats`, `folder-templates`, `folders`, `home`, `intake-forms`, `items`, `notifications`, `plans`, `realtime`, `recurring-items`, `search`, `sections`, `sessions`, `sync`, `time-tracking`, `tutorial`, `workspaces`.
 
 ## 3. Arquitetura em camadas
 
@@ -95,6 +95,9 @@ Regras que o código segue consistentemente:
 /login/verify                              2º fator (código de e-mail)
 /register                                  Cadastro — RequireGuest
 /verify-email                              Confirmação de e-mail pós-cadastro
+/forgot-password                           Pedir o link de redefinição de senha
+/reset-password                            Definir a nova senha pelo link do e-mail
+/privacy                                   Política de privacidade (estática)
 /403                                       Acesso negado (estático)
 /invite/workspace/[token]                  Preview + aceite de convite de workspace (público, aceite exige login)
 /invite/folder/[token]                    Preview + aceite de convite de pasta (idem; os dois usam `InvitationAcceptPage`)
@@ -104,11 +107,13 @@ Regras que o código segue consistentemente:
   /dashboard                               Redirect para /home (rota antiga)
   /workspaces                              Lista de workspaces do usuário; clicar num card o define como workspace atual; abaixo, seções empilhadas do workspace atual: membros, convites, assistente e atividade
   /workspaces/[workspaceId]                Detalhe: apenas membros + convites, como duas seções empilhadas (sem tabs)
+  /workspaces/[workspaceId]/pages          Páginas de dashboard do workspace (item "Páginas" da sidebar)
+  /workspaces/[workspaceId]/pages/[pageId] Editor de uma página de dashboard (gráficos em grade, largura total)
   /activity                                Redirect para /workspaces#atividade (a atividade virou seção de /workspaces e aba da pasta)
   /developers                              Chaves de API + webhooks do workspace atual (item da sidebar só para OWNER/ADMIN; a própria página também bloqueia acesso direto por URL)
   /assistant                               Liga/desliga o assistente de IA do workspace atual (toggle só para OWNER; página visível a todos) + histórico de consumo de IA da conta (`AiUsageHistory` sobre GET /ai-usage/me), em seções empilhadas
   /folders                                Todas as pastas do workspace (ativos + arquivados); sem workspace, oferece criar um; "Começar de um modelo" leva a /templates
-  /folders/[folderId]/                   Layout da pasta: header, tabs, ItemDetailSheet global
+  /folders/[folderId]/(folder)/            Grupo de rotas com o layout da pasta: header, tabs, ItemDetailSheet global
     (index)                                Redirect → /items
     /items                                 Quadro Kanban (ItemBoard)
     /items/[itemId]                        Página cheia de detalhe do item
@@ -122,21 +127,24 @@ Regras que o código segue consistentemente:
     /recurring                             Itens repetidos da pasta (/folders/:id/recurring-items)
     /trash                                 Lixeira da pasta (30 dias) com restaurar
     /settings                              Configurações da pasta em seções empilhadas: etapas, regra de dependências, formulários de pedidos, importar/exportar
+  /folders/[folderId]/sections/[sectionId] Uma coluna sozinha numa página, fora do grupo (folder): sem header nem tabs da pasta
   /templates                               Modelos, em duas seções empilhadas: os do workspace atual (privados) e os do sistema (busca + filtro de categoria na query string)
   /templates/[templateId]                  Detalhe do modelo: prévia, usar; editar/excluir para OWNER/ADMIN quando é modelo do workspace
-  /analytics                               Dashboard analítico do workspace atual
   /settings/profile                        Foto de perfil + segurança (#seguranca: alterar senha / definir primeira senha em conta Google-only / vincular Google em conta com senha) + sessões ativas (#sessoes), em seções empilhadas
   /settings/security                       Redirect para /settings/profile#seguranca
   /settings/sessions                       Redirect para /settings/profile#sessoes
   /settings/notifications                  Preferências de notificação por tipo (no app / e-mail)
-  /settings/plan                           Escolher/trocar o próprio plano de tokens de IA (PATCH /plans/me) + consumo de hoje/semana/mês (UTC) + histórico de consumo
+  /settings/plan                           Plano atual com preço e desconto (GET /plans/me), troca de plano com cupom (PATCH /plans/me) + consumo de hoje/semana/mês (UTC) + histórico de consumo
   /tutorial                                Guias por tema (accordion) + botão para refazer o tour guiado
   /admin/clients                           Gestão de clientes (apenas SUPER_ADMIN)
   /admin/clients/[clientId]                Detalhe do cliente: dados básicos, atribuição de plano, histórico de uso de IA (apenas SUPER_ADMIN)
   /admin/plans                             CRUD de planos de tokens de IA — criar, editar teto, listar (apenas SUPER_ADMIN)
   /admin/templates                         Modelos do sistema: listar e excluir (apenas SUPER_ADMIN; o backend não tem mais situação nem moderação)
+  /admin/coupons                           Cupons de desconto dos planos pagos: criar, editar, desativar, ver resgates (apenas SUPER_ADMIN)
 
 /forms/[token]                             Formulário de pedidos público (sem login, sem o shell do app) — cada envio vira um item
+/pages/public/[token]                      Página de dashboard publicada por link (sem login)
+/pages/guest/[token]                       Página de dashboard compartilhada com um convidado por e-mail (link próprio)
 ```
 
 ### Guards
@@ -150,9 +158,9 @@ Regras que o código segue consistentemente:
 
 ### Padrões notáveis de rota
 
-- **`layout.tsx` de `[folderId]`** carrega a pasta uma vez (`useFolderQuery`) e renderiza header/tabs/ações (editar, arquivar) para todas as sub-rotas; também monta `<ItemDetailSheet>`, um painel lateral global controlado por query string (`?itemId=`, via `useItemPanel`) que funciona em qualquer página aninhada da pasta — permite abrir um item em painel sem navegar para fora do quadro.
+- **`folders/[folderId]/(folder)/layout.tsx`** (grupo de rotas `(folder)`; a página de coluna `sections/[sectionId]` fica fora dele, sem header nem tabs) carrega a pasta uma vez (`useFolderQuery`) e renderiza header/tabs/ações (editar, arquivar) para todas as sub-rotas; também monta `<ItemDetailSheet>`, um painel lateral global controlado por query string (`?itemId=`, via `useItemPanel`) que funciona em qualquer página aninhada da pasta — permite abrir um item em painel sem navegar para fora do quadro.
 - **`FolderIndexPage`** (`/folders/[folderId]`) é um Server Component só com `redirect()` para `/items` — não há dashboard próprio de pasta.
-- Páginas dinâmicas usam `use(props.params)` (API do React 19) para desembrulhar `params` em Client Components, em vez de recebê-lo como prop assíncrona diretamente.
+- Páginas dinâmicas usam `use(props.params)` (API do React 19) para desembrulhar `params` em Client Components, tipados por `PageProps<"/rota">`. As páginas de dashboard (`workspaces/[workspaceId]/pages/*`, `pages/*/[token]`) leem com `useParams()` — funciona, mas prefira o padrão acima em página nova.
 
 ## 5. Autenticação e sessão
 
@@ -187,7 +195,7 @@ Cadastro (`/register`) → `POST /auth/register` cria a conta em `PENDING_VERIFI
 
 ### `useAuth()` (`src/lib/auth/auth-context.tsx`)
 
-Expõe `{ isLoading, isAuthenticated, userId, email, signOut }`. `userId`/`email` vêm da decodificação client-side do JWT (`decodeJwt`, base64url manual — sem lib) — **não há endpoint de perfil**, então esses são os únicos dados de identidade disponíveis (ver [§15](#15-limitações-conhecidas)).
+Expõe `{ isLoading, isAuthenticated, userId, email, signOut }`. `userId`/`email` vêm da decodificação client-side do JWT (`decodeJwt`, base64url manual — sem lib), disponíveis antes de qualquer request. O perfil (nome, foto, `hasPassword`, `googleLinked`) vem de `GET /auth/me` (`useCurrentUserQuery`, e `useSelfIdentity` para nome/iniciais/rótulo de exibição).
 
 ## 6. Autorização e papéis
 
@@ -377,7 +385,7 @@ A API devolve as três hierarquias como **lista plana com `parentId`**; `src/lib
 Chat de IA (`features/assistant/`) acessível de qualquer tela via ícone fixo na topbar (`AssistantChat`), aberto como `Sheet` — mesmo padrão de painel lateral do `ItemDetailSheet`. Desligado por padrão em todo workspace (ver linha `assistantEnabled` acima); a `AssistantChat` checa `useCurrentWorkspace().workspace.assistantEnabled` e desabilita o input com uma nota explicativa em vez de tentar enviar mensagens.
 
 - **Estado 100% efêmero, fora do TanStack Query**: o histórico da conversa e a lista de ações confirmadas vivem num `useReducer` dentro do próprio `AssistantChat` (`{ transcript: ChatTranscriptMessage[], confirmedActions: ConfirmedActionSummary[] }`) — não há persistência em `localStorage` nem no backend (stateless nesta v1 da API); os hooks (`use-assistant.ts`) só envolvem as três chamadas HTTP e seus efeitos colaterais, nunca guardam a conversa. **`AssistantChat` nunca desmonta** (renderizado incondicionalmente pela topbar, só o `Sheet` abre/fecha) — por isso o reset é explícito: `handleOpenChange` dispara `dispatch({ type: "reset" })` sempre que o `Sheet` fecha, não algo que aconteceria sozinho por desmontagem.
-- **`PendingAction`**: toda tool de escrita vira uma ação pendente com `riskLevel: "standard" | "critical"` — nunca executa dentro de `POST /assistant/chat` (`executedActions` sempre vem vazio nesta versão, renderizado defensivamente para estabilidade de contrato). `PendingActionCard` sempre mostra `humanDescription` **e** `params` (via `PendingActionDetails`, componente compartilhado — nunca só a frase gerada pela IA) e exige um clique explícito em "Confirmar"/"Cancelar" — nunca uma mensagem de chat é interpretada como confirmação, essa é a regra de segurança central do componente.
+- **`PendingAction`**: toda tool de escrita vira uma ação pendente com `riskLevel: "standard" | "critical"` — exceto as de "guardar informação" (`save_information`, `undo_saved_information` e, quando o destino já existe, `relocate_information`), que rodam na hora e chegam em `executedActions` da resposta do chat; elas aparecem como "✅ <rótulo>" na mensagem (`lib/tool-labels.ts`) e passam pelo mesmo `applyConfirmedActionEffects` de uma ação confirmada, no `onSuccess` de `useSendChatMessageMutation`. `PendingActionCard` sempre mostra `humanDescription` **e** todos os `params` (via `PendingActionDetails`, componente compartilhado — nunca só a frase gerada pela IA), em forma legível: nome do campo traduzido, enum pelo rótulo, id pelo nome que o cliente já tem em cache (senão abreviado, nunca omitido — `lib/describe-params.ts` + `useEntityNameLookup`); para tools de update também mostra o `diff` "de → para" que o backend calcula do estado real. Exige um clique explícito em "Confirmar"/"Cancelar" — nunca uma mensagem de chat é interpretada como confirmação, essa é a regra de segurança central do componente.
 - **Reautenticação para ações `critical`** (`delete_workspace`, `remove_workspace_member`, `archive_folder`, `revoke_session`): confirmar abre `ReauthDialog`, um modal **bloqueante** (não um passo inline no card — `onInteractOutside`/`onEscapeKeyDown` desabilitados, só fecha pelos botões "Confirmar"/"Cancelar" do próprio modal) que repete `humanDescription`/`params`. O campo mostrado depende de `hasPassword`/`googleLinked` (`GET /auth/me`, via `useCurrentUserQuery`): senha quando `hasPassword`, botão "Confirmar com Google" quando `googleLinked` (Google Identity Services, `google.accounts.id.renderButton`, mesma `NEXT_PUBLIC_GOOGLE_CLIENT_ID`/script de `GoogleSignInButton`, ver `src/lib/google-identity.ts`), os dois quando ambos — nenhuma navegação para fora do modal nem troca de sessão, é só uma confirmação de identidade pontual (o ID Token nunca é persistido, só passa pela chamada). `POST /assistant/actions/:id/confirm` aceita `{ reauth: { password } }` ou `{ reauth: { googleIdToken } }` — a API ainda não aceita reautenticação por 2FA. "Cancelar" do modal só fecha a etapa de reautenticação (a `PendingAction` continua pendente); cancelar a ação em si continua sendo o botão "Cancelar" do card. Credencial inválida (senha errada, ou e-mail do Google não batendo com a conta vinculada) retorna `REAUTHENTICATION_REQUIRED` e o modal deixa tentar de novo sem fechar.
 - **`revoke_session` da própria sessão** (`isCurrentSession: true` no `PendingAction`): ao confirmar com sucesso, `useConfirmPendingActionMutation` limpa a sessão local (`clearSession`) e redireciona para `/login` — sem chamar `sessionsService.revoke` de novo, já que o backend já revogou a sessão dentro do próprio `confirm`.
 - **Invalidação de cache mapeada tool → chaves, explicitamente** (`applyConfirmedActionEffects` em `use-assistant.ts`) — cada tool de escrita (`create_item`, `archive_folder`, `remove_workspace_member`, etc.) tem seu próprio `case` que decide `setQueryData`/`invalidateQueries`, sem fallback genérico "invalida tudo". O `result` de cada tool confirmada é o mesmo DTO que o endpoint REST equivalente devolveria (o backend chama o mesmo Use Case), então os `case`s fazem cast direto para `Item`/`Folder`/etc.
@@ -475,11 +483,11 @@ Chat de IA (`features/assistant/`) acessível de qualquer tela via ícone fixo n
 - **Gráficos**: `CategoryBarChart` (`features/analytics/components/category-bar-chart.tsx`) é um bar chart horizontal construído sobre Recharts via o wrapper `ChartContainer`/`ChartTooltip`/`ChartTooltipContent` do shadcn/ui (`src/components/ui/chart.tsx`). Cada barra recebe sua cor por linha via `<Cell fill={row.color}>` (não por série do `ChartConfig`, já que as categorias — pastas, responsáveis — são abertas e não fixas).
 - **Paleta de gráficos**: `--chart-1..5` (tokens padrão do shadcn) **não** é usada em novos gráficos categóricos porque as duas primeiras cores falham em distinção segura para daltonismo (CVD) quando adjacentes. Uma paleta dedicada `--analytics-cat-1..6` (com valores próprios claro/escuro) é a referência validada usada por `AnalyticsDashboard`/`CategoryBarChart`.
 - **`cn()`** (`src/lib/utils.ts`) é apenas um re-export do pacote `cn` (não a implementação local `clsx`+`tailwind-merge` mais comum em outras pastas shadcn) — usado em todo o código para compor classes condicionalmente.
-- Componentes compartilhados de padrão de tela em `components/shared/`: `PageHeader`, `EmptyState`, `ErrorState` (mostra a mensagem já traduzida via `getErrorMessage` + botão "Tentar novamente"), `ConfirmDialog` (wrapper de `AlertDialog` para confirmações destrutivas), `Pager`, `RoleGate`, `StatusBadge.tsx` (badges tipados para todo enum de status do domínio: pasta, item, prioridade, prazo, papel de workspace, convite, cliente), `MemberAvatar`/`MemberIdLabel` (avatar de iniciais + tooltip, já que a API não expõe nome/e-mail de membros — só `userId`).
+- Componentes compartilhados de padrão de tela em `components/shared/`: `PageHeader`, `EmptyState`, `ErrorState` (mostra a mensagem já traduzida via `getErrorMessage` + botão "Tentar novamente"), `ConfirmDialog` (wrapper de `AlertDialog` para confirmações destrutivas), `Pager`, `RoleGate`, `StatusBadge.tsx` (badges tipados para todo enum de status do domínio: pasta, item, prioridade, prazo, papel de workspace, convite, cliente), `MemberAvatar`/`MemberIdLabel` (foto ou iniciais + nome; o nome vem da prop `name` ou da lista de membros do workspace atual, e só quem não tem nome de perfil — ou está fora do workspace atual — fica com o id abreviado).
 
 ## 13. Formulários e validação
 
-Padrão único e consistente em todo o app: `react-hook-form` + `zodResolver` + os componentes `Form`/`FormField`/`FormItem`/`FormControl`/`FormMessage` do shadcn (wrappers sobre Radix). Schemas zod vivem em `schemas.ts` de cada feature (`features/auth/schemas.ts`, `features/items/schemas.ts`, etc.), exportando também o tipo inferido (`z.infer<typeof schema>`) usado como tipo genérico do `useForm`. Mensagens de validação já nascem em pt-BR nos próprios schemas.
+Padrão para todo formulário (o de lançar horas, `LogTimeForm`, usava `useState` e foi migrado): `react-hook-form` + `zodResolver` + os componentes `Form`/`FormField`/`FormItem`/`FormControl`/`FormMessage` do shadcn (wrappers sobre Radix). Schemas zod vivem em `schemas.ts` de cada feature (`features/auth/schemas.ts`, `features/items/schemas.ts`, etc.), exportando também o tipo inferido (`z.infer<typeof schema>`) usado como tipo genérico do `useForm`. Mensagens de validação já nascem em pt-BR nos próprios schemas.
 
 ## 14. Convenções de código
 
@@ -494,11 +502,10 @@ Padrão único e consistente em todo o app: `react-hook-form` + `zodResolver` + 
 
 Herdadas diretamente da API (não são bugs do frontend):
 
-- **Sem endpoint de perfil do usuário autenticado** — nome/e-mail exibidos vêm da decodificação do próprio JWT (`decodeJwt`); não há como buscar dados de outro usuário além do `userId`.
-- **Sem leitura do plano de tokens de IA atual de um usuário** — só é possível **atribuir** um plano (`PATCH /plans/me`, `PATCH /admin/users/:id/plan`), nunca ler de volta qual está ativo (nem em `GET /auth/me`, nem em `GET /admin/clients/:id`); `/settings/plan` e a atribuição em `/admin/clients/[clientId]` avisam isso na UI em vez de um fallback silencioso. Consequência: o consumo por janela é mostrado em número absoluto, nunca como porcentagem do teto.
+- **O admin não lê o plano atual de um cliente** — `GET /admin/clients/:id` não traz o plano, então a atribuição em `/admin/clients/[clientId]` avisa que só dá para atribuir um novo. O próprio usuário vê o seu em `/settings/plan` (`GET /plans/me`).
 - **`TOKEN_QUOTA_EXCEEDED` não diz qual janela estourou** (dia, semana ou mês — API.md § 23) — o aviso no chat do assistente só diz que o limite do plano foi atingido e que libera sozinho, com link para `/settings/plan`, sem afirmar uma janela. Os limites de frequência (`AI_RATE_LIMIT_EXCEEDED`/`AI_ASSISTANT_RATE_LIMIT_EXCEEDED`) têm texto próprio ("muitas perguntas em pouco tempo") para não serem confundidos com o plano. Hoje só o assistente consome IA na UI: a pergunta em linguagem natural (`NaturalLanguageQueryBox`, `POST /analytics/query/natural-language`) saiu junto com a página `/analytics` em `ee433bd` e ainda não voltou nas dashboard pages — quando voltar, deve reusar as mesmas mensagens de `errors.ts` e o mesmo link para `/settings/plan`.
-- **Sem pagamento de plano** — o backend `main` não tem preço, checkout nem assinatura (§ 23); planos são só teto de IA e a troca é livre.
-- **Membros de workspace/pasta expõem só `userId`** — sem nome ou e-mail, daí os avatares de iniciais + tooltip com id abreviado (`MemberAvatar`) em vez de nomes reais.
+- **Pagamento de plano ainda não está no front** — o backend já tem assinatura pelo Stripe (`/billing/*`, API.md § 23), mas o front não abre o checkout: escolher um plano pago devolve `PLAN_REQUIRES_CHECKOUT`, mostrado como "Este plano é pago. Assine pelo botão de pagamento." Não é uma limitação da API — falta implementar.
+- **Membro sem nome de perfil** (conta antiga ou Google sem nome) aparece com o id abreviado; e-mail de outros membros não é exposto.
 - **Sem exclusão de pasta** — apenas arquivamento. Itens vão para a lixeira (30 dias).
 - **`useUnassignItemMutation` ainda limpa o responsável por `/sync/push`** — o backend agora aceita `assigneeId: null` (e `assigneeIds: []`) no `PATCH`, então isso pode ser simplificado.
 - **Sync offline cobre poucos campos de item** — ver [Etapas, cronograma e lixeira](#etapas-cronograma-e-lixeira).

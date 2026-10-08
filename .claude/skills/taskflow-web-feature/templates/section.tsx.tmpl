@@ -1,0 +1,82 @@
+// Derived from src/features/time-tracking/components/folder-time-report.tsx (state order)
+// and item-time-section.tsx. Components never import apiClient — only hooks.
+// UI text in plain pt-BR for lay users: no ids, codes or raw enums (use the *_LABEL maps).
+"use client";
+
+import * as React from "react";
+import { Plus, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { EmptyState } from "@/components/shared/empty-state";
+import { ErrorState } from "@/components/shared/error-state";
+import { Pager } from "@/components/shared/pager";
+import { RoleGate } from "@/components/shared/role-gate";
+import { formatDateTime } from "@/lib/format";
+import { useDeleteWidgetMutation, useItemWidgetsQuery } from "@/features/widgets/hooks/use-widgets";
+
+interface ItemWidgetsSectionProps {
+  itemId: string;
+  /** From the caller's role (e.g. GUEST is read-only) — UX only, the API re-checks. */
+  canEdit: boolean;
+}
+
+// Local state scoped to an id (page): the caller renders <ItemWidgetsSection key={itemId} ... />
+// so switching items remounts it instead of leaking the page (ARCHITECTURE.md §14).
+export function ItemWidgetsSection({ itemId, canEdit }: ItemWidgetsSectionProps) {
+  const [page, setPage] = React.useState(1);
+  const widgetsQuery = useItemWidgetsQuery(itemId, page);
+  const deleteMutation = useDeleteWidgetMutation(itemId);
+
+  if (widgetsQuery.isLoading) return <Skeleton className="h-24 w-full" />;
+  if (widgetsQuery.isError || !widgetsQuery.data) {
+    return <ErrorState error={widgetsQuery.error} onRetry={() => widgetsQuery.refetch()} />;
+  }
+
+  const { data, meta } = widgetsQuery.data;
+  if (data.length === 0) {
+    return (
+      <EmptyState
+        title="Nenhum widget ainda"
+        description="Os widgets deste item aparecem aqui."
+        action={
+          <RoleGate allowed={canEdit}>
+            <Button size="sm">
+              <Plus /> Novo widget
+            </Button>
+          </RoleGate>
+        }
+      />
+    );
+  }
+
+  return (
+    <div className={widgetsQuery.isPlaceholderData ? "space-y-3 opacity-60" : "space-y-3"}>
+      <ul className="space-y-2">
+        {data.map((widget) => (
+          <li key={widget.id} className="flex items-center justify-between gap-2 text-sm">
+            <span>
+              {widget.name} <span className="text-muted-foreground">· {formatDateTime(widget.createdAt)}</span>
+            </span>
+            <RoleGate allowed={canEdit}>
+              <ConfirmDialog
+                trigger={
+                  <Button size="icon" variant="ghost" aria-label={`Apagar ${widget.name}`}>
+                    <Trash2 />
+                  </Button>
+                }
+                title="Apagar este widget?"
+                description="Não dá para desfazer."
+                confirmLabel="Apagar"
+                variant="destructive"
+                isLoading={deleteMutation.isPending}
+                onConfirm={() => deleteMutation.mutate(widget.id)}
+              />
+            </RoleGate>
+          </li>
+        ))}
+      </ul>
+      <Pager meta={meta} onPageChange={setPage} isLoading={widgetsQuery.isFetching} />
+    </div>
+  );
+}

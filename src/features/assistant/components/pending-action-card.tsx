@@ -109,8 +109,10 @@ export function PendingActionCard({
   return (
     <Card className={cn("space-y-3 p-3", isCritical && "border-destructive/40")}>
       <PendingActionDetails
+        workspaceId={workspaceId}
         humanDescription={pendingAction.humanDescription}
         params={pendingAction.params}
+        diff={pendingAction.diff}
         isCurrentSession={pendingAction.isCurrentSession}
       />
 
@@ -144,8 +146,10 @@ export function PendingActionCard({
         <ReauthDialog
           open={reauthDialogOpen}
           onClose={handleCloseReauthDialog}
+          workspaceId={workspaceId}
           humanDescription={pendingAction.humanDescription}
           params={pendingAction.params}
+          diff={pendingAction.diff}
           isCurrentSession={pendingAction.isCurrentSession}
           password={password}
           onPasswordChange={setPassword}

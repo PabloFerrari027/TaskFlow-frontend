@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { useParams, useRouter } from "next/navigation";
-import axios from "axios";
 import { PageHeader } from "@/components/shared/page-header";
 import { ErrorState } from "@/components/shared/error-state";
 import { Card } from "@/components/ui/card";
@@ -12,6 +11,7 @@ import { formatDate } from "@/lib/format";
 import { useClientAiUsageQuery, useClientQuery } from "@/features/admin/hooks/use-clients";
 import { AssignClientPlanCard } from "@/features/plans/components/assign-client-plan-card";
 import { AiUsageHistory } from "@/features/assistant/components/ai-usage-history";
+import { isForbiddenError } from "@/lib/errors";
 import type { AiUsageFeature } from "@/types/ai-usage";
 
 export default function AdminClientDetailPage() {
@@ -26,8 +26,7 @@ export default function AdminClientDetailPage() {
   React.useEffect(() => {
     if (
       clientQuery.isError &&
-      axios.isAxiosError(clientQuery.error) &&
-      clientQuery.error.response?.status === 403
+      isForbiddenError(clientQuery.error)
     ) {
       router.replace("/403");
     }

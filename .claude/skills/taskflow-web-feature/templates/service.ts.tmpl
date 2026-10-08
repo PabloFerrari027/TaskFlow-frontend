@@ -1,0 +1,26 @@
+// Derived from src/features/time-tracking/api/time-tracking-service.ts
+// A service is stateless: one method per endpoint, typed with src/types, no cache, no toast.
+import { apiClient } from "@/lib/api/client";
+import type { PaginationParams } from "@/types/common";
+import type { CreateWidgetRequest, UpdateWidgetRequest, Widget, WidgetList } from "@/types/widget";
+
+export const widgetsService = {
+  async listForItem(itemId: string, params?: PaginationParams) {
+    const { data } = await apiClient.get<WidgetList>(`/items/${itemId}/widgets`, { params });
+    return data;
+  },
+
+  async create(itemId: string, payload: CreateWidgetRequest) {
+    const { data } = await apiClient.post<Widget>(`/items/${itemId}/widgets`, payload);
+    return data;
+  },
+
+  async update(widgetId: string, payload: UpdateWidgetRequest) {
+    const { data } = await apiClient.patch<Widget>(`/widgets/${widgetId}`, payload);
+    return data;
+  },
+
+  async remove(widgetId: string) {
+    await apiClient.delete(`/widgets/${widgetId}`);
+  },
+};

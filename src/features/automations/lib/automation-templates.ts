@@ -77,7 +77,7 @@ export const AUTOMATION_TEMPLATES: AutomationTemplate[] = [
     id: "assigned-start",
     title: "Iniciar o item ao atribuir",
     description:
-      "Quando alguém for atribuído a um item, o status dele vira Em progresso.",
+      "Quando alguém for atribuído a um item, o status dele vira Em andamento.",
     build: () => ({
       ...emptyDraft(),
       name: "Iniciar o item ao atribuir",

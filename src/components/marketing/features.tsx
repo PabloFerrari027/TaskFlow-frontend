@@ -18,7 +18,7 @@ const FEATURES = [
     icon: ListChecks,
     title: "Itens e subitens",
     description:
-      "Quebre o trabalho em itens com status (a fazer, em progresso, concluída) e subitens.",
+      "Quebre o trabalho em itens com status (a fazer, em andamento, concluída) e subitens.",
   },
   {
     icon: Paperclip,

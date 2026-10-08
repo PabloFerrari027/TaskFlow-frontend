@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { PendingActionDetails } from "@/features/assistant/components/pending-action-details";
+import type { PendingActionFieldDiff } from "@/features/assistant/types";
 import { useCurrentUserQuery } from "@/features/auth/hooks/use-current-user";
 import { useGoogleIdentityToken } from "@/features/auth/hooks/use-google-identity-token";
 
@@ -35,8 +36,10 @@ import { useGoogleIdentityToken } from "@/features/auth/hooks/use-google-identit
 export function ReauthDialog({
   open,
   onClose,
+  workspaceId,
   humanDescription,
   params,
+  diff,
   isCurrentSession,
   password,
   onPasswordChange,
@@ -47,8 +50,10 @@ export function ReauthDialog({
 }: {
   open: boolean;
   onClose: () => void;
+  workspaceId: string;
   humanDescription: string;
   params: Record<string, unknown>;
+  diff?: PendingActionFieldDiff[];
   isCurrentSession?: boolean;
   password: string;
   onPasswordChange: (value: string) => void;
@@ -91,8 +96,10 @@ export function ReauthDialog({
 
         <div className="space-y-3">
           <PendingActionDetails
+            workspaceId={workspaceId}
             humanDescription={humanDescription}
             params={params}
+            diff={diff}
             isCurrentSession={isCurrentSession}
           />
 

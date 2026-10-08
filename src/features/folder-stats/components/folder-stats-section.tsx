@@ -106,7 +106,7 @@ function FolderStatsContent({ folderId, workspaceId }: { folderId: string; works
       <div className="grid gap-4 lg:grid-cols-2">
         <ChartCard
           title="Itens por status"
-          description="Como os itens se dividem entre a fazer, em progresso e concluídos."
+          description="Como os itens se dividem entre a fazer, em andamento e concluídos."
           chartType="PIE"
           query={stats.byStatus}
           lookups={lookups}
