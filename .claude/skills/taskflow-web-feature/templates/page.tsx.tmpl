@@ -1,0 +1,19 @@
+// Derived from src/app/(dashboard)/folders/[folderId]/(folder)/stats/page.tsx
+// Next 16: params typed by the generated PageProps<"/route"> (run `npx next typegen`),
+// unwrapped with React 19's use(). Pages only compose feature components.
+"use client";
+
+import { use } from "react";
+import { PageHeader } from "@/components/shared/page-header";
+import { FolderWidgetsSection } from "@/features/widgets/components/folder-widgets-section";
+
+export default function FolderWidgetsPage(props: PageProps<"/folders/[folderId]/widgets">) {
+  const { folderId } = use(props.params);
+
+  return (
+    <div className="space-y-6">
+      <PageHeader title="Widgets" description="O que é isto, em uma frase simples." />
+      <FolderWidgetsSection key={folderId} folderId={folderId} />
+    </div>
+  );
+}

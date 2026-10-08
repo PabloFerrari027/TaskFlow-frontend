@@ -1,0 +1,22 @@
+// Derived from src/types/time-tracking.ts — mirrors the backend DTOs 1:1 (API.md).
+// Dates arrive as ISO strings, never Date. Optional/nullable exactly as the API sends them.
+import type { PaginatedResult } from "@/types/common";
+
+export interface Widget {
+  id: string;
+  itemId: string;
+  folderId: string;
+  createdBy: string;
+  name: string;
+  createdAt: string;
+}
+
+export type WidgetList = PaginatedResult<Widget>;
+
+export interface CreateWidgetRequest {
+  name: string;
+}
+
+export interface UpdateWidgetRequest {
+  name?: string;
+}

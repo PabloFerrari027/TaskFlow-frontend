@@ -1,0 +1,66 @@
+// Derived from src/features/time-tracking/hooks/use-time-tracking.ts
+// Hooks own all cache logic: queryKey, invalidation, setQueryData, toasts.
+// One hook per mutation, named by its verb; onError always toasts getErrorMessage.
+"use client";
+
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { widgetsService } from "@/features/widgets/api/widgets-service";
+import { queryKeys } from "@/lib/query-keys";
+import { getErrorMessage } from "@/lib/errors";
+import type { CreateWidgetRequest, UpdateWidgetRequest } from "@/types/widget";
+
+export function useItemWidgetsQuery(itemId: string, page = 1) {
+  return useQuery({
+    queryKey: queryKeys.widgets.item(itemId, page),
+    queryFn: () => widgetsService.listForItem(itemId, { page, limit: 10 }),
+    // Keeps the previous page on screen while the next one loads (Pager).
+    placeholderData: keepPreviousData,
+  });
+}
+
+export function useCreateWidgetMutation(itemId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: CreateWidgetRequest) => widgetsService.create(itemId, payload),
+    onSuccess: () => {
+      // No page in the key: invalidates every page of this item's list.
+      queryClient.invalidateQueries({ queryKey: queryKeys.widgets.item(itemId) });
+      toast.success("Widget criado.");
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+}
+
+export function useUpdateWidgetMutation(itemId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ widgetId, payload }: { widgetId: string; payload: UpdateWidgetRequest }) =>
+      widgetsService.update(widgetId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.widgets.item(itemId) });
+      toast.success("Widget atualizado.");
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+}
+
+export function useDeleteWidgetMutation(itemId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (widgetId: string) => widgetsService.remove(widgetId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.widgets.item(itemId) });
+      toast.success("Widget apagado.");
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+}
+
+// If the entity can be edited offline (item, folder, section, custom field definition,
+// comment delete), the mutationFn diverts to queueEntityUpdate/queueEntityDelete — see the
+// taskflow-web-offline skill. A list that must reflect an edit while offline also needs the
+// onMutate/onError optimistic patch (ARCHITECTURE.md §8).

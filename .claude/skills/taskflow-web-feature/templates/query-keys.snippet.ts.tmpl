@@ -1,0 +1,11 @@
+// Paste inside `export const queryKeys = { ... }` in src/lib/query-keys.ts
+// (pattern of `timeTracking`). No hook builds a key array by hand.
+  widgets: {
+    root: () => ["widgets"] as const,
+    // `page` only when paging through this list; omitting it makes
+    // `invalidateQueries` match every page as a prefix.
+    item: (itemId: string, page?: number) =>
+      page
+        ? (["widgets", "item", itemId, { page }] as const)
+        : (["widgets", "item", itemId] as const),
+  },
