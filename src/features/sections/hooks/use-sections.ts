@@ -6,7 +6,7 @@ import { sectionsService } from "@/features/sections/api/sections-service";
 import { queryKeys } from "@/lib/query-keys";
 import { getErrorMessage } from "@/lib/errors";
 import { MAX_PAGE_SIZE } from "@/types/common";import { useCurrentWorkspace } from "@/features/workspaces/context/current-workspace-context";
-import { isOffline, queueEntityDelete, queueEntityUpdate } from "@/features/sync/lib/sync-engine";
+import { isOffline, OFFLINE_CAPABLE_MUTATION, queueEntityDelete, queueEntityUpdate } from "@/features/sync/lib/sync-engine";
 import type { PaginatedResult } from "@/types/common";
 import type { CreateSectionRequest, Section, UpdateSectionRequest } from "@/types/section";
 
@@ -49,6 +49,7 @@ export function useUpdateSectionMutation(folderId: string) {
   const { workspaceId } = useCurrentWorkspace();
 
   return useMutation({
+    ...OFFLINE_CAPABLE_MUTATION,
     mutationFn: ({
       sectionId,
       payload,
@@ -104,6 +105,7 @@ export function useDeleteSectionMutation(folderId: string) {
   const { workspaceId } = useCurrentWorkspace();
 
   return useMutation({
+    ...OFFLINE_CAPABLE_MUTATION,
     mutationFn: (sectionId: string) => {
       const current = findCachedSection(queryClient, folderId, sectionId);
       if (isOffline() && workspaceId && current) {

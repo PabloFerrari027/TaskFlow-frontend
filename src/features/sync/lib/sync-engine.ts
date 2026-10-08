@@ -24,6 +24,45 @@ export function isOffline() {
 }
 
 /**
+ * Spread into every mutation with an offline branch. React Query's default
+ * `networkMode: "online"` pauses a mutation before its `mutationFn` once the
+ * browser reports offline, so the `isOffline()` check inside never ran: the
+ * write sat paused in memory (lost on reload) and, back online, went out over
+ * REST instead of the outbox. `"always"` runs the `mutationFn` right away and
+ * lets it pick the outbox.
+ */
+export const OFFLINE_CAPABLE_MUTATION = { networkMode: "always" } as const;
+
+/**
+ * Queues an offline CREATE under an id generated here, which the server keeps
+ * (the sync handlers upsert by `entityId`). Edits and deletes made before it
+ * syncs fold into this op — see `enqueueOperation`. Only `ITEM` is created
+ * this way for now.
+ */
+export function queueEntityCreate({
+  workspaceId,
+  entityType,
+  entityId,
+  payload,
+  meta,
+}: {
+  workspaceId: string;
+  entityType: SyncEntityType;
+  entityId: string;
+  payload: Record<string, unknown>;
+  meta?: QueuedOperation["meta"];
+}) {
+  enqueueOperation(workspaceId, {
+    entityType,
+    entityId,
+    operationType: "CREATE",
+    payload,
+    baseVersion: null,
+    meta,
+  });
+}
+
+/**
  * Queues an offline UPDATE for an existing entity (item, folder, section or
  * custom field definition — see `SyncStatusIndicator` for why comments and
  * item custom field values aren't queueable this way), and returns an
@@ -143,6 +182,10 @@ function applyServerState(
       queryClient.invalidateQueries({ queryKey: queryKeys.items.bySectionAll() });
       queryClient.invalidateQueries({ queryKey: queryKeys.folderStats.root() });
       queryClient.invalidateQueries({ queryKey: queryKeys.home.root() });
+      // A subitem created offline sits in its parent's list as the optimistic copy.
+      if (item.parentItemId) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.items.subitems(item.parentItemId) });
+      }
       return;
     }
     case "FOLDER": {
@@ -178,11 +221,45 @@ const REJECTED_ENTITY_LABEL: Record<SyncEntityType, string> = {
   COMMENT: "em um comentário",
 };
 
+/**
+ * A CREATE the server refused (a plan limit, a folder removed meanwhile) takes
+ * along every op that leaned on it — a follow-up edit, a subitem created under
+ * it — which the server refuses in turn. For the person that is one thing:
+ * what they made offline is gone. So it's one toast for all of it, and the
+ * optimistic copies leave the caches. `lostCreates` collects, per push, the
+ * ids whose CREATE failed.
+ */
+function applyLostCreate(queryClient: QueryClient, op: QueuedOperation, lostCreates: Set<string>) {
+  if (op.operationType === "CREATE") lostCreates.add(op.entityId);
+  queryClient.removeQueries({ queryKey: queryKeys.items.detail(op.entityId) });
+  invalidateForEntity(queryClient, op);
+  const parentItemId = op.payload.parentItemId;
+  if (typeof parentItemId === "string") {
+    queryClient.invalidateQueries({ queryKey: queryKeys.items.subitems(parentItemId) });
+  }
+  toast.error("Um item criado sem conexão não pôde ser salvo e foi removido.", {
+    id: "offline-create-rejected",
+  });
+}
+
 function applyResult(
   queryClient: QueryClient,
   op: QueuedOperation,
-  result: SyncOperationResult
+  result: SyncOperationResult,
+  lostCreates?: Set<string>
 ) {
+  if (
+    result.status === "REJECTED" &&
+    lostCreates &&
+    (op.operationType === "CREATE" ||
+      lostCreates.has(op.entityId) ||
+      lostCreates.has(op.payload.parentItemId as string))
+  ) {
+    if (result.message) console.warn(`Sync operation rejected: ${result.message}`);
+    applyLostCreate(queryClient, op, lostCreates);
+    return;
+  }
+
   if (result.status === "REJECTED") {
     // The server's reason is English and carries no error code to translate:
     // keep it for debugging only and tell the user what they will see.
@@ -258,11 +335,12 @@ export async function flushOutbox(queryClient: QueryClient) {
       });
 
       const acknowledged: string[] = [];
+      const lostCreates = new Set<string>();
       for (const result of results) {
         const op = ops.find((candidate) => candidate.operationId === result.operationId);
         if (!op) continue;
         acknowledged.push(result.operationId);
-        applyResult(queryClient, op, result);
+        applyResult(queryClient, op, result, lostCreates);
       }
       removeOperations(acknowledged);
     } catch {

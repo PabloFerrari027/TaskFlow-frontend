@@ -22,10 +22,13 @@ import { MAX_PAGE_SIZE, type PaginatedResult } from "@/types/common";
 import { useCurrentWorkspace } from "@/features/workspaces/context/current-workspace-context";
 import {
   isOffline,
+  OFFLINE_CAPABLE_MUTATION,
   pushImmediate,
+  queueEntityCreate,
   queueEntityDelete,
   queueEntityUpdate,
 } from "@/features/sync/lib/sync-engine";
+import type { Section } from "@/types/section";
 import type {
   Attachment,
   BulkResult,
@@ -189,6 +192,110 @@ function splitSyncablePayload(payload: Record<string, unknown>) {
   return { syncable, dropped };
 }
 
+// Appends to the last page of every cached list under `queryKey` — where the
+// server puts a new item too. Pages before it are left alone, so the item
+// doesn't show up twice when several pages are cached.
+function appendToCachedLists(queryClient: QueryClient, queryKey: QueryKey, item: Item) {
+  queryClient.setQueriesData<PaginatedResult<Item>>({ queryKey }, (data) =>
+    data && Array.isArray(data.data) && data.meta.page >= data.meta.totalPages
+      ? withCountAdjusted({ ...data, data: [...data.data, item] }, 1)
+      : data
+  );
+}
+
+/**
+ * The offline side of `useCreateItemMutation`: queues a sync CREATE under an
+ * id generated here and puts an optimistic copy in every cached list it
+ * belongs to — invalidating would do nothing, since refetches stay paused
+ * while offline. The push result replaces the copy with the server's; a
+ * rejection takes it out again (`sync-engine.ts`).
+ */
+function createItemOffline(
+  queryClient: QueryClient,
+  workspaceId: string,
+  folderId: string,
+  payload: CreateItemRequest
+): Item {
+  const { mentionedUserIds, assigneeIds, ...rest } = payload;
+  const { syncable, dropped } = splitSyncablePayload(rest);
+  // The sync CREATE takes a single assignee: the main one is kept.
+  if (assigneeIds?.length) {
+    syncable.assigneeId = assigneeIds[0];
+    if (assigneeIds.length > 1) dropped.push("assigneeIds");
+  }
+  if (mentionedUserIds?.length) dropped.push("mentionedUserIds");
+  if (dropped.length > 0) {
+    toast.warning(
+      "Datas, prioridade, menções e mais de um responsável só podem ser definidos online — o item foi criado sem eles."
+    );
+  }
+
+  const parentItemId = (syncable.parentItemId as string | undefined) ?? null;
+  const parent = parentItemId ? findCachedItem(queryClient, parentItemId) : undefined;
+  // Without one, the server picks the folder's default section — so does this.
+  const sectionId =
+    (syncable.sectionId as string | undefined) ||
+    parent?.sectionId ||
+    queryClient
+      .getQueryData<PaginatedResult<Section>>(queryKeys.sections.all(folderId))
+      ?.data.find((section) => section.isDefault)?.id ||
+    "";
+  const siblings = queryClient
+    .getQueriesData<PaginatedResult<Item>>({ queryKey: queryKeys.items.bySection(sectionId) })
+    .flatMap(([, data]) => (Array.isArray(data?.data) ? data.data : []));
+
+  const now = new Date().toISOString();
+  const assigneeId = (syncable.assigneeId as string | undefined) ?? null;
+  const item: Item = {
+    id: crypto.randomUUID(),
+    folderId,
+    sectionId,
+    position: Math.max(-1, ...siblings.map((sibling) => sibling.position)) + 1,
+    parentItemId,
+    title: payload.title,
+    description: (syncable.description as string | undefined) ?? null,
+    status: "TODO",
+    statusId: null,
+    assigneeId,
+    assigneeIds: assigneeId ? [assigneeId] : [],
+    dueDate: null,
+    startDate: null,
+    isMilestone: false,
+    estimateMinutes: null,
+    storyPoints: null,
+    priority: null,
+    createdBy: null,
+    // Never sent: edits before the CREATE syncs fold into it (`outbox.ts`).
+    version: 0,
+    createdAt: now,
+    updatedAt: now,
+    hasCover: false,
+    coverUrl: null,
+    attachments: [],
+    participantIds: [],
+    mentionedUserIds: [],
+  };
+
+  queueEntityCreate({
+    workspaceId,
+    entityType: "ITEM",
+    entityId: item.id,
+    // The form can hand over an empty `sectionId`; `undefined` drops it from the wire.
+    payload: { ...syncable, folderId, sectionId: sectionId || undefined },
+    meta: { folderId, itemId: parentItemId ?? undefined },
+  });
+
+  queryClient.setQueryData(queryKeys.items.detail(item.id), item);
+  // Columns and the folder list only hold top-level items.
+  if (parentItemId) {
+    appendToCachedLists(queryClient, queryKeys.items.subitems(parentItemId), item);
+  } else {
+    if (sectionId) appendToCachedLists(queryClient, queryKeys.items.bySection(sectionId), item);
+    appendToCachedLists(queryClient, queryKeys.items.all(folderId), item);
+  }
+  return item;
+}
+
 /** Toasts the backend's notices about a status change (e.g. finished with open blockers). */
 export function toastItemWarnings(item: Item) {
   for (const warning of item.warnings ?? []) toast.warning(translateItemWarning(warning));
@@ -241,11 +348,25 @@ export function useCreateItemMutation(
   { silent = false }: ItemMutationOptions = {}
 ) {
   const queryClient = useQueryClient();
+  const { workspaceId } = useCurrentWorkspace();
 
   return useMutation({
+    ...OFFLINE_CAPABLE_MUTATION,
     mutationKey: ITEM_MUTATION_KEY,
-    mutationFn: (payload: CreateItemRequest) => itemsService.create(folderId, payload),
+    mutationFn: (payload: CreateItemRequest) =>
+      isOffline() && workspaceId
+        ? Promise.resolve(createItemOffline(queryClient, workspaceId, folderId, payload))
+        : itemsService.create(folderId, payload),
     onSuccess: (item) => {
+      if (isOffline()) {
+        // The optimistic copy is already in the lists. Invalidating them here
+        // would only queue a refetch for reconnect, racing the push that
+        // creates the item — the list could come back without it for a moment.
+        if (!silent) {
+          toast.success("Item criado offline — será sincronizado quando a conexão voltar.");
+        }
+        return;
+      }
       scheduleItemListsRefresh(queryClient, { subitemParentIds: [item.parentItemId] });
       if (!silent) toast.success("Item criado.");
     },
@@ -261,6 +382,7 @@ export function useUpdateItemMutation(
   const { workspaceId } = useCurrentWorkspace();
 
   return useMutation({
+    ...OFFLINE_CAPABLE_MUTATION,
     mutationKey: ITEM_MUTATION_KEY,
     mutationFn: (payload: UpdateItemRequest) => {
       const current = findCachedItem(queryClient, itemId);
@@ -330,6 +452,7 @@ export function useUnassignItemMutation(
   const { workspaceId } = useCurrentWorkspace();
 
   return useMutation({
+    ...OFFLINE_CAPABLE_MUTATION,
     mutationKey: ITEM_MUTATION_KEY,
     mutationFn: async () => {
       const current = findCachedItem(queryClient, itemId);
@@ -391,6 +514,7 @@ export function useMoveItemToSectionMutation() {
   const { workspaceId } = useCurrentWorkspace();
 
   return useMutation({
+    ...OFFLINE_CAPABLE_MUTATION,
     mutationKey: ITEM_MUTATION_KEY,
     mutationFn: ({
       itemId,
@@ -475,6 +599,7 @@ export function useMoveItemsToSectionMutation() {
   const { workspaceId } = useCurrentWorkspace();
 
   return useMutation({
+    ...OFFLINE_CAPABLE_MUTATION,
     mutationKey: ITEM_MUTATION_KEY,
     mutationFn: async ({
       items,
@@ -561,6 +686,7 @@ export function useDeleteItemsMutation() {
   const { workspaceId } = useCurrentWorkspace();
 
   return useMutation({
+    ...OFFLINE_CAPABLE_MUTATION,
     mutationKey: ITEM_MUTATION_KEY,
     mutationFn: async (items: Item[]) => {
       if (isOffline()) {
@@ -738,6 +864,7 @@ export function useChangeItemStatusMutation(
   const { workspaceId } = useCurrentWorkspace();
 
   return useMutation({
+    ...OFFLINE_CAPABLE_MUTATION,
     mutationKey: ITEM_MUTATION_KEY,
     mutationFn: ({ category: _category, ...payload }: ChangeItemStatusRequest & { category?: ItemStatus }) => {
       void _category;
