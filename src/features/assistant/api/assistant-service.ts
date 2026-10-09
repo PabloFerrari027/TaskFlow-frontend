@@ -7,6 +7,11 @@ import {
 import { getAccessToken } from "@/lib/auth/token-store";
 import type { AiUsageQuery, AiUsageResponse } from "@/types/ai-usage";
 import type {
+  AssistantConversationMessagePage,
+  AssistantConversationPage,
+  ListAssistantConversationsParams,
+} from "@/types/assistant-conversation";
+import type {
   AssistantChatEvent,
   AssistantChatResponse,
   ChatMessage,
@@ -32,6 +37,7 @@ function buildChatBody(
   message: string,
   workspaceId: string,
   history: ChatMessage[],
+  conversationId: string | null,
   files?: File[]
 ): { body: BodyInit; contentType?: string } {
   // `files` (attachments and/or audio) switch the request to multipart —
@@ -44,11 +50,12 @@ function buildChatBody(
     if (message) formData.append("message", message);
     formData.append("workspaceId", workspaceId);
     formData.append("history", JSON.stringify(history));
+    if (conversationId) formData.append("conversationId", conversationId);
     for (const file of files) formData.append("files", file);
     return { body: formData };
   }
   return {
-    body: JSON.stringify({ message, workspaceId, history }),
+    body: JSON.stringify({ message, workspaceId, history, conversationId: conversationId ?? undefined }),
     contentType: "application/json",
   };
 }
@@ -63,11 +70,14 @@ export const assistantService = {
    * `error` frame. Progress frames go to `onEvent`; the returned promise
    * resolves with `done.result`, the authoritative reply. Aborting `signal`
    * closes the connection, which also stops the model server-side.
+   * `conversationId` continues a saved conversation (`null` starts one);
+   * `done.result.conversationId` is the one to send on the next turn.
    */
   async streamChatMessage(
     message: string,
     workspaceId: string,
     history: ChatMessage[],
+    conversationId: string | null,
     files: File[] | undefined,
     { onEvent, signal }: { onEvent: (event: AssistantChatEvent) => void; signal?: AbortSignal }
   ): Promise<AssistantChatResponse> {
@@ -76,7 +86,7 @@ export const assistantService = {
     // Rebuilt per attempt — a FormData/string body can be resent, but not
     // after being handed to a request that's already been read.
     const send = (token: string | null) => {
-      const { body, contentType } = buildChatBody(message, workspaceId, history, files);
+      const { body, contentType } = buildChatBody(message, workspaceId, history, conversationId, files);
       const headers: Record<string, string> = { Accept: "text/event-stream" };
       if (contentType) headers["Content-Type"] = contentType;
       if (token) headers.Authorization = `Bearer ${token}`;
@@ -159,6 +169,26 @@ export const assistantService = {
       `/assistant/actions/${actionId}/cancel`
     );
     return data;
+  },
+
+  // Saved in-app conversations — always the caller's own (API.md § 16).
+  async listConversations(params: ListAssistantConversationsParams & { cursor?: string; limit?: number }) {
+    const { data } = await apiClient.get<AssistantConversationPage>("/assistant/conversations", {
+      params,
+    });
+    return data;
+  },
+
+  async listConversationMessages(conversationId: string, params: { cursor?: string; limit?: number }) {
+    const { data } = await apiClient.get<AssistantConversationMessagePage>(
+      `/assistant/conversations/${conversationId}/messages`,
+      { params }
+    );
+    return data;
+  },
+
+  async deleteConversation(conversationId: string) {
+    await apiClient.delete(`/assistant/conversations/${conversationId}`);
   },
 
   // Only the caller's own usage — there's no userId param (API.md § 24).

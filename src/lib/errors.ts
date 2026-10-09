@@ -254,6 +254,7 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   CHANNEL_VERIFICATION_MAX_ATTEMPTS_EXCEEDED: "Tentativas esgotadas. Peça um novo código.",
   ASSISTANT_CHANNEL_LINK_NOT_FOUND: "Nenhum número vinculado a este canal.",
   ASSISTANT_CHANNEL_CONVERSATION_NOT_FOUND: "Conversa não encontrada.",
+  ASSISTANT_CONVERSATION_NOT_FOUND: "Essa conversa foi apagada. Envie de novo para continuar numa conversa nova.",
   ITEM_NOT_MOVABLE_TO_FOLDER:
     "Só dá para levar para outra pasta (do mesmo workspace) um item solto: sem ser subitem, sem subitens, sem dependências e sem campos personalizados preenchidos.",
   CAPTURE_NOT_FOUND: "Não há nada recente para desfazer ou mudar de lugar. Pode ter passado tempo demais.",

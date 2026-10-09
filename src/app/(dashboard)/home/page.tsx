@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { BookOpen, Bot, Building2, LayoutTemplate, Plus } from "lucide-react";
+import { BookOpen, Building2, LayoutTemplate, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/shared/page-header";
@@ -13,6 +13,7 @@ import { useSelfIdentity } from "@/features/auth/hooks/use-current-user";
 import { HomeStatTiles } from "@/features/home/components/home-stat-tiles";
 import { HomeItemsByFolder } from "@/features/home/components/home-items-by-folder";
 import { HomeRecentFolders } from "@/features/home/components/home-recent-folders";
+import { AssistantPromptCard } from "@/features/assistant/components/assistant-prompt-card";
 import { PendingApprovalsCard } from "@/features/approvals/components/pending-approvals-card";
 import { useHomeStats } from "@/features/home/hooks/use-home-stats";
 import { readCount } from "@/features/home/lib/home-queries";
@@ -106,6 +107,8 @@ export default function HomePage() {
         }
       />
 
+      <AssistantPromptCard />
+
       <HomeStatTiles
         progress={stats.progress}
         open={stats.open}
@@ -134,9 +137,6 @@ export default function HomePage() {
             <CardContent className="grid gap-1">
               <ShortcutLink href="/templates" icon={<LayoutTemplate />}>
                 Começar de um modelo
-              </ShortcutLink>
-              <ShortcutLink href="/assistant" icon={<Bot />}>
-                Pedir ajuda ao assistente
               </ShortcutLink>
               <ShortcutLink href="/tutorial" icon={<BookOpen />}>
                 Aprender a usar o TaskFlow

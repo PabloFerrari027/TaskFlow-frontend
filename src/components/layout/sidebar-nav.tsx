@@ -2,14 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NAV_GROUPS, NAV_ITEMS } from "@/components/layout/nav-items";
 import { useIsSuperAdminQuery } from "@/features/admin/hooks/use-clients";
 import { useCurrentWorkspace } from "@/features/workspaces/context/current-workspace-context";
 import { useAuth } from "@/lib/auth/auth-context";
+import { useAssistantChat } from "@/features/assistant/context/assistant-chat-context";
 
 export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const { openChat } = useAssistantChat();
   const isSuperAdminQuery = useIsSuperAdminQuery();
   const { workspace } = useCurrentWorkspace();
   const { userId } = useAuth();
@@ -39,6 +42,28 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <nav className="flex flex-col gap-6 px-3 py-5">
+      {/* The assistant is a headline feature: it gets a call to action above
+          every group instead of being one more link. */}
+      <button
+        type="button"
+        data-tour="sidebar-assistant"
+        onClick={() => {
+          onNavigate?.();
+          openChat();
+        }}
+        className="group flex items-center gap-3 rounded-xl bg-linear-to-br from-primary to-primary/75 px-3 py-3 text-left text-primary-foreground shadow-sm shadow-primary/30 transition hover:shadow-md hover:shadow-primary/40"
+      >
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary-foreground/15">
+          <Sparkles className="size-4.5" />
+        </span>
+        <span className="flex min-w-0 flex-col">
+          <span className="text-sm font-semibold">Conversar com a IA</span>
+          <span className="truncate text-xs text-primary-foreground/80">
+            Peça e ela faz por você
+          </span>
+        </span>
+      </button>
+
       {groups.map((group) => (
         <div key={group.id} className="flex flex-col gap-0.5">
           <p className="px-3 pb-1.5 text-[0.6875rem] font-semibold tracking-wider text-muted-foreground/70 uppercase">

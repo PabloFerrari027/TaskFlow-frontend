@@ -25,13 +25,12 @@ import {
 import { EmptyState } from "@/components/shared/empty-state";
 import { ErrorState } from "@/components/shared/error-state";
 import { Pager } from "@/components/shared/pager";
-import { formatDateTime } from "@/lib/format";
+import { formatDate, formatTime } from "@/lib/format";
 import { useMyAiUsageQuery } from "@/features/assistant/hooks/use-assistant";
 import { useWorkspacesQuery } from "@/features/workspaces/hooks/use-workspaces";
 import {
   AI_USAGE_FEATURES,
   type AiUsageFeature,
-  type AiUsageOperation,
   type AiUsageResponse,
 } from "@/types/ai-usage";
 
@@ -64,11 +63,6 @@ const HINTS = {
   thoughts:
     "Tokens que a IA usou para pensar antes de responder. Não aparecem no texto da resposta, mas contam no total.",
 } as const;
-
-const OPERATION_LABELS: Record<AiUsageOperation, string> = {
-  converse: "Conversa",
-  generateStructured: "Resposta estruturada",
-};
 
 const ALL_FEATURES = "all";
 
@@ -212,52 +206,61 @@ export function AiUsageHistory({
             </p>
           </div>
 
-          <Card className="gap-0 p-0">
+          <Card className="gap-0 overflow-hidden p-0">
             <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Origem</TableHead>
-                  <TableHead>Workspace</TableHead>
-                  <TableHead className="text-right">Entrada</TableHead>
-                  <TableHead className="text-right">
-                    <HeadWithHint label="Reaproveitado" hint={HINTS.cached} />
+              <TableHeader className="bg-muted/40">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="pl-4 text-xs text-muted-foreground">Quando</TableHead>
+                  <TableHead className="text-xs text-muted-foreground">Origem</TableHead>
+                  <TableHead className="text-right text-xs text-muted-foreground">
+                    <HeadWithHint label="Entrada" hint={HINTS.cached} />
                   </TableHead>
-                  <TableHead className="text-right">Saída</TableHead>
-                  <TableHead className="text-right">
+                  <TableHead className="text-right text-xs text-muted-foreground">Saída</TableHead>
+                  <TableHead className="text-right text-xs text-muted-foreground">
                     <HeadWithHint label="Raciocínio" hint={HINTS.thoughts} />
                   </TableHead>
-                  <TableHead className="text-right">Total</TableHead>
+                  <TableHead className="pr-4 text-right text-xs text-muted-foreground">
+                    Total
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {usage.items.map((item) => (
                   <TableRow key={item.id}>
-                    <TableCell className="whitespace-nowrap">
-                      {formatDateTime(item.createdAt)}
+                    <TableCell className="py-3 pl-4">
+                      <p>{formatDate(item.createdAt)}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatTime(item.createdAt)}
+                      </p>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="py-3">
                       <p className="font-medium">
                         <FeatureLabel feature={item.feature} />
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {OPERATION_LABELS[item.operation] ?? item.operation} · {item.model}
+                        {item.workspaceId ? `${workspaceLabel(item.workspaceId)} · ` : null}
+                        {item.model}
                       </p>
                     </TableCell>
-                    <TableCell>{workspaceLabel(item.workspaceId)}</TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {formatTokens(item.promptTokens)}
+                    <TableCell className="py-3 text-right tabular-nums">
+                      <p>{formatTokens(item.promptTokens)}</p>
+                      {item.cachedTokens > 0 ? (
+                        <p className="text-xs text-muted-foreground">
+                          {formatTokens(item.cachedTokens)} reaproveitados
+                        </p>
+                      ) : null}
                     </TableCell>
-                    <TableCell className="text-right tabular-nums text-muted-foreground">
-                      {formatTokens(item.cachedTokens)}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">
+                    <TableCell className="py-3 text-right tabular-nums">
                       {formatTokens(item.outputTokens)}
                     </TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {formatTokens(item.thoughtsTokens)}
+                    <TableCell className="py-3 text-right tabular-nums">
+                      {item.thoughtsTokens > 0 ? (
+                        formatTokens(item.thoughtsTokens)
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
                     </TableCell>
-                    <TableCell className="text-right font-medium tabular-nums">
+                    <TableCell className="py-3 pr-4 text-right font-semibold tabular-nums">
                       {formatTokens(item.totalTokens)}
                     </TableCell>
                   </TableRow>

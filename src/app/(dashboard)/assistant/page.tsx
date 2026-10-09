@@ -8,6 +8,7 @@ import { useCurrentWorkspace } from "@/features/workspaces/context/current-works
 import { useAuth } from "@/lib/auth/auth-context";
 import { canManageAssistantSettings } from "@/lib/permissions";
 import { WorkspaceAssistantSettingsPanel } from "@/features/workspaces/components/assistant-settings-panel";
+import { AssistantPromptCard } from "@/features/assistant/components/assistant-prompt-card";
 import { AiUsageHistory } from "@/features/assistant/components/ai-usage-history";
 import { AssistantChannelsSection } from "@/features/assistant-channels/components/assistant-channels-section";
 import type { WorkspaceRole } from "@/types/workspace";
@@ -25,8 +26,10 @@ export default function AssistantPage() {
     <div className="space-y-8">
       <PageHeader
         title="Assistente"
-        description="Configure o assistente de IA e acompanhe quanto você já usou."
+        description="Converse com a IA, ajuste como ela funciona e acompanhe quanto você já usou."
       />
+
+      {workspace?.assistantEnabled ? <AssistantPromptCard /> : null}
 
       <section className="space-y-4">
         <div className="space-y-1">
