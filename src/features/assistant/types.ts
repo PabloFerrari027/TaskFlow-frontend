@@ -1,6 +1,8 @@
-// Local to this feature — the conversation is ephemeral (no persistence,
-// stateless backend in v1, API.md § 16), so none of this belongs in
-// src/types (which mirrors persisted API DTOs).
+import type { AssistantConversationActionSummary } from "@/types/assistant-conversation";
+
+// Local to this feature — the live chat turn shapes. The chat is stateless
+// (the client resends `history` each turn, API.md § 16); the saved history
+// DTOs live in src/types/assistant-conversation.ts.
 
 export type ChatRole = "user" | "assistant";
 
@@ -55,6 +57,9 @@ export interface AssistantChatResponse {
   executedActions: ExecutedAction[];
   pendingActions: PendingAction[];
   transcriptions: Transcription[];
+  // Saved conversation this turn was recorded in — sent back as
+  // `conversationId` on the next turn. `null` if saving failed.
+  conversationId: string | null;
 }
 
 // What the assistant is doing right now, as reported by
@@ -109,6 +114,9 @@ export interface ChatTranscriptMessage {
   attachments?: ChatAttachment[];
   executedActions?: ExecutedAction[];
   pendingActions?: PendingActionState[];
+  // Only on messages restored from a saved conversation: what that turn
+  // proposed. Display-only — the action can no longer be confirmed from here.
+  pastActions?: AssistantConversationActionSummary[];
   // Present only on the assistant reply still being streamed (`null` until
   // the first status arrives) — `content` holds the text written so far and
   // is replaced by the final `reply` on `done`.

@@ -1,6 +1,12 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type QueryClient,
+} from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { assistantService } from "@/features/assistant/api/assistant-service";
@@ -16,14 +22,17 @@ import {
 import type { Folder } from "@/types/folder";
 import type { Item } from "@/types/item";
 import type { ItemApproval } from "@/types/approval";
+import type { AssistantConversationMessage } from "@/types/assistant-conversation";
 
-// Conversation state (transcript, pending action status) lives in the chat
-// component's own reducer, never in TanStack Query — it's an ephemeral
-// session, not cacheable server data (API.md § 16: stateless, no persisted
-// history in v1). These hooks only wrap the three HTTP calls + their
-// side effects.
+// The live conversation (transcript, pending action status) lives in the
+// chat component's own reducer, never in TanStack Query — the chat is
+// stateless (API.md § 16) and the client resends `history` each turn. Saved
+// conversations (list/resume/delete) are regular server data, below.
 
 const AI_USAGE_PAGE_SIZE = 20;
+const CONVERSATIONS_PAGE_SIZE = 20;
+// The API's max — resuming reads every page, so fewer round trips.
+const CONVERSATION_MESSAGES_PAGE_SIZE = 200;
 
 // Streams the turn (`POST /assistant/chat/stream`): progress frames go to
 // `onEvent` as they arrive, and the mutation resolves with the final
@@ -35,17 +44,19 @@ export function useSendChatMessageMutation(workspaceId: string) {
     mutationFn: ({
       message,
       history,
+      conversationId,
       files,
       onEvent,
       signal,
     }: {
       message: string;
       history: ChatMessage[];
+      conversationId: string | null;
       files?: File[];
       onEvent: (event: AssistantChatEvent) => void;
       signal?: AbortSignal;
     }) =>
-      assistantService.streamChatMessage(message, workspaceId, history, files, {
+      assistantService.streamChatMessage(message, workspaceId, history, conversationId, files, {
         onEvent,
         signal,
       }),
@@ -56,6 +67,9 @@ export function useSendChatMessageMutation(workspaceId: string) {
       for (const action of data.executedActions) {
         applyConfirmedActionEffects(queryClient, workspaceId, action.tool, action.result);
       }
+      // A new conversation shows up in the history list, and a continued one
+      // moves to the top.
+      queryClient.invalidateQueries({ queryKey: queryKeys.assistantConversations.root() });
     },
     onError: (error, variables) => {
       // Aborted on purpose (the user closed the chat) — nothing to report.
@@ -251,6 +265,66 @@ export function useMyAiUsageQuery(
     placeholderData: (previous) => previous,
     ...AI_USAGE_QUERY_CACHE,
     enabled: options?.enabled,
+  });
+}
+
+export function useAssistantConversationsQuery(workspaceId: string, options?: { enabled?: boolean }) {
+  return useInfiniteQuery({
+    queryKey: queryKeys.assistantConversations.list({ workspaceId }),
+    queryFn: ({ pageParam }) =>
+      assistantService.listConversations({
+        workspaceId,
+        limit: CONVERSATIONS_PAGE_SIZE,
+        cursor: pageParam,
+      }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (page) => page.nextCursor ?? undefined,
+    enabled: !!workspaceId && (options?.enabled ?? true),
+  });
+}
+
+// Resuming needs the whole conversation at once (it becomes the transcript
+// and the next turn's `history`), so every page is read up front.
+export function useLoadAssistantConversationMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (conversationId: string) =>
+      queryClient.fetchQuery({
+        queryKey: queryKeys.assistantConversations.messages(conversationId),
+        queryFn: async () => {
+          const messages: AssistantConversationMessage[] = [];
+          let cursor: string | undefined;
+          do {
+            const page = await assistantService.listConversationMessages(conversationId, {
+              limit: CONVERSATION_MESSAGES_PAGE_SIZE,
+              cursor,
+            });
+            messages.push(...page.items);
+            cursor = page.nextCursor ?? undefined;
+          } while (cursor);
+          return messages;
+        },
+        // Always fresh: the conversation may have grown in another tab.
+        staleTime: 0,
+      }),
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+}
+
+export function useDeleteAssistantConversationMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (conversationId: string) => assistantService.deleteConversation(conversationId),
+    onSuccess: (_data, conversationId) => {
+      queryClient.removeQueries({
+        queryKey: queryKeys.assistantConversations.messages(conversationId),
+      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.assistantConversations.root() });
+      toast.success("Conversa apagada.");
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
   });
 }
 

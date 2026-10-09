@@ -7,7 +7,7 @@ export default function FolderTimelinePage(props: PageProps<"/folders/[folderId]
   const { folderId } = use(props.params);
 
   return (
-    <div data-page-width="full">
+    <div>
       <FolderTimeline folderId={folderId} />
     </div>
   );

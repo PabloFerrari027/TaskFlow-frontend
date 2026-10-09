@@ -169,6 +169,10 @@
   }
   html {
     @apply font-sans;
+    /* Reserve the scrollbar track on every page so short and long pages keep
+       the same width — otherwise the centered column jumps sideways on
+       Windows when navigating between them. */
+    scrollbar-gutter: stable;
   }
 }
 /* Dashboard-page grid (react-grid-layout). The library's own stylesheet is

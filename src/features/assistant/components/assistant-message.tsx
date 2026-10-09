@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Mic, Paperclip } from "lucide-react";
+import { CircleCheck, History, Loader2, Mic, Paperclip, Sparkles } from "lucide-react";
 import { MarkdownContent } from "@/components/shared/markdown-content";
 import { cn } from "@/lib/utils";
 import { PendingActionCard } from "@/features/assistant/components/pending-action-card";
@@ -70,12 +70,27 @@ export function AssistantMessage({
   const isStreaming = message.streamingStatus !== undefined;
 
   return (
-    <div className={cn("flex", isUser ? "justify-end" : "justify-start")}>
-      <div className="max-w-[85%] space-y-2">
+    <div className={cn("flex gap-2.5", isUser ? "justify-end" : "justify-start")}>
+      {isUser ? null : (
+        <span
+          aria-hidden
+          className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-primary to-primary/70 text-primary-foreground"
+        >
+          <Sparkles className="size-3.5" />
+        </span>
+      )}
+      <div className={cn("min-w-0 space-y-2", isUser ? "max-w-[85%]" : "flex-1")}>
         {isStreaming && !message.content ? (
           <TypingIndicator />
         ) : message.content || !isUser ? (
-          <div className={cn("rounded-lg px-3 py-2", isUser ? "bg-primary" : "bg-muted")}>
+          <div
+            className={cn(
+              "px-3.5 py-2.5",
+              isUser
+                ? "rounded-2xl rounded-br-md bg-primary"
+                : "rounded-2xl rounded-tl-md bg-muted/70"
+            )}
+          >
             <MarkdownContent
               content={message.content}
               className={isUser ? USER_BUBBLE_MARKDOWN_CLASS : undefined}
@@ -115,13 +130,39 @@ export function AssistantMessage({
             land here. Transparency requirement (API.md § 16): a concluded
             action is shown, never just implied by the reply text. */}
         {message.executedActions && message.executedActions.length > 0 ? (
-          <div className="space-y-1">
+          <div className="flex flex-wrap gap-1.5">
             {message.executedActions.map((action, index) => (
-              <p key={index} className="text-xs text-muted-foreground">
-                ✅ {toolLabel(action.tool)}
-              </p>
+              <span
+                key={index}
+                className="flex items-center gap-1 rounded-full border border-success/30 bg-success/10 px-2 py-0.5 text-xs text-foreground"
+              >
+                <CircleCheck className="size-3 text-success" />
+                {toolLabel(action.tool)}
+              </span>
             ))}
           </div>
+        ) : null}
+
+        {/* From a resumed conversation: the action can no longer be confirmed
+            here (it expired), and whether it was is not saved — say so plainly. */}
+        {message.pastActions && message.pastActions.length > 0 ? (
+          <ul className="space-y-1.5">
+            {message.pastActions.map((action, index) => (
+              <li
+                key={index}
+                className="flex items-start gap-2 rounded-lg border border-dashed border-border px-3 py-2 text-xs text-muted-foreground"
+              >
+                <History className="mt-0.5 size-3.5 shrink-0" />
+                <span>
+                  <span className="font-medium text-foreground">Ação proposta:</span>{" "}
+                  {action.humanDescription ?? toolLabel(action.tool)}
+                  <span className="block">
+                    Era preciso confirmar na hora. Se ainda quiser, peça de novo.
+                  </span>
+                </span>
+              </li>
+            ))}
+          </ul>
         ) : null}
 
         {message.pendingActions?.map((pendingAction) => (

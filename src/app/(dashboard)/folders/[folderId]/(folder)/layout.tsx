@@ -45,7 +45,7 @@ export default function FolderDetailLayout(
 
   if (folderQuery.isLoading) {
     return (
-      <div className="space-y-4">
+      <div data-page-width="full" className="space-y-4">
         <Skeleton className="h-9 w-64" />
         <Skeleton className="h-10 w-full" />
         <Skeleton className="h-48 w-full" />
@@ -60,7 +60,9 @@ export default function FolderDetailLayout(
   const folder = folderQuery.data;
 
   return (
-    <div className="space-y-6">
+    // Every tab shares the full width (the board and timeline need it), so the
+    // header and tabs do not change width when switching between tabs.
+    <div data-page-width="full" className="space-y-6">
       <FolderBreadcrumb folder={folder} />
 
       <PageHeader

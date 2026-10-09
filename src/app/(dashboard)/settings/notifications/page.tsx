@@ -5,7 +5,7 @@ import { NotificationPreferencesSection } from "@/features/notifications/compone
 
 export default function NotificationSettingsPage() {
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="max-w-3xl space-y-6">
       <PageHeader
         title="Notificações"
         description="Os avisos aparecem no sino, no topo da tela. Aqui você escolhe quais quer receber e quais também chegam por e-mail."

@@ -7,6 +7,7 @@ import type {
 } from "@/types/folder-template";
 import type { SearchParams } from "@/types/search";
 import type { ListChannelConversationsParams } from "@/types/assistant-channel";
+import type { ListAssistantConversationsParams } from "@/types/assistant-conversation";
 import type { ListCouponsParams } from "@/types/plan";
 import { stableStringify } from "@/lib/utils";
 
@@ -19,6 +20,14 @@ export const queryKeys = {
   },
   sessions: {
     all: () => ["sessions"] as const,
+  },
+  // Saved in-app assistant chats (API.md § 16) — per signed-in user.
+  assistantConversations: {
+    root: () => ["assistant-conversations"] as const,
+    list: (params: ListAssistantConversationsParams) =>
+      ["assistant-conversations", "list", params] as const,
+    messages: (conversationId: string) =>
+      ["assistant-conversations", "messages", conversationId] as const,
   },
   // The assistant over WhatsApp & co. (API.md § 28) — per signed-in user.
   assistantChannels: {

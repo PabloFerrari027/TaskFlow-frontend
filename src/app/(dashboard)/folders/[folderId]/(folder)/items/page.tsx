@@ -9,7 +9,7 @@ export default function FolderItemsPage(
   const { folderId } = use(props.params);
 
   return (
-    <div data-page-width="full">
+    <div>
       <ItemBoard folderId={folderId} canManage />
     </div>
   );

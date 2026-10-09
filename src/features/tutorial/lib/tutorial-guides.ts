@@ -166,7 +166,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         bullets: [
           "Botão de menu: esconde ou mostra o menu lateral no computador. No celular, o menu abre como uma gaveta.",
           "Seletor de workspace: troca o workspace atual. Tudo que você vê (pastas, atividade) é do workspace selecionado.",
-          "Ícone do assistente: abre o chat de IA (precisa estar ativado no workspace).",
+          "Botão “Perguntar à IA”: abre a conversa com o assistente (precisa estar ativado no workspace). Ela também abre pelo botão “Conversar com a IA”, no topo do menu lateral, pelo cartão da página Início ou com Ctrl J.",
           "Ícone de sincronização: só aparece quando você está offline, sincronizando ou com alterações pendentes.",
           "Tema: alterna entre claro, escuro e o padrão do sistema.",
           "Seu avatar: abre o menu da conta, com Tutorial, o tour guiado e “Sair”.",

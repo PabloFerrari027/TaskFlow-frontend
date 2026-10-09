@@ -15,7 +15,7 @@ export default function TutorialPage() {
   const { startTour } = useTutorial();
 
   return (
-    <div className="mx-auto max-w-4xl space-y-10">
+    <div className="max-w-4xl space-y-10">
       <PageHeader
         title="Tutorial"
         description="Guias completos de cada área do TaskFlow. Busque um assunto ou siga na ordem."

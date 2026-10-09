@@ -102,6 +102,7 @@ export const TOUR_STEPS: TourStep[] = [
       "Peça em linguagem natural para consultar ou alterar itens, pastas e pessoas. Um Proprietário do workspace precisa ativá-lo na página Assistente.",
     details: [
       "Exemplo: “crie um item Revisar contrato na pasta Jurídica”.",
+      "Abra a conversa por este botão, pelo “Conversar com a IA” no menu lateral ou com Ctrl J (⌘J no Mac).",
       "Toda alteração aparece antes num cartão de ação pendente. Só o botão “Confirmar” executa; escrever “sim” no chat não basta.",
       "Ações críticas, como remover membros ou excluir o workspace, pedem também a sua senha ou o Google.",
     ],

@@ -7,7 +7,7 @@ import { SessionsSettingsSection } from "@/features/sessions/components/sessions
 
 export default function ProfilePage() {
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="max-w-3xl space-y-6">
       <PageHeader
         title="Meu perfil"
         description="Personalize como você aparece, gerencie a senha, o acesso com Google e os dispositivos conectados à sua conta."

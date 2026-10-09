@@ -2,31 +2,55 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Loader2, Mic, Paperclip, Send, Sparkles, Square, X } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowUp,
+  CircleCheck,
+  History,
+  Loader2,
+  Maximize2,
+  Mic,
+  Minimize2,
+  Paperclip,
+  Sparkles,
+  Square,
+  SquarePen,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { getErrorCode, getMessageForCode } from "@/lib/errors";
 import { formatFileSize } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import { useCurrentWorkspace } from "@/features/workspaces/context/current-workspace-context";
-import { useSendChatMessageMutation } from "@/features/assistant/hooks/use-assistant";
+import {
+  useLoadAssistantConversationMutation,
+  useSendChatMessageMutation,
+} from "@/features/assistant/hooks/use-assistant";
 import { useQuotaWindowUsageQuery } from "@/features/plans/hooks/use-plans";
 import { useAudioRecorder } from "@/features/assistant/hooks/use-audio-recorder";
 import { isAudioFile, validateNewFiles } from "@/features/assistant/lib/attachment-limits";
 import { AssistantMessage } from "@/features/assistant/components/assistant-message";
+import { AssistantConversationHistory } from "@/features/assistant/components/assistant-conversation-history";
 import { AssistantSessionSummary } from "@/features/assistant/components/assistant-session-summary";
 import { AssistantUsageMeter } from "@/features/assistant/components/assistant-usage-meter";
 import { WorkspaceAssistantSettingsPanel } from "@/features/workspaces/components/assistant-settings-panel";
 import { useAuth } from "@/lib/auth/auth-context";
+import {
+  ASSISTANT_SUGGESTIONS,
+  useAssistantChat,
+} from "@/features/assistant/context/assistant-chat-context";
 import { canManageAssistantSettings } from "@/lib/permissions";
 import type { WorkspaceRole } from "@/types/workspace";
+import type { AssistantConversationMessage } from "@/types/assistant-conversation";
 import type {
   AssistantChatEvent,
   AssistantChatResponse,
@@ -38,6 +62,33 @@ import type {
 } from "@/features/assistant/types";
 
 const MAX_MESSAGE_LENGTH = 2000;
+// The API accepts at most 50 history entries per turn (API.md § 16) and
+// windows them further on its side — a long resumed conversation sends only
+// its latest turns.
+const MAX_HISTORY_MESSAGES = 50;
+
+// A saved conversation back into transcript form. Proposed actions come back
+// display-only (`pastActions`): whether they were confirmed isn't saved, and
+// the action itself has long expired.
+function toTranscript(messages: AssistantConversationMessage[]): ChatTranscriptMessage[] {
+  return messages.map((message) => {
+    const transcribed = new Set(message.metadata?.transcriptions?.map((t) => t.fileName));
+    return {
+      id: message.id,
+      role: message.role,
+      content: message.content,
+      attachments: message.metadata?.attachments?.map((fileName) => ({
+        fileName,
+        isAudio: transcribed.has(fileName),
+      })),
+      executedActions: message.metadata?.executedActions?.map((action) => ({
+        tool: action.tool,
+        result: null,
+      })),
+      pastActions: message.metadata?.pendingActions,
+    };
+  });
+}
 
 // Attachments from earlier turns are never resent (API.md § 16) — only this
 // short filename note survives into `history`, matching the backend's own
@@ -64,6 +115,7 @@ type ChatAction =
   | { type: "stream-done"; messageId: string; result: AssistantChatResponse }
   | { type: "stream-failed"; messageId: string }
   | { type: "set-pending-status"; messageId: string; actionId: string; status: PendingActionLocalStatus }
+  | { type: "load"; transcript: ChatTranscriptMessage[] }
   | { type: "reset" };
 
 function updateMessage(
@@ -175,20 +227,27 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
           : state.confirmedActions,
       };
     }
+    case "load":
+      return { ...INITIAL_STATE, transcript: action.transcript };
     case "reset":
       return INITIAL_STATE;
   }
 }
 
-// Conversation state is ephemeral by design (API.md § 16: no persisted
-// history, stateless backend) — but `AssistantChat` itself never unmounts
-// (rendered unconditionally by the topbar), so nothing resets on its own
-// just from closing the Sheet. `handleOpenChange` below explicitly wipes
-// the reducer on close, which is what actually makes it ephemeral per
-// session instead of surviving for the whole app lifetime.
+// `AssistantChat` never unmounts (rendered unconditionally by the topbar;
+// its open state lives in AssistantChatProvider so the sidebar, home and
+// Assistente page can open it too), so closing the Sheet keeps the current
+// conversation — reopening picks it up where it was. Every turn is also saved
+// server-side (API.md § 16), so "Nova conversa" and switching workspace start
+// fresh without losing anything: older chats are one click away in the
+// history view.
 export function AssistantChat() {
-  const [open, setOpen] = React.useState(false);
+  const { open, setOpen, draft } = useAssistantChat();
   const [showSummary, setShowSummary] = React.useState(false);
+  const [showHistory, setShowHistory] = React.useState(false);
+  // Saved conversation the current transcript belongs to — `null` until the
+  // first reply of a new one comes back with its id.
+  const [conversationId, setConversationId] = React.useState<string | null>(null);
   // The AI provider refused the call for lack of credits/quota: retrying is
   // pointless, so the composer stays locked until the sheet is reopened.
   const [creditsExhausted, setCreditsExhausted] = React.useState(false);
@@ -202,6 +261,16 @@ export function AssistantChat() {
     | WorkspaceRole
     | undefined;
   const [text, setText] = React.useState("");
+  // A suggestion picked elsewhere pre-fills the composer — applied while
+  // rendering (not in an effect) so it is there the moment the Sheet opens.
+  const [appliedDraftKey, setAppliedDraftKey] = React.useState<number | null>(null);
+  if (draft && draft.key !== appliedDraftKey) {
+    setAppliedDraftKey(draft.key);
+    setText(draft.text.slice(0, MAX_MESSAGE_LENGTH));
+  }
+  const inputRef = React.useRef<HTMLTextAreaElement>(null);
+  // Wider panel for long answers and tables; per-session, not persisted.
+  const [expanded, setExpanded] = React.useState(false);
   const [files, setFiles] = React.useState<File[]>([]);
   const [state, dispatch] = React.useReducer(chatReducer, INITIAL_STATE);
   const scrollRef = React.useRef<HTMLDivElement>(null);
@@ -209,6 +278,7 @@ export function AssistantChat() {
   const streamAbortRef = React.useRef<AbortController | null>(null);
 
   const sendMutation = useSendChatMessageMutation(workspace?.id ?? "");
+  const loadMutation = useLoadAssistantConversationMutation();
   const assistantEnabled = workspace?.assistantEnabled ?? false;
   const composerDisabled = sendMutation.isPending || !assistantEnabled || creditsExhausted;
 
@@ -254,20 +324,79 @@ export function AssistantChat() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
   }, [state.transcript, sendMutation.isPending]);
 
+  function resetConversation() {
+    // Closing the connection also stops the model server-side, so no
+    // tokens are spent on a reply nobody will read.
+    streamAbortRef.current?.abort();
+    streamAbortRef.current = null;
+    setShowSummary(false);
+    setCreditsExhausted(false);
+    setQuotaExceeded(false);
+    setFiles([]);
+    if (recorder.status === "recording") recorder.cancel();
+    setConversationId(null);
+    dispatch({ type: "reset" });
+  }
+
+  // A conversation belongs to one workspace — switching starts a new one
+  // (applied while rendering, same as the draft above).
+  const [conversationWorkspaceId, setConversationWorkspaceId] = React.useState(workspace?.id);
+  if (workspace?.id !== conversationWorkspaceId) {
+    setConversationWorkspaceId(workspace?.id);
+    setConversationId(null);
+    setShowHistory(false);
+    dispatch({ type: "reset" });
+  }
+
   function handleOpenChange(next: boolean) {
     setOpen(next);
-    if (!next) {
-      // Closing the connection also stops the model server-side, so no
-      // tokens are spent on a reply nobody will read.
-      streamAbortRef.current?.abort();
-      streamAbortRef.current = null;
-      setShowSummary(false);
-      setCreditsExhausted(false);
-      setQuotaExceeded(false);
-      setFiles([]);
-      if (recorder.status === "recording") recorder.cancel();
-      dispatch({ type: "reset" });
+    if (next) return;
+    // The transcript stays for the next open, but nothing keeps running in
+    // the background: closing the connection also stops the model
+    // server-side (that half-finished turn isn't saved).
+    streamAbortRef.current?.abort();
+    streamAbortRef.current = null;
+    if (recorder.status === "recording") recorder.cancel();
+    setShowHistory(false);
+    setCreditsExhausted(false);
+    if (showSummary) {
+      // "Encerrar e revisar" ends the conversation.
+      resetConversation();
+      setText("");
     }
+  }
+
+  function handleSelectConversation(id: string) {
+    if (id === conversationId) {
+      setShowHistory(false);
+      return;
+    }
+    loadMutation.mutate(id, {
+      onSuccess: (messages) => {
+        resetConversation();
+        dispatch({ type: "load", transcript: toTranscript(messages) });
+        setConversationId(id);
+        setShowHistory(false);
+      },
+    });
+  }
+
+  function handleConversationDeleted(id: string) {
+    if (id === conversationId) resetConversation();
+  }
+
+  function handleNewConversation() {
+    resetConversation();
+    setText("");
+    inputRef.current?.focus();
+  }
+
+  // Enter sends, Shift+Enter breaks the line — the usual chat convention.
+  function handleComposerKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.key !== "Enter" || event.shiftKey || event.nativeEvent.isComposing) return;
+    event.preventDefault();
+    if (recorder.status === "recording") return;
+    sendMessage(files);
   }
 
   function handleFilesSelected(event: React.ChangeEvent<HTMLInputElement>) {
@@ -298,7 +427,8 @@ export function AssistantChat() {
     // — the API rejects a history entry with no content.
     const history: ChatMessage[] = state.transcript
       .map((message) => ({ role: message.role, content: toHistoryContent(message) }))
-      .filter((message) => message.content);
+      .filter((message) => message.content)
+      .slice(-MAX_HISTORY_MESSAGES);
 
     const attachments: ChatAttachment[] = filesToSend.map((file) => ({
       fileName: file.name,
@@ -330,6 +460,7 @@ export function AssistantChat() {
       {
         message: trimmed,
         history,
+        conversationId,
         files: filesToSend.length > 0 ? filesToSend : undefined,
         signal: abort.signal,
         onEvent: (event) => {
@@ -345,6 +476,7 @@ export function AssistantChat() {
       {
         onSuccess: (data) => {
           setQuotaExceeded(false);
+          if (data.conversationId) setConversationId(data.conversationId);
           if (!trimmed && data.transcriptions.length > 0) {
             dispatch({
               type: "set-content",
@@ -359,6 +491,8 @@ export function AssistantChat() {
           dispatch({ type: "stream-failed", messageId: replyId });
           if (getErrorCode(error) === "AI_INSUFFICIENT_CREDITS") setCreditsExhausted(true);
           if (getErrorCode(error) === "TOKEN_QUOTA_EXCEEDED") setQuotaExceeded(true);
+          // Deleted meanwhile (e.g. in another tab): the next send starts a new one.
+          if (getErrorCode(error) === "ASSISTANT_CONVERSATION_NOT_FOUND") setConversationId(null);
         },
         onSettled: () => {
           if (streamAbortRef.current === abort) streamAbortRef.current = null;
@@ -393,46 +527,129 @@ export function AssistantChat() {
     <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetTrigger asChild>
         <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Abrir assistente de IA"
+          aria-label="Conversar com o assistente de IA"
+          title="Conversar com o assistente de IA (Ctrl J)"
           data-tour="assistant"
+          className="gap-2 bg-linear-to-r from-primary to-primary/75 shadow-sm shadow-primary/30 max-sm:size-8 max-sm:px-0"
         >
           <Sparkles />
+          <span className="hidden sm:inline">Perguntar à IA</span>
+          <kbd className="hidden rounded bg-primary-foreground/15 px-1.5 font-mono text-[10px] lg:inline">
+            Ctrl J
+          </kbd>
         </Button>
       </SheetTrigger>
-      <SheetContent className="flex w-full flex-col gap-0 sm:max-w-md">
-        <SheetHeader className="gap-2 border-b border-border/60">
-          <SheetTitle className="flex items-center gap-2">
-            <Sparkles className="size-4 text-primary" />
-            Assistente
-          </SheetTitle>
+      <SheetContent
+        className={cn(
+          // Same `data-[side=right]:` variant as SheetContent's defaults (w-3/4,
+          // sm:max-w-sm) so cn() replaces them — a plain `sm:max-w-*` loses
+          // to the attribute selector's higher specificity.
+          "flex flex-col gap-0 transition-[max-width] duration-200 data-[side=right]:w-full",
+          expanded ? "data-[side=right]:sm:max-w-3xl" : "data-[side=right]:sm:max-w-lg"
+        )}
+        onOpenAutoFocus={(event) => {
+          // Straight to typing instead of the close button.
+          if (!inputRef.current || inputRef.current.disabled) return;
+          event.preventDefault();
+          inputRef.current.focus();
+        }}
+      >
+        <SheetHeader className="gap-3 border-b border-border/60 pr-12">
+          <div className="flex items-center gap-3">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-primary to-primary/70 text-primary-foreground shadow-sm shadow-primary/30">
+              <Sparkles className="size-4.5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <SheetTitle>Assistente de IA</SheetTitle>
+              <SheetDescription className="truncate text-xs">
+                {workspace ? `Trabalhando em ${workspace.name}` : "Nenhum workspace selecionado"}
+              </SheetDescription>
+            </div>
+            <div className="flex items-center gap-0.5">
+              {assistantEnabled && workspace ? (
+                <Button
+                  variant={showHistory ? "secondary" : "ghost"}
+                  size="icon-sm"
+                  aria-label="Conversas anteriores"
+                  title="Conversas anteriores"
+                  aria-pressed={showHistory}
+                  onClick={() => setShowHistory((current) => !current)}
+                >
+                  <History />
+                </Button>
+              ) : null}
+              {state.transcript.length > 0 ? (
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="Nova conversa"
+                  title="Nova conversa"
+                  onClick={() => {
+                    setShowHistory(false);
+                    handleNewConversation();
+                  }}
+                >
+                  <SquarePen />
+                </Button>
+              ) : null}
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="hidden sm:inline-flex"
+                aria-label={expanded ? "Diminuir painel" : "Ampliar painel"}
+                title={expanded ? "Diminuir painel" : "Ampliar painel"}
+                onClick={() => setExpanded((current) => !current)}
+              >
+                {expanded ? <Minimize2 /> : <Maximize2 />}
+              </Button>
+            </div>
+          </div>
           {assistantEnabled && workspace ? (
             <AssistantUsageMeter tokensToday={tokensToday} isUpdating={sendMutation.isPending} />
           ) : null}
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-xs text-muted-foreground">
-              {confirmedCount} ação(ões) confirmada(s) nesta conversa
+        </SheetHeader>
+
+        {/* Only once something was actually confirmed — an always-visible
+            "0 ações" row was noise in an empty chat. */}
+        {confirmedCount > 0 && !showSummary && !showHistory ? (
+          <div className="flex items-center justify-between gap-2 border-b border-border/60 bg-success/5 px-4 py-2">
+            <span className="flex items-center gap-1.5 text-xs text-foreground">
+              <CircleCheck className="size-3.5 text-success" />
+              {confirmedCount === 1
+                ? "1 ação confirmada nesta conversa"
+                : `${confirmedCount} ações confirmadas nesta conversa`}
             </span>
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={confirmedCount === 0}
-              onClick={() => setShowSummary(true)}
-            >
+            <Button size="xs" variant="outline" onClick={() => setShowSummary(true)}>
               Encerrar e revisar
             </Button>
           </div>
-        </SheetHeader>
+        ) : null}
 
         {showSummary ? (
           <AssistantSessionSummary
             confirmedActions={state.confirmedActions}
             onClose={() => handleOpenChange(false)}
           />
+        ) : showHistory && workspace ? (
+          <div className="flex-1 space-y-3 overflow-y-auto p-4">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm font-medium text-foreground">Conversas anteriores</p>
+              <Button size="xs" variant="ghost" onClick={() => setShowHistory(false)}>
+                <ArrowLeft />
+                Voltar
+              </Button>
+            </div>
+            <AssistantConversationHistory
+              workspaceId={workspace.id}
+              activeConversationId={conversationId}
+              loadingConversationId={loadMutation.isPending ? (loadMutation.variables ?? null) : null}
+              onSelect={handleSelectConversation}
+              onDeleted={handleConversationDeleted}
+            />
+          </div>
         ) : (
           <>
-            <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto p-4">
+            <div ref={scrollRef} className="flex-1 space-y-5 overflow-y-auto p-4">
               {!workspace ? null : !assistantEnabled ? (
                 <div className="rounded-lg border border-border/60 p-4">
                   <WorkspaceAssistantSettingsPanel
@@ -441,10 +658,33 @@ export function AssistantChat() {
                   />
                 </div>
               ) : state.transcript.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  Pergunte algo ou peça uma ação sobre este workspace — toda alteração pede
-                  sua confirmação explícita antes de acontecer.
-                </p>
+                <div className="space-y-4 py-2">
+                  <div className="space-y-2 text-center">
+                    <span className="mx-auto flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <Sparkles className="size-6" />
+                    </span>
+                    <p className="font-medium text-foreground">Como posso ajudar?</p>
+                    <p className="text-sm text-muted-foreground">
+                      Escreva, grave um áudio ou envie um arquivo. Eu consulto e organizo pastas e
+                      itens para você — toda alteração pede sua confirmação antes de acontecer.
+                    </p>
+                  </div>
+                  <div className={cn("grid gap-2", expanded && "sm:grid-cols-2")}>
+                    {ASSISTANT_SUGGESTIONS.map((suggestion) => (
+                      <button
+                        key={suggestion}
+                        type="button"
+                        className="rounded-lg border border-border/60 px-3 py-2 text-left text-sm text-foreground transition-colors hover:border-primary/40 hover:bg-primary/5"
+                        onClick={() => {
+                          setText(suggestion);
+                          inputRef.current?.focus();
+                        }}
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               ) : (
                 state.transcript.map((message) => (
                   <AssistantMessage
@@ -484,7 +724,7 @@ export function AssistantChat() {
 
             <form
               onSubmit={handleSubmit}
-              className="space-y-2 border-t border-border/60 p-4"
+              className="space-y-2 border-t border-border/60 p-3 sm:p-4"
             >
               {files.length > 0 ? (
                 <div className="flex flex-wrap gap-1.5">
@@ -531,53 +771,81 @@ export function AssistantChat() {
                 </p>
               ) : null}
 
-              <div className="flex gap-2">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  multiple
-                  className="hidden"
-                  onChange={handleFilesSelected}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  aria-label="Anexar arquivo"
-                  disabled={composerDisabled || recorder.status === "recording"}
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <Paperclip />
-                </Button>
-                <Button
-                  type="button"
-                  variant={recorder.status === "recording" ? "destructive" : "outline"}
-                  size="icon"
-                  aria-label={recorder.status === "recording" ? "Parar gravação" : "Gravar áudio"}
-                  disabled={composerDisabled}
-                  onClick={() => (recorder.status === "recording" ? recorder.stop() : recorder.start())}
-                >
-                  {recorder.status === "recording" ? <Square /> : <Mic />}
-                </Button>
-                <Input
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                className="hidden"
+                onChange={handleFilesSelected}
+              />
+              {/* One field, chat-app style: text on top, tools and send below. */}
+              <div
+                className={cn(
+                  "rounded-2xl border border-input bg-background shadow-xs transition-colors focus-within:border-primary/50 focus-within:ring-3 focus-within:ring-primary/15 dark:bg-input/30",
+                  composerDisabled && "opacity-60"
+                )}
+              >
+                <textarea
+                  ref={inputRef}
                   value={text}
+                  rows={1}
                   onChange={(event) => setText(event.target.value.slice(0, MAX_MESSAGE_LENGTH))}
+                  onKeyDown={handleComposerKeyDown}
                   maxLength={MAX_MESSAGE_LENGTH}
-                  placeholder="Escreva uma mensagem..."
+                  placeholder="Pergunte ou peça algo..."
+                  aria-label="Mensagem para o assistente"
                   disabled={composerDisabled}
+                  className="field-sizing-content block max-h-40 min-h-11 w-full resize-none bg-transparent px-3.5 pt-3 pb-1 text-base outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed md:text-sm"
                 />
-                <Button
-                  type="submit"
-                  size="icon"
-                  disabled={
-                    composerDisabled ||
-                    recorder.status === "recording" ||
-                    (!text.trim() && !hasAudio)
-                  }
-                >
-                  {sendMutation.isPending ? <Loader2 className="animate-spin" /> : <Send />}
-                </Button>
+                <div className="flex items-center gap-1 px-2 pb-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label="Anexar arquivo"
+                    title="Anexar arquivo"
+                    className="text-muted-foreground"
+                    disabled={composerDisabled || recorder.status === "recording"}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Paperclip />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={recorder.status === "recording" ? "destructive" : "ghost"}
+                    size="icon-sm"
+                    aria-label={recorder.status === "recording" ? "Parar gravação" : "Gravar áudio"}
+                    title={recorder.status === "recording" ? "Parar e enviar" : "Gravar áudio"}
+                    className={cn(recorder.status !== "recording" && "text-muted-foreground")}
+                    disabled={composerDisabled}
+                    onClick={() => (recorder.status === "recording" ? recorder.stop() : recorder.start())}
+                  >
+                    {recorder.status === "recording" ? <Square /> : <Mic />}
+                  </Button>
+                  <span className="ml-auto pr-1 text-[11px] text-muted-foreground">
+                    {text.length > MAX_MESSAGE_LENGTH * 0.8
+                      ? `${text.length}/${MAX_MESSAGE_LENGTH}`
+                      : null}
+                  </span>
+                  <Button
+                    type="submit"
+                    size="icon-sm"
+                    aria-label="Enviar"
+                    className="rounded-full"
+                    disabled={
+                      composerDisabled ||
+                      recorder.status === "recording" ||
+                      (!text.trim() && !hasAudio)
+                    }
+                  >
+                    {sendMutation.isPending ? <Loader2 className="animate-spin" /> : <ArrowUp />}
+                  </Button>
+                </div>
               </div>
+              <p className="hidden text-center text-[11px] text-muted-foreground sm:block">
+                Enter envia · Shift + Enter quebra a linha · a IA pode errar, confira antes de
+                confirmar
+              </p>
             </form>
           </>
         )}
