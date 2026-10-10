@@ -62,7 +62,15 @@ export function getAccessToken() {
   return state.accessToken;
 }
 
+// localStorage first: another tab may have rotated the refresh token since
+// this one loaded it, and the copy in memory would then be a reused (and
+// session-revoking) token.
 export function getRefreshCredentials() {
+  const persisted = readPersisted();
+  if (persisted) {
+    state = { ...state, sessionId: persisted.sessionId, refreshToken: persisted.refreshToken };
+    return { sessionId: persisted.sessionId, refreshToken: persisted.refreshToken };
+  }
   if (!state.sessionId || !state.refreshToken) return null;
   return { sessionId: state.sessionId, refreshToken: state.refreshToken };
 }

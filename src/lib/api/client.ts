@@ -51,7 +51,27 @@ export function redirectToLogin() {
   }
 }
 
-export async function attemptSessionRefresh(): Promise<string | null> {
+// Every refresh in this tab goes through here — the interceptor, the app
+// bootstrap (run twice by React StrictMode in dev) and the assistant's
+// streaming fetch. The backend rotates the refresh token on each use and
+// treats a second use of the same token as theft, revoking the whole session,
+// so two concurrent refreshes would log the user out.
+export function attemptSessionRefresh(): Promise<string | null> {
+  if (!refreshPromise) {
+    refreshPromise = refreshAcrossTabs().finally(() => {
+      refreshPromise = null;
+    });
+  }
+  return refreshPromise;
+}
+
+// Other tabs share the same refresh token (localStorage): the Web Lock makes
+// them take turns, and each one reads the token only once it holds the lock —
+// by then a tab that refreshed first has already stored the rotated one.
+async function refreshAcrossTabs(): Promise<string | null> {
+  if (typeof navigator !== "undefined" && navigator.locks) {
+    return navigator.locks.request("taskflow.session-refresh", performRefresh);
+  }
   return performRefresh();
 }
 
@@ -66,8 +86,15 @@ async function performRefresh(): Promise<string | null> {
     );
     setAccessToken(data.accessToken, data.refreshToken);
     return data.accessToken;
-  } catch {
-    clearSession();
+  } catch (error) {
+    // A 4xx answer means the session is really gone (SESSION_EXPIRED 401,
+    // SESSION_NOT_FOUND 404, revoked, logged out). A network error, 5xx, 408
+    // or 429 — e.g. the API restarting in dev — keeps the stored session so
+    // the next attempt can still succeed.
+    const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+    if (status !== undefined && status >= 400 && status < 500 && status !== 408 && status !== 429) {
+      clearSession();
+    }
     return null;
   }
 }
@@ -89,19 +116,16 @@ apiClient.interceptors.response.use(
     ) {
       originalRequest._retried = true;
 
-      if (!refreshPromise) {
-        refreshPromise = performRefresh().finally(() => {
-          refreshPromise = null;
-        });
-      }
-
-      const newAccessToken = await refreshPromise;
+      const newAccessToken = await attemptSessionRefresh();
 
       if (newAccessToken) {
         originalRequest.headers.set("Authorization", `Bearer ${newAccessToken}`);
         return apiClient(originalRequest);
       }
 
+      // Refresh failed without ending the session (API unreachable): keep the
+      // user here and let the request fail like any other network error.
+      if (getRefreshCredentials()) return Promise.reject(error);
       redirectToLogin();
     }
 
