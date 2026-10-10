@@ -4,7 +4,7 @@ import {
   attemptSessionRefresh,
   redirectToLogin,
 } from "@/lib/api/client";
-import { getAccessToken } from "@/lib/auth/token-store";
+import { getAccessToken, getRefreshCredentials } from "@/lib/auth/token-store";
 import type { AiUsageQuery, AiUsageResponse } from "@/types/ai-usage";
 import type {
   AssistantConversationMessagePage,
@@ -97,8 +97,10 @@ export const assistantService = {
     // Same one-shot refresh the axios interceptor does for every other call.
     if (response.status === 401) {
       const refreshed = await attemptSessionRefresh();
-      if (!refreshed) redirectToLogin();
-      else response = await send(refreshed);
+      if (refreshed) response = await send(refreshed);
+      // No credentials left = the session really ended; otherwise the API was
+      // just unreachable and the 401 below surfaces as a normal error.
+      else if (!getRefreshCredentials()) redirectToLogin();
     }
 
     if (!response.ok || !response.body) {
