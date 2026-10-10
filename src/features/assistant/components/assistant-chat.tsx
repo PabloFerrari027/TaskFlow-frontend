@@ -110,6 +110,7 @@ const INITIAL_STATE: ChatState = { transcript: [], confirmedActions: [] };
 
 type ChatAction =
   | { type: "add"; message: ChatTranscriptMessage }
+  | { type: "remove"; messageId: string }
   | { type: "set-content"; messageId: string; content: string }
   | { type: "stream-event"; messageId: string; event: AssistantChatEvent }
   | { type: "stream-done"; messageId: string; result: AssistantChatResponse }
@@ -135,6 +136,8 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
   switch (action.type) {
     case "add":
       return { ...state, transcript: [...state.transcript, action.message] };
+    case "remove":
+      return { ...state, transcript: state.transcript.filter((m) => m.id !== action.messageId) };
     case "set-content":
       return updateMessage(state, action.messageId, (message) => ({
         ...message,
@@ -299,26 +302,34 @@ export function AssistantChat() {
   // recording is in progress (attach a file, type text) and the "stop mic →
   // send" step should still use whatever is current at that moment.
   const filesRef = React.useRef<File[]>(files);
-  const sendMessageRef = React.useRef<(filesToSend: File[]) => void>(() => {});
+  const sendMessageRef = React.useRef<(filesToSend: File[]) => boolean>(() => false);
 
   // Recording finishing is itself the send trigger (voice-message style: stop
   // the mic and it's on its way) — no separate "click Send" step for audio.
-  const recorder = useAudioRecorder((file) => {
-    const { accepted, error } = validateNewFiles(filesRef.current, [file]);
-    if (error) {
-      toast.error(error);
-      return;
+  const recorder = useAudioRecorder(
+    (file) => {
+      const { accepted, error } = validateNewFiles(filesRef.current, [file]);
+      if (error) {
+        toast.error(error);
+        return;
+      }
+      // Couldn't go out right now (e.g. the composer got locked while
+      // recording): keep the clip staged instead of dropping it.
+      if (!sendMessageRef.current([...filesRef.current, ...accepted])) {
+        setFiles((previous) => [...previous, ...accepted]);
+      }
+    },
+    (error) => {
+      if (error === "unsupported") {
+        toast.error("Este navegador não suporta gravação de áudio.");
+      } else if (error === "denied") {
+        toast.error("Não foi possível acessar o microfone. Verifique a permissão do navegador.");
+      } else {
+        toast.error("Gravação muito curta. Segure por pelo menos 1 segundo antes de parar.");
+      }
     }
-    sendMessageRef.current([...filesRef.current, ...accepted]);
-  });
-
-  React.useEffect(() => {
-    if (recorder.status === "unsupported") {
-      toast.error("Este navegador não suporta gravação de áudio.");
-    } else if (recorder.status === "denied") {
-      toast.error("Não foi possível acessar o microfone. Verifique a permissão do navegador.");
-    }
-  }, [recorder.status]);
+  );
+  const isRecording = recorder.status !== "idle";
 
   React.useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
@@ -333,7 +344,7 @@ export function AssistantChat() {
     setCreditsExhausted(false);
     setQuotaExceeded(false);
     setFiles([]);
-    if (recorder.status === "recording") recorder.cancel();
+    recorder.cancel();
     setConversationId(null);
     dispatch({ type: "reset" });
   }
@@ -356,7 +367,7 @@ export function AssistantChat() {
     // server-side (that half-finished turn isn't saved).
     streamAbortRef.current?.abort();
     streamAbortRef.current = null;
-    if (recorder.status === "recording") recorder.cancel();
+    recorder.cancel();
     setShowHistory(false);
     setCreditsExhausted(false);
     if (showSummary) {
@@ -395,7 +406,7 @@ export function AssistantChat() {
   function handleComposerKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (event.key !== "Enter" || event.shiftKey || event.nativeEvent.isComposing) return;
     event.preventDefault();
-    if (recorder.status === "recording") return;
+    if (isRecording) return;
     sendMessage(files);
   }
 
@@ -418,10 +429,12 @@ export function AssistantChat() {
 
   const hasAudio = files.some(isAudioFile);
 
-  function sendMessage(filesToSend: File[]) {
+  // Returns whether the turn went out — the recorder keeps the clip staged
+  // when it didn't.
+  function sendMessage(filesToSend: File[]): boolean {
     const trimmed = text.trim();
     const canSubmit = trimmed.length > 0 || filesToSend.some(isAudioFile);
-    if (!canSubmit || composerDisabled || !workspace) return;
+    if (!canSubmit || composerDisabled || !workspace) return false;
 
     // Turns that ended up empty (e.g. a failed audio-only turn) are left out
     // — the API rejects a history entry with no content.
@@ -436,9 +449,13 @@ export function AssistantChat() {
     }));
     const messageId = crypto.randomUUID();
     const replyId = crypto.randomUUID();
-    // Audio-only turns leave the optimistic bubble empty — filled in with
-    // what the backend understood as each transcription arrives.
+    // The bubble ends up as the backend's own "effective message" (typed text,
+    // then each transcription, blank-line separated): the same text a resumed
+    // conversation shows, and — since `history` is built from the bubbles —
+    // what later turns need, or a voice note sent along with typed text would
+    // vanish from the model's context on the next message.
     const transcribed: string[] = [];
+    const effectiveContent = () => [trimmed, ...transcribed].filter((part) => part.trim()).join("\n\n");
 
     dispatch({
       type: "add",
@@ -465,9 +482,8 @@ export function AssistantChat() {
         signal: abort.signal,
         onEvent: (event) => {
           if (event.type === "transcription") {
-            if (trimmed) return;
             transcribed.push(event.transcription.text);
-            dispatch({ type: "set-content", messageId, content: transcribed.join("\n") });
+            dispatch({ type: "set-content", messageId, content: effectiveContent() });
             return;
           }
           dispatch({ type: "stream-event", messageId: replyId, event });
@@ -477,28 +493,44 @@ export function AssistantChat() {
         onSuccess: (data) => {
           setQuotaExceeded(false);
           if (data.conversationId) setConversationId(data.conversationId);
-          if (!trimmed && data.transcriptions.length > 0) {
-            dispatch({
-              type: "set-content",
-              messageId,
-              content: data.transcriptions.map((transcription) => transcription.text).join("\n"),
-            });
+          // `done` is authoritative, in case a `transcription` frame was missed.
+          if (data.transcriptions.length > 0) {
+            transcribed.splice(0, transcribed.length, ...data.transcriptions.map((t) => t.text));
+            dispatch({ type: "set-content", messageId, content: effectiveContent() });
           }
           dispatch({ type: "stream-done", messageId: replyId, result: data });
           usageQuery.refetch();
         },
         onError: (error) => {
+          const code = getErrorCode(error);
           dispatch({ type: "stream-failed", messageId: replyId });
-          if (getErrorCode(error) === "AI_INSUFFICIENT_CREDITS") setCreditsExhausted(true);
-          if (getErrorCode(error) === "TOKEN_QUOTA_EXCEEDED") setQuotaExceeded(true);
+          if (code === "AI_INSUFFICIENT_CREDITS") setCreditsExhausted(true);
+          if (code === "TOKEN_QUOTA_EXCEEDED") setQuotaExceeded(true);
           // Deleted meanwhile (e.g. in another tab): the next send starts a new one.
-          if (getErrorCode(error) === "ASSISTANT_CONVERSATION_NOT_FOUND") setConversationId(null);
+          if (code === "ASSISTANT_CONVERSATION_NOT_FOUND") setConversationId(null);
+          // A voice note can't be retyped: if the turn failed before it was
+          // even understood (admission refusal, transcription/network error —
+          // not the audio itself being too long or silent, and not the user
+          // leaving), put it back in the composer for one-click retry and drop
+          // the failed bubble so the retry doesn't show it twice.
+          const audioRetryable =
+            filesToSend.some(isAudioFile) &&
+            transcribed.length === 0 &&
+            !abort.signal.aborted &&
+            code !== "ASSISTANT_AUDIO_TOO_LONG" &&
+            code !== "ASSISTANT_EMPTY_TRANSCRIPTION";
+          if (audioRetryable) {
+            dispatch({ type: "remove", messageId });
+            setFiles((current) => (current.length === 0 ? filesToSend : current));
+            setText((current) => current || trimmed);
+          }
         },
         onSettled: () => {
           if (streamAbortRef.current === abort) streamAbortRef.current = null;
         },
       }
     );
+    return true;
   }
   // Refs are written after render, not during it (react-hooks/refs); a layout
   // effect still lands before any recorder `onstop` event can read them.
@@ -509,7 +541,7 @@ export function AssistantChat() {
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
-    if (recorder.status === "recording") return;
+    if (isRecording) return;
     sendMessage(files);
   }
 
@@ -805,7 +837,7 @@ export function AssistantChat() {
                     aria-label="Anexar arquivo"
                     title="Anexar arquivo"
                     className="text-muted-foreground"
-                    disabled={composerDisabled || recorder.status === "recording"}
+                    disabled={composerDisabled || isRecording}
                     onClick={() => fileInputRef.current?.click()}
                   >
                     <Paperclip />
@@ -817,10 +849,17 @@ export function AssistantChat() {
                     aria-label={recorder.status === "recording" ? "Parar gravação" : "Gravar áudio"}
                     title={recorder.status === "recording" ? "Parar e enviar" : "Gravar áudio"}
                     className={cn(recorder.status !== "recording" && "text-muted-foreground")}
-                    disabled={composerDisabled}
+                    // Disabled while the browser's mic permission prompt is open.
+                    disabled={composerDisabled || recorder.status === "starting"}
                     onClick={() => (recorder.status === "recording" ? recorder.stop() : recorder.start())}
                   >
-                    {recorder.status === "recording" ? <Square /> : <Mic />}
+                    {recorder.status === "recording" ? (
+                      <Square />
+                    ) : recorder.status === "starting" ? (
+                      <Loader2 className="animate-spin" />
+                    ) : (
+                      <Mic />
+                    )}
                   </Button>
                   <span className="ml-auto pr-1 text-[11px] text-muted-foreground">
                     {text.length > MAX_MESSAGE_LENGTH * 0.8
@@ -834,7 +873,7 @@ export function AssistantChat() {
                     className="rounded-full"
                     disabled={
                       composerDisabled ||
-                      recorder.status === "recording" ||
+                      isRecording ||
                       (!text.trim() && !hasAudio)
                     }
                   >
