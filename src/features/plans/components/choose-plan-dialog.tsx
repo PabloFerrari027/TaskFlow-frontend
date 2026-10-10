@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { BadgePercent, Loader2, X } from "lucide-react";
+import { BadgePercent, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -152,8 +152,7 @@ export function ChoosePlanDialog({
                     disabled={busy}
                     onChange={(event) => setCode(event.target.value)}
                   />
-                  <Button type="submit" variant="outline" disabled={busy || !code.trim()}>
-                    {previewMutation.isPending ? <Loader2 className="animate-spin" /> : null}
+                  <Button type="submit" variant="outline" disabled={busy || !code.trim()} loading={previewMutation.isPending}>
                     Aplicar
                   </Button>
                 </form>
@@ -180,8 +179,7 @@ export function ChoosePlanDialog({
           <Button variant="outline" disabled={setMyPlanMutation.isPending} onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button disabled={busy || (isCurrent && !preview)} onClick={confirm}>
-            {setMyPlanMutation.isPending ? <Loader2 className="animate-spin" /> : null}
+          <Button disabled={busy || (isCurrent && !preview)} onClick={confirm} loading={setMyPlanMutation.isPending}>
             {isCurrent ? "Aplicar cupom" : "Trocar de plano"}
           </Button>
         </DialogFooter>

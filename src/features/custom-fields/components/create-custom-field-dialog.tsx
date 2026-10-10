@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useFieldArray, useWatch } from "react-hook-form";
-import { Loader2, Plus, X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -201,8 +201,7 @@ export function CreateCustomFieldDialog({
             ) : null}
 
             <DialogFooter>
-              <Button type="submit" disabled={createMutation.isPending}>
-                {createMutation.isPending ? <Loader2 className="animate-spin" /> : null}
+              <Button type="submit" disabled={createMutation.isPending} loading={createMutation.isPending}>
                 Criar campo
               </Button>
             </DialogFooter>

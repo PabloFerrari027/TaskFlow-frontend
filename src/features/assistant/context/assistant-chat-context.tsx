@@ -30,7 +30,7 @@ export function AssistantChatProvider({ children }: { children: React.ReactNode 
   // Ctrl+J / ⌘J from anywhere (Ctrl+K is already the search).
   React.useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key.toLowerCase() === "j" && (event.ctrlKey || event.metaKey)) {
+      if (event.key?.toLowerCase() === "j" && (event.ctrlKey || event.metaKey)) {
         event.preventDefault();
         setOpen(true);
       }

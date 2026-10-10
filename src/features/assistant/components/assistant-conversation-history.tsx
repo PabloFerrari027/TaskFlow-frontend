@@ -120,8 +120,8 @@ export function AssistantConversationHistory({
             size="sm"
             disabled={conversationsQuery.isFetchingNextPage}
             onClick={() => conversationsQuery.fetchNextPage()}
+            loading={conversationsQuery.isFetchingNextPage}
           >
-            {conversationsQuery.isFetchingNextPage ? <Loader2 className="animate-spin" /> : null}
             Ver conversas mais antigas
           </Button>
         </div>

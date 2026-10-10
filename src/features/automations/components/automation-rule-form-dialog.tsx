@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { FolderKanban, Globe, Loader2 } from "lucide-react";
+import { FolderKanban, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -120,8 +120,7 @@ export function AutomationRuleFormDialog({
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancelar
               </Button>
-              <Button type="submit" disabled={problems.length > 0 || isPending}>
-                {isPending ? <Loader2 className="animate-spin" /> : null}
+              <Button type="submit" disabled={problems.length > 0 || isPending} loading={isPending}>
                 {rule ? "Salvar alterações" : "Criar automação"}
               </Button>
             </div>

@@ -3,7 +3,6 @@
 import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, type DefaultValues } from "react-hook-form";
-import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -249,8 +248,7 @@ export function TemplateListingDialog({
             ) : null}
 
             <DialogFooter>
-              <Button type="submit" disabled={isPending}>
-                {isPending ? <Loader2 className="animate-spin" /> : null}
+              <Button type="submit" disabled={isPending} loading={isPending}>
                 {submitLabel}
               </Button>
             </DialogFooter>

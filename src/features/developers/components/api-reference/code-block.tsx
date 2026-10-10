@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Check, Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SwapLabel } from "@/components/shared/swap-label";
 
 function escapeHtml(text: string) {
   return text
@@ -71,7 +72,7 @@ export function CodeBlock({ code, language = "text", label }: CodeBlockProps) {
           className="flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] text-white/60 transition-colors hover:bg-white/10 hover:text-white"
         >
           {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
-          {copied ? "Copiado" : "Copiar"}
+          <SwapLabel active={copied} label="Copiar" activeLabel="Copiado" />
         </button>
       </div>
       <pre className="overflow-x-auto p-3 text-xs leading-relaxed">

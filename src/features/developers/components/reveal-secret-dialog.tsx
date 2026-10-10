@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { SwapLabel } from "@/components/shared/swap-label";
 
 interface RevealSecretDialogProps {
   open: boolean;
@@ -72,7 +73,7 @@ export function RevealSecretDialog({
         <DialogFooter>
           <Button variant="outline" onClick={handleCopy}>
             {copied ? <Check /> : <Copy />}
-            {copied ? "Copiado" : "Copiar"}
+            <SwapLabel active={copied} label="Copiar" activeLabel="Copiado" />
           </Button>
           <Button onClick={() => onOpenChange(false)}>Já copiei, fechar</Button>
         </DialogFooter>

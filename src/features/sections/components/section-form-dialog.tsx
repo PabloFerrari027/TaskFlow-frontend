@@ -3,7 +3,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -118,8 +117,7 @@ export function SectionFormDialog({
             />
 
             <DialogFooter>
-              <Button type="submit" disabled={isPending}>
-                {isPending ? <Loader2 className="animate-spin" /> : null}
+              <Button type="submit" disabled={isPending} loading={isPending}>
                 {isEditing ? "Salvar" : "Criar"}
               </Button>
             </DialogFooter>

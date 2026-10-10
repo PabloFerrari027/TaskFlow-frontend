@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -352,8 +351,7 @@ export function CouponFormDialog({
         </form>
 
         <DialogFooter>
-          <Button type="submit" form="coupon-form" disabled={isPending}>
-            {isPending ? <Loader2 className="animate-spin" /> : null}
+          <Button type="submit" form="coupon-form" disabled={isPending} loading={isPending}>
             {editing ? "Salvar" : "Criar cupom"}
           </Button>
         </DialogFooter>

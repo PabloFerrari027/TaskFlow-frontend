@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { AlertTriangle, ExternalLink, Loader2, MessageCircle } from "lucide-react";
+import { AlertTriangle, ExternalLink, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -138,8 +138,7 @@ function LinkForm({
           <p className="text-sm text-destructive">{getErrorMessage(confirmMutation.error)}</p>
         ) : null}
         <div className="flex flex-wrap gap-2">
-          <Button type="submit" disabled={code.length !== 6 || confirmMutation.isPending}>
-            {confirmMutation.isPending ? <Loader2 className="animate-spin" /> : null}
+          <Button type="submit" disabled={code.length !== 6 || confirmMutation.isPending} loading={confirmMutation.isPending}>
             Confirmar
           </Button>
           <Button
@@ -200,8 +199,8 @@ function LinkForm({
       <Button
         type="submit"
         disabled={address.trim().length < 3 || !workspaceId || startMutation.isPending}
+        loading={startMutation.isPending}
       >
-        {startMutation.isPending ? <Loader2 className="animate-spin" /> : null}
         Enviar código pelo {label}
       </Button>
     </form>

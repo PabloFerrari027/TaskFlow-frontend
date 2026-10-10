@@ -3,7 +3,7 @@
 import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Loader2, Play, Plus, Square, Timer, Trash2 } from "lucide-react";
+import { Play, Plus, Square, Timer, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -121,8 +121,7 @@ function LogTimeForm({ itemId, onDone }: { itemId: string; onDone: () => void })
           <Button type="button" variant="ghost" size="sm" onClick={onDone}>
             Cancelar
           </Button>
-          <Button type="submit" size="sm" disabled={logMutation.isPending}>
-            {logMutation.isPending ? <Loader2 className="animate-spin" /> : null}
+          <Button type="submit" size="sm" disabled={logMutation.isPending} loading={logMutation.isPending}>
             Registrar
           </Button>
         </div>

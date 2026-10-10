@@ -40,6 +40,7 @@ import { formatDate } from "@/lib/format";
 import { canPublishDashboardPage } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
 import type { AuthenticatedDashboardPageView, DashboardPageVisibility } from "@/types/dashboard-page";
+import { SwapLabel } from "@/components/shared/swap-label";
 
 const emailSchema = z.email();
 
@@ -337,7 +338,7 @@ function PublicLinkSection({
             <Input readOnly value={freshUrl} onFocus={(event) => event.currentTarget.select()} aria-label="Link público" />
             <Button variant="outline" onClick={copy}>
               {copied ? <Check /> : <Copy />}
-              {copied ? "Copiado" : "Copiar"}
+              <SwapLabel active={copied} label="Copiar" activeLabel="Copiado" />
             </Button>
           </div>
           <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-700 dark:text-amber-400">

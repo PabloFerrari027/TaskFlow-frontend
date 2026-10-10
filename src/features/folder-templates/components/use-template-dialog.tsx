@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -278,8 +277,7 @@ export function UseTemplateDialog({
           ) : null}
 
           <DialogFooter>
-            <Button type="submit" disabled={isLocked}>
-              {isLocked ? <Loader2 className="animate-spin" /> : null}
+            <Button type="submit" disabled={isLocked} loading={isLocked}>
               {isLocked
                 ? "Aguarde…"
                 : mode === "apply"

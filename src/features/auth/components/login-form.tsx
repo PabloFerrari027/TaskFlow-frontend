@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
@@ -112,8 +111,7 @@ export function LoginForm() {
           )}
         />
 
-        <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
-          {loginMutation.isPending ? <Loader2 className="animate-spin" /> : null}
+        <Button type="submit" className="w-full" disabled={loginMutation.isPending} loading={loginMutation.isPending}>
           Entrar
         </Button>
       </form>

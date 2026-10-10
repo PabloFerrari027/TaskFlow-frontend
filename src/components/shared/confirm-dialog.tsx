@@ -55,9 +55,13 @@ export function ConfirmDialog({
             variant={variant}
             disabled={isLoading}
             onClick={onConfirm}
+            aria-busy={isLoading || undefined}
+            className="relative"
           >
-            {isLoading ? <Loader2 className="animate-spin" /> : null}
-            {confirmLabel}
+            {/* Spinner over the label instead of beside it, so the button keeps
+                its width and "Cancelar" doesn't shift while confirming. */}
+            <span className={isLoading ? "invisible contents" : "contents"}>{confirmLabel}</span>
+            {isLoading ? <Loader2 aria-hidden className="absolute inset-0 m-auto animate-spin" /> : null}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

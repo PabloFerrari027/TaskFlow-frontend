@@ -7,8 +7,8 @@ import type { Folder } from "@/types/folder";
 
 export function FolderCard({ folder }: { folder: Folder }) {
   return (
-    <Link href={`/folders/${folder.id}`} data-tour="folder-card">
-      <Card className="h-full gap-3 p-5 transition-all hover:-translate-y-0.5 hover:shadow-card-hover hover:ring-primary/25">
+    <Link href={`/folders/${folder.id}`} data-tour="folder-card" className="group/card block h-full">
+      <Card className="h-full gap-3 p-5 transition-all group-hover/card:-translate-y-0.5 group-hover/card:shadow-card-hover group-hover/card:ring-primary/25">
         <div className="flex items-start justify-between gap-2">
           <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
             <FolderKanban className="size-4.5" />
