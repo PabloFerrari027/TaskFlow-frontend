@@ -3,7 +3,6 @@
 import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -74,8 +73,7 @@ export function RenameWorkspaceDialog({
             />
 
             <DialogFooter>
-              <Button type="submit" disabled={renameMutation.isPending}>
-                {renameMutation.isPending ? <Loader2 className="animate-spin" /> : null}
+              <Button type="submit" disabled={renameMutation.isPending} loading={renameMutation.isPending}>
                 Salvar
               </Button>
             </DialogFooter>

@@ -153,8 +153,7 @@ export function ReauthDialog({
             Cancelar
           </Button>
           {hasPassword ? (
-            <Button variant="destructive" disabled={!password || isPending} onClick={onConfirm}>
-              {isPending ? <Loader2 className="animate-spin" /> : null}
+            <Button variant="destructive" disabled={!password || isPending} onClick={onConfirm} loading={isPending}>
               Confirmar
             </Button>
           ) : null}

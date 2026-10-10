@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Loader2, Plus, X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -120,8 +120,8 @@ export function EditOptionsDialog({
           <Button
             onClick={handleSave}
             disabled={updateMutation.isPending || sanitized.length === 0}
+            loading={updateMutation.isPending}
           >
-            {updateMutation.isPending ? <Loader2 className="animate-spin" /> : null}
             Salvar
           </Button>
         </DialogFooter>

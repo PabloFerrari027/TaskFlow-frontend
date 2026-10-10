@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { OtpInput } from "@/components/shared/otp-input";
 import {
@@ -105,8 +104,7 @@ export function VerifyEmailForm({ email }: { email: string }) {
             )}
           />
 
-          <Button type="submit" className="w-full" disabled={verifyMutation.isPending}>
-            {verifyMutation.isPending ? <Loader2 className="animate-spin" /> : null}
+          <Button type="submit" className="w-full" disabled={verifyMutation.isPending} loading={verifyMutation.isPending}>
             Confirmar e-mail
           </Button>
         </form>
@@ -118,8 +116,8 @@ export function VerifyEmailForm({ email }: { email: string }) {
         className="w-full"
         disabled={resendMutation.isPending || cooldown > 0}
         onClick={onResend}
+        loading={resendMutation.isPending}
       >
-        {resendMutation.isPending ? <Loader2 className="animate-spin" /> : null}
         {cooldown > 0 ? `Reenviar código (${cooldown}s)` : "Reenviar código"}
       </Button>
     </div>

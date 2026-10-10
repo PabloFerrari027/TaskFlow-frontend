@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { History, Loader2 } from "lucide-react";
+import { History } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -79,8 +79,8 @@ export function PublishVersionDialog({
                 { onSuccess: () => onOpenChange(false) }
               )
             }
+            loading={publishMutation.isPending}
           >
-            {publishMutation.isPending ? <Loader2 className="animate-spin" /> : null}
             Publicar versão
           </Button>
         </DialogFooter>

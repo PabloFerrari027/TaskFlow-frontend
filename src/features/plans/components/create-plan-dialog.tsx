@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -132,8 +131,7 @@ export function CreatePlanDialog({ open, onOpenChange }: CreatePlanDialogProps) 
             />
 
             <DialogFooter>
-              <Button type="submit" disabled={createMutation.isPending}>
-                {createMutation.isPending ? <Loader2 className="animate-spin" /> : null}
+              <Button type="submit" disabled={createMutation.isPending} loading={createMutation.isPending}>
                 Criar plano
               </Button>
             </DialogFooter>

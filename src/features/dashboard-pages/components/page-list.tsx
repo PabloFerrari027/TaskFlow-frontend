@@ -93,8 +93,8 @@ export function PageList({ workspaceId }: { workspaceId: string }) {
       ) : (
         <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {pages.map((page) => (
-            <li key={page.id}>
-              <Card className="group relative h-full gap-0 py-0 transition-all hover:-translate-y-0.5 hover:shadow-card-hover hover:ring-primary/25">
+            <li key={page.id} className="group/card">
+              <Card className="group relative h-full gap-0 py-0 transition-all group-hover/card:-translate-y-0.5 group-hover/card:shadow-card-hover group-hover/card:ring-primary/25">
                 <PagePreview seed={page.id} />
                 <div className="flex flex-1 flex-col gap-3 p-4">
                   <div className="flex items-start gap-2">

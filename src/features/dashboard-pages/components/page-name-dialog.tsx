@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -66,8 +65,7 @@ export function PageNameDialog({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={!trimmed || isPending}>
-              {isPending ? <Loader2 className="animate-spin" /> : null}
+            <Button type="submit" disabled={!trimmed || isPending} loading={isPending}>
               {submitLabel}
             </Button>
           </DialogFooter>

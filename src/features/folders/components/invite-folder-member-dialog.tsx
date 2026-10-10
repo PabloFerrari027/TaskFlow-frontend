@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -117,8 +116,7 @@ export function InviteFolderMemberDialog({
             />
 
             <DialogFooter>
-              <Button type="submit" disabled={inviteMutation.isPending}>
-                {inviteMutation.isPending ? <Loader2 className="animate-spin" /> : null}
+              <Button type="submit" disabled={inviteMutation.isPending} loading={inviteMutation.isPending}>
                 Enviar convite
               </Button>
             </DialogFooter>

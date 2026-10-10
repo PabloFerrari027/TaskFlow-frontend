@@ -26,6 +26,7 @@ import { getCategoryInfo } from "@/features/folder-templates/lib/categories";
 import { toListingRequest } from "@/features/folder-templates/schemas";
 import type { FolderTemplateDraft } from "@/types/folder-template";
 import type { Workspace } from "@/types/workspace";
+import { SwapLabel } from "@/components/shared/swap-label";
 
 const MIN_PROMPT = 10;
 const MIN_INSTRUCTIONS = 5;
@@ -150,7 +151,7 @@ export function TemplateAiDialog({
             ) : (
               <Button type="submit" form="template-ai-form" disabled={isPending || text.trim().length < min}>
                 {isPending ? <Loader2 className="animate-spin" /> : <Sparkles />}
-                {isPending ? "Gerando…" : "Gerar rascunho"}
+                <SwapLabel active={isPending} label="Gerar rascunho" activeLabel="Gerando…" />
               </Button>
             )}
           </DialogFooter>

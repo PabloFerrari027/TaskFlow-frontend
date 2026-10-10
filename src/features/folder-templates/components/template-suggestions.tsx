@@ -52,7 +52,10 @@ function SuggestionTile({
       aria-pressed={selected}
       onClick={() => onSelect(template)}
       className={cn(
-        "group flex min-h-36 w-full min-w-0 flex-col rounded-xl border bg-card p-3.5 text-left transition-all outline-none",
+        "group relative flex min-h-36 w-full min-w-0 flex-col rounded-xl border bg-card p-3.5 text-left transition-all outline-none",
+        // The strip below keeps the cursor over the button once it lifts, so
+        // hovering its bottom edge doesn't flicker between lifted and not.
+        "after:absolute after:inset-x-0 after:-bottom-1 after:h-1",
         "hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md focus-visible:ring-[3px] focus-visible:ring-ring/50",
         selected && "border-primary bg-primary/5 ring-1 ring-primary"
       )}

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { AlertTriangle, Loader2, MessageSquareText, Paperclip } from "lucide-react";
+import { AlertTriangle, MessageSquareText, Paperclip } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -121,8 +121,8 @@ function ConversationDialog({
                     size="sm"
                     disabled={messagesQuery.isFetchingNextPage}
                     onClick={() => messagesQuery.fetchNextPage()}
+                    loading={messagesQuery.isFetchingNextPage}
                   >
-                    {messagesQuery.isFetchingNextPage ? <Loader2 className="animate-spin" /> : null}
                     Carregar mensagens seguintes
                   </Button>
                 </div>
@@ -206,8 +206,8 @@ export function ChannelConversationHistory({
           size="sm"
           disabled={conversationsQuery.isFetchingNextPage}
           onClick={() => conversationsQuery.fetchNextPage()}
+          loading={conversationsQuery.isFetchingNextPage}
         >
-          {conversationsQuery.isFetchingNextPage ? <Loader2 className="animate-spin" /> : null}
           Carregar mais
         </Button>
       ) : null}

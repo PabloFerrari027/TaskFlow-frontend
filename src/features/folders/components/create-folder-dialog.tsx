@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, useWatch } from "react-hook-form";
-import { Loader2, X } from "lucide-react";
+import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -325,8 +325,7 @@ export function CreateFolderDialog({
               >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={isLocked || (template !== null && !questions)}>
-                {isLocked ? <Loader2 className="animate-spin" /> : null}
+              <Button type="submit" disabled={isLocked || (template !== null && !questions)} loading={isLocked}>
                 {template
                   ? isLocked
                     ? "Criando pasta…"

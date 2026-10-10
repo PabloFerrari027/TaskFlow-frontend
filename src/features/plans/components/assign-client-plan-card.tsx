@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -73,8 +72,8 @@ export function AssignClientPlanCard({ clientId }: AssignClientPlanCardProps) {
                 }
               )
             }
+            loading={assignMutation.isPending}
           >
-            {assignMutation.isPending ? <Loader2 className="animate-spin" /> : null}
             Atribuir plano
           </Button>
         </div>

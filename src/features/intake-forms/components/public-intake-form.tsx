@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { CheckCircle2, FileX, Loader2 } from "lucide-react";
+import { CheckCircle2, FileX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -180,8 +180,8 @@ export function PublicIntakeFormPage({ token }: { token: string }) {
               </p>
             ) : null}
 
-            <Button type="submit" className="w-full" disabled={missing.length > 0 || submitMutation.isPending}>
-              {submitMutation.isPending ? <Loader2 className="animate-spin" /> : null} Enviar
+            <Button type="submit" className="w-full" disabled={missing.length > 0 || submitMutation.isPending} loading={submitMutation.isPending}>
+              Enviar
             </Button>
             <p className="text-center text-xs text-muted-foreground">Feito com TaskFlow</p>
           </form>

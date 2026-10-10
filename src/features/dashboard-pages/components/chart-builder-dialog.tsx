@@ -482,8 +482,7 @@ export function ChartBuilderDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>
             Cancelar
           </Button>
-          <Button onClick={handleSave} disabled={!canSave}>
-            {isSaving ? <Loader2 className="animate-spin" /> : null}
+          <Button onClick={handleSave} disabled={!canSave} loading={isSaving}>
             {chart ? "Salvar alterações" : "Adicionar gráfico"}
           </Button>
         </DialogFooter>

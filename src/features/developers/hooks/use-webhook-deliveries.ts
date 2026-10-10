@@ -16,6 +16,10 @@ export function useWebhookDeliveriesQuery(
     queryFn: () =>
       webhookDeliveriesService.list(workspaceId, webhookEndpointId, { page }),
     enabled: Boolean(webhookEndpointId),
+    // Keep the current page on screen while the next one loads, but never
+    // show another endpoint's deliveries in its place.
+    placeholderData: (previous, previousQuery) =>
+      previousQuery?.queryKey[2] === webhookEndpointId ? previous : undefined,
   });
 }
 

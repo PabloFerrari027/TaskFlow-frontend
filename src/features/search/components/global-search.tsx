@@ -43,7 +43,7 @@ export function GlobalSearch() {
 
   React.useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key.toLowerCase() === "k" && (event.ctrlKey || event.metaKey)) {
+      if (event.key?.toLowerCase() === "k" && (event.ctrlKey || event.metaKey)) {
         event.preventDefault();
         setOpen((current) => !current);
       }

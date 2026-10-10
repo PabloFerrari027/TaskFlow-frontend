@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PasswordInput } from "@/components/ui/password-input";
 import {
@@ -96,8 +95,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
           )}
         />
 
-        <Button type="submit" className="w-full" disabled={resetMutation.isPending}>
-          {resetMutation.isPending ? <Loader2 className="animate-spin" /> : null}
+        <Button type="submit" className="w-full" disabled={resetMutation.isPending} loading={resetMutation.isPending}>
           Redefinir senha
         </Button>
       </form>

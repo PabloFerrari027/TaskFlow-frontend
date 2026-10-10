@@ -207,11 +207,10 @@ function LinkGoogleForm() {
           >
             <div ref={buttonRef} />
           </div>
-          {isPending ? (
-            <p className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Loader2 className="size-3 animate-spin" /> Vinculando…
-            </p>
-          ) : null}
+          {/* Always rendered (just hidden) so the form doesn't grow when it shows. */}
+          <p aria-hidden={!isPending} className={cn("flex items-center gap-2 text-xs text-muted-foreground", !isPending && "invisible")}>
+            <Loader2 className="size-3 animate-spin" /> Vinculando…
+          </p>
         </div>
       </form>
     </Form>
@@ -293,8 +292,7 @@ function ChangePasswordForm() {
           )}
         />
 
-        <Button type="submit" disabled={isPending}>
-          {isPending ? <Loader2 className="animate-spin" /> : null}
+        <Button type="submit" disabled={isPending} loading={isPending}>
           Alterar senha
         </Button>
       </form>
@@ -391,11 +389,10 @@ function SetPasswordForm({ googleLinked }: { googleLinked: boolean }) {
           >
             <div ref={buttonRef} />
           </div>
-          {isPending ? (
-            <p className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Loader2 className="size-3 animate-spin" /> Definindo senha…
-            </p>
-          ) : null}
+          {/* Always rendered (just hidden) so the form doesn't grow when it shows. */}
+          <p aria-hidden={!isPending} className={cn("flex items-center gap-2 text-xs text-muted-foreground", !isPending && "invisible")}>
+            <Loader2 className="size-3 animate-spin" /> Definindo senha…
+          </p>
         </div>
       </form>
     </Form>

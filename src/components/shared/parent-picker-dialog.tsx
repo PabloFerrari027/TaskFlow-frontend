@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Check, Loader2 } from "lucide-react";
+import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -119,8 +119,8 @@ function ParentPickerBody({
         <Button
           disabled={isPending || selected === currentParentId}
           onClick={() => onConfirm(selected)}
+          loading={isPending}
         >
-          {isPending ? <Loader2 className="animate-spin" /> : null}
           Mover
         </Button>
       </DialogFooter>

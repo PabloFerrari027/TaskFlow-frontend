@@ -4,7 +4,7 @@ import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { Loader2, MailCheck } from "lucide-react";
+import { MailCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -93,8 +93,7 @@ export function ForgotPasswordForm({ defaultEmail }: { defaultEmail?: string }) 
           )}
         />
 
-        <Button type="submit" className="w-full" disabled={forgotMutation.isPending}>
-          {forgotMutation.isPending ? <Loader2 className="animate-spin" /> : null}
+        <Button type="submit" className="w-full" disabled={forgotMutation.isPending} loading={forgotMutation.isPending}>
           Enviar link de redefinição
         </Button>
       </form>

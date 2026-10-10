@@ -7,8 +7,15 @@ export const ASSISTANT_ATTACHMENT_MAX_TOTAL_BYTES = 14 * 1024 * 1024;
 export const ASSISTANT_ATTACHMENT_MAX_COUNT = 6;
 export const ASSISTANT_ATTACHMENT_MAX_AUDIO_SECONDS = 600;
 
+// The formats the server transcribes (API.md § 16, "Anexos de áudio"). The
+// extension is a fallback for when the OS reports no/odd MIME type (`.opus`
+// and `.m4a` often come through as "" or "video/mp4" on Windows) — the server
+// decides by the file's bytes anyway.
+const AUDIO_EXTENSIONS = /\.(mp3|wav|m4a|ogg|oga|opus|webm|flac|aac)$/i;
+
 export function isAudioFile(file: File): boolean {
-  return file.type.startsWith("audio/");
+  if (file.type.startsWith("audio/")) return true;
+  return (file.type === "" || file.type === "video/mp4") && AUDIO_EXTENSIONS.test(file.name);
 }
 
 export function validateNewFiles(
