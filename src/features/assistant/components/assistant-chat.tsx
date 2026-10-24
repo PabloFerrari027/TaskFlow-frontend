@@ -3,17 +3,15 @@
 import * as React from "react";
 import Link from "next/link";
 import {
-  ArrowLeft,
   ArrowUp,
   CircleCheck,
-  History,
+  Eraser,
   Loader2,
   Maximize2,
   Mic,
   Minimize2,
   Paperclip,
   Sparkles,
-  SquarePen,
   Trash2,
   X,
 } from "lucide-react";
@@ -27,12 +25,15 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { getErrorCode, getMessageForCode } from "@/lib/errors";
 import { formatFileSize } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { useCurrentWorkspace } from "@/features/workspaces/context/current-workspace-context";
 import {
-  useLoadAssistantConversationMutation,
+  useAssistantConversationMessagesQuery,
+  useAssistantProfileQuery,
+  useClearAssistantConversationMutation,
   useSendChatMessageMutation,
 } from "@/features/assistant/hooks/use-assistant";
 import { useQuotaWindowUsageQuery } from "@/features/plans/hooks/use-plans";
@@ -48,7 +49,6 @@ import {
 } from "@/features/assistant/lib/attachment-limits";
 import { AssistantMessage } from "@/features/assistant/components/assistant-message";
 import { RecordingWaveform } from "@/features/assistant/components/recording-waveform";
-import { AssistantConversationHistory } from "@/features/assistant/components/assistant-conversation-history";
 import { AssistantSessionSummary } from "@/features/assistant/components/assistant-session-summary";
 import { AssistantUsageMeter } from "@/features/assistant/components/assistant-usage-meter";
 import { WorkspaceAssistantSettingsPanel } from "@/features/workspaces/components/assistant-settings-panel";
@@ -64,19 +64,14 @@ import type {
   AssistantChatEvent,
   AssistantChatResponse,
   ChatAttachment,
-  ChatMessage,
   ChatTranscriptMessage,
   ConfirmedActionSummary,
   PendingActionLocalStatus,
 } from "@/features/assistant/types";
 
 const MAX_MESSAGE_LENGTH = 2000;
-// The API accepts at most 50 history entries per turn (API.md § 16) and
-// windows them further on its side — a long resumed conversation sends only
-// its latest turns.
-const MAX_HISTORY_MESSAGES = 50;
 
-// A saved conversation back into transcript form. Proposed actions come back
+// Saved chat messages back into transcript form. Proposed actions come back
 // display-only (`pastActions`): whether they were confirmed isn't saved, and
 // the action itself has long expired.
 function toTranscript(messages: AssistantConversationMessage[]): ChatTranscriptMessage[] {
@@ -85,6 +80,7 @@ function toTranscript(messages: AssistantConversationMessage[]): ChatTranscriptM
     return {
       id: message.id,
       role: message.role,
+      workspaceId: message.workspaceId,
       content: message.content,
       attachments: message.metadata?.attachments?.map((fileName) => ({
         fileName,
@@ -97,17 +93,6 @@ function toTranscript(messages: AssistantConversationMessage[]): ChatTranscriptM
       pastActions: message.metadata?.pendingActions,
     };
   });
-}
-
-// Attachments from earlier turns are never resent (API.md § 16) — only this
-// short filename note survives into `history`, matching the backend's own
-// suggested convention (`[anexo: relatorio.pdf]`). Audio isn't noted this
-// way since its transcription is already folded into `content`.
-function toHistoryContent(message: ChatTranscriptMessage): string {
-  const fileNotes = (message.attachments ?? [])
-    .filter((attachment) => !attachment.isAudio)
-    .map((attachment) => `[anexo: ${attachment.fileName}]`);
-  return [message.content, ...fileNotes].filter(Boolean).join("\n");
 }
 
 interface ChatState {
@@ -126,6 +111,10 @@ type ChatAction =
   | { type: "stream-failed"; messageId: string }
   | { type: "set-pending-status"; messageId: string; actionId: string; status: PendingActionLocalStatus }
   | { type: "load"; transcript: ChatTranscriptMessage[] }
+  // Older saved messages, loaded on demand, go above everything else.
+  | { type: "prepend"; transcript: ChatTranscriptMessage[] }
+  // "Encerrar e revisar" ends the review session, not the chat.
+  | { type: "clear-confirmed" }
   | { type: "reset" };
 
 function updateMessage(
@@ -241,6 +230,10 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
     }
     case "load":
       return { ...INITIAL_STATE, transcript: action.transcript };
+    case "prepend":
+      return { ...state, transcript: [...action.transcript, ...state.transcript] };
+    case "clear-confirmed":
+      return { ...state, confirmedActions: [] };
     case "reset":
       return INITIAL_STATE;
   }
@@ -248,18 +241,15 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
 
 // `AssistantChat` never unmounts (rendered unconditionally by the topbar;
 // its open state lives in AssistantChatProvider so the sidebar, home and
-// Assistente page can open it too), so closing the Sheet keeps the current
-// conversation — reopening picks it up where it was. Every turn is also saved
-// server-side (API.md § 16), so "Nova conversa" and switching workspace start
-// fresh without losing anything: older chats are one click away in the
-// history view.
+// Assistente page can open it too). Each user has ONE chat, saved server-side
+// with its whole history across workspaces (API.md § 16): opening the Sheet
+// shows its latest messages, older ones load on demand, and the server reads
+// the model's context from there — nothing is resent. An empty chat of
+// someone who hasn't been onboarded yet opens with the assistant's own first
+// message (`start`), which begins getting to know them.
 export function AssistantChat() {
   const { open, setOpen, draft } = useAssistantChat();
   const [showSummary, setShowSummary] = React.useState(false);
-  const [showHistory, setShowHistory] = React.useState(false);
-  // Saved conversation the current transcript belongs to — `null` until the
-  // first reply of a new one comes back with its id.
-  const [conversationId, setConversationId] = React.useState<string | null>(null);
   // The AI provider refused the call for lack of credits/quota: retrying is
   // pointless, so the composer stays locked until the sheet is reopened.
   const [creditsExhausted, setCreditsExhausted] = React.useState(false);
@@ -267,7 +257,7 @@ export function AssistantChat() {
   // (API.md § 23 doesn't say which). Unlike the credits case it clears on its
   // own when the window resets, so the composer stays usable.
   const [quotaExceeded, setQuotaExceeded] = React.useState(false);
-  const { workspace } = useCurrentWorkspace();
+  const { workspace, workspaces } = useCurrentWorkspace();
   const { userId } = useAuth();
   const myRole = workspace?.members.find((m) => m.userId === userId)?.role as
     | WorkspaceRole
@@ -290,9 +280,14 @@ export function AssistantChat() {
   const streamAbortRef = React.useRef<AbortController | null>(null);
 
   const sendMutation = useSendChatMessageMutation(workspace?.id ?? "");
-  const loadMutation = useLoadAssistantConversationMutation();
+  const clearMutation = useClearAssistantConversationMutation();
   const assistantEnabled = workspace?.assistantEnabled ?? false;
-  const composerDisabled = sendMutation.isPending || !assistantEnabled || creditsExhausted;
+  const chatReady = open && assistantEnabled && !!workspace;
+  const messagesQuery = useAssistantConversationMessagesQuery({ enabled: chatReady });
+  const profileQuery = useAssistantProfileQuery({ enabled: chatReady });
+  const historyLoading = chatReady && messagesQuery.isPending;
+  const composerDisabled =
+    sendMutation.isPending || !assistantEnabled || creditsExhausted || historyLoading;
 
   // Tokens spent in the current quota day (since 00:00 UTC, every feature —
   // content-safety checks on chat messages count too), the same total
@@ -341,32 +336,124 @@ export function AssistantChat() {
   const isRecording = recorder.status !== "idle";
   const recordingSecondsLeft = ASSISTANT_ATTACHMENT_MAX_AUDIO_SECONDS - recorder.seconds;
 
-  React.useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
+  // Saved pages folded into the transcript as they arrive (applied while
+  // rendering, same as the draft above): the first one replaces it, each
+  // older one goes on top. Pages come newest-first, each in chronological
+  // order.
+  const pages = messagesQuery.data?.pages;
+  const [syncedPages, setSyncedPages] = React.useState(0);
+  if (!pages && syncedPages !== 0) {
+    setSyncedPages(0);
+  } else if (pages && pages.length !== syncedPages) {
+    const fresh = pages.slice(syncedPages).reverse().flatMap((page) => page.items);
+    dispatch({ type: syncedPages === 0 ? "load" : "prepend", transcript: toTranscript(fresh) });
+    setSyncedPages(pages.length);
+  }
+  const chatIsEmpty = !!pages && pages[0].items.length === 0;
+
+  // Older messages go on top without moving what the user is looking at;
+  // anything else (a new message, the reply streaming in) follows the bottom.
+  const prependAnchorRef = React.useRef<{ height: number; top: number } | null>(null);
+  React.useLayoutEffect(() => {
+    const element = scrollRef.current;
+    if (!element) return;
+    const anchor = prependAnchorRef.current;
+    if (anchor) {
+      element.scrollTop = element.scrollHeight - anchor.height + anchor.top;
+      prependAnchorRef.current = null;
+      return;
+    }
+    element.scrollTo({ top: element.scrollHeight });
   }, [state.transcript, sendMutation.isPending]);
 
-  function resetConversation() {
+  function loadOlderMessages() {
+    const element = scrollRef.current;
+    if (element) prependAnchorRef.current = { height: element.scrollHeight, top: element.scrollTop };
+    messagesQuery.fetchNextPage();
+  }
+
+  function stopTurnInProgress() {
     // Closing the connection also stops the model server-side, so no
     // tokens are spent on a reply nobody will read.
     streamAbortRef.current?.abort();
     streamAbortRef.current = null;
-    setShowSummary(false);
-    setCreditsExhausted(false);
-    setQuotaExceeded(false);
-    setFiles([]);
-    recorder.cancel();
-    setConversationId(null);
-    dispatch({ type: "reset" });
   }
 
-  // A conversation belongs to one workspace — switching starts a new one
-  // (applied while rendering, same as the draft above).
-  const [conversationWorkspaceId, setConversationWorkspaceId] = React.useState(workspace?.id);
-  if (workspace?.id !== conversationWorkspaceId) {
-    setConversationWorkspaceId(workspace?.id);
-    setConversationId(null);
-    setShowHistory(false);
-    dispatch({ type: "reset" });
+  function handleClearConversation() {
+    clearMutation.mutate(undefined, {
+      onSuccess: () => {
+        stopTurnInProgress();
+        setShowSummary(false);
+        setFiles([]);
+        recorder.cancel();
+        dispatch({ type: "reset" });
+        // A cleared chat of someone still being onboarded opens again.
+        startedRef.current = false;
+        inputRef.current?.focus();
+      },
+    });
+  }
+
+  // The assistant's own opening message, once per empty chat: only for
+  // someone who hasn't been onboarded yet — after that, an empty chat (e.g.
+  // cleared) just shows the suggestions.
+  const startedRef = React.useRef(false);
+  const shouldStart =
+    chatReady &&
+    chatIsEmpty &&
+    state.transcript.length === 0 &&
+    profileQuery.data !== undefined &&
+    profileQuery.data.onboarding !== "FINISHED" &&
+    !creditsExhausted &&
+    !quotaExceeded;
+  React.useEffect(() => {
+    if (!shouldStart || startedRef.current) return;
+    startedRef.current = true;
+    startConversation();
+  });
+
+  function startConversation() {
+    const replyId = crypto.randomUUID();
+    dispatch({
+      type: "add",
+      message: {
+        id: replyId,
+        role: "assistant",
+        workspaceId: workspace?.id,
+        content: "",
+        pendingActions: [],
+        streamingStatus: null,
+      },
+    });
+    const abort = new AbortController();
+    streamAbortRef.current = abort;
+    sendMutation.mutate(
+      {
+        message: "",
+        start: true,
+        signal: abort.signal,
+        onEvent: (event) => dispatch({ type: "stream-event", messageId: replyId, event }),
+      },
+      {
+        onSuccess: (data) => {
+          dispatch({ type: "stream-done", messageId: replyId, result: data });
+          usageQuery.refetch();
+        },
+        onError: (error) => {
+          const code = getErrorCode(error);
+          dispatch({ type: "stream-failed", messageId: replyId });
+          if (code === "AI_INSUFFICIENT_CREDITS") setCreditsExhausted(true);
+          if (code === "TOKEN_QUOTA_EXCEEDED") setQuotaExceeded(true);
+          // Already started in another tab: show what's there instead.
+          if (code === "ASSISTANT_CONVERSATION_NOT_EMPTY") messagesQuery.refetch();
+          // Closed mid-opening: try again on the next open.
+          if (abort.signal.aborted) startedRef.current = false;
+        },
+        onSettled: () => {
+          if (streamAbortRef.current === abort) streamAbortRef.current = null;
+        },
+      }
+    );
   }
 
   function handleOpenChange(next: boolean) {
@@ -375,41 +462,14 @@ export function AssistantChat() {
     // The transcript stays for the next open, but nothing keeps running in
     // the background: closing the connection also stops the model
     // server-side (that half-finished turn isn't saved).
-    streamAbortRef.current?.abort();
-    streamAbortRef.current = null;
+    stopTurnInProgress();
     recorder.cancel();
-    setShowHistory(false);
     setCreditsExhausted(false);
     if (showSummary) {
-      // "Encerrar e revisar" ends the conversation.
-      resetConversation();
-      setText("");
+      // "Encerrar e revisar" ends the review — the chat itself stays.
+      setShowSummary(false);
+      dispatch({ type: "clear-confirmed" });
     }
-  }
-
-  function handleSelectConversation(id: string) {
-    if (id === conversationId) {
-      setShowHistory(false);
-      return;
-    }
-    loadMutation.mutate(id, {
-      onSuccess: (messages) => {
-        resetConversation();
-        dispatch({ type: "load", transcript: toTranscript(messages) });
-        setConversationId(id);
-        setShowHistory(false);
-      },
-    });
-  }
-
-  function handleConversationDeleted(id: string) {
-    if (id === conversationId) resetConversation();
-  }
-
-  function handleNewConversation() {
-    resetConversation();
-    setText("");
-    inputRef.current?.focus();
   }
 
   // Enter sends, Shift+Enter breaks the line — the usual chat convention.
@@ -448,13 +508,6 @@ export function AssistantChat() {
     const canSubmit = trimmed.length > 0 || filesToSend.some(isAudioFile);
     if (!canSubmit || composerDisabled || !workspace) return false;
 
-    // Turns that ended up empty (e.g. a failed audio-only turn) are left out
-    // — the API rejects a history entry with no content.
-    const history: ChatMessage[] = state.transcript
-      .map((message) => ({ role: message.role, content: toHistoryContent(message) }))
-      .filter((message) => message.content)
-      .slice(-MAX_HISTORY_MESSAGES);
-
     const attachments: ChatAttachment[] = filesToSend.map((file) => ({
       fileName: file.name,
       isAudio: isAudioFile(file),
@@ -464,22 +517,34 @@ export function AssistantChat() {
     const messageId = crypto.randomUUID();
     const replyId = crypto.randomUUID();
     // The bubble ends up as the backend's own "effective message" (typed text,
-    // then each transcription, blank-line separated): the same text a resumed
-    // conversation shows, and — since `history` is built from the bubbles —
-    // what later turns need, or a voice note sent along with typed text would
-    // vanish from the model's context on the next message.
+    // then each transcription, blank-line separated): the same text the saved
+    // chat shows on the next open.
     const transcribed: string[] = [];
     const effectiveContent = () => [trimmed, ...transcribed].filter((part) => part.trim()).join("\n\n");
 
     dispatch({
       type: "add",
-      message: { id: messageId, role: "user", content: trimmed, attachments, transcribing: withAudio },
+      message: {
+        id: messageId,
+        role: "user",
+        workspaceId: workspace.id,
+        content: trimmed,
+        attachments,
+        transcribing: withAudio,
+      },
     });
     // The reply bubble exists from the start so the user watches the
     // assistant work (status, then text token by token) instead of a spinner.
     dispatch({
       type: "add",
-      message: { id: replyId, role: "assistant", content: "", pendingActions: [], streamingStatus: null },
+      message: {
+        id: replyId,
+        role: "assistant",
+        workspaceId: workspace.id,
+        content: "",
+        pendingActions: [],
+        streamingStatus: null,
+      },
     });
     setText("");
     setFiles([]);
@@ -490,8 +555,6 @@ export function AssistantChat() {
     sendMutation.mutate(
       {
         message: trimmed,
-        history,
-        conversationId,
         files: filesToSend.length > 0 ? filesToSend : undefined,
         signal: abort.signal,
         onEvent: (event) => {
@@ -510,7 +573,6 @@ export function AssistantChat() {
       {
         onSuccess: (data) => {
           setQuotaExceeded(false);
-          if (data.conversationId) setConversationId(data.conversationId);
           // `done` is authoritative, in case a `transcription` frame was missed.
           if (data.transcriptions.length > 0) {
             transcribed.splice(0, transcribed.length, ...data.transcriptions.map((t) => t.text));
@@ -528,8 +590,6 @@ export function AssistantChat() {
           dispatch({ type: "stream-failed", messageId: replyId });
           if (code === "AI_INSUFFICIENT_CREDITS") setCreditsExhausted(true);
           if (code === "TOKEN_QUOTA_EXCEEDED") setQuotaExceeded(true);
-          // Deleted meanwhile (e.g. in another tab): the next send starts a new one.
-          if (code === "ASSISTANT_CONVERSATION_NOT_FOUND") setConversationId(null);
           // A voice note can't be retyped: if the turn failed before it was
           // even understood (admission refusal, transcription/network error —
           // not the audio itself being too long or silent, and not the user
@@ -628,31 +688,25 @@ export function AssistantChat() {
               </SheetDescription>
             </div>
             <div className="flex items-center gap-0.5">
-              {assistantEnabled && workspace ? (
-                <Button
-                  variant={showHistory ? "secondary" : "ghost"}
-                  size="icon-sm"
-                  aria-label="Conversas anteriores"
-                  title="Conversas anteriores"
-                  aria-pressed={showHistory}
-                  onClick={() => setShowHistory((current) => !current)}
-                >
-                  <History />
-                </Button>
-              ) : null}
               {state.transcript.length > 0 ? (
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label="Nova conversa"
-                  title="Nova conversa"
-                  onClick={() => {
-                    setShowHistory(false);
-                    handleNewConversation();
-                  }}
-                >
-                  <SquarePen />
-                </Button>
+                <ConfirmDialog
+                  trigger={
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label="Limpar conversa"
+                      title="Limpar conversa"
+                      disabled={sendMutation.isPending}
+                    >
+                      <Eraser />
+                    </Button>
+                  }
+                  title="Limpar a conversa?"
+                  description="Todas as mensagens saem do chat e não dá para recuperar. O que o assistente já fez nas suas pastas e itens continua, e o que ele sabe sobre você também (dá para ver e apagar na página Assistente)."
+                  confirmLabel="Limpar"
+                  isLoading={clearMutation.isPending}
+                  onConfirm={handleClearConversation}
+                />
               ) : null}
               <Button
                 variant="ghost"
@@ -673,7 +727,7 @@ export function AssistantChat() {
 
         {/* Only once something was actually confirmed — an always-visible
             "0 ações" row was noise in an empty chat. */}
-        {confirmedCount > 0 && !showSummary && !showHistory ? (
+        {confirmedCount > 0 && !showSummary ? (
           <div className="flex items-center justify-between gap-2 border-b border-border/60 bg-success/5 px-4 py-2">
             <span className="flex items-center gap-1.5 text-xs text-foreground">
               <CircleCheck className="size-3.5 text-success" />
@@ -692,23 +746,6 @@ export function AssistantChat() {
             confirmedActions={state.confirmedActions}
             onClose={() => handleOpenChange(false)}
           />
-        ) : showHistory && workspace ? (
-          <div className="flex-1 space-y-3 overflow-y-auto p-4">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-sm font-medium text-foreground">Conversas anteriores</p>
-              <Button size="xs" variant="ghost" onClick={() => setShowHistory(false)}>
-                <ArrowLeft />
-                Voltar
-              </Button>
-            </div>
-            <AssistantConversationHistory
-              workspaceId={workspace.id}
-              activeConversationId={conversationId}
-              loadingConversationId={loadMutation.isPending ? (loadMutation.variables ?? null) : null}
-              onSelect={handleSelectConversation}
-              onDeleted={handleConversationDeleted}
-            />
-          </div>
         ) : (
           <>
             <div ref={scrollRef} className="flex-1 space-y-5 overflow-y-auto p-4">
@@ -718,6 +755,17 @@ export function AssistantChat() {
                     workspace={workspace}
                     canManage={canManageAssistantSettings(myRole)}
                   />
+                </div>
+              ) : historyLoading ? (
+                <div className="flex justify-center py-10 text-muted-foreground">
+                  <Loader2 className="size-5 animate-spin" aria-label="Carregando a conversa" />
+                </div>
+              ) : messagesQuery.isError && state.transcript.length === 0 ? (
+                <div className="space-y-2 py-6 text-center text-sm text-muted-foreground">
+                  <p>Não foi possível carregar a conversa.</p>
+                  <Button size="sm" variant="outline" onClick={() => messagesQuery.refetch()}>
+                    Tentar de novo
+                  </Button>
                 </div>
               ) : state.transcript.length === 0 ? (
                 <div className="space-y-4 py-2">
@@ -748,16 +796,52 @@ export function AssistantChat() {
                   </div>
                 </div>
               ) : (
-                state.transcript.map((message) => (
-                  <AssistantMessage
-                    key={message.id}
-                    message={message}
-                    workspaceId={workspace.id}
-                    onPendingActionStatusChange={(actionId, status) =>
-                      handlePendingActionStatusChange(message.id, actionId, status)
-                    }
-                  />
-                ))
+                <>
+                  {messagesQuery.hasNextPage ? (
+                    <div className="flex justify-center">
+                      <Button
+                        size="xs"
+                        variant="outline"
+                        loading={messagesQuery.isFetchingNextPage}
+                        disabled={messagesQuery.isFetchingNextPage}
+                        onClick={loadOlderMessages}
+                      >
+                        Ver mensagens anteriores
+                      </Button>
+                    </div>
+                  ) : null}
+                  {state.transcript.map((message, index) => {
+                    // The chat spans every workspace: say so where the
+                    // conversation moved from another one into this one, or
+                    // the other way round.
+                    const previous = state.transcript[index - 1];
+                    const messageWorkspaceId = message.workspaceId ?? workspace.id;
+                    const previousWorkspaceId = previous ? (previous.workspaceId ?? workspace.id) : null;
+                    const showWorkspace =
+                      previousWorkspaceId !== messageWorkspaceId &&
+                      (previousWorkspaceId !== null || messageWorkspaceId !== workspace.id);
+                    const workspaceName =
+                      workspaces.find((w) => w.id === messageWorkspaceId)?.name ?? "outro workspace";
+                    return (
+                      <React.Fragment key={message.id}>
+                        {showWorkspace ? (
+                          <p className="text-center text-[11px] text-muted-foreground">
+                            {messageWorkspaceId === workspace.id
+                              ? `Em ${workspace.name}`
+                              : `Em ${workspaceName}`}
+                          </p>
+                        ) : null}
+                        <AssistantMessage
+                          message={message}
+                          workspaceId={workspace.id}
+                          onPendingActionStatusChange={(actionId, status) =>
+                            handlePendingActionStatusChange(message.id, actionId, status)
+                          }
+                        />
+                      </React.Fragment>
+                    );
+                  })}
+                </>
               )}
               {creditsExhausted ? (
                 <p

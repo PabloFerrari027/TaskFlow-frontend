@@ -8,13 +8,11 @@ import { getAccessToken, getRefreshCredentials } from "@/lib/auth/token-store";
 import type { AiUsageQuery, AiUsageResponse } from "@/types/ai-usage";
 import type {
   AssistantConversationMessagePage,
-  AssistantConversationPage,
-  ListAssistantConversationsParams,
+  AssistantProfile,
 } from "@/types/assistant-conversation";
 import type {
   AssistantChatEvent,
   AssistantChatResponse,
-  ChatMessage,
   ConfirmPendingActionResponse,
 } from "@/features/assistant/types";
 
@@ -33,29 +31,27 @@ function toAxiosError(status: number, data: unknown): AxiosError {
   return new AxiosError(`Request failed with status code ${status}`, undefined, config, null, response);
 }
 
+// The server reads the context from the user's own saved chat (API.md § 16)
+// — no `history` is sent. `start` asks for the opening message of an empty
+// chat (no text, no files).
 function buildChatBody(
   message: string,
   workspaceId: string,
-  history: ChatMessage[],
-  conversationId: string | null,
-  files?: File[]
+  files: File[] | undefined,
+  start: boolean
 ): { body: BodyInit; contentType?: string } {
-  // `files` (attachments and/or audio) switch the request to multipart —
-  // `history` then travels as a JSON string (form-data has no native
-  // array/object) and `message` becomes optional, but only when at least one
-  // attachment is audio (its transcription stands in as the message; API.md
-  // § 16). The plain-JSON shape is untouched for the no-attachment case.
+  // `files` (attachments and/or audio) switch the request to multipart, and
+  // `message` becomes optional when at least one attachment is audio (its
+  // transcription stands in as the message).
   if (files && files.length > 0) {
     const formData = new FormData();
     if (message) formData.append("message", message);
     formData.append("workspaceId", workspaceId);
-    formData.append("history", JSON.stringify(history));
-    if (conversationId) formData.append("conversationId", conversationId);
     for (const file of files) formData.append("files", file);
     return { body: formData };
   }
   return {
-    body: JSON.stringify({ message, workspaceId, history, conversationId: conversationId ?? undefined }),
+    body: JSON.stringify(start ? { workspaceId, start: true } : { message, workspaceId }),
     contentType: "application/json",
   };
 }
@@ -69,24 +65,26 @@ export const assistantService = {
    * HTTP errors before any frame; after that a failure arrives as a final
    * `error` frame. Progress frames go to `onEvent`; the returned promise
    * resolves with `done.result`, the authoritative reply. Aborting `signal`
-   * closes the connection, which also stops the model server-side.
-   * `conversationId` continues a saved conversation (`null` starts one);
-   * `done.result.conversationId` is the one to send on the next turn.
+   * closes the connection, which also stops the model server-side. Every
+   * turn lands in the user's single saved chat; `start` writes the opening
+   * message of an empty one.
    */
   async streamChatMessage(
     message: string,
     workspaceId: string,
-    history: ChatMessage[],
-    conversationId: string | null,
     files: File[] | undefined,
-    { onEvent, signal }: { onEvent: (event: AssistantChatEvent) => void; signal?: AbortSignal }
+    {
+      onEvent,
+      signal,
+      start = false,
+    }: { onEvent: (event: AssistantChatEvent) => void; signal?: AbortSignal; start?: boolean }
   ): Promise<AssistantChatResponse> {
     const url = `${apiClient.defaults.baseURL}/assistant/chat/stream`;
 
     // Rebuilt per attempt — a FormData/string body can be resent, but not
     // after being handed to a request that's already been read.
     const send = (token: string | null) => {
-      const { body, contentType } = buildChatBody(message, workspaceId, history, conversationId, files);
+      const { body, contentType } = buildChatBody(message, workspaceId, files, start);
       const headers: Record<string, string> = { Accept: "text/event-stream" };
       if (contentType) headers["Content-Type"] = contentType;
       if (token) headers.Authorization = `Bearer ${token}`;
@@ -173,24 +171,28 @@ export const assistantService = {
     return data;
   },
 
-  // Saved in-app conversations — always the caller's own (API.md § 16).
-  async listConversations(params: ListAssistantConversationsParams & { cursor?: string; limit?: number }) {
-    const { data } = await apiClient.get<AssistantConversationPage>("/assistant/conversations", {
-      params,
-    });
-    return data;
-  },
-
-  async listConversationMessages(conversationId: string, params: { cursor?: string; limit?: number }) {
+  // The user's single chat, newest page first (API.md § 16).
+  async listConversationMessages(params: { cursor?: string; limit?: number }) {
     const { data } = await apiClient.get<AssistantConversationMessagePage>(
-      `/assistant/conversations/${conversationId}/messages`,
+      "/assistant/conversation/messages",
       { params }
     );
     return data;
   },
 
-  async deleteConversation(conversationId: string) {
-    await apiClient.delete(`/assistant/conversations/${conversationId}`);
+  async clearConversation() {
+    await apiClient.delete("/assistant/conversation/messages");
+  },
+
+  async getProfile() {
+    const { data } = await apiClient.get<AssistantProfile>("/assistant/profile");
+    return data;
+  },
+
+  // `null` erases what the assistant knows about the user.
+  async updateProfile(summary: string | null) {
+    const { data } = await apiClient.patch<AssistantProfile>("/assistant/profile", { summary });
+    return data;
   },
 
   // Only the caller's own usage — there's no userId param (API.md § 24).
