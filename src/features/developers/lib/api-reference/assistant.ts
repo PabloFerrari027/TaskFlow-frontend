@@ -9,11 +9,11 @@ export function buildAssistantEndpoints(workspaceId: string): ApiEndpoint[] {
       path: "/assistant/chat",
       summary: "Conversar com o assistente",
       description:
-        "Toda tool de escrita (`standard`/`critical`) sempre vira uma `PendingAction` — o assistente nunca executa uma mudança diretamente. Aceita `application/json` (sem anexos) ou `multipart/form-data` (com `files`, `history` como string JSON).",
+        "Toda tool de escrita (`standard`/`critical`) sempre vira uma `PendingAction` — o assistente nunca executa uma mudança diretamente. Aceita `application/json` (sem anexos) ou `multipart/form-data` (com `files`). Cada pessoa tem um chat só: o servidor lê o contexto das últimas mensagens gravadas — não mande `history`.",
       bodyParams: [
         { name: "message", type: "string", required: false, notes: "opcional só no multipart com áudio anexado" },
         { name: "workspaceId", type: "string", required: true },
-        { name: "history", type: "{ role, content }[]", required: false, notes: "até 50 mensagens" },
+        { name: "start", type: "boolean", required: false, notes: "abre um chat vazio: sem message/files, o assistente escreve a primeira mensagem" },
         { name: "files", type: "File[]", required: false, notes: "só multipart, até 6 arquivos" },
       ],
       requestExample: [
@@ -37,7 +37,7 @@ export function buildAssistantEndpoints(workspaceId: string): ApiEndpoint[] {
         "`humanDescription` é sempre um template determinístico do backend, nunca texto do modelo — mostre-o (com `params`) na UI, nunca só o `reply`.",
         "Uma tool de update inclui `diff` (`{ field, from, to }[]`) — `from` sempre vem de uma leitura real do backend, nunca do que o modelo \"disse\".",
       ],
-      errorCodes: ["ASSISTANT_DISABLED_FOR_WORKSPACE", "AI_ASSISTANT_RATE_LIMIT_EXCEEDED", "TOKEN_QUOTA_EXCEEDED", "AI_ASSISTANT_TRANSLATION_FAILED", "ASSISTANT_ATTACHMENT_TOO_LARGE", "ASSISTANT_TOO_MANY_ATTACHMENTS", "ASSISTANT_AUDIO_TOO_LONG", "ASSISTANT_TRANSCRIPTION_FAILED", "ASSISTANT_EMPTY_TRANSCRIPTION"],
+      errorCodes: ["ASSISTANT_DISABLED_FOR_WORKSPACE", "ASSISTANT_CONVERSATION_NOT_EMPTY", "AI_ASSISTANT_RATE_LIMIT_EXCEEDED", "TOKEN_QUOTA_EXCEEDED", "AI_ASSISTANT_TRANSLATION_FAILED", "ASSISTANT_ATTACHMENT_TOO_LARGE", "ASSISTANT_TOO_MANY_ATTACHMENTS", "ASSISTANT_AUDIO_TOO_LONG", "ASSISTANT_TRANSCRIPTION_FAILED", "ASSISTANT_EMPTY_TRANSCRIPTION"],
     },
     {
       method: "POST",
@@ -48,7 +48,7 @@ export function buildAssistantEndpoints(workspaceId: string): ApiEndpoint[] {
       bodyParams: [
         { name: "message", type: "string", required: false, notes: "opcional só no multipart com áudio anexado" },
         { name: "workspaceId", type: "string", required: true },
-        { name: "history", type: "{ role, content }[]", required: false, notes: "até 50 mensagens" },
+        { name: "start", type: "boolean", required: false, notes: "abre um chat vazio: sem message/files, o assistente escreve a primeira mensagem" },
         { name: "files", type: "File[]", required: false, notes: "só multipart, até 6 arquivos" },
       ],
       requestExample: [
@@ -75,7 +75,7 @@ export function buildAssistantEndpoints(workspaceId: string): ApiEndpoint[] {
         "Linhas começando com `:` (`:ping`, a cada 15s) são keep-alive — ignore.",
         "Fechar a conexão aborta a chamada ao modelo; uma `PendingAction` já registrada continua válida até o TTL.",
       ],
-      errorCodes: ["ASSISTANT_DISABLED_FOR_WORKSPACE", "AI_ASSISTANT_RATE_LIMIT_EXCEEDED", "TOKEN_QUOTA_EXCEEDED", "AI_ASSISTANT_TRANSLATION_FAILED", "AI_INSUFFICIENT_CREDITS", "REQUEST_TIMEOUT", "ASSISTANT_ATTACHMENT_TOO_LARGE", "ASSISTANT_TOO_MANY_ATTACHMENTS", "ASSISTANT_AUDIO_TOO_LONG", "ASSISTANT_TRANSCRIPTION_FAILED", "ASSISTANT_EMPTY_TRANSCRIPTION"],
+      errorCodes: ["ASSISTANT_DISABLED_FOR_WORKSPACE", "ASSISTANT_CONVERSATION_NOT_EMPTY", "AI_ASSISTANT_RATE_LIMIT_EXCEEDED", "TOKEN_QUOTA_EXCEEDED", "AI_ASSISTANT_TRANSLATION_FAILED", "AI_INSUFFICIENT_CREDITS", "REQUEST_TIMEOUT", "ASSISTANT_ATTACHMENT_TOO_LARGE", "ASSISTANT_TOO_MANY_ATTACHMENTS", "ASSISTANT_AUDIO_TOO_LONG", "ASSISTANT_TRANSCRIPTION_FAILED", "ASSISTANT_EMPTY_TRANSCRIPTION"],
     },
     {
       method: "POST",
@@ -107,6 +107,43 @@ export function buildAssistantEndpoints(workspaceId: string): ApiEndpoint[] {
       responseStatus: "201 Created",
       responseExample: '{ "cancelled": true }',
       errorCodes: ["PENDING_ACTION_NOT_FOUND", "PENDING_ACTION_EXPIRED"],
+    },
+    {
+      method: "GET",
+      path: "/assistant/conversation/messages",
+      summary: "Ler o seu chat com o assistente",
+      description:
+        "Um chat por pessoa, com todo o histórico (de todos os workspaces). A primeira página traz as mensagens mais recentes, cada página em ordem cronológica; `nextCursor` busca as anteriores.",
+      queryParams: [
+        { name: "cursor", type: "string", required: false, notes: "nextCursor da página anterior" },
+        { name: "limit", type: "number", required: false, notes: "padrão 50, máx. 200" },
+      ],
+      responseStatus: "200 OK",
+      responseExample: '{ "items": [{ "id": "uuid", "role": "assistant", "workspaceId": "uuid", "content": "Oi! O que você faz no dia a dia?", "metadata": null, "createdAt": "..." }], "nextCursor": null }',
+    },
+    {
+      method: "DELETE",
+      path: "/assistant/conversation/messages",
+      summary: "Limpar o chat",
+      description: "Apaga todas as mensagens. O que o assistente sabe sobre você (`/assistant/profile`) continua.",
+      responseStatus: "204 No Content",
+      responseExample: "",
+    },
+    {
+      method: "GET",
+      path: "/assistant/profile",
+      summary: "O que o assistente sabe sobre você",
+      description: "Resumo escrito pelo assistente com o que você contou (vai ao prompt de toda conversa, no app e no WhatsApp) e o andamento do onboarding.",
+      responseStatus: "200 OK",
+      responseExample: '{ "summary": "Tem uma confeitaria e quer organizar as encomendas.", "onboarding": "FINISHED", "updatedAt": "..." }',
+    },
+    {
+      method: "PATCH",
+      path: "/assistant/profile",
+      summary: "Corrigir ou apagar o que o assistente sabe sobre você",
+      bodyParams: [{ name: "summary", type: "string | null", required: true, notes: "substitui inteiro, até 2000 caracteres; null apaga" }],
+      responseStatus: "200 OK",
+      responseExample: '{ "summary": null, "onboarding": "FINISHED", "updatedAt": "..." }',
     },
   ];
 }

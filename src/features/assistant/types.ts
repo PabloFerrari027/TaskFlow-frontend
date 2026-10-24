@@ -1,15 +1,10 @@
 import type { AssistantConversationActionSummary } from "@/types/assistant-conversation";
 
-// Local to this feature — the live chat turn shapes. The chat is stateless
-// (the client resends `history` each turn, API.md § 16); the saved history
-// DTOs live in src/types/assistant-conversation.ts.
+// Local to this feature — the live chat turn shapes. The user has one saved
+// chat and the server reads its context from there (API.md § 16); the saved
+// message DTOs live in src/types/assistant-conversation.ts.
 
 export type ChatRole = "user" | "assistant";
-
-export interface ChatMessage {
-  role: ChatRole;
-  content: string;
-}
 
 export type PendingActionRiskLevel = "standard" | "critical";
 
@@ -57,9 +52,6 @@ export interface AssistantChatResponse {
   executedActions: ExecutedAction[];
   pendingActions: PendingAction[];
   transcriptions: Transcription[];
-  // Saved conversation this turn was recorded in — sent back as
-  // `conversationId` on the next turn. `null` if saving failed.
-  conversationId: string | null;
 }
 
 // What the assistant is doing right now, as reported by
@@ -113,6 +105,9 @@ export interface ChatAttachment {
 export interface ChatTranscriptMessage {
   id: string;
   role: ChatRole;
+  // Workspace that was open when the message was exchanged — the chat spans
+  // all of them.
+  workspaceId?: string;
   content: string;
   attachments?: ChatAttachment[];
   // A user turn with audio whose transcription hasn't come back yet — the
@@ -120,7 +115,7 @@ export interface ChatTranscriptMessage {
   transcribing?: boolean;
   executedActions?: ExecutedAction[];
   pendingActions?: PendingActionState[];
-  // Only on messages restored from a saved conversation: what that turn
+  // Only on messages loaded from the saved chat: what that turn
   // proposed. Display-only — the action can no longer be confirmed from here.
   pastActions?: AssistantConversationActionSummary[];
   // Present only on the assistant reply still being streamed (`null` until

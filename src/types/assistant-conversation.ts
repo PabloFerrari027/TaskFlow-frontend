@@ -1,17 +1,7 @@
-// History of the in-app assistant chat (API.md § 16, "Histórico de conversas").
-// The chat itself stays stateless — the client still resends `history` on
-// every turn; this is only the saved record used to list and resume.
+// The user's single in-app chat with the assistant (API.md § 16, "O chat da
+// pessoa"). The server keeps the whole history and feeds the model only its
+// latest messages — the client never resends `history`.
 import type { CursorPage } from "@/types/assistant-channel";
-
-export interface AssistantConversation {
-  id: string;
-  workspaceId: string;
-  /** The user's first message, cut at 120 characters. */
-  title: string;
-  createdAt: string;
-  lastMessageAt: string;
-  messageCount: number;
-}
 
 // What a past turn proposed or did — a summary only: whether a proposed
 // action was later confirmed or cancelled is not saved.
@@ -33,15 +23,25 @@ export interface AssistantConversationMessageMetadata {
 export interface AssistantConversationMessage {
   id: string;
   role: "user" | "assistant";
+  /** Workspace that was open when the message was exchanged. */
+  workspaceId: string;
   /** Markdown. */
   content: string;
   metadata: AssistantConversationMessageMetadata | null;
   createdAt: string;
 }
 
-export interface ListAssistantConversationsParams {
-  workspaceId?: string;
-}
-
-export type AssistantConversationPage = CursorPage<AssistantConversation>;
+// Newest page first; each page is in chronological order and `nextCursor`
+// goes further back in time.
 export type AssistantConversationMessagePage = CursorPage<AssistantConversationMessage>;
+
+export type AssistantOnboardingStatus = "NOT_STARTED" | "IN_PROGRESS" | "FINISHED";
+
+// What the assistant knows about the user — a summary it writes itself from
+// what they told it (API.md § 16). Goes into every conversation, app and
+// WhatsApp alike.
+export interface AssistantProfile {
+  summary: string | null;
+  onboarding: AssistantOnboardingStatus;
+  updatedAt: string | null;
+}
