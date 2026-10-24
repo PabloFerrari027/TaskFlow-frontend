@@ -5,6 +5,7 @@ import { MarkdownContent } from "@/components/shared/markdown-content";
 import { cn } from "@/lib/utils";
 import { PendingActionCard } from "@/features/assistant/components/pending-action-card";
 import { TypingIndicator } from "@/features/assistant/components/typing-indicator";
+import { formatAudioDuration } from "@/features/assistant/lib/attachment-limits";
 import { toolLabel } from "@/features/assistant/lib/tool-labels";
 import type {
   AssistantChatStage,
@@ -68,6 +69,10 @@ export function AssistantMessage({
 }) {
   const isUser = message.role === "user";
   const isStreaming = message.streamingStatus !== undefined;
+  // Voice notes are labelled inside the bubble (their transcription is the
+  // bubble's text); only other files are listed as chips below it.
+  const voiceNotes = message.attachments?.filter((attachment) => attachment.isAudio) ?? [];
+  const fileAttachments = message.attachments?.filter((attachment) => !attachment.isAudio) ?? [];
 
   return (
     <div className={cn("flex gap-2.5", isUser ? "justify-end" : "justify-start")}>
@@ -82,7 +87,7 @@ export function AssistantMessage({
       <div className={cn("min-w-0 space-y-2", isUser ? "max-w-[85%]" : "flex-1")}>
         {isStreaming && !message.content ? (
           <TypingIndicator />
-        ) : message.content || !isUser ? (
+        ) : message.content || voiceNotes.length > 0 || !isUser ? (
           <div
             className={cn(
               "px-3.5 py-2.5",
@@ -91,10 +96,32 @@ export function AssistantMessage({
                 : "rounded-2xl rounded-tl-md bg-muted/70"
             )}
           >
-            <MarkdownContent
-              content={message.content}
-              className={isUser ? USER_BUBBLE_MARKDOWN_CLASS : undefined}
-            />
+            {voiceNotes.map((voiceNote, index) => (
+              <p
+                key={index}
+                className="mb-1 flex items-center gap-1.5 text-xs font-medium text-primary-foreground/75"
+              >
+                <Mic className="size-3.5" />
+                Mensagem de voz
+                {voiceNote.durationSeconds !== undefined ? (
+                  <span className="tabular-nums">
+                    · {formatAudioDuration(voiceNote.durationSeconds)}
+                  </span>
+                ) : null}
+              </p>
+            ))}
+            {message.content ? (
+              <MarkdownContent
+                content={message.content}
+                className={isUser ? USER_BUBBLE_MARKDOWN_CLASS : undefined}
+              />
+            ) : message.transcribing ? (
+              <p className="animate-pulse text-sm text-primary-foreground/80">
+                Transcrevendo seu áudio...
+              </p>
+            ) : voiceNotes.length > 0 ? (
+              <p className="text-sm text-primary-foreground/80 italic">Áudio não transcrito.</p>
+            ) : null}
           </div>
         ) : null}
 
@@ -108,18 +135,14 @@ export function AssistantMessage({
           </p>
         ) : null}
 
-        {message.attachments && message.attachments.length > 0 ? (
+        {fileAttachments.length > 0 ? (
           <div className="flex flex-wrap justify-end gap-1.5">
-            {message.attachments.map((attachment, index) => (
+            {fileAttachments.map((attachment, index) => (
               <span
                 key={index}
                 className="flex items-center gap-1 rounded-full border border-border/60 bg-muted px-2 py-0.5 text-xs text-muted-foreground"
               >
-                {attachment.isAudio ? (
-                  <Mic className="size-3" />
-                ) : (
-                  <Paperclip className="size-3" />
-                )}
+                <Paperclip className="size-3" />
                 <span className="max-w-35 truncate">{attachment.fileName}</span>
               </span>
             ))}

@@ -18,6 +18,13 @@ export function isAudioFile(file: File): boolean {
   return (file.type === "" || file.type === "video/mp4") && AUDIO_EXTENSIONS.test(file.name);
 }
 
+// "m:ss" — recording timer and voice-note length.
+export function formatAudioDuration(totalSeconds: number): string {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = Math.floor(totalSeconds % 60);
+  return `${minutes}:${String(seconds).padStart(2, "0")}`;
+}
+
 export function validateNewFiles(
   existing: File[],
   incoming: File[]

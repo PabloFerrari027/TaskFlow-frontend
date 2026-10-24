@@ -13,8 +13,8 @@ import {
   Minimize2,
   Paperclip,
   Sparkles,
-  Square,
   SquarePen,
+  Trash2,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -36,9 +36,18 @@ import {
   useSendChatMessageMutation,
 } from "@/features/assistant/hooks/use-assistant";
 import { useQuotaWindowUsageQuery } from "@/features/plans/hooks/use-plans";
-import { useAudioRecorder } from "@/features/assistant/hooks/use-audio-recorder";
-import { isAudioFile, validateNewFiles } from "@/features/assistant/lib/attachment-limits";
+import {
+  getRecordedDuration,
+  useAudioRecorder,
+} from "@/features/assistant/hooks/use-audio-recorder";
+import {
+  ASSISTANT_ATTACHMENT_MAX_AUDIO_SECONDS,
+  formatAudioDuration,
+  isAudioFile,
+  validateNewFiles,
+} from "@/features/assistant/lib/attachment-limits";
 import { AssistantMessage } from "@/features/assistant/components/assistant-message";
+import { RecordingWaveform } from "@/features/assistant/components/recording-waveform";
 import { AssistantConversationHistory } from "@/features/assistant/components/assistant-conversation-history";
 import { AssistantSessionSummary } from "@/features/assistant/components/assistant-session-summary";
 import { AssistantUsageMeter } from "@/features/assistant/components/assistant-usage-meter";
@@ -111,7 +120,7 @@ const INITIAL_STATE: ChatState = { transcript: [], confirmedActions: [] };
 type ChatAction =
   | { type: "add"; message: ChatTranscriptMessage }
   | { type: "remove"; messageId: string }
-  | { type: "set-content"; messageId: string; content: string }
+  | { type: "patch"; messageId: string; patch: Partial<ChatTranscriptMessage> }
   | { type: "stream-event"; messageId: string; event: AssistantChatEvent }
   | { type: "stream-done"; messageId: string; result: AssistantChatResponse }
   | { type: "stream-failed"; messageId: string }
@@ -138,10 +147,10 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
       return { ...state, transcript: [...state.transcript, action.message] };
     case "remove":
       return { ...state, transcript: state.transcript.filter((m) => m.id !== action.messageId) };
-    case "set-content":
+    case "patch":
       return updateMessage(state, action.messageId, (message) => ({
         ...message,
-        content: action.content,
+        ...action.patch,
       }));
     case "stream-event": {
       const { event } = action;
@@ -330,6 +339,7 @@ export function AssistantChat() {
     }
   );
   const isRecording = recorder.status !== "idle";
+  const recordingSecondsLeft = ASSISTANT_ATTACHMENT_MAX_AUDIO_SECONDS - recorder.seconds;
 
   React.useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
@@ -406,6 +416,8 @@ export function AssistantChat() {
   function handleComposerKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (event.key !== "Enter" || event.shiftKey || event.nativeEvent.isComposing) return;
     event.preventDefault();
+    // Mid-recording, Enter does what the send button there does: stop and send.
+    if (recorder.status === "recording") recorder.stop();
     if (isRecording) return;
     sendMessage(files);
   }
@@ -446,7 +458,9 @@ export function AssistantChat() {
     const attachments: ChatAttachment[] = filesToSend.map((file) => ({
       fileName: file.name,
       isAudio: isAudioFile(file),
+      durationSeconds: getRecordedDuration(file),
     }));
+    const withAudio = attachments.some((attachment) => attachment.isAudio);
     const messageId = crypto.randomUUID();
     const replyId = crypto.randomUUID();
     // The bubble ends up as the backend's own "effective message" (typed text,
@@ -459,7 +473,7 @@ export function AssistantChat() {
 
     dispatch({
       type: "add",
-      message: { id: messageId, role: "user", content: trimmed, attachments },
+      message: { id: messageId, role: "user", content: trimmed, attachments, transcribing: withAudio },
     });
     // The reply bubble exists from the start so the user watches the
     // assistant work (status, then text token by token) instead of a spinner.
@@ -483,7 +497,11 @@ export function AssistantChat() {
         onEvent: (event) => {
           if (event.type === "transcription") {
             transcribed.push(event.transcription.text);
-            dispatch({ type: "set-content", messageId, content: effectiveContent() });
+            dispatch({
+              type: "patch",
+              messageId,
+              patch: { content: effectiveContent(), transcribing: false },
+            });
             return;
           }
           dispatch({ type: "stream-event", messageId: replyId, event });
@@ -496,8 +514,12 @@ export function AssistantChat() {
           // `done` is authoritative, in case a `transcription` frame was missed.
           if (data.transcriptions.length > 0) {
             transcribed.splice(0, transcribed.length, ...data.transcriptions.map((t) => t.text));
-            dispatch({ type: "set-content", messageId, content: effectiveContent() });
           }
+          dispatch({
+            type: "patch",
+            messageId,
+            patch: { content: effectiveContent(), transcribing: false },
+          });
           dispatch({ type: "stream-done", messageId: replyId, result: data });
           usageQuery.refetch();
         },
@@ -523,6 +545,8 @@ export function AssistantChat() {
             dispatch({ type: "remove", messageId });
             setFiles((current) => (current.length === 0 ? filesToSend : current));
             setText((current) => current || trimmed);
+          } else {
+            dispatch({ type: "patch", messageId, patch: { transcribing: false } });
           }
         },
         onSettled: () => {
@@ -584,6 +608,12 @@ export function AssistantChat() {
           if (!inputRef.current || inputRef.current.disabled) return;
           event.preventDefault();
           inputRef.current.focus();
+        }}
+        onEscapeKeyDown={(event) => {
+          // Esc mid-recording throws the clip away instead of closing the panel.
+          if (!isRecording) return;
+          event.preventDefault();
+          recorder.cancel();
         }}
       >
         <SheetHeader className="gap-3 border-b border-border/60 pr-12">
@@ -760,38 +790,46 @@ export function AssistantChat() {
             >
               {files.length > 0 ? (
                 <div className="flex flex-wrap gap-1.5">
-                  {files.map((file, index) => (
-                    <span
-                      key={`${file.name}-${index}`}
-                      className="flex items-center gap-1.5 rounded-full border border-border/60 bg-muted px-2.5 py-1 text-xs text-foreground"
-                    >
-                      {isAudioFile(file) ? (
-                        <Mic className="size-3 text-muted-foreground" />
-                      ) : (
-                        <Paperclip className="size-3 text-muted-foreground" />
-                      )}
-                      <span className="max-w-35 truncate">{file.name}</span>
-                      <span className="text-muted-foreground">{formatFileSize(file.size)}</span>
-                      <button
-                        type="button"
-                        aria-label={`Remover ${file.name}`}
-                        className="text-muted-foreground hover:text-foreground"
-                        onClick={() => removeFile(index)}
+                  {files.map((file, index) => {
+                    const recordedSeconds = getRecordedDuration(file);
+                    const label = recordedSeconds !== undefined ? "Áudio gravado" : file.name;
+                    return (
+                      <span
+                        key={`${file.name}-${index}`}
+                        className="flex items-center gap-1.5 rounded-full border border-border/60 bg-muted px-2.5 py-1 text-xs text-foreground"
                       >
-                        <X className="size-3" />
-                      </button>
-                    </span>
-                  ))}
+                        {isAudioFile(file) ? (
+                          <Mic className="size-3 text-muted-foreground" />
+                        ) : (
+                          <Paperclip className="size-3 text-muted-foreground" />
+                        )}
+                        <span className="max-w-35 truncate">{label}</span>
+                        <span className="text-muted-foreground tabular-nums">
+                          {recordedSeconds !== undefined
+                            ? formatAudioDuration(recordedSeconds)
+                            : formatFileSize(file.size)}
+                        </span>
+                        <button
+                          type="button"
+                          aria-label={`Remover ${label}`}
+                          className="text-muted-foreground hover:text-foreground"
+                          onClick={() => removeFile(index)}
+                        >
+                          <X className="size-3" />
+                        </button>
+                      </span>
+                    );
+                  })}
                 </div>
               ) : null}
 
-              {recorder.status === "recording" ? (
-                <p className="flex items-center gap-1.5 text-xs text-destructive">
-                  <span className="size-2 animate-pulse rounded-full bg-destructive" />
-                  Gravando... {String(Math.floor(recorder.seconds / 60)).padStart(2, "0")}:
-                  {String(recorder.seconds % 60).padStart(2, "0")} — pare para enviar
+              {isRecording ? null : hasAudio ? (
+                // Only after a failed or blocked send — a fresh recording goes
+                // straight out.
+                <p className="text-xs text-muted-foreground">
+                  O áudio ainda não foi enviado. Toque em enviar para tentar de novo.
                 </p>
-              ) : files.length > 0 && !hasAudio && !text.trim() ? (
+              ) : files.length > 0 && !text.trim() ? (
                 <p className="text-xs text-muted-foreground">
                   Escreva uma mensagem para enviar junto com o(s) arquivo(s).
                 </p>
@@ -814,10 +852,14 @@ export function AssistantChat() {
               <div
                 className={cn(
                   "rounded-2xl border border-input bg-background shadow-xs transition-colors focus-within:border-primary/50 focus-within:ring-3 focus-within:ring-primary/15 dark:bg-input/30",
-                  composerDisabled && "opacity-60"
+                  composerDisabled && "opacity-60",
+                  isRecording && "border-destructive/40 focus-within:border-destructive/50 focus-within:ring-destructive/15"
                 )}
               >
+                {/* Typed text goes along with the voice note, so it stays
+                    visible while recording — an empty field just steps aside. */}
                 <textarea
+                  hidden={isRecording && !text.trim()}
                   ref={inputRef}
                   value={text}
                   rows={1}
@@ -829,57 +871,102 @@ export function AssistantChat() {
                   disabled={composerDisabled}
                   className="field-sizing-content block max-h-40 min-h-11 w-full resize-none bg-transparent px-3.5 pt-3 pb-1 text-base outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed md:text-sm"
                 />
-                <div className="flex items-center gap-1 px-2 pb-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label="Anexar arquivo"
-                    title="Anexar arquivo"
-                    className="text-muted-foreground"
-                    disabled={composerDisabled || isRecording}
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <Paperclip />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={recorder.status === "recording" ? "destructive" : "ghost"}
-                    size="icon-sm"
-                    aria-label={recorder.status === "recording" ? "Parar gravação" : "Gravar áudio"}
-                    title={recorder.status === "recording" ? "Parar e enviar" : "Gravar áudio"}
-                    className={cn(recorder.status !== "recording" && "text-muted-foreground")}
-                    // Disabled while the browser's mic permission prompt is open.
-                    disabled={composerDisabled || recorder.status === "starting"}
-                    onClick={() => (recorder.status === "recording" ? recorder.stop() : recorder.start())}
-                  >
-                    {recorder.status === "recording" ? (
-                      <Square />
-                    ) : recorder.status === "starting" ? (
-                      <Loader2 className="animate-spin" />
-                    ) : (
+                {recorder.status === "starting" ? (
+                  <div className="flex items-center gap-2 px-2 py-2">
+                    <Loader2 className="ml-1.5 size-4 shrink-0 animate-spin text-muted-foreground" />
+                    <p aria-live="polite" className="flex-1 text-sm text-muted-foreground">
+                      Permita o uso do microfone no aviso do navegador...
+                    </p>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label="Cancelar gravação"
+                      title="Cancelar"
+                      className="text-muted-foreground"
+                      onClick={recorder.cancel}
+                    >
+                      <X />
+                    </Button>
+                  </div>
+                ) : recorder.status === "recording" ? (
+                  <div className="flex items-center gap-2 px-2 py-2">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label="Descartar gravação"
+                      title="Descartar (Esc)"
+                      className="text-muted-foreground hover:text-destructive"
+                      onClick={recorder.cancel}
+                    >
+                      <Trash2 />
+                    </Button>
+                    <span className="flex shrink-0 items-center gap-1.5 text-sm font-medium text-foreground tabular-nums">
+                      <span className="size-2 animate-pulse rounded-full bg-destructive" />
+                      <span role="timer" aria-label="Tempo de gravação">
+                        {formatAudioDuration(recorder.seconds)}
+                      </span>
+                    </span>
+                    <RecordingWaveform stream={recorder.stream} className="min-w-0 flex-1" />
+                    {recordingSecondsLeft <= 30 ? (
+                      <span className="shrink-0 text-xs text-amber-600 tabular-nums dark:text-amber-400">
+                        resta {formatAudioDuration(recordingSecondsLeft)}
+                      </span>
+                    ) : null}
+                    <Button
+                      type="button"
+                      size="icon-sm"
+                      aria-label="Parar e enviar áudio"
+                      title="Parar e enviar (Enter)"
+                      className="rounded-full"
+                      onClick={recorder.stop}
+                    >
+                      <ArrowUp />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1 px-2 pb-2">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label="Anexar arquivo"
+                      title="Anexar arquivo"
+                      className="text-muted-foreground"
+                      disabled={composerDisabled}
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Paperclip />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label="Gravar áudio"
+                      title="Gravar áudio"
+                      className="text-muted-foreground"
+                      disabled={composerDisabled}
+                      onClick={recorder.start}
+                    >
                       <Mic />
-                    )}
-                  </Button>
-                  <span className="ml-auto pr-1 text-[11px] text-muted-foreground">
-                    {text.length > MAX_MESSAGE_LENGTH * 0.8
-                      ? `${text.length}/${MAX_MESSAGE_LENGTH}`
-                      : null}
-                  </span>
-                  <Button
-                    type="submit"
-                    size="icon-sm"
-                    aria-label="Enviar"
-                    className="rounded-full"
-                    disabled={
-                      composerDisabled ||
-                      isRecording ||
-                      (!text.trim() && !hasAudio)
-                    }
-                  >
-                    {sendMutation.isPending ? <Loader2 className="animate-spin" /> : <ArrowUp />}
-                  </Button>
-                </div>
+                    </Button>
+                    <span className="ml-auto pr-1 text-[11px] text-muted-foreground">
+                      {text.length > MAX_MESSAGE_LENGTH * 0.8
+                        ? `${text.length}/${MAX_MESSAGE_LENGTH}`
+                        : null}
+                    </span>
+                    <Button
+                      type="submit"
+                      size="icon-sm"
+                      aria-label="Enviar"
+                      className="rounded-full"
+                      disabled={composerDisabled || (!text.trim() && !hasAudio)}
+                    >
+                      {sendMutation.isPending ? <Loader2 className="animate-spin" /> : <ArrowUp />}
+                    </Button>
+                  </div>
+                )}
               </div>
               <p className="hidden text-center text-[11px] text-muted-foreground sm:block">
                 Enter envia · Shift + Enter quebra a linha · a IA pode errar, confira antes de
