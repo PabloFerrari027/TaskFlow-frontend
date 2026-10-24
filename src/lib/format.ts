@@ -69,6 +69,8 @@ export function formatDueDate(value: string): { label: string; urgency: DueDateU
 }
 
 // `<input type="date">` works in `yyyy-MM-dd`; the API works in ISO datetime.
+// Every date is READ in the user's time zone (a deadline with a time, e.g. one
+// set by the assistant for 19h, must show 19h on the right day).
 export function toDateInputValue(value: string | null | undefined) {
   if (!value) return "";
   try {
@@ -78,8 +80,25 @@ export function toDateInputValue(value: string | null | undefined) {
   }
 }
 
+// A day picked without a time is saved as NOON UTC of that day: in any time
+// zone from UTC-11 to UTC+11 that instant falls on the same calendar day, so
+// reading it back in local time never shows the day before (saving at UTC
+// midnight showed 30/10 for a 31/10 pick in Brazil, and each edit+save moved
+// it one more day back).
 export function fromDateInputValue(value: string) {
-  return new Date(`${value}T00:00:00.000Z`).toISOString();
+  return new Date(`${value}T12:00:00.000Z`).toISOString();
+}
+
+// Day-range filter bounds (`yyyy-MM-dd`), as the start/end of that day in the
+// user's time zone — so a deadline at 19h on the last day is still inside.
+export function dayStartIso(value: string) {
+  const [year, month, day] = value.split("-").map(Number);
+  return new Date(year, month - 1, day).toISOString();
+}
+
+export function dayEndIso(value: string) {
+  const [year, month, day] = value.split("-").map(Number);
+  return new Date(year, month - 1, day, 23, 59, 59, 999).toISOString();
 }
 
 export function getInitialsFromId(id: string) {

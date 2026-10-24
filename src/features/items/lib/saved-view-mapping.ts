@@ -1,6 +1,6 @@
 import { NO_PRIORITY_VALUE, UNASSIGNED_VALUE } from "@/features/items/schemas";
 import { EMPTY_ITEM_FILTERS, type ItemFilters } from "@/features/items/lib/item-filters";
-import { fromDateInputValue, toDateInputValue } from "@/lib/format";
+import { dayEndIso, dayStartIso, toDateInputValue } from "@/lib/format";
 import type { ItemPriority } from "@/types/item";
 import type { SavedViewConfig } from "@/types/saved-view";
 
@@ -43,8 +43,8 @@ export function filtersToViewConfig(filters: ItemFilters): Partial<SavedViewConf
       assigneeIds: assigneeIds.length ? assigneeIds : undefined,
       unassigned: filters.assignees.includes(UNASSIGNED_VALUE) || undefined,
       dueWithinDays: presetDays,
-      dueFrom: filters.dueFrom ? fromDateInputValue(filters.dueFrom) : undefined,
-      dueTo: filters.dueTo ? fromDateInputValue(filters.dueTo) : undefined,
+      dueFrom: filters.dueFrom ? dayStartIso(filters.dueFrom) : undefined,
+      dueTo: filters.dueTo ? dayEndIso(filters.dueTo) : undefined,
     },
     showSubitems: filters.kind !== "items",
   };

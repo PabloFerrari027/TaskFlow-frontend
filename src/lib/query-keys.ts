@@ -40,7 +40,6 @@ export const queryKeys = {
     all: (params?: { page?: number; status?: ClientStatus; email?: string }) =>
       params ? (["clients", params] as const) : (["clients"] as const),
     detail: (clientId: string) => ["clients", clientId] as const,
-    isSuperAdmin: () => ["clients", "is-super-admin"] as const,
     aiUsage: (
       clientId: string,
       params: { days: number; feature?: AiUsageFeature; page: number }

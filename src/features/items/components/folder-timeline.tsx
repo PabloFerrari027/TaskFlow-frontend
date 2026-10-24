@@ -27,7 +27,7 @@ type ZoomKey = (typeof ZOOMS)[number]["key"];
 
 const MONTHS = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
 
-// Dates are saved as UTC midnight of the chosen day (`fromDateInputValue`),
+// Picked dates are saved as noon UTC of the chosen day (`fromDateInputValue`),
 // so the timeline counts whole UTC days — the bar lands on the day picked.
 function utcDay(iso: string) {
   return Math.floor(Date.parse(iso) / DAY_MS);
