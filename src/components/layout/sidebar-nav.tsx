@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NAV_GROUPS, NAV_ITEMS } from "@/components/layout/nav-items";
-import { useIsSuperAdminQuery } from "@/features/admin/hooks/use-clients";
+import { useIsSuperAdmin } from "@/features/admin/hooks/use-clients";
 import { useCurrentWorkspace } from "@/features/workspaces/context/current-workspace-context";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useAssistantChat } from "@/features/assistant/context/assistant-chat-context";
@@ -13,13 +13,13 @@ import { useAssistantChat } from "@/features/assistant/context/assistant-chat-co
 export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const { openChat } = useAssistantChat();
-  const isSuperAdminQuery = useIsSuperAdminQuery();
+  const isSuperAdmin = useIsSuperAdmin();
   const { workspace } = useCurrentWorkspace();
   const { userId } = useAuth();
   const myWorkspaceRole = workspace?.members.find((m) => m.userId === userId)?.role;
 
   const items = NAV_ITEMS.filter((item) => {
-    if (item.requiresSuperAdmin && !isSuperAdminQuery.isSuccess) return false;
+    if (item.requiresSuperAdmin && !isSuperAdmin) return false;
     if (item.workspacePermission && !item.workspacePermission(myWorkspaceRole)) return false;
     if (item.workspaceHref && !workspace) return false;
     return true;

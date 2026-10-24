@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { clientsService } from "@/features/admin/api/clients-service";
 import { queryKeys } from "@/lib/query-keys";
 import { getErrorMessage } from "@/lib/errors";
+import { useCurrentUserQuery } from "@/features/auth/hooks/use-current-user";
 import {
   AI_USAGE_QUERY_CACHE,
   buildAiUsageDateRange,
@@ -49,17 +50,11 @@ export function useClientAiUsageQuery(
   });
 }
 
-// The backend has no endpoint that exposes the caller's platform role, and
-// RolesGuard re-checks it server-side on every request rather than putting it
-// in the JWT — so we infer SUPER_ADMIN access from whether this admin-only
-// call succeeds (a non-admin gets a 403).
-export function useIsSuperAdminQuery() {
-  return useQuery({
-    queryKey: queryKeys.clients.isSuperAdmin(),
-    queryFn: () => clientsService.list({ limit: 1 }),
-    retry: false,
-    staleTime: 5 * 60 * 1000,
-  });
+// Read off GET /auth/me (`role`). Only decides what the menu shows — every
+// admin route is still checked server-side (RolesGuard).
+export function useIsSuperAdmin() {
+  const { data } = useCurrentUserQuery();
+  return data?.role === "SUPER_ADMIN";
 }
 
 export function useSuspendClientMutation() {

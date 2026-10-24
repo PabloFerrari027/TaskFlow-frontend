@@ -116,6 +116,8 @@ export interface CurrentUserResponse {
   status: AccountStatus;
   hasPassword: boolean;
   googleLinked: boolean;
+  // Platform role — decides whether the admin area shows up.
+  role: "CUSTOMER" | "SUPER_ADMIN";
 }
 
 export interface UpdateProfilePhotoResponse {
