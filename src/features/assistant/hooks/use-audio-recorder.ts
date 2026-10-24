@@ -14,6 +14,15 @@ const MIN_RECORDING_MS = 1000;
 // per-message cap (browsers default to ~128kbps).
 const AUDIO_BITS_PER_SECOND = 32_000;
 
+// Length of each clip recorded here, for the composer chip and the voice
+// bubble — keyed by the File itself, so a retry (the same File put back in
+// the composer) keeps it. Picked audio files aren't in here.
+const recordedDurations = new WeakMap<File, number>();
+
+export function getRecordedDuration(file: File): number | undefined {
+  return recordedDurations.get(file);
+}
+
 function extensionFor(mimeType: string): string {
   if (mimeType.includes("mp4")) return "m4a";
   if (mimeType.includes("ogg")) return "ogg";
@@ -21,8 +30,9 @@ function extensionFor(mimeType: string): string {
 }
 
 // Records one clip at a time via MediaRecorder and hands it back as a File
-// through `onRecorded` — staging/removal is the caller's job (same chip list
-// as a picked file), this hook only owns mic access and the recording itself.
+// through `onRecorded` (its length via `getRecordedDuration`) — staging/removal
+// is the caller's job (same chip list as a picked file), this hook only owns
+// mic access and the recording itself.
 // Failures go to `onError` on every attempt (not as a status), so a second
 // click after a denied permission still tells the user why nothing happened.
 export function useAudioRecorder(
@@ -31,6 +41,8 @@ export function useAudioRecorder(
 ) {
   const [status, setStatus] = React.useState<AudioRecorderStatus>("idle");
   const [seconds, setSeconds] = React.useState(0);
+  // The live mic stream while recording, for the composer's waveform.
+  const [stream, setStream] = React.useState<MediaStream | null>(null);
   const recorderRef = React.useRef<MediaRecorder | null>(null);
   const streamRef = React.useRef<MediaStream | null>(null);
   const intervalRef = React.useRef<ReturnType<typeof setInterval> | null>(null);
@@ -62,6 +74,7 @@ export function useAudioRecorder(
     stopTimer();
     if (recorderRef.current?.state === "recording") recorderRef.current.stop();
     recorderRef.current = null;
+    setStream(null);
     setStatus("idle");
   }, [stopTimer]);
 
@@ -125,16 +138,20 @@ export function useAudioRecorder(
       }
       const mimeType = recorder.mimeType || chunks[0]?.type || "audio/webm";
       const blob = new Blob(chunks, { type: mimeType });
-      if (blob.size === 0 || Date.now() - startedAt < MIN_RECORDING_MS) {
+      const elapsedMs = Date.now() - startedAt;
+      if (blob.size === 0 || elapsedMs < MIN_RECORDING_MS) {
         onErrorRef.current("too-short");
         return;
       }
-      onRecordedRef.current(
-        new File([blob], `gravacao-${Date.now()}.${extensionFor(mimeType)}`, { type: mimeType })
-      );
+      const file = new File([blob], `gravacao-${Date.now()}.${extensionFor(mimeType)}`, {
+        type: mimeType,
+      });
+      recordedDurations.set(file, Math.round(elapsedMs / 1000));
+      onRecordedRef.current(file);
     };
 
     recorder.start();
+    setStream(stream);
     setStatus("recording");
     setSeconds(0);
     intervalRef.current = setInterval(() => {
@@ -151,5 +168,5 @@ export function useAudioRecorder(
     };
   }, [stopTimer, releaseStream]);
 
-  return { status, seconds, start, stop, cancel };
+  return { status, seconds, stream, start, stop, cancel };
 }

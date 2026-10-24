@@ -105,6 +105,9 @@ export interface PendingActionState extends PendingAction {
 export interface ChatAttachment {
   fileName: string;
   isAudio: boolean;
+  // Only for a clip recorded in this session — picked files and resumed
+  // conversations don't carry a length.
+  durationSeconds?: number;
 }
 
 export interface ChatTranscriptMessage {
@@ -112,6 +115,9 @@ export interface ChatTranscriptMessage {
   role: ChatRole;
   content: string;
   attachments?: ChatAttachment[];
+  // A user turn with audio whose transcription hasn't come back yet — the
+  // bubble says so instead of sitting empty.
+  transcribing?: boolean;
   executedActions?: ExecutedAction[];
   pendingActions?: PendingActionState[];
   // Only on messages restored from a saved conversation: what that turn
