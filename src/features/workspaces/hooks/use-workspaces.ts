@@ -33,12 +33,16 @@ export function useWorkspaceQuery(workspaceId: string | null) {
   });
 }
 
-export function useCreateWorkspaceMutation() {
+// `deferListRefresh`: the caller refreshes the list itself. A new workspace
+// in the list becomes the current one on pages that had none, unmounting
+// their dialog — too early while a blueprint is still being applied.
+export function useCreateWorkspaceMutation({ deferListRefresh = false } = {}) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (payload: CreateWorkspaceRequest) => workspacesService.create(payload),
     onSuccess: () => {
+      if (deferListRefresh) return;
       queryClient.invalidateQueries({ queryKey: queryKeys.workspaces.all() });
     },
   });
