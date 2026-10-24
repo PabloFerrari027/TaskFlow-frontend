@@ -232,6 +232,14 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
     "Muitos pedidos à IA em pouco tempo. Aguarde um pouco e tente de novo.",
   TEMPLATE_AI_GENERATION_FAILED:
     "A IA não conseguiu montar um modelo agora. Tente de novo.",
+  WORKSPACE_BLUEPRINT_NOT_FOUND:
+    "Este modelo de workspace não existe mais.",
+  WORKSPACE_BLUEPRINT_UNAVAILABLE:
+    "Este modelo de workspace está indisponível no momento. Escolha outro ou tente mais tarde.",
+  INVALID_BLUEPRINT_APPLICATION:
+    "Confira as informações do modelo: algum campo obrigatório ficou vazio.",
+  BLUEPRINT_APPLICATION_NOT_FOUND:
+    "Não encontramos a montagem deste workspace.",
   COUPON_NOT_FOUND: "Cupom não encontrado.",
   COUPON_CODE_ALREADY_EXISTS: "Já existe um cupom com este código.",
   INVALID_COUPON: "Confira as regras do cupom.",

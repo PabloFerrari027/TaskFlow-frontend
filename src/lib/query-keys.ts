@@ -6,6 +6,7 @@ import type {
   FolderTemplateFilters,
 } from "@/types/folder-template";
 import type { SearchParams } from "@/types/search";
+import type { WorkspaceBlueprintFilters } from "@/types/workspace-blueprint";
 import type { ListChannelConversationsParams } from "@/types/assistant-channel";
 import type { ListAssistantConversationsParams } from "@/types/assistant-conversation";
 import type { ListCouponsParams } from "@/types/plan";
@@ -231,6 +232,15 @@ export const queryKeys = {
     adminLists: () => ["folder-templates", "admin"] as const,
     adminList: (filters: AdminFolderTemplateFilters) =>
       ["folder-templates", "admin", filters] as const,
+  },
+  // Fixed product catalog (API.md § 26.10): same answer for everyone.
+  workspaceBlueprints: {
+    all: () => ["workspace-blueprints"] as const,
+    list: (filters: WorkspaceBlueprintFilters) =>
+      ["workspace-blueprints", "list", filters] as const,
+    detail: (key: string) => ["workspace-blueprints", "detail", key] as const,
+    application: (applicationId: string) =>
+      ["workspace-blueprints", "application", applicationId] as const,
   },
   // Per user, not per workspace: the inbox mixes every workspace (filtered
   // client-side by the `workspaceId` param when asked).
