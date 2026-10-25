@@ -170,11 +170,28 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
       // opens with the same notice.
       return state;
     }
-    case "stream-done":
+    case "stream-done": {
       // `reply` is authoritative: it replaces whatever the deltas built up
       // (an intermediate round's text never makes it into `reply`). Pending
       // actions keep any status the user already gave them mid-stream.
-      return updateMessage(state, action.messageId, (message) => {
+      const superseded = new Set(action.result.supersededActionIds ?? []);
+      const withSuperseded =
+        superseded.size === 0
+          ? state
+          : {
+              ...state,
+              transcript: state.transcript.map((message) =>
+                message.pendingActions?.some((p) => superseded.has(p.id))
+                  ? {
+                      ...message,
+                      pendingActions: message.pendingActions.map((p) =>
+                        superseded.has(p.id) && p.status === "pending" ? { ...p, status: "superseded" as const } : p
+                      ),
+                    }
+                  : message
+              ),
+            };
+      return updateMessage(withSuperseded, action.messageId, (message) => {
         const known = new Map(message.pendingActions?.map((p) => [p.id, p.status]));
         return {
           ...message,
@@ -187,6 +204,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
           streamingStatus: undefined,
         };
       });
+    }
     case "stream-failed": {
       // A pending action registered before the failure is still valid until
       // its TTL (API.md § 16), so its bubble stays; an empty one goes away.

@@ -18,6 +18,7 @@ const STATUS_LABEL: Record<Exclude<PendingActionLocalStatus, "pending">, string>
   confirmed: "✅ Confirmado",
   cancelled: "Cancelado",
   expired: "Essa ação expirou — peça de novo pelo chat.",
+  superseded: "Substituído pelo pedido mais novo, logo abaixo.",
 };
 
 /**
@@ -33,10 +34,13 @@ export function PendingActionCard({
   pendingAction,
   workspaceId,
   onStatusChange,
+  busy = false,
 }: {
   pendingAction: PendingActionState;
   workspaceId: string;
   onStatusChange: (status: PendingActionLocalStatus) => void;
+  // "Confirmar tudo" is running for this message — the buttons wait.
+  busy?: boolean;
 }) {
   const [reauthDialogOpen, setReauthDialogOpen] = React.useState(false);
   const [password, setPassword] = React.useState("");
@@ -85,6 +89,7 @@ export function PendingActionCard({
     doConfirm();
   }
 
+
   // Closing the modal (its own "Cancelar") only backs out of the
   // reauthentication step — the PendingAction itself stays pending and can
   // be resumed later; only the card's own "Cancelar" below cancels it.
@@ -125,7 +130,7 @@ export function PendingActionCard({
           <Button
             size="sm"
             variant={isCritical ? "destructive" : "default"}
-            disabled={confirmMutation.isPending || cancelMutation.isPending}
+            disabled={busy || confirmMutation.isPending || cancelMutation.isPending}
             onClick={handleConfirmClick}
           >
             <Check /> Confirmar
@@ -133,7 +138,7 @@ export function PendingActionCard({
           <Button
             size="sm"
             variant="outline"
-            disabled={confirmMutation.isPending || cancelMutation.isPending}
+            disabled={busy || confirmMutation.isPending || cancelMutation.isPending}
             onClick={handleCancel}
           >
             {cancelMutation.isPending ? <Loader2 className="animate-spin" /> : <X />}

@@ -52,6 +52,9 @@ export interface AssistantChatResponse {
   executedActions: ExecutedAction[];
   pendingActions: PendingAction[];
   transcriptions: Transcription[];
+  // Cards from earlier replies this turn replaced (already cancelled
+  // server-side) — shown as "substituído".
+  supersededActionIds?: string[];
 }
 
 // What the assistant is doing right now, as reported by
@@ -85,7 +88,9 @@ export interface ConfirmPendingActionResponse {
   result: unknown;
 }
 
-export type PendingActionLocalStatus = "pending" | "confirmed" | "cancelled" | "expired";
+// `superseded`: the assistant proposed a newer version of the same request
+// (e.g. "avisa 2 dias antes"), and the server already cancelled this one.
+export type PendingActionLocalStatus = "pending" | "confirmed" | "cancelled" | "expired" | "superseded";
 
 export interface PendingActionState extends PendingAction {
   status: PendingActionLocalStatus;
