@@ -1,8 +1,12 @@
 "use client";
 
-import { CircleCheck, History, Loader2, Mic, Paperclip, Sparkles } from "lucide-react";
+import * as React from "react";
+import { CheckCheck, CircleCheck, History, Loader2, Mic, Paperclip, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { MarkdownContent } from "@/components/shared/markdown-content";
+import { getErrorCode } from "@/lib/errors";
 import { cn } from "@/lib/utils";
+import { useConfirmPendingActionMutation } from "@/features/assistant/hooks/use-assistant";
 import { PendingActionCard } from "@/features/assistant/components/pending-action-card";
 import { TypingIndicator } from "@/features/assistant/components/typing-indicator";
 import { formatAudioDuration } from "@/features/assistant/lib/attachment-limits";
@@ -73,6 +77,29 @@ export function AssistantMessage({
   // bubble's text); only other files are listed as chips below it.
   const voiceNotes = message.attachments?.filter((attachment) => attachment.isAudio) ?? [];
   const fileAttachments = message.attachments?.filter((attachment) => !attachment.isAudio) ?? [];
+  // "Confirmar tudo": the person's own click, confirming the standard cards of
+  // this reply one by one (a critical one keeps its own click + reauth).
+  const confirmMutation = useConfirmPendingActionMutation(workspaceId);
+  const [confirmingAll, setConfirmingAll] = React.useState(false);
+  const confirmable =
+    message.pendingActions?.filter((action) => action.status === "pending" && action.riskLevel !== "critical") ?? [];
+  const confirmableCount = confirmable.length;
+
+  async function confirmAll() {
+    setConfirmingAll(true);
+    for (const action of confirmable) {
+      try {
+        await confirmMutation.mutateAsync({ actionId: action.id, tool: action.tool, isCurrentSession: action.isCurrentSession });
+        onPendingActionStatusChange(action.id, "confirmed");
+      } catch (error) {
+        const code = getErrorCode(error);
+        if (code === "PENDING_ACTION_EXPIRED" || code === "PENDING_ACTION_NOT_FOUND") {
+          onPendingActionStatusChange(action.id, "expired");
+        }
+      }
+    }
+    setConfirmingAll(false);
+  }
 
   return (
     <div className={cn("flex gap-2.5", isUser ? "justify-end" : "justify-start")}>
@@ -193,9 +220,18 @@ export function AssistantMessage({
             key={pendingAction.id}
             pendingAction={pendingAction}
             workspaceId={workspaceId}
+            busy={confirmingAll}
             onStatusChange={(status) => onPendingActionStatusChange(pendingAction.id, status)}
           />
         ))}
+
+        {/* Several cards in one reply (e.g. three bills) — one tap for all of
+            them. Still the person's own click; critical ones keep their own. */}
+        {confirmableCount >= 2 ? (
+          <Button size="sm" onClick={confirmAll} loading={confirmingAll} disabled={confirmingAll}>
+            <CheckCheck /> Confirmar tudo ({confirmableCount})
+          </Button>
+        ) : null}
       </div>
     </div>
   );
