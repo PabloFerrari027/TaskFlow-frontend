@@ -10,9 +10,12 @@ import {
   Armchair,
   BookOpen,
   Briefcase,
+  Building2,
   Cake,
   CalendarClock,
   CircleCheck,
+  Columns3,
+  Compass,
   FolderKanban,
   FolderPlus,
   GraduationCap,
@@ -20,10 +23,12 @@ import {
   House,
   Loader2,
   MessageSquareText,
+  PartyPopper,
   Pill,
   Receipt,
   ShoppingBag,
   Sparkles,
+  SquareCheckBig,
   Store,
   Users,
   UsersRound,
@@ -46,7 +51,7 @@ import {
   PROFILE_QUESTIONS,
   responseLengthFromAnswers,
   summaryFromAnswers,
-  templateSearchesFromAnswers,
+  templateNamesFromAnswers,
   type ProfileAnswer,
   type ProfileAnswers,
   type ProfileQuestion,
@@ -59,11 +64,22 @@ import { TOUR_STEPS, type TourStep } from "@/features/tutorial/lib/tour-steps";
 
 const SPOTLIGHT_PADDING = 6;
 const CARD_GAP = 12;
-const CARD_WIDTH = 340;
+const CARD_WIDTH = 420;
 const VIEWPORT_MARGIN = 16;
-// Rough height, only used to keep a side/top-placed card from overflowing
-// the screen and to decide whether a placement needs to flip.
-const CARD_MAX_HEIGHT = 440;
+// First guess of the card height, until the rendered card is measured (see
+// `cardHeight`) — used to keep it on screen and to decide whether to flip.
+const CARD_MAX_HEIGHT = 520;
+
+// The picture on each chapter's card, so the parts of the tour read apart.
+const CHAPTER_ICONS: Record<string, LucideIcon> = {
+  "Boas-vindas": Sparkles,
+  Navegação: Compass,
+  Pastas: FolderKanban,
+  "O quadro": Columns3,
+  "O item": SquareCheckBig,
+  Workspaces: Building2,
+  Pronto: PartyPopper,
+};
 
 // How long we wait for a step's target to show up before giving up on it.
 // Steps that just navigated to a new page need real time for the route's
@@ -102,13 +118,16 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), Math.max(min, max));
 }
 
-function getCardStyle(step: TourStep, rect: DOMRect | null): React.CSSProperties {
+// `cardHeight`: the card as rendered — a long step (six tips) is far taller
+// than the estimate, and placing it by the estimate pushed its buttons off
+// the bottom of the screen.
+function getCardStyle(step: TourStep, rect: DOMRect | null, cardHeight: number): React.CSSProperties {
   const width = Math.min(CARD_WIDTH, window.innerWidth - VIEWPORT_MARGIN * 2);
   if (!rect) return { width };
 
   const maxLeft = window.innerWidth - width - VIEWPORT_MARGIN;
   const clampLeft = (value: number) => clamp(value, VIEWPORT_MARGIN, maxLeft);
-  const maxTop = window.innerHeight - CARD_MAX_HEIGHT - VIEWPORT_MARGIN;
+  const maxTop = window.innerHeight - cardHeight - VIEWPORT_MARGIN;
   const clampTop = (value: number) => clamp(value, VIEWPORT_MARGIN, Math.max(VIEWPORT_MARGIN, maxTop));
   const placement = step.placement ?? "bottom";
 
@@ -123,8 +142,8 @@ function getCardStyle(step: TourStep, rect: DOMRect | null): React.CSSProperties
     };
   }
 
-  const fitsBelow = rect.bottom + CARD_GAP + CARD_MAX_HEIGHT <= window.innerHeight - VIEWPORT_MARGIN;
-  const fitsAbove = rect.top - CARD_GAP - CARD_MAX_HEIGHT >= VIEWPORT_MARGIN;
+  const fitsBelow = rect.bottom + CARD_GAP + cardHeight <= window.innerHeight - VIEWPORT_MARGIN;
+  const fitsAbove = rect.top - CARD_GAP - cardHeight >= VIEWPORT_MARGIN;
   const goBelow = placement === "top" ? !fitsAbove : fitsBelow || !fitsAbove;
   // Both branches go through clampTop — a target much taller than the
   // viewport (e.g. a long chart grid) would otherwise place the card at
@@ -132,7 +151,7 @@ function getCardStyle(step: TourStep, rect: DOMRect | null): React.CSSProperties
   return {
     width,
     left: clampLeft(rect.left),
-    top: clampTop(goBelow ? rect.bottom + CARD_GAP : rect.top - CARD_GAP - CARD_MAX_HEIGHT),
+    top: clampTop(goBelow ? rect.bottom + CARD_GAP : rect.top - CARD_GAP - cardHeight),
   };
 }
 
@@ -213,6 +232,8 @@ function TourOverlay() {
   const [phase, setPhase] = React.useState<TourPhase>("measuring");
   const [rect, setRect] = React.useState<DOMRect | null>(null);
   const primaryRef = React.useRef<HTMLButtonElement>(null);
+  const cardRef = React.useRef<HTMLDivElement>(null);
+  const [cardHeight, setCardHeight] = React.useState(CARD_MAX_HEIGHT);
   // +1/-1: whether the last user action moved forward or backward, so an
   // auto-skipped step (missing target) skips in that same direction instead
   // of always forward.
@@ -373,11 +394,13 @@ function TourOverlay() {
     }
   };
 
-  // "Salvar e continuar" on the last question, or "Pular perguntas" on any.
+  // "Salvar e continuar" on the last question goes on as any step (the count
+  // keeps the questions); "Pular perguntas" leaves the rest of them out.
   const finishQuestions = async () => {
     await saveProfile();
     directionRef.current = 1;
-    skipSections(["about"], 1);
+    if (isLastQuestion) enterForward(neighbour(index, 1));
+    else skipSections(["about"], 1);
   };
 
   // Resolves each step: search for its target on whatever page we're on.
@@ -422,17 +445,38 @@ function TourOverlay() {
           return;
         }
         let proposal: FolderTemplateSummary | null = null;
-        for (const search of templateSearchesFromAnswers(answers)) {
-          const page = await folderTemplatesService.list({ search, limit: 1 }).catch(() => null);
+        for (const name of templateNamesFromAnswers(answers)) {
+          const page = await folderTemplatesService.list({ search: name, limit: 5 }).catch(() => null);
           if (cancelled) return;
-          if (page?.data[0]) {
-            proposal = page.data[0];
+          const match = page?.data.find((template) => template.name.toLowerCase() === name.toLowerCase());
+          if (match) {
+            proposal = match;
             break;
           }
         }
         setFolderProposal(proposal);
         setPhase("ready");
         return;
+      }
+      if (isFirst) {
+        // Before the welcome card: leave out what this account does not need
+        // (the questions when the assistant already knows them, the folder
+        // offer when there are folders), so the count is right from "1 de N".
+        const [knowsPerson, hasFolders] = await Promise.all([
+          assistantService
+            .getProfile()
+            .then((profile) => Boolean(profile.summary))
+            .catch(() => false),
+          workspaceId
+            ? foldersService
+                .listByWorkspace(workspaceId, { limit: 1 })
+                .then((page) => page.data.length > 0)
+                .catch(() => false)
+            : Promise.resolve(false),
+        ]);
+        if (cancelled) return;
+        const known = [...(knowsPerson ? ["about"] : []), ...(hasFolders ? ["example"] : [])];
+        if (known.length > 0) setSkippedSections((previous) => new Set([...previous, ...known]));
       }
       if (!step.target) {
         setPhase("ready");
@@ -481,6 +525,14 @@ function TourOverlay() {
       window.removeEventListener("scroll", measure, true);
     };
   }, [index, phase, step.target]);
+
+  // Re-measures the card once a step is on screen; placement then uses its
+  // real height (capped to the viewport — taller cards scroll inside).
+  React.useLayoutEffect(() => {
+    if (phase !== "ready" || !cardRef.current) return;
+    const height = Math.min(cardRef.current.offsetHeight, window.innerHeight - VIEWPORT_MARGIN * 2);
+    if (Math.abs(height - cardHeight) > 1) setCardHeight(height);
+  }, [phase, index, rect, cardHeight]);
 
   // Declared before the focus effect below so it captures the element that had
   // focus *before* the tour moved it.
@@ -703,6 +755,8 @@ function TourOverlay() {
     );
   }
 
+  const ChapterIcon = CHAPTER_ICONS[step.chapter] ?? Sparkles;
+
   return createPortal(
     <div className="pointer-events-auto fixed inset-0 z-100">
       {/* Also swallows clicks so the page underneath can't be used mid-tour. */}
@@ -728,60 +782,83 @@ function TourOverlay() {
         aria-describedby="tour-description"
         onKeyDown={trapFocus}
         className={cn(
-          "fixed max-h-[calc(100vh-2rem)] space-y-3 overflow-y-auto rounded-xl bg-popover p-4 text-sm text-popover-foreground shadow-lg ring-1 ring-foreground/10",
+          "fixed max-h-[calc(100vh-2rem)] space-y-5 overflow-y-auto rounded-2xl bg-popover p-6 text-popover-foreground shadow-2xl ring-1 ring-foreground/10",
           !rect && "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
         )}
-        style={getCardStyle(step, rect)}
+        ref={cardRef}
+        style={getCardStyle(step, rect, cardHeight)}
       >
-        <div className="space-y-1.5 pr-6">
-          <p className="text-xs font-medium text-primary uppercase">{step.chapter}</p>
-          <h2 id="tour-title" className="text-base font-semibold">
-            {title}
-          </h2>
-          <p id="tour-description" className="text-muted-foreground">
-            {description}
-          </p>
-          {step.details ? (
-            <ul className="list-disc space-y-1 pl-4 text-muted-foreground">
-              {step.details.map((detail) => (
-                <li key={detail}>{detail}</li>
-              ))}
-            </ul>
-          ) : null}
-        </div>
-
         <Button
           variant="ghost"
-          size="icon-xs"
+          size="icon-sm"
           aria-label="Fechar tour"
-          className="absolute top-3 right-3"
+          className="absolute top-4 right-4"
           onClick={() => closeTour("skipped")}
         >
           <X />
         </Button>
 
+        <div className="space-y-4 pr-8">
+          <div className="flex items-center gap-3">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <ChapterIcon className="size-5" />
+            </span>
+            <div className="min-w-0 flex-1 space-y-1.5">
+              <p className="text-sm font-medium text-primary">
+                {step.chapter}
+                <span className="font-normal text-muted-foreground">
+                  {" · "}
+                  {position} de {shownSteps.length}
+                </span>
+              </p>
+              <div className="h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden>
+                <div
+                  className="h-full rounded-full bg-primary motion-safe:transition-[width] motion-safe:duration-300"
+                  style={{ width: `${(position / shownSteps.length) * 100}%` }}
+                />
+              </div>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <h2 id="tour-title" className="text-xl font-semibold tracking-tight">
+              {title}
+            </h2>
+            <p id="tour-description" className="text-[15px] leading-relaxed text-muted-foreground">
+              {description}
+            </p>
+          </div>
+        </div>
+
+        {step.details ? (
+          <ul className="space-y-2.5 rounded-xl bg-muted/50 p-4 text-[15px] leading-snug">
+            {step.details.map((detail) => (
+              <li key={detail} className="flex gap-2.5">
+                <CircleCheck className="mt-0.5 size-4 shrink-0 text-primary" />
+                <span>{detail}</span>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <span className="text-xs text-muted-foreground">
-            Passo {position} de {shownSteps.length}
-          </span>
-          <div className="flex flex-wrap items-center justify-end gap-2">
-            {isLast ? (
-              <Button variant="outline" asChild>
-                <Link href="/tutorial" onClick={() => closeTour("completed")}>
-                  Ver tutorial
-                </Link>
-              </Button>
-            ) : (
-              <Button variant="ghost" onClick={() => closeTour("skipped")}>
-                Pular
-              </Button>
-            )}
+          {isLast ? (
+            <Button variant="outline" size="lg" asChild>
+              <Link href="/tutorial" onClick={() => closeTour("completed")}>
+                Ver tutorial
+              </Link>
+            </Button>
+          ) : (
+            <Button variant="ghost" size="lg" className="text-muted-foreground" onClick={() => closeTour("skipped")}>
+              Pular tour
+            </Button>
+          )}
+          <div className="flex items-center gap-2">
             {!isFirst ? (
-              <Button variant="outline" onClick={back}>
+              <Button variant="outline" size="lg" onClick={back}>
                 Voltar
               </Button>
             ) : null}
-            <Button ref={primaryRef} onClick={next}>
+            <Button ref={primaryRef} size="lg" onClick={next}>
               {isLast ? "Concluir" : isFirst ? "Começar" : "Próximo"}
             </Button>
           </div>

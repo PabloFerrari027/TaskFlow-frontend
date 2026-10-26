@@ -11,8 +11,9 @@ export interface ProfileOption {
   label: string;
   // How the choice reads inside the summary sentence.
   phrase: string;
-  // What to look for in the template catalog when this is what they want to organize.
-  templateSearch?: string;
+  // The catalog template that fits, when this is what they want to organize
+  // — an exact name, never a loose search ("saúde" once brought a mood diary).
+  templateName?: string;
 }
 
 export interface ProfileQuestion {
@@ -46,12 +47,12 @@ export const PROFILE_QUESTIONS: ProfileQuestion[] = [
     hint: "Pode marcar mais de um.",
     multiple: true,
     options: [
-      { id: "money", label: "Contas e dinheiro", phrase: "contas e dinheiro", templateSearch: "gastos" },
-      { id: "health", label: "Saúde e remédios", phrase: "saúde e remédios", templateSearch: "saúde" },
-      { id: "studies", label: "Estudos e provas", phrase: "estudos e provas", templateSearch: "estudos" },
-      { id: "sales", label: "Clientes, vendas ou encomendas", phrase: "clientes, vendas ou encomendas", templateSearch: "vendas" },
-      { id: "family", label: "Casa e família", phrase: "casa e família", templateSearch: "casa" },
-      { id: "team", label: "Trabalho com a equipe", phrase: "trabalho com a equipe", templateSearch: "projeto" },
+      { id: "money", label: "Contas e dinheiro", phrase: "contas e dinheiro", templateName: "Controle de Gastos Mensal" },
+      { id: "health", label: "Saúde e remédios", phrase: "saúde e remédios", templateName: "Controle de Medicamentos e Consultas" },
+      { id: "studies", label: "Estudos e provas", phrase: "estudos e provas" },
+      { id: "sales", label: "Clientes, vendas ou encomendas", phrase: "clientes, vendas ou encomendas", templateName: "Funil de Vendas (CRM Simples)" },
+      { id: "family", label: "Casa e família", phrase: "casa e família", templateName: "Tarefas Domésticas da Família" },
+      { id: "team", label: "Trabalho com a equipe", phrase: "trabalho com a equipe" },
     ],
     otherPlaceholder: "Ex.: a reforma da casa",
   },
@@ -125,10 +126,10 @@ export function responseLengthFromAnswers(answers: ProfileAnswers): "SHORT" | "D
   return id === "SHORT" || id === "DETAILED" ? id : null;
 }
 
-/** Catalog searches to try, in the order the person picked what to organize. */
-export function templateSearchesFromAnswers(answers: ProfileAnswers): string[] {
+/** Catalog templates to offer, in the order the person picked what to organize. */
+export function templateNamesFromAnswers(answers: ProfileAnswers): string[] {
   const picked = answers.organize?.optionIds ?? [];
   return question("organize")
-    .options.filter((option) => picked.includes(option.id) && option.templateSearch)
-    .map((option) => option.templateSearch as string);
+    .options.filter((option) => picked.includes(option.id) && option.templateName)
+    .map((option) => option.templateName as string);
 }
