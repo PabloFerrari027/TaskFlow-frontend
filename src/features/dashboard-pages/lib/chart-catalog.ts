@@ -164,6 +164,16 @@ export function metricLabel(metric: AnalyticsResultMetric) {
 
 const integerFormatter = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
 
+/**
+ * Value-axis settings per metric: a count never has "0,5 itens" ticks, and a
+ * rate tops out at 100% (recharts' automatic domain used to run to 400%).
+ */
+export function valueAxisFor(metric: AnalyticsMetric): { allowDecimals: boolean; domain?: [number, number] } {
+  if (metric.type !== "derived") return { allowDecimals: false };
+  if (metric.name === "completion_rate" || metric.name === "overdue_rate") return { allowDecimals: true, domain: [0, 1] };
+  return { allowDecimals: true };
+}
+
 export function formatMetricValue(metric: AnalyticsMetric, value: number | null): string {
   if (metric.type === "derived") return formatDerivedMetricValue(metric.name, value);
   return value === null ? "Sem dados" : integerFormatter.format(value);
@@ -273,13 +283,17 @@ export function groupValueLabel(
   const text = String(value);
 
   if (unit) {
+    // The period starts at 00:00 UTC ("2026-10-01T00:00:00Z"); read in
+    // Brazil's time zone that is still 30 Sep, so October showed as "set".
+    // Only the calendar day matters here.
+    const day = `${text.slice(0, 10)}T12:00:00`;
     switch (unit) {
       case "day":
-        return formatDate(text, "d MMM");
+        return formatDate(day, "d MMM");
       case "week":
-        return `Sem. de ${formatDate(text, "d MMM")}`;
+        return `Sem. de ${formatDate(day, "d MMM")}`;
       case "month":
-        return formatDate(text, "MMM yyyy");
+        return formatDate(day, "MMM yyyy");
     }
   }
 

@@ -3,7 +3,7 @@
 import { Bar, BarChart, CartesianGrid, LabelList, XAxis, YAxis } from "recharts";
 import { ChartContainer, ChartTooltip, type ChartConfig } from "@/components/ui/chart";
 import type { ValueLabeler } from "@/features/automations/lib/automation-draft";
-import { formatMetricValue } from "@/features/dashboard-pages/lib/chart-catalog";
+import { formatMetricValue, valueAxisFor } from "@/features/dashboard-pages/lib/chart-catalog";
 import {
   buildRows,
   buildSeries,
@@ -60,6 +60,7 @@ export function BarChartRenderer({
               width={44}
               tickLine={false}
               axisLine={false}
+              {...valueAxisFor(series[0].metric)}
               tickFormatter={(value) => format(value)}
             />
             <ChartTooltip
@@ -87,7 +88,7 @@ export function BarChartRenderer({
             barGap={2}
             barCategoryGap={6}
           >
-            <XAxis type="number" hide />
+            <XAxis type="number" hide {...valueAxisFor(series[0].metric)} />
             <YAxis
               dataKey="label"
               type="category"

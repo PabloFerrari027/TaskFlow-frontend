@@ -3,7 +3,7 @@
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 import { ChartContainer, ChartTooltip, type ChartConfig } from "@/components/ui/chart";
 import type { ValueLabeler } from "@/features/automations/lib/automation-draft";
-import { formatMetricValue } from "@/features/dashboard-pages/lib/chart-catalog";
+import { formatMetricValue, valueAxisFor } from "@/features/dashboard-pages/lib/chart-catalog";
 import { buildRows, buildSeries, flattenRows } from "@/features/dashboard-pages/lib/chart-data";
 import {
   EmptyChart,
@@ -47,6 +47,7 @@ export function LineChartRenderer({
             width={44}
             tickLine={false}
             axisLine={false}
+            {...valueAxisFor(series[0].metric)}
             tickFormatter={(value) =>
               formatMetricValue(series[0].metric, typeof value === "number" ? value : null)
             }
