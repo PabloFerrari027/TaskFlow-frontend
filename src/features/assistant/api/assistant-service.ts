@@ -195,6 +195,11 @@ export const assistantService = {
     return data;
   },
 
+  // How the assistant talks to the caller; only the fields sent change, null = default.
+  async updatePreferences(changes: { responseLength?: "SHORT" | "BALANCED" | "DETAILED" | null }) {
+    await apiClient.patch("/assistant/preferences", changes);
+  },
+
   // Only the caller's own usage — there's no userId param (API.md § 24).
   async getMyAiUsage(params: AiUsageQuery) {
     const { data } = await apiClient.get<AiUsageResponse>("/ai-usage/me", { params });

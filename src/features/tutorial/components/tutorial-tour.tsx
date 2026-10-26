@@ -4,9 +4,56 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { createPortal } from "react-dom";
-import { Loader2, X } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  AlarmClock,
+  Armchair,
+  BookOpen,
+  Briefcase,
+  Cake,
+  CalendarClock,
+  CircleCheck,
+  FolderKanban,
+  FolderPlus,
+  GraduationCap,
+  HeartPulse,
+  House,
+  Loader2,
+  MessageSquareText,
+  Pill,
+  Receipt,
+  ShoppingBag,
+  Sparkles,
+  Store,
+  Users,
+  UsersRound,
+  Wallet,
+  X,
+  Zap,
+  type LucideIcon,
+} from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { getErrorMessage } from "@/lib/errors";
+import { queryKeys } from "@/lib/query-keys";
+import { foldersService } from "@/features/folders/api/folders-service";
+import { itemsService } from "@/features/items/api/items-service";
+import { assistantService } from "@/features/assistant/api/assistant-service";
+import { folderTemplatesService } from "@/features/folder-templates/api/folder-templates-service";
+import {
+  PROFILE_QUESTIONS,
+  responseLengthFromAnswers,
+  summaryFromAnswers,
+  templateSearchesFromAnswers,
+  type ProfileAnswer,
+  type ProfileAnswers,
+  type ProfileQuestion,
+  type ProfileQuestionId,
+} from "@/features/tutorial/lib/profile-questions";
+import type { FolderTemplateSummary } from "@/types/folder-template";
+import { useOptionalCurrentWorkspace } from "@/features/workspaces/context/current-workspace-context";
 import { useTutorial } from "@/features/tutorial/context/tutorial-context";
 import { TOUR_STEPS, type TourStep } from "@/features/tutorial/lib/tour-steps";
 
@@ -22,8 +69,11 @@ const CARD_MAX_HEIGHT = 440;
 // Steps that just navigated to a new page need real time for the route's
 // data queries to resolve; steps checked right where we already are (most
 // auto-skips, cascading through a section with no data) fail fast instead of
-// stalling the tour.
-const TARGET_TIMEOUT_AFTER_NAV_MS = 2500;
+// stalling the tour. A folder with many items (a ready template) took longer
+// than 2,5 s to show its board, and the whole board/item part was skipped;
+// empty accounts no longer reach those steps (the first-folder offer), so the
+// longer wait only happens when there is something to show.
+const TARGET_TIMEOUT_AFTER_NAV_MS = 6000;
 const TARGET_TIMEOUT_SAME_PAGE_MS = 500;
 const POLL_INTERVAL_MS = 90;
 
@@ -95,10 +145,69 @@ export function TutorialTour() {
 
 type TourPhase = "measuring" | "ready";
 
+// The first folder the tour offers to an account with no folder yet, so the
+// board and item steps show something real: a ready template that fits the
+// "Sobre você" answers, or else this plain example folder (deletable, never
+// assigned).
+const EXAMPLE_FOLDER = {
+  name: "Exemplo do tour",
+  description: "Criada pelo tour de boas-vindas — pode apagar quando quiser.",
+};
+const EXAMPLE_ITEMS = [
+  { title: "Conhecer o quadro", description: "Arraste este cartão para outra coluna para mudar a etapa dele." },
+  { title: "Abrir um item por dentro", description: "Clique num cartão para ver título, descrição, prazo e comentários." },
+  { title: "Apagar esta pasta quando terminar", description: "Ela é só um exemplo: arquive quando não precisar mais." },
+];
+
+// Sections dropped together when the person declines the first folder.
+const BOARD_SECTIONS = ["example", "folder", "item"];
+
+// A template instantiation may be queued: how long to wait for its folder.
+const INSTANTIATION_POLL_MS = 500;
+const INSTANTIATION_MAX_POLLS = 40;
+
+const EMPTY_ANSWER: ProfileAnswer = { optionIds: [], other: "" };
+
+// One picture per answer, so the choices read at a glance.
+const OPTION_ICONS: Record<string, LucideIcon> = {
+  job: Briefcase,
+  own: Store,
+  study: GraduationCap,
+  home: House,
+  retired: Armchair,
+  money: Wallet,
+  health: HeartPulse,
+  studies: BookOpen,
+  sales: ShoppingBag,
+  family: Users,
+  team: UsersRound,
+  bills: Receipt,
+  medicine: Pill,
+  appointments: CalendarClock,
+  deadlines: AlarmClock,
+  dates: Cake,
+  SHORT: Zap,
+  DETAILED: MessageSquareText,
+};
+
+function wait(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 function TourOverlay() {
   const { closeTour } = useTutorial();
   const router = useRouter();
   const pathname = usePathname();
+  const queryClient = useQueryClient();
+  const workspaceId = useOptionalCurrentWorkspace()?.workspaceId ?? null;
+  // Sections left out of this run (no example folder wanted, or no need for
+  // the offer): their steps are skipped at once and not counted.
+  const [skippedSections, setSkippedSections] = React.useState<ReadonlySet<string>>(() => new Set());
+  const [creatingFolder, setCreatingFolder] = React.useState(false);
+  const [answers, setAnswers] = React.useState<ProfileAnswers>({});
+  const [savingProfile, setSavingProfile] = React.useState(false);
+  // The template the first-folder step proposes (null = the example folder).
+  const [folderProposal, setFolderProposal] = React.useState<FolderTemplateSummary | null>(null);
 
   const [index, setIndex] = React.useState(0);
   const [phase, setPhase] = React.useState<TourPhase>("measuring");
@@ -122,6 +231,19 @@ function TourOverlay() {
   const step = TOUR_STEPS[index];
   const isFirst = index === 0;
   const isLast = index === TOUR_STEPS.length - 1;
+
+  const isSkipped = (i: number, skipped: ReadonlySet<string> = skippedSections) => {
+    const section = TOUR_STEPS[i].section;
+    return Boolean(section && skipped.has(section));
+  };
+  // The next step in `dir` that this run still shows.
+  const neighbour = (from: number, dir: 1 | -1, skipped: ReadonlySet<string> = skippedSections) => {
+    let i = from + dir;
+    while (i > 0 && i < TOUR_STEPS.length - 1 && isSkipped(i, skipped)) i += dir;
+    return clamp(i, 0, TOUR_STEPS.length - 1);
+  };
+  const shownSteps = TOUR_STEPS.map((_, i) => i).filter((i) => !isSkipped(i));
+  const position = shownSteps.indexOf(index) + 1;
 
   // Resets the card to its loading state as soon as the step changes, before
   // the effect below does any async work — done during render, with state
@@ -171,13 +293,91 @@ function TourOverlay() {
       closeTour("completed");
       return;
     }
-    enterForward(index + 1, hrefOverride);
+    enterForward(neighbour(index, 1), hrefOverride);
   };
 
   const back = () => {
     if (phase !== "ready" || isFirst) return;
     directionRef.current = -1;
-    enterBackward(index - 1, index);
+    enterBackward(neighbour(index, -1), index);
+  };
+
+  // Moves on with more sections left out — they never show nor count.
+  const skipSections = (sections: string[], dir: 1 | -1) => {
+    const skipped = new Set([...skippedSections, ...sections]);
+    setSkippedSections(skipped);
+    const target = neighbour(index, dir, skipped);
+    if (dir === 1) enterForward(target);
+    else enterBackward(target, index);
+  };
+
+  const createFirstFolder = async () => {
+    if (!workspaceId || creatingFolder) return;
+    setCreatingFolder(true);
+    try {
+      if (folderProposal) {
+        const started = await folderTemplatesService.instantiate(workspaceId, folderProposal.id, { name: folderProposal.name });
+        let folderId = started.folderId;
+        for (let poll = 0; !folderId && poll < INSTANTIATION_MAX_POLLS; poll++) {
+          await wait(INSTANTIATION_POLL_MS);
+          const run = await folderTemplatesService.getInstantiation(workspaceId, started.instantiationId);
+          if (run.status === "FAILED") throw new Error("Não foi possível criar a pasta agora. Tente de novo.");
+          folderId = run.folderId;
+        }
+        if (!folderId) throw new Error("A pasta está demorando para ficar pronta. Tente de novo em instantes.");
+      } else {
+        const folder = await foldersService.create(workspaceId, EXAMPLE_FOLDER);
+        for (const item of EXAMPLE_ITEMS) await itemsService.create(folder.id, item);
+      }
+      await queryClient.invalidateQueries({ queryKey: queryKeys.folders.all(workspaceId) });
+      directionRef.current = 1;
+      // The folder list reloads in place: give the next step the longer wait.
+      navigatingRef.current = true;
+      enterForward(index + 1);
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setCreatingFolder(false);
+    }
+  };
+
+  const answerFor = (id: ProfileQuestionId) => answers[id] ?? EMPTY_ANSWER;
+  const setAnswer = (id: ProfileQuestionId, answer: ProfileAnswer) =>
+    setAnswers((previous) => ({ ...previous, [id]: answer }));
+  const toggleOption = (question: ProfileQuestion, optionId: string) => {
+    const answer = answerFor(question.id);
+    const optionIds = !question.multiple
+      ? [optionId]
+      : answer.optionIds.includes(optionId)
+        ? answer.optionIds.filter((id) => id !== optionId)
+        : [...answer.optionIds, optionId];
+    setAnswer(question.id, { ...answer, optionIds });
+  };
+
+  // What was answered so far becomes what the assistant knows about the
+  // person (and how long its replies are). Nothing answered, nothing saved; a
+  // failure only warns — the tour goes on.
+  const saveProfile = async () => {
+    const summary = summaryFromAnswers(answers);
+    if (!summary) return;
+    setSavingProfile(true);
+    try {
+      await assistantService.updateProfile(summary);
+      const responseLength = responseLengthFromAnswers(answers);
+      if (responseLength) await assistantService.updatePreferences({ responseLength });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.assistantConversation.profile() });
+    } catch (error) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  // "Salvar e continuar" on the last question, or "Pular perguntas" on any.
+  const finishQuestions = async () => {
+    await saveProfile();
+    directionRef.current = 1;
+    skipSections(["about"], 1);
   };
 
   // Resolves each step: search for its target on whatever page we're on.
@@ -191,6 +391,49 @@ function TourOverlay() {
     navigatingRef.current = false;
 
     (async () => {
+      if (step.kind === "profile-question") {
+        // Asked once: when the assistant already knows the person (an earlier
+        // tour or the chat), the whole "Sobre você" part goes away.
+        if (step.questionId === PROFILE_QUESTIONS[0].id) {
+          const known = await assistantService
+            .getProfile()
+            .then((profile) => Boolean(profile.summary))
+            .catch(() => false);
+          if (cancelled) return;
+          if (known) {
+            skipSections(["about"], directionRef.current);
+            return;
+          }
+        }
+        setPhase("ready");
+        return;
+      }
+      if (step.kind === "first-folder") {
+        // Only offered to an empty workspace; anyone else goes straight on.
+        const hasFolders = workspaceId
+          ? await foldersService
+              .listByWorkspace(workspaceId, { limit: 1 })
+              .then((page) => page.data.length > 0)
+              .catch(() => true)
+          : true;
+        if (cancelled) return;
+        if (hasFolders) {
+          skipSections(["example"], directionRef.current);
+          return;
+        }
+        let proposal: FolderTemplateSummary | null = null;
+        for (const search of templateSearchesFromAnswers(answers)) {
+          const page = await folderTemplatesService.list({ search, limit: 1 }).catch(() => null);
+          if (cancelled) return;
+          if (page?.data[0]) {
+            proposal = page.data[0];
+            break;
+          }
+        }
+        setFolderProposal(proposal);
+        setPhase("ready");
+        return;
+      }
       if (!step.target) {
         setPhase("ready");
         return;
@@ -208,7 +451,7 @@ function TourOverlay() {
       }
       if (step.skipIfMissing) {
         const dir = directionRef.current;
-        const target = clamp(index + dir, 0, TOUR_STEPS.length - 1);
+        const target = neighbour(index, dir);
         if (dir === 1) enterForward(target);
         else enterBackward(target, index);
         return;
@@ -254,6 +497,9 @@ function TourOverlay() {
   // next/back/closeTour closures instead of capturing stale ones.
   React.useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      // Arrows move the cursor while typing an "outro" answer, not the tour.
+      const typing = event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement;
+      if (typing && event.key !== "Escape") return;
       if (event.key === "Escape") closeTour("skipped");
       else if (event.key === "ArrowRight") next();
       else if (event.key === "ArrowLeft") back();
@@ -266,7 +512,7 @@ function TourOverlay() {
   const trapFocus = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key !== "Tab") return;
     const focusable = event.currentTarget.querySelectorAll<HTMLElement>(
-      "button:not([disabled]), a[href]"
+      "button:not([disabled]), a[href], input"
     );
     const first = focusable[0];
     const last = focusable[focusable.length - 1];
@@ -279,6 +525,22 @@ function TourOverlay() {
     }
   };
 
+  const question =
+    step.kind === "profile-question" ? PROFILE_QUESTIONS.find((q) => q.id === step.questionId) : undefined;
+  const isLastQuestion = question?.id === PROFILE_QUESTIONS[PROFILE_QUESTIONS.length - 1].id;
+  const busy = savingProfile || creatingFolder;
+  let title = step.title;
+  let description = step.description;
+  if (question) {
+    title = question.title;
+    description = question.hint;
+  } else if (step.kind === "first-folder") {
+    title = folderProposal ? "Que tal começar por esta pasta?" : "Vamos usar uma pasta de exemplo?";
+    description = folderProposal
+      ? "Pelo que você contou, este é um bom começo. Dá para mudar tudo depois."
+      : "Você ainda não tem nenhuma pasta. Com uma de exemplo, dá para ver o quadro e um item por dentro.";
+  }
+
   if (phase === "measuring") {
     return createPortal(
       <div className="pointer-events-auto fixed inset-0 z-100">
@@ -286,6 +548,155 @@ function TourOverlay() {
         <div className="fixed top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-xl bg-popover px-4 py-3 text-sm text-popover-foreground shadow-lg ring-1 ring-foreground/10">
           <Loader2 className="size-4 animate-spin" />
           Carregando…
+        </div>
+      </div>,
+      document.body
+    );
+  }
+
+  // "Sobre você" and the first-folder offer are conversations, not pointers
+  // at the screen: a roomy card of their own, big enough to read and tap.
+  if (question || step.kind === "first-folder") {
+    const questionNumber = question ? PROFILE_QUESTIONS.indexOf(question) + 1 : 0;
+    const HeaderIcon = question ? Sparkles : FolderPlus;
+    return createPortal(
+      <div className="pointer-events-auto fixed inset-0 z-100 flex items-center justify-center p-4">
+        <div className="absolute inset-0 bg-black/60" />
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="tour-title"
+          aria-describedby="tour-description"
+          onKeyDown={trapFocus}
+          className="relative max-h-[calc(100vh-2rem)] w-full max-w-xl space-y-6 overflow-y-auto rounded-2xl bg-popover p-6 text-popover-foreground shadow-2xl ring-1 ring-foreground/10 sm:p-8"
+        >
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label="Fechar tour"
+            className="absolute top-4 right-4"
+            onClick={() => closeTour("skipped")}
+          >
+            <X />
+          </Button>
+
+          <div className="space-y-4 pr-8">
+            <div className="flex items-center gap-3">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <HeaderIcon className="size-5" />
+              </span>
+              <div className="min-w-0 flex-1 space-y-1.5">
+                <p className="text-sm font-medium text-primary">
+                  {question ? `Sobre você · pergunta ${questionNumber} de ${PROFILE_QUESTIONS.length}` : "Sua primeira pasta"}
+                </p>
+                {question ? (
+                  <div className="flex gap-1.5" aria-hidden>
+                    {PROFILE_QUESTIONS.map((q, i) => (
+                      <span
+                        key={q.id}
+                        className={cn("h-1.5 flex-1 rounded-full", i < questionNumber ? "bg-primary" : "bg-muted")}
+                      />
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <h2 id="tour-title" className="text-2xl font-semibold tracking-tight">
+                {title}
+              </h2>
+              <p id="tour-description" className="text-base text-muted-foreground">
+                {description}
+              </p>
+            </div>
+          </div>
+
+          {question ? (
+            <div className="space-y-4">
+              <div className="grid gap-3 sm:grid-cols-2" role="group" aria-label={question.title}>
+                {question.options.map((option) => {
+                  const selected = answerFor(question.id).optionIds.includes(option.id);
+                  const OptionIcon = OPTION_ICONS[option.id] ?? Sparkles;
+                  return (
+                    <button
+                      key={option.id}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() => toggleOption(question, option.id)}
+                      className={cn(
+                        "flex min-h-14 items-center gap-3 rounded-xl border-2 px-4 py-3 text-left text-base transition-colors",
+                        selected
+                          ? "border-primary bg-primary/10"
+                          : "border-border hover:border-primary/40 hover:bg-muted/60"
+                      )}
+                    >
+                      <OptionIcon className={cn("size-5 shrink-0", selected ? "text-primary" : "text-muted-foreground")} />
+                      <span className="min-w-0 flex-1">{option.label}</span>
+                      {selected ? <CircleCheck className="size-5 shrink-0 text-primary" /> : null}
+                    </button>
+                  );
+                })}
+              </div>
+              {question.otherPlaceholder ? (
+                <div className="space-y-1.5">
+                  <label htmlFor="tour-other" className="text-sm font-medium">
+                    Outro
+                  </label>
+                  <Input
+                    id="tour-other"
+                    className="h-12 text-base"
+                    value={answerFor(question.id).other}
+                    onChange={(event) =>
+                      setAnswer(question.id, { ...answerFor(question.id), other: event.target.value })
+                    }
+                    placeholder={question.otherPlaceholder}
+                    maxLength={120}
+                  />
+                </div>
+              ) : null}
+            </div>
+          ) : (
+            <div className="flex items-start gap-4 rounded-xl border-2 border-primary/30 bg-primary/5 p-5">
+              <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+                <FolderKanban className="size-6" />
+              </span>
+              <div className="min-w-0 space-y-1">
+                <p className="text-lg font-semibold">{folderProposal?.name ?? EXAMPLE_FOLDER.name}</p>
+                <p className="text-base text-muted-foreground">
+                  {folderProposal
+                    ? (folderProposal.description ?? "Um modelo pronto, já organizado em colunas.")
+                    : "Uma pasta com 3 itens para você ver o quadro e um item por dentro. Dá para apagar quando quiser."}
+                </p>
+              </div>
+            </div>
+          )}
+
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <Button
+              variant="ghost"
+              size="lg"
+              className="text-muted-foreground"
+              onClick={question ? finishQuestions : () => skipSections(BOARD_SECTIONS, 1)}
+              disabled={busy}
+            >
+              {question ? "Pular perguntas" : "Agora não"}
+            </Button>
+            <div className="flex gap-2 sm:justify-end">
+              <Button variant="outline" size="lg" className="flex-1 sm:flex-none" onClick={back} disabled={busy}>
+                Voltar
+              </Button>
+              <Button
+                ref={primaryRef}
+                size="lg"
+                className="flex-1 sm:flex-none"
+                onClick={!question ? createFirstFolder : isLastQuestion ? finishQuestions : next}
+                disabled={busy}
+              >
+                {busy ? <Loader2 className="animate-spin" /> : null}
+                {step.kind === "first-folder" ? "Criar esta pasta" : isLastQuestion ? "Salvar e continuar" : "Próximo"}
+              </Button>
+            </div>
+          </div>
         </div>
       </div>,
       document.body
@@ -325,10 +736,10 @@ function TourOverlay() {
         <div className="space-y-1.5 pr-6">
           <p className="text-xs font-medium text-primary uppercase">{step.chapter}</p>
           <h2 id="tour-title" className="text-base font-semibold">
-            {step.title}
+            {title}
           </h2>
           <p id="tour-description" className="text-muted-foreground">
-            {step.description}
+            {description}
           </p>
           {step.details ? (
             <ul className="list-disc space-y-1 pl-4 text-muted-foreground">
@@ -351,7 +762,7 @@ function TourOverlay() {
 
         <div className="flex flex-wrap items-center justify-between gap-3">
           <span className="text-xs text-muted-foreground">
-            Passo {index + 1} de {TOUR_STEPS.length}
+            Passo {position} de {shownSteps.length}
           </span>
           <div className="flex flex-wrap items-center justify-end gap-2">
             {isLast ? (
