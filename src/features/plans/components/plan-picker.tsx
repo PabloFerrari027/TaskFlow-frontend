@@ -139,7 +139,8 @@ function CurrentPlanSummary({
         <div className="space-y-0.5">
           <p className="font-medium text-foreground">
             Seu plano: {plan?.name ?? DEFAULT_PLAN_NAME}
-            <span className="ml-2 font-normal text-muted-foreground">
+            <span className="font-normal text-muted-foreground">
+              {" · "}
               {formatPriceCents(myPlan.effectiveMonthlyPriceCents)}
               {myPlan.effectiveMonthlyPriceCents > 0 ? "/mês" : ""}
             </span>
