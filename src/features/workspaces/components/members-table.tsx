@@ -19,6 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { MemberAvatar, MemberIdLabel } from "@/components/shared/member-avatar";
+import { WORKSPACE_ROLE_LABEL } from "@/components/shared/status-badge";
 import { formatDate } from "@/lib/format";
 import { canGrantOwnerRole, isLastOwner } from "@/lib/permissions";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -95,13 +96,13 @@ export function MembersTable({
                     <SelectContent>
                       {roleOptions.map((role) => (
                         <SelectItem key={role} value={role}>
-                          {role}
+                          {WORKSPACE_ROLE_LABEL[role]}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 ) : (
-                  member.role
+                  WORKSPACE_ROLE_LABEL[member.role]
                 )}
               </TableCell>
               <TableCell className="text-muted-foreground">
