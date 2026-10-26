@@ -114,7 +114,7 @@ export function ItemCardItem({ item, onReorder }: ItemCardItemProps) {
               {formatDate(item.startDate, "d MMM")} →
             </span>
           ) : null}
-          {item.dueDate ? <ItemDueDateBadge dueDate={item.dueDate} /> : null}
+          {item.dueDate ? <ItemDueDateBadge dueDate={item.dueDate} hasTime={item.dueDateHasTime} /> : null}
           {item.estimateMinutes ? (
             <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
               <Clock className="size-3" /> {formatMinutes(item.estimateMinutes)}

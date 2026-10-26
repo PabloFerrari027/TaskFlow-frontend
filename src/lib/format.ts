@@ -53,16 +53,30 @@ export type DueDateUrgency = "overdue" | "today" | "soon" | "normal";
  * plus an urgency level the UI colors accordingly — a lay user shouldn't have
  * to parse an ISO timestamp to know if something needs attention today.
  */
-export function formatDueDate(value: string): { label: string; urgency: DueDateUrgency } {
+// "9h", "19h30" — the time of a due date, in the user's time zone.
+export function timeLabel(value: string) {
+  const date = new Date(value);
+  const minutes = date.getMinutes();
+  return `${date.getHours()}h${minutes === 0 ? "" : String(minutes).padStart(2, "0")}`;
+}
+
+// `hasTime` (the item's `dueDateHasTime`): a due date with a real time shows
+// it and is late once that time passes; a day alone is late only once the day
+// is over.
+export function formatDueDate(value: string, hasTime = false): { label: string; urgency: DueDateUrgency } {
   try {
     const date = new Date(value);
-    if (isToday(date)) return { label: "Vence hoje", urgency: "today" };
-    if (isTomorrow(date)) return { label: "Vence amanhã", urgency: "soon" };
+    const at = hasTime ? ` às ${timeLabel(value)}` : "";
+    if (hasTime && date.getTime() < Date.now()) {
+      return { label: `Atrasado (${isToday(date) ? "hoje" : formatDate(value)}${at})`, urgency: "overdue" };
+    }
+    if (isToday(date)) return { label: `Vence hoje${at}`, urgency: "today" };
+    if (isTomorrow(date)) return { label: `Vence amanhã${at}`, urgency: "soon" };
 
     const daysDiff = differenceInCalendarDays(date, new Date());
     if (daysDiff < 0) return { label: `Atrasado (${formatDate(value)})`, urgency: "overdue" };
     if (daysDiff <= 7) return { label: `Vence em ${daysDiff} dias`, urgency: "soon" };
-    return { label: `Vence em ${formatDate(value)}`, urgency: "normal" };
+    return { label: `Vence em ${formatDate(value)}${at}`, urgency: "normal" };
   } catch {
     return { label: value, urgency: "normal" };
   }
@@ -87,6 +101,21 @@ export function toDateInputValue(value: string | null | undefined) {
 // it one more day back).
 export function fromDateInputValue(value: string) {
   return new Date(`${value}T12:00:00.000Z`).toISOString();
+}
+
+// A due date picked as a day: sent as the day alone (`yyyy-MM-dd`), which the
+// API stores as a due date without a time. Keeping `previous`'s time when it
+// had one: moving "consulta às 9h" to another day keeps the 9h — sent with the
+// UTC offset, never as `...T12:00:00.000Z`, which the API reads as a day alone.
+export function dueDateFromDay(day: string, previous?: { dueDate: string | null; dueDateHasTime?: boolean }) {
+  if (!previous?.dueDate || !previous.dueDateHasTime) return day;
+  const time = new Date(previous.dueDate);
+  const [year, month, date] = day.split("-").map(Number);
+  const local = new Date(year, month - 1, date, time.getHours(), time.getMinutes());
+  const offset = -local.getTimezoneOffset();
+  const sign = offset >= 0 ? "+" : "-";
+  const pad = (n: number) => String(Math.abs(n)).padStart(2, "0");
+  return `${day}T${pad(local.getHours())}:${pad(local.getMinutes())}:00${sign}${pad(Math.trunc(offset / 60))}:${pad(offset % 60)}`;
 }
 
 // Day-range filter bounds (`yyyy-MM-dd`), as the start/end of that day in the

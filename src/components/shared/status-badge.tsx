@@ -77,8 +77,8 @@ const DUE_DATE_URGENCY_CLASS = {
   normal: "bg-muted text-muted-foreground",
 } as const;
 
-export function ItemDueDateBadge({ dueDate }: { dueDate: string }) {
-  const { label, urgency } = formatDueDate(dueDate);
+export function ItemDueDateBadge({ dueDate, hasTime = false }: { dueDate: string; hasTime?: boolean }) {
+  const { label, urgency } = formatDueDate(dueDate, hasTime);
   return (
     <Badge variant="secondary" className={cn(DUE_DATE_URGENCY_CLASS[urgency])}>
       {label}

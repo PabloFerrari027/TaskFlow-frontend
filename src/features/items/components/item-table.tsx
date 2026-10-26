@@ -25,7 +25,7 @@ import {
   useUnassignItemMutation,
   useUpdateItemMutation,
 } from "@/features/items/hooks/use-items";
-import { fromDateInputValue, toDateInputValue } from "@/lib/format";
+import { dueDateFromDay, toDateInputValue } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Item, ItemPriority } from "@/types/item";
 
@@ -100,7 +100,7 @@ function DueDateCell({ item }: { item: Item }) {
 
   function commit() {
     if (draft && draft !== serverValue) {
-      mutation.mutate({ dueDate: fromDateInputValue(draft) });
+      mutation.mutate({ dueDate: dueDateFromDay(draft, item) });
     }
     setDraft(null);
   }
