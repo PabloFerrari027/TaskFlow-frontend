@@ -25,6 +25,9 @@ export interface PendingAction {
   // Only ever true for a `revoke_session` action targeting the caller's own
   // current session.
   isCurrentSession?: boolean;
+  // ISO — after this the server refuses the card; it turns "expirou" on its
+  // own instead of waiting for a click to find out.
+  expiresAt?: string;
 }
 
 export interface PendingActionFieldDiff {
@@ -118,6 +121,9 @@ export interface ChatTranscriptMessage {
   // A user turn with audio whose transcription hasn't come back yet — the
   // bubble says so instead of sitting empty.
   transcribing?: boolean;
+  // A user turn that never got an answer (network, server down...) — the
+  // bubble stays with "não enviada — tentar de novo" instead of vanishing.
+  failed?: boolean;
   executedActions?: ExecutedAction[];
   pendingActions?: PendingActionState[];
   // Only on messages loaded from the saved chat: what that turn

@@ -47,6 +47,7 @@ import {
   isAudioFile,
   validateNewFiles,
 } from "@/features/assistant/lib/attachment-limits";
+import { suggestionsFor } from "@/features/assistant/lib/suggestions";
 import { AssistantMessage } from "@/features/assistant/components/assistant-message";
 import { RecordingWaveform } from "@/features/assistant/components/recording-waveform";
 import { AssistantSessionSummary } from "@/features/assistant/components/assistant-session-summary";
@@ -54,7 +55,6 @@ import { AssistantUsageMeter } from "@/features/assistant/components/assistant-u
 import { WorkspaceAssistantSettingsPanel } from "@/features/workspaces/components/assistant-settings-panel";
 import { useAuth } from "@/lib/auth/auth-context";
 import {
-  ASSISTANT_SUGGESTIONS,
   useAssistantChat,
 } from "@/features/assistant/context/assistant-chat-context";
 import { canManageAssistantSettings } from "@/lib/permissions";
@@ -521,8 +521,10 @@ export function AssistantChat() {
 
   // Returns whether the turn went out — the recorder keeps the clip staged
   // when it didn't.
-  function sendMessage(filesToSend: File[]): boolean {
-    const trimmed = text.trim();
+  // `retryText`: resending a failed bubble — the composer keeps whatever the
+  // person is typing now.
+  function sendMessage(filesToSend: File[], retryText?: string): boolean {
+    const trimmed = (retryText ?? text).trim();
     const canSubmit = trimmed.length > 0 || filesToSend.some(isAudioFile);
     if (!canSubmit || composerDisabled || !workspace) return false;
 
@@ -564,8 +566,10 @@ export function AssistantChat() {
         streamingStatus: null,
       },
     });
-    setText("");
-    setFiles([]);
+    if (retryText === undefined) {
+      setText("");
+      setFiles([]);
+    }
 
     const abort = new AbortController();
     streamAbortRef.current = abort;
@@ -624,7 +628,10 @@ export function AssistantChat() {
             setFiles((current) => (current.length === 0 ? filesToSend : current));
             setText((current) => current || trimmed);
           } else {
-            dispatch({ type: "patch", messageId, patch: { transcribing: false } });
+            // Typed text only: files aren't kept, so a bubble with them can't
+            // be resent as it was. Leaving the chat isn't a failure.
+            const retryable = !abort.signal.aborted && filesToSend.length === 0;
+            dispatch({ type: "patch", messageId, patch: { transcribing: false, failed: retryable || undefined } });
           }
         },
         onSettled: () => {
@@ -798,7 +805,7 @@ export function AssistantChat() {
                     </p>
                   </div>
                   <div className={cn("grid gap-2", expanded && "sm:grid-cols-2")}>
-                    {ASSISTANT_SUGGESTIONS.map((suggestion) => (
+                    {suggestionsFor(profileQuery.data?.summary).map((suggestion) => (
                       <button
                         key={suggestion}
                         type="button"
@@ -854,6 +861,16 @@ export function AssistantChat() {
                           workspaceId={workspace.id}
                           onPendingActionStatusChange={(actionId, status) =>
                             handlePendingActionStatusChange(message.id, actionId, status)
+                          }
+                          onRetry={
+                            message.failed
+                              ? () => {
+                                  // Not while another turn is running: the bubble just stays.
+                                  if (composerDisabled) return;
+                                  dispatch({ type: "remove", messageId: message.id });
+                                  sendMessage([], message.content);
+                                }
+                              : undefined
                           }
                         />
                       </React.Fragment>

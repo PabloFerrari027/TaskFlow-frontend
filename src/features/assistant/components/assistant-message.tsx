@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { CheckCheck, CircleCheck, History, Loader2, Mic, Paperclip, Sparkles } from "lucide-react";
+import { CheckCheck, CircleAlert, CircleCheck, History, Loader2, Mic, Paperclip, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MarkdownContent } from "@/components/shared/markdown-content";
 import { getErrorCode } from "@/lib/errors";
@@ -66,10 +66,13 @@ export function AssistantMessage({
   message,
   workspaceId,
   onPendingActionStatusChange,
+  onRetry,
 }: {
   message: ChatTranscriptMessage;
   workspaceId: string;
   onPendingActionStatusChange: (actionId: string, status: PendingActionLocalStatus) => void;
+  // Only on a user bubble that never got an answer (`message.failed`).
+  onRetry?: () => void;
 }) {
   const isUser = message.role === "user";
   const isStreaming = message.streamingStatus !== undefined;
@@ -150,6 +153,21 @@ export function AssistantMessage({
               <p className="text-sm text-primary-foreground/80 italic">Áudio não transcrito.</p>
             ) : null}
           </div>
+        ) : null}
+
+        {isUser && message.failed ? (
+          <p className="flex items-center justify-end gap-1.5 text-xs text-destructive">
+            <CircleAlert className="size-3.5" />
+            Não enviada
+            {onRetry ? (
+              <>
+                {" — "}
+                <button type="button" onClick={onRetry} className="font-medium underline underline-offset-2">
+                  tentar de novo
+                </button>
+              </>
+            ) : null}
+          </p>
         ) : null}
 
         {isStreaming && message.streamingStatus ? (

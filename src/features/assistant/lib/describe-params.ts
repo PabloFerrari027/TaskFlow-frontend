@@ -44,6 +44,8 @@ const FIELD_LABEL: Record<string, string> = {
   type: "Tipo",
   keywords: "Assunto",
   schedule: "Repete",
+  extraTimes: "Outros horários",
+  remindAt: "Avisar em",
   steps: "Etapas",
   titles: "Etapas",
   query: "Busca",
@@ -81,6 +83,11 @@ function joinWords(words: string[]): string {
 
 // A recurring reminder's `schedule` (backend `create_recurring_reminder`) in
 // plain words — the raw object showed as JSON on the card.
+// "todo domingo/sábado", "toda segunda" — the article agrees with the first day.
+function everyWeekday(first: string): string {
+  return first === "domingo" || first === "sábado" ? "todo" : "toda";
+}
+
 function formatSchedule(value: Record<string, unknown>): string {
   const every = typeof value.interval === "number" && value.interval > 1 ? value.interval : 1;
   const time = typeof value.time === "string" ? ` às ${value.time}` : "";
@@ -91,7 +98,7 @@ function formatSchedule(value: Record<string, unknown>): string {
       break;
     case "WEEKLY": {
       const days = Array.isArray(value.daysOfWeek) ? value.daysOfWeek.map((day) => WEEKDAY_NAMES[Number(day)] ?? String(day)) : [];
-      when = `${every > 1 ? `a cada ${every} semanas, ` : ""}${days.length > 0 ? `toda ${joinWords(days)}` : "toda semana"}`;
+      when = `${every > 1 ? `a cada ${every} semanas, ` : ""}${days.length > 0 ? `${everyWeekday(days[0])} ${joinWords(days)}` : "toda semana"}`;
       break;
     }
     case "MONTHLY":
@@ -145,6 +152,7 @@ export function formatParamValue(field: string, value: unknown, lookup: EntityNa
     return CAPTURE_TYPE_LABEL[value] ?? value;
   }
   if (field === "dueDate" && typeof value === "string") return formatDeadline(value);
+  if (field === "remindAt" && typeof value === "string") return formatDateTime(value);
   if (field === "schedule" && value && typeof value === "object" && !Array.isArray(value)) {
     return formatSchedule(value as Record<string, unknown>);
   }
