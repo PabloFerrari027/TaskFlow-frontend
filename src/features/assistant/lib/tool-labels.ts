@@ -24,6 +24,9 @@ const TOOL_PAST_LABEL: Record<string, string> = {
   undo_saved_information: "Informação desfeita",
   relocate_information: "Informação mudada de lugar",
   organize_information: "Informações organizadas em uma pasta",
+  create_recurring_reminder: "Lembrete criado",
+  stop_recurring_reminder: "Lembrete parado",
+  remind_about_item: "Aviso marcado",
   revoke_session: "Sessão encerrada",
   // Read tools: also reported as executed, so they need a label too.
   list_workspaces: "Workspaces consultados",

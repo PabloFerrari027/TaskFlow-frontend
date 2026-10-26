@@ -2,16 +2,16 @@
 
 import { ArrowRight, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-  ASSISTANT_SUGGESTIONS,
-  useAssistantChat,
-} from "@/features/assistant/context/assistant-chat-context";
+import { useAssistantChat } from "@/features/assistant/context/assistant-chat-context";
+import { useAssistantProfileQuery } from "@/features/assistant/hooks/use-assistant";
+import { suggestionsFor } from "@/features/assistant/lib/suggestions";
 
 // Entry point to the chat placed on pages (home, Assistente) so the
 // assistant is in plain sight, not only behind the topbar button. It opens
 // the same Sheet; a suggestion only pre-fills the composer, never sends.
 export function AssistantPromptCard({ className }: { className?: string }) {
   const { openChat } = useAssistantChat();
+  const profileQuery = useAssistantProfileQuery();
 
   return (
     <section
@@ -47,7 +47,7 @@ export function AssistantPromptCard({ className }: { className?: string }) {
       </button>
 
       <div className="mt-3 flex flex-wrap gap-2">
-        {ASSISTANT_SUGGESTIONS.map((suggestion) => (
+        {suggestionsFor(profileQuery.data?.summary).map((suggestion) => (
           <button
             key={suggestion}
             type="button"

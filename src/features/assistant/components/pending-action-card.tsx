@@ -21,6 +21,10 @@ const STATUS_LABEL: Record<Exclude<PendingActionLocalStatus, "pending">, string>
   superseded: "Substituído pelo pedido mais novo, logo abaixo.",
 };
 
+function formatClock(iso: string): string {
+  return new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+}
+
 /**
  * The most sensitive piece of the assistant: confirming is ALWAYS a click on
  * a "Confirmar" button, never something inferred from a chat message.
@@ -50,6 +54,28 @@ export function PendingActionCard({
   const cancelMutation = useCancelPendingActionMutation();
 
   const isCritical = pendingAction.riskLevel === "critical";
+  const isPending = pendingAction.status === "pending";
+  const { expiresAt } = pendingAction;
+
+  // The server keeps a card for 15 minutes; past that the buttons would only
+  // fail, so the card shows "expirou" by itself at the right time.
+  // The parent passes a fresh callback every render; the ref keeps the timer
+  // from restarting on each one.
+  const onStatusChangeRef = React.useRef(onStatusChange);
+  React.useLayoutEffect(() => {
+    onStatusChangeRef.current = onStatusChange;
+  });
+  React.useEffect(() => {
+    if (!isPending || !expiresAt) return;
+    const remaining = new Date(expiresAt).getTime() - Date.now();
+    const expire = () => onStatusChangeRef.current("expired");
+    if (remaining <= 0) {
+      expire();
+      return;
+    }
+    const timer = window.setTimeout(expire, remaining);
+    return () => window.clearTimeout(timer);
+  }, [isPending, expiresAt]);
 
   function doConfirm(reauth?: { password: string } | { googleIdToken: string }) {
     setReauthError(null);
@@ -144,6 +170,11 @@ export function PendingActionCard({
             {cancelMutation.isPending ? <Loader2 className="animate-spin" /> : <X />}
             Cancelar
           </Button>
+          {expiresAt ? (
+            <span className="self-center text-xs text-muted-foreground">
+              Vale até as {formatClock(expiresAt)}
+            </span>
+          ) : null}
         </div>
       )}
 

@@ -50,12 +50,13 @@ export function useAssistantChat() {
   return context;
 }
 
-// Starting points shown in the empty chat and on the home page. Plain
-// requests a lay user would actually type, each backed by a real assistant
-// tool (list_items, create_item, save_information, list_folders).
+// Starting points shown in the empty chat and on the home page. Written the
+// way a lay person talks — no "item", "workspace" or "pasta" — each backed by
+// a real assistant tool (list_agenda, create_recurring_reminder,
+// save_information, folder templates).
 export const ASSISTANT_SUGGESTIONS = [
-  "Quais itens estão atrasados?",
-  "Crie um item “Revisar contrato” para sexta-feira",
-  "Guarde esta anotação: ",
-  "Quais pastas temos neste workspace?",
+  "O que eu tenho pra fazer hoje?",
+  "Me lembra de tomar o remédio todo dia às 8h",
+  "Anota pra mim: ",
+  "Me ajuda a organizar minhas contas do mês",
 ];
