@@ -7,10 +7,12 @@ import { HowItWorks } from "@/components/marketing/how-it-works";
 import { Benefits } from "@/components/marketing/benefits";
 import { CtaSection } from "@/components/marketing/cta-section";
 import { Footer } from "@/components/marketing/footer";
+import { SignedInRedirect } from "@/components/marketing/signed-in-redirect";
 
 export default function HomePage() {
   return (
     <>
+      <SignedInRedirect />
       <Navbar />
       <main className="flex-1">
         <Hero />
