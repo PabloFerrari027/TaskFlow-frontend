@@ -22,7 +22,9 @@ export function Topbar() {
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-border/60 bg-background/80 px-4 backdrop-blur-md sm:px-6 lg:px-10">
-      <div className="flex items-center gap-3">
+      {/* On a phone the workspace name gives way (it truncates); the icons on
+          the right never do — they used to push the avatar off screen. */}
+      <div className="flex min-w-0 flex-1 items-center gap-3">
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon" className="md:hidden">
@@ -54,7 +56,7 @@ export function Topbar() {
         <WorkspaceSwitcher />
       </div>
 
-      <div className="flex items-center gap-1">
+      <div className="flex shrink-0 items-center gap-1">
         <RunningTimerIndicator />
         <GlobalSearch />
         <AssistantChat />
