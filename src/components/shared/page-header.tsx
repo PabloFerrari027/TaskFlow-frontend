@@ -17,11 +17,15 @@ export function PageHeader({
   return (
     <div
       className={cn(
-        "flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between",
+        // Wraps instead of squeezing: with many actions (a folder has six) the
+        // buttons used to take the whole row and crush the title and description
+        // into one word per line. The title keeps at least ~18rem; the buttons
+        // drop below it when they do not fit beside it.
+        "flex flex-wrap items-end justify-between gap-x-6 gap-y-4",
         className
       )}
     >
-      <div className="min-w-0 space-y-1.5">
+      <div className="min-w-0 flex-[1_1_18rem] space-y-1.5">
         <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-[1.75rem] sm:leading-9">
           {title}
         </h1>
@@ -30,7 +34,7 @@ export function PageHeader({
         ) : null}
       </div>
       {actions ? (
-        <div className="flex shrink-0 items-center gap-2">{actions}</div>
+        <div className="flex max-w-full flex-wrap items-center gap-2">{actions}</div>
       ) : null}
     </div>
   );
