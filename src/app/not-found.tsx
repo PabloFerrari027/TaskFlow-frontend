@@ -1,7 +1,6 @@
-import Link from "next/link";
 import { FileQuestion } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/shared/logo";
+import { NotFoundActions } from "./not-found-actions";
 
 export default function NotFound() {
   return (
@@ -16,14 +15,7 @@ export default function NotFound() {
           O endereço que você acessou não existe ou foi movido.
         </p>
       </div>
-      <div className="flex gap-2">
-        <Button variant="outline" asChild>
-          <Link href="/">Ir para a home</Link>
-        </Button>
-        <Button asChild>
-          <Link href="/folders">Ir para as pastas</Link>
-        </Button>
-      </div>
+      <NotFoundActions />
     </div>
   );
 }

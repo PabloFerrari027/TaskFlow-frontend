@@ -123,7 +123,7 @@ function FolderTreeNode({
           <span className="size-6 shrink-0" aria-hidden />
         )}
 
-        <Link href={`/folders/${folder.id}`} className="flex min-w-0 flex-1 items-center gap-3">
+        <Link href={`/folders/${folder.id}`} data-tour="folder-card" className="flex min-w-0 flex-1 items-center gap-3">
           <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
             <FolderKanban className="size-4" />
           </div>

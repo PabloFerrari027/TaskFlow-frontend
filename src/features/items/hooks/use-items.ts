@@ -259,6 +259,7 @@ function createItemOffline(
     assigneeId,
     assigneeIds: assigneeId ? [assigneeId] : [],
     dueDate: null,
+    dueDateHasTime: false,
     startDate: null,
     isMilestone: false,
     estimateMinutes: null,

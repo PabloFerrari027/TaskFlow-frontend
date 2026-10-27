@@ -26,7 +26,7 @@ export function WorkspaceSwitcher() {
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
-            className="h-9 max-w-[220px] justify-between"
+            className="h-9 min-w-0 max-w-[220px] shrink justify-between"
             disabled={isLoading}
             data-tour="workspace-switcher"
           >

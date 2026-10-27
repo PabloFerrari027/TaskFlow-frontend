@@ -64,6 +64,26 @@ const ID_FIELD_KIND: Record<string, EntityKind> = {
   approverId: "person",
 };
 
+/**
+ * Item and folder ids in an action that this client has no name for yet —
+ * the card fetches them so it never shows a code ("Item: 4ff890cf").
+ */
+export function unnamedIds(
+  values: Array<[string, unknown]>,
+  lookup: EntityNameLookup
+): Array<{ kind: "item" | "folder"; id: string }> {
+  const missing = new Map<string, { kind: "item" | "folder"; id: string }>();
+  for (const [field, value] of values) {
+    const kind = ID_FIELD_KIND[field];
+    if (kind !== "item" && kind !== "folder") continue;
+    const ids = Array.isArray(value) ? value : [value];
+    for (const id of ids) {
+      if (typeof id === "string" && !lookup(kind, id)) missing.set(`${kind}:${id}`, { kind, id });
+    }
+  }
+  return [...missing.values()];
+}
+
 // The capture tool's `type` (backend `CAPTURE_TYPES`).
 const CAPTURE_TYPE_LABEL: Record<string, string> = {
   note: "Anotação",
@@ -114,10 +134,10 @@ function formatSchedule(value: Record<string, unknown>): string {
   return `${when}${time}${until}`;
 }
 
-// A deadline with a real time ("19h") shows it; a day picked without a time
-// (saved at noon/midnight UTC) shows only the day.
+// A day alone comes as `yyyy-MM-dd` (API.md § 9, `dueDateHasTime`) and shows
+// only the day; anything with a time shows it ("14 nov 2026 às 10:00").
 function formatDeadline(value: string): string {
-  return /T(00|12):00:00(\.000)?Z$/.test(value) || !value.includes("T") ? formatDate(value) : formatDateTime(value);
+  return value.includes("T") ? formatDateTime(value) : formatDate(`${value}T12:00:00`);
 }
 
 function formatId(kind: EntityKind, id: string, lookup: EntityNameLookup): string {

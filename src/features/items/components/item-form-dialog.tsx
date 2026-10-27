@@ -44,7 +44,7 @@ import {
 } from "@/features/items/hooks/use-items";
 import { useSectionsQuery } from "@/features/sections/hooks/use-sections";
 import { ITEM_PRIORITY_LABEL } from "@/components/shared/status-badge";
-import { fromDateInputValue, toDateInputValue } from "@/lib/format";
+import { dueDateFromDay, toDateInputValue } from "@/lib/format";
 import type { Item, ItemPriority } from "@/types/item";
 
 interface ItemFormDialogProps {
@@ -90,7 +90,8 @@ export function ItemFormDialog({
   function onSubmit(values: ItemFormValues) {
     // The mention set follows the `@Name` tokens left in the description.
     const mentionedUserIds = extractMentionedUserIds(values.description ?? "", memberIds, names);
-    const dueDate = values.dueDate ? fromDateInputValue(values.dueDate) : undefined;
+    // Editing keeps a time the item already had (ex.: set by the assistant).
+    const dueDate = values.dueDate ? dueDateFromDay(values.dueDate, item) : undefined;
 
     if (isEditing && item) {
       // `PATCH /items/:itemId` can't clear `assigneeId` (see

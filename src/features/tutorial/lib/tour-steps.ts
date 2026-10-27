@@ -1,3 +1,5 @@
+import type { ProfileQuestionId } from "@/features/tutorial/lib/profile-questions";
+
 export type TourPlacement = "bottom" | "top" | "right" | "left";
 
 export interface TourStep {
@@ -29,6 +31,15 @@ export interface TourStep {
   // points to (`href`, or `data-tour-href`) before moving on, so the tour can
   // walk into a folder, an item or a workspace.
   advance?: "open";
+  // "profile-question": one of the "Sobre você" questions (`questionId`) —
+  // the answers become the assistant's profile, so the chat opens already
+  // knowing the person. Skipped when the assistant already knows them.
+  // "first-folder": shown only when the workspace has no folder yet —
+  // proposes a first folder that fits the answers (a ready template, or the
+  // tour's example folder), so the board and item steps show something real;
+  // declining skips those sections at once.
+  kind?: "profile-question" | "first-folder";
+  questionId?: ProfileQuestionId;
 }
 
 // Shell steps (topbar + sidebar) work from any page and are dropped when their
@@ -46,13 +57,27 @@ export const TOUR_STEPS: TourStep[] = [
     chapter: "Boas-vindas",
     title: "Bem-vindo ao TaskFlow!",
     description:
-      "Este tour leva cerca de 3 minutos e passa pelas telas reais do sistema: o menu, suas pastas, o quadro de itens, um item por dentro e os workspaces. Nada é criado ou alterado durante o tour.",
+      "Este tour leva cerca de 3 minutos: primeiro umas perguntas rápidas sobre você (para o assistente já te conhecer), depois as telas reais do sistema: o menu, suas pastas, o quadro de itens, um item por dentro e os workspaces. Nada é criado ou alterado sem você pedir.",
     details: [
       "Use as setas → e ← do teclado para avançar e voltar, ou Esc para sair.",
       "Ao terminar, você volta para a página em que estava.",
       "Dá para refazê-lo quando quiser, pelo menu da sua conta.",
     ],
   },
+
+  // ------------------------------------------------------------ about you
+  ...(["routine", "organize", "forgets", "style"] as const).map(
+    (questionId): TourStep => ({
+      id: `about-${questionId}`,
+      chapter: "Sobre você",
+      section: "about",
+      kind: "profile-question",
+      questionId,
+      // Title, hint and choices come from PROFILE_QUESTIONS.
+      title: "",
+      description: "",
+    })
+  ),
 
   // ------------------------------------------------------------ navigation
   {
@@ -77,7 +102,8 @@ export const TOUR_STEPS: TourStep[] = [
     title: "Menu de navegação",
     description: "É por aqui que você circula entre as áreas do sistema:",
     details: [
-      "Pastas: a página inicial, com todas as pastas do workspace, ativas e arquivadas.",
+      "Início: o resumo do seu dia — o que vence, o que está atrasado e o assistente.",
+      "Pastas: todas as pastas do workspace, ativas e arquivadas.",
       "Workspaces: membros, convites, atividade e automações.",
       "Perfil: sua conta, sua senha e seus dispositivos.",
     ],
@@ -99,7 +125,7 @@ export const TOUR_STEPS: TourStep[] = [
     placement: "bottom",
     title: "Assistente de IA",
     description:
-      "Peça em linguagem natural para consultar ou alterar itens, pastas e pessoas. Um Proprietário do workspace precisa ativá-lo na página Assistente.",
+      "Peça em linguagem natural para guardar, achar ou organizar suas coisas — ele já vem ligado.",
     details: [
       "Exemplo: “crie um item Revisar contrato na pasta Jurídica”.",
       "Abra a conversa por este botão, pelo “Conversar com a IA” no menu lateral ou com Ctrl J (⌘J no Mac).",
@@ -150,6 +176,15 @@ export const TOUR_STEPS: TourStep[] = [
     ],
   },
   {
+    id: "first-folder",
+    chapter: "Pastas",
+    kind: "first-folder",
+    section: "example",
+    title: "Sua primeira pasta",
+    // Filled in by the tour from the answers (a template that fits, or the example folder).
+    description: "",
+  },
+  {
     id: "folder-card",
     chapter: "Pastas",
     route: "/folders",
@@ -160,7 +195,7 @@ export const TOUR_STEPS: TourStep[] = [
     advance: "open",
     title: "Abra uma pasta",
     description:
-      "Cada cartão é uma pasta. Clicar num cartão abre o quadro de itens dela. Ao avançar, o tour abre esta primeira pasta para você ver o quadro por dentro.",
+      "Cada linha é uma pasta. Clicar no nome (ou no ícone de abrir, à direita) mostra o quadro de itens dela. Ao avançar, o tour abre esta pasta para você ver o quadro por dentro.",
   },
 
   // ----------------------------------------------------------------- board

@@ -208,6 +208,8 @@ function FolderRow({
                 <Link
                   href={`/folders/${folder.id}`}
                   aria-label={`Abrir a pasta “${folder.name}”`}
+                  // The tour spotlights the first one and follows its link.
+                  data-tour="folder-card"
                 >
                   <PanelRightOpen />
                 </Link>

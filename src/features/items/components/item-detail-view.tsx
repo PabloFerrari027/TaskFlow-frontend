@@ -140,7 +140,7 @@ export function ItemDetailView({
 
             <div className="space-y-1.5">
               <p className="text-xs font-medium text-muted-foreground uppercase">Prazo</p>
-              <ItemDueDateInput itemId={item.id} dueDate={item.dueDate} />
+              <ItemDueDateInput itemId={item.id} dueDate={item.dueDate} dueDateHasTime={item.dueDateHasTime} />
               {item.dueDate ? (
                 <p className="text-xs text-muted-foreground">
                   Depois de definido, o prazo só pode ser trocado por outra data.

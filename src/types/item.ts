@@ -29,6 +29,8 @@ export interface Item {
   /** Every assignee: the main one first, then the co-assignees. */
   assigneeIds: string[];
   dueDate: string | null;
+  // false = the due date is a day alone (stored at noon UTC): show no time.
+  dueDateHasTime: boolean;
   /** Planned start (timeline); never after `dueDate`. */
   startDate: string | null;
   /** A delivery/approval point on the timeline, not a span of work. */
