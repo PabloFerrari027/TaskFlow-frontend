@@ -81,13 +81,15 @@ export interface UpdateItemRequest {
   assigneeIds?: string[];
   sectionId?: string;
   position?: number;
-  dueDate?: string;
+  /** `null` clears it. */
+  dueDate?: string | null;
   /** `null` clears it. */
   startDate?: string | null;
   isMilestone?: boolean;
   estimateMinutes?: number | null;
   storyPoints?: number | null;
-  priority?: ItemPriority;
+  /** `null` clears it. */
+  priority?: ItemPriority | null;
   /** Reparents: an id makes it a subitem of that item, `null` promotes it to the top level. */
   parentItemId?: string | null;
   /** Substitui o conjunto atual de menções; `[]` remove todas; omitido não altera. */

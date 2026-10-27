@@ -5,7 +5,16 @@ import { useItemActivityQuery } from "@/features/activity/hooks/use-activity";
 import { ActivityFeed } from "@/features/activity/components/activity-feed";
 import { useSectionsQuery } from "@/features/sections/hooks/use-sections";
 
-export function ItemActivitySection({ itemId, folderId }: { itemId: string; folderId: string }) {
+export function ItemActivitySection({
+  itemId,
+  folderId,
+  showTitle = true,
+}: {
+  itemId: string;
+  folderId: string;
+  /** Off when a surrounding section already says "Histórico". */
+  showTitle?: boolean;
+}) {
   const [page, setPage] = React.useState(1);
   const activityQuery = useItemActivityQuery(itemId, page);
   const sectionsQuery = useSectionsQuery(folderId);
@@ -21,7 +30,7 @@ export function ItemActivitySection({ itemId, folderId }: { itemId: string; fold
 
   return (
     <div className="space-y-3">
-      <h3 className="text-sm font-medium text-foreground">Histórico</h3>
+      {showTitle ? <h3 className="text-sm font-medium text-foreground">Histórico</h3> : null}
       <ActivityFeed
         query={activityQuery}
         onPageChange={setPage}

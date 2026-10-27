@@ -2,10 +2,9 @@
 
 import * as React from "react";
 import { toast } from "sonner";
-import { Download, ExternalLink, Loader2, Paperclip, Trash2, Upload } from "lucide-react";
+import { Download, ExternalLink, Loader2, Trash2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
-import { EmptyState } from "@/components/shared/empty-state";
 import {
   AttachmentPreviewDialog,
   AttachmentThumbnail,
@@ -95,7 +94,7 @@ export function AttachmentsSection({
       </div>
 
       {attachments.length === 0 ? (
-        <EmptyState icon={<Paperclip className="size-5" />} title="Nenhum anexo" />
+        <p className="text-sm text-muted-foreground">Nenhum arquivo anexado.</p>
       ) : (
         <div className="divide-y divide-border/60 rounded-lg border border-border/60">
           {attachments.map((attachment, index) => (

@@ -1,10 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { ListTree, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { EmptyState } from "@/components/shared/empty-state";
 import { ErrorState } from "@/components/shared/error-state";
 import { MemberAvatar } from "@/components/shared/member-avatar";
 import { useSubitemsQuery } from "@/features/items/hooks/use-items";
@@ -39,7 +38,9 @@ export function SubitemList({
       ) : subitemsQuery.isError ? (
         <ErrorState error={subitemsQuery.error} onRetry={() => subitemsQuery.refetch()} />
       ) : !subitemsQuery.data || subitemsQuery.data.length === 0 ? (
-        <EmptyState icon={<ListTree className="size-5" />} title="Nenhum subitem" />
+        <p className="text-sm text-muted-foreground">
+          Nenhum subitem. Divida um item grande em partes menores.
+        </p>
       ) : (
         <div className="divide-y divide-border/60 rounded-lg border border-border/60">
           {subitemsQuery.data.map((subitem) => (

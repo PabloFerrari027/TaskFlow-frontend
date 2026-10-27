@@ -1,9 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { MessageSquare } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { EmptyState } from "@/components/shared/empty-state";
 import { ErrorState } from "@/components/shared/error-state";
 import { useCommentsQuery } from "@/features/comments/hooks/use-comments";
 import { CommentNode } from "@/features/comments/components/comment-thread";
@@ -32,11 +30,7 @@ export function CommentList({ itemId, folderId }: { itemId: string; folderId: st
 
   if (comments.length === 0) {
     return (
-      <EmptyState
-        icon={<MessageSquare className="size-5" />}
-        title="Nenhum comentário ainda"
-        description="Seja o primeiro a comentar neste item."
-      />
+      <p className="text-sm text-muted-foreground">Nenhum comentário ainda.</p>
     );
   }
 

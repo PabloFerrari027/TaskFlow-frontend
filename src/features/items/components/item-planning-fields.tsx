@@ -21,7 +21,7 @@ export function ItemScheduleFields({
   return (
     <div className="space-y-3">
       <div className="space-y-1.5">
-        <p className="text-xs font-medium text-muted-foreground uppercase">Começa em</p>
+        <p className="text-sm font-medium">Começa em</p>
         <div className="flex items-center gap-1">
           <Input
             type="date"
@@ -106,7 +106,7 @@ export function ItemEstimateFields({
   return (
     <div className="space-y-3">
       <div className="space-y-1.5">
-        <p className="text-xs font-medium text-muted-foreground uppercase">Tempo estimado</p>
+        <p className="text-sm font-medium">Tempo estimado</p>
         <div className="flex items-center gap-2">
           <Input
             type="number"
@@ -135,7 +135,7 @@ export function ItemEstimateFields({
       </div>
 
       <div className="space-y-1.5">
-        <p className="text-xs font-medium text-muted-foreground uppercase">Pontos de esforço</p>
+        <p className="text-sm font-medium">Pontos de esforço</p>
         <Input
           type="text"
           inputMode="decimal"

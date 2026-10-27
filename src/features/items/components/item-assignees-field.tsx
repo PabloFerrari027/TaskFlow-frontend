@@ -62,9 +62,7 @@ export function ItemAssigneesField({
 
   return (
     <div className={updateMutation.isPending ? "pointer-events-none space-y-2 opacity-60" : "space-y-2"}>
-      {assigneeIds.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Ninguém ainda.</p>
-      ) : (
+      {assigneeIds.length === 0 ? null : (
         <ul className="space-y-1.5">
           {assigneeIds.map((userId, index) => (
             <li key={userId} className="flex items-center gap-2">
@@ -101,7 +99,7 @@ export function ItemAssigneesField({
 
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button variant="outline" size="sm" className="w-full">
+          <Button variant="outline" size="sm">
             <UserPlus /> {assigneeIds.length === 0 ? "Escolher responsável" : "Adicionar ou remover"}
           </Button>
         </PopoverTrigger>

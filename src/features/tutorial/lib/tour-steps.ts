@@ -303,16 +303,15 @@ export const TOUR_STEPS: TourStep[] = [
     chapter: "O item",
     section: "item",
     target: "item-fields",
-    placement: "left",
+    placement: "bottom",
     skipIfMissing: true,
-    title: "Status, responsável e prazo",
+    title: "Etapa, prazo e responsável",
     description:
-      "Cada campo é salvo assim que você escolhe um valor.",
+      "O essencial do item, numa lista só. Cada campo é salvo assim que você escolhe um valor.",
     details: [
-      "Coluna e Status (A fazer, Em andamento, Concluída) são coisas diferentes: um não muda o outro sozinho.",
-      "Responsável é quem executa. Participantes só acompanham.",
-      "Prioridade vai de Baixa a Urgente. Depois de definidos, prazo e prioridade só podem ser trocados por outro valor, não removidos.",
-      "Logo abaixo ficam os campos extras criados na pasta.",
+      "Etapa diz em que pé está: A fazer, Em andamento ou Concluída.",
+      "Para tirar o prazo, use o X ao lado da data. Para tirar a prioridade, escolha “Sem prioridade”.",
+      "Em “Mais detalhes” ficam a coluna, quem acompanha, início, tempo estimado e os campos extras da pasta.",
     ],
   },
   {
@@ -327,7 +326,7 @@ export const TOUR_STEPS: TourStep[] = [
     details: [
       "Para avisar alguém, escolha as pessoas no seletor de menção antes de enviar.",
       "“Responder” abre uma conversa encadeada dentro do comentário.",
-      "Logo abaixo, o histórico registra cada mudança: status, responsável, coluna e comentários.",
+      "Logo abaixo, “Histórico” (fechado até você abrir) registra cada mudança: etapa, responsável, coluna e comentários.",
     ],
   },
 

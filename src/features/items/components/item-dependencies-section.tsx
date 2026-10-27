@@ -161,7 +161,7 @@ export function ItemDependenciesSection({ folderId, itemId }: { folderId: string
       ) : (
         <>
           <div className="space-y-2">
-            <p className="text-xs font-medium text-muted-foreground uppercase">Depende de</p>
+            <p className="text-xs font-medium text-muted-foreground">Depende de</p>
             {view.blockedBy.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 Nenhuma. Use quando este item só puder começar depois que outro terminar.
@@ -196,7 +196,7 @@ export function ItemDependenciesSection({ folderId, itemId }: { folderId: string
 
           {view.blocking.length > 0 ? (
             <div className="space-y-2">
-              <p className="text-xs font-medium text-muted-foreground uppercase">Esperando por esta</p>
+              <p className="text-xs font-medium text-muted-foreground">Esperando por esta</p>
               <ul className="space-y-1.5">
                 {view.blocking.map((link) => (
                   <LinkRow key={link.dependencyId} link={link} />

@@ -41,10 +41,10 @@ export function ParticipantsSection({
 
   return (
     <div className="space-y-1.5">
-      <p className="text-xs font-medium text-muted-foreground uppercase">Participantes</p>
+      <p className="text-sm font-medium">Quem acompanha</p>
 
       {participantIds.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Nenhum participante</p>
+        <p className="text-sm text-muted-foreground">Ninguém acompanha este item</p>
       ) : (
         <ul className="space-y-1.5">
           {participantIds.map((userId) => (
@@ -72,7 +72,7 @@ export function ParticipantsSection({
           onValueChange={(userId) => addMutation.mutate(userId)}
         >
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="Adicionar participante" />
+            <SelectValue placeholder="Adicionar quem acompanha" />
           </SelectTrigger>
           <SelectContent>
             {addableUserIds.map((userId) => (

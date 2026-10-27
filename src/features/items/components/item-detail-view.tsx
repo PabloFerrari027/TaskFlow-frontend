@@ -1,6 +1,7 @@
 "use client";
 
-import { Card } from "@/components/ui/card";
+import * as React from "react";
+import { ChevronDown } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { ErrorState } from "@/components/shared/error-state";
@@ -32,8 +33,42 @@ import { ItemActivitySection } from "@/features/activity/components/item-activit
 import { ItemCustomFieldValuesEditor } from "@/features/custom-fields/components/item-custom-field-values-editor";
 import { cn } from "@/lib/utils";
 
-// Shared by the full-screen item page and the side panel — `layout` picks
-// between the two-column page grid and a single stacked column for the sheet.
+/** One "label → value" line of the properties list (Notion/Linear style). */
+function PropertyRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="grid grid-cols-[5.5rem_minmax(0,1fr)] items-center gap-3 py-1.5 sm:grid-cols-[8rem_minmax(0,1fr)]">
+      <span className="text-sm text-muted-foreground">{label}</span>
+      <div className="min-w-0 max-w-sm">{children}</div>
+    </div>
+  );
+}
+
+/** Closed by default: what most people never need stays one click away. */
+function FoldedSection({
+  title,
+  hint,
+  children,
+}: {
+  title: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <details className="group rounded-lg border">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
+        <span className="min-w-0">
+          <span className="block text-sm font-medium">{title}</span>
+          {hint ? <span className="block text-xs text-muted-foreground">{hint}</span> : null}
+        </span>
+        <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
+      </summary>
+      <div className="space-y-5 border-t px-4 py-4">{children}</div>
+    </details>
+  );
+}
+
+// Shared by the full-screen item page and the side panel. One reading column
+// in both: title, the few properties everyone uses, then the rest folded away.
 export function ItemDetailView({
   folderId,
   itemId,
@@ -60,154 +95,90 @@ export function ItemDetailView({
 
   const item = itemQuery.data;
 
-  const subitemsAndAttachments = (
-    <>
-      <Card className="p-5">
-        <SubitemList folderId={folderId} parentItemId={item.id} sectionId={item.sectionId} />
-      </Card>
-
-      <Card className="p-5">
-        <ItemDependenciesSection folderId={folderId} itemId={item.id} />
-      </Card>
-
-      <Card className="p-5">
-        <ItemApprovalsSection folderId={folderId} itemId={item.id} />
-      </Card>
-
-      <Card className="p-5">
-        <ItemTimeSection itemId={item.id} estimateMinutes={item.estimateMinutes} />
-      </Card>
-
-      <Card className="p-5">
-        <AttachmentsSection itemId={item.id} attachments={item.attachments} />
-      </Card>
-    </>
-  );
-
   return (
-    <div className="space-y-6">
+    <div className={cn("space-y-6", layout === "grid" && "mx-auto max-w-3xl")}>
       <ItemCoverBanner item={item} />
 
-      <div className={cn("gap-6", layout === "grid" ? "grid lg:grid-cols-3" : "flex flex-col")}>
-        <div className={cn("space-y-6", layout === "grid" ? "lg:col-span-2" : "")}>
-          <Card className="p-5" data-tour="item-main">
-            {/* Both fields save on blur — no separate edit mode. */}
-            <ItemTitleField itemId={item.id} title={item.title} />
-            <ItemDescriptionField
-              folderId={folderId}
-              itemId={item.id}
-              description={item.description}
-            />
-          </Card>
-
-          {layout === "grid" ? subitemsAndAttachments : null}
-        </div>
-
-        <div className="space-y-6">
-          <Card className="space-y-4 p-5" data-tour="item-fields">
-            <div className="space-y-1.5">
-              <p className="text-xs font-medium text-muted-foreground uppercase">Coluna</p>
-              <ItemSectionSelect folderId={folderId} itemId={item.id} sectionId={item.sectionId} />
-            </div>
-
-            <Separator />
-
-            <div className="space-y-1.5">
-              <p className="text-xs font-medium text-muted-foreground uppercase">Etapa</p>
-              <ItemStatusSelect item={item} />
-            </div>
-
-            <Separator />
-
-            <div className="space-y-1.5">
-              <p className="text-xs font-medium text-muted-foreground uppercase">Responsáveis</p>
-              <ItemAssigneesField
-                folderId={folderId}
-                itemId={item.id}
-                assigneeIds={item.assigneeIds ?? (item.assigneeId ? [item.assigneeId] : [])}
-              />
-            </div>
-
-            <Separator />
-
-            <ParticipantsSection
-              folderId={folderId}
-              itemId={item.id}
-              participantIds={item.participantIds}
-            />
-
-            <Separator />
-
-            <div className="space-y-1.5">
-              <p className="text-xs font-medium text-muted-foreground uppercase">Prazo</p>
-              <ItemDueDateInput itemId={item.id} dueDate={item.dueDate} dueDateHasTime={item.dueDateHasTime} />
-              {item.dueDate ? (
-                <p className="text-xs text-muted-foreground">
-                  Depois de definido, o prazo só pode ser trocado por outra data.
-                </p>
-              ) : null}
-            </div>
-
-            <Separator />
-
-            <ItemScheduleFields item={item} />
-
-            <Separator />
-
-            <ItemEstimateFields key={`${item.estimateMinutes}:${item.storyPoints}`} item={item} />
-
-            <Separator />
-
-            <div className="space-y-1.5">
-              <p className="text-xs font-medium text-muted-foreground uppercase">Prioridade</p>
-              <ItemPrioritySelect itemId={item.id} priority={item.priority} />
-              {item.priority ? (
-                <p className="text-xs text-muted-foreground">
-                  Depois de definida, a prioridade só pode ser trocada por outra.
-                </p>
-              ) : null}
-            </div>
-
-            <Separator />
-
-            <div className="space-y-1.5">
-              <p className="text-xs font-medium text-muted-foreground uppercase">Criado por</p>
-              {item.createdBy ? (
-                <div className="flex items-center gap-2">
-                  <MemberAvatar userId={item.createdBy} />
-                  <MemberIdLabel userId={item.createdBy} />
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">Criador desconhecido</p>
-              )}
-            </div>
-          </Card>
-
-          <Card className="space-y-4 p-5">
-            <p className="text-xs font-medium text-muted-foreground uppercase">
-              Campos personalizados
-            </p>
-            <ItemCustomFieldValuesEditor folderId={folderId} itemId={item.id} />
-          </Card>
-        </div>
-
-        {/* Stacked layout has no side column, so these follow all the item
-            info above instead of sitting between the description and it. */}
-        {layout === "stacked" ? <div className="space-y-6">{subitemsAndAttachments}</div> : null}
+      <div data-tour="item-main">
+        {/* Both fields save on blur — no separate edit mode. */}
+        <ItemTitleField itemId={item.id} title={item.title} />
+        <ItemDescriptionField folderId={folderId} itemId={item.id} description={item.description} />
       </div>
 
-      {/* Always the last sections on the page, regardless of `layout` — a
-          comment thread and the change history read as the closing part of
-          an item, after every other detail is already visible. */}
-      <Card className="space-y-3 p-5" data-tour="item-comments">
+      <div className="divide-y border-y" data-tour="item-fields">
+        <PropertyRow label="Etapa">
+          <ItemStatusSelect item={item} />
+        </PropertyRow>
+        <PropertyRow label="Prazo">
+          <ItemDueDateInput itemId={item.id} dueDate={item.dueDate} dueDateHasTime={item.dueDateHasTime} />
+        </PropertyRow>
+        <PropertyRow label="Responsável">
+          <ItemAssigneesField
+            folderId={folderId}
+            itemId={item.id}
+            assigneeIds={item.assigneeIds ?? (item.assigneeId ? [item.assigneeId] : [])}
+          />
+        </PropertyRow>
+        <PropertyRow label="Prioridade">
+          <ItemPrioritySelect itemId={item.id} priority={item.priority} />
+        </PropertyRow>
+      </div>
+
+      <FoldedSection
+        title="Mais detalhes"
+        hint="Coluna, quem acompanha, início, tempo estimado, campos extras e mais"
+      >
+        <div className="space-y-1.5">
+          <p className="text-sm font-medium">Coluna</p>
+          <ItemSectionSelect folderId={folderId} itemId={item.id} sectionId={item.sectionId} />
+          <p className="text-xs text-muted-foreground">
+            Onde o item aparece no quadro da pasta. Mudar de coluna não muda a etapa.
+          </p>
+        </div>
+        <Separator />
+        <ParticipantsSection folderId={folderId} itemId={item.id} participantIds={item.participantIds} />
+        <Separator />
+        <ItemScheduleFields item={item} />
+        <Separator />
+        <ItemEstimateFields key={`${item.estimateMinutes}:${item.storyPoints}`} item={item} />
+        <Separator />
+        <div className="space-y-1.5">
+          <p className="text-sm font-medium">Campos extras</p>
+          <ItemCustomFieldValuesEditor folderId={folderId} itemId={item.id} />
+        </div>
+        <Separator />
+        <ItemDependenciesSection folderId={folderId} itemId={item.id} />
+        <Separator />
+        <ItemApprovalsSection folderId={folderId} itemId={item.id} />
+        <Separator />
+        <ItemTimeSection itemId={item.id} estimateMinutes={item.estimateMinutes} />
+        <Separator />
+        <div className="space-y-1.5">
+          <p className="text-sm font-medium">Criado por</p>
+          {item.createdBy ? (
+            <div className="flex items-center gap-2">
+              <MemberAvatar userId={item.createdBy} />
+              <MemberIdLabel userId={item.createdBy} />
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">Criador desconhecido</p>
+          )}
+        </div>
+      </FoldedSection>
+
+      <SubitemList folderId={folderId} parentItemId={item.id} sectionId={item.sectionId} />
+
+      <AttachmentsSection itemId={item.id} attachments={item.attachments} />
+
+      <div className="space-y-3" data-tour="item-comments">
         <h3 className="text-sm font-medium text-foreground">Comentários</h3>
         <CommentList itemId={item.id} folderId={folderId} />
         <CommentComposer itemId={item.id} folderId={folderId} />
-      </Card>
+      </div>
 
-      <Card className="p-5">
-        <ItemActivitySection itemId={item.id} folderId={item.folderId} />
-      </Card>
+      <FoldedSection title="Histórico" hint="Cada mudança feita neste item">
+        <ItemActivitySection itemId={item.id} folderId={item.folderId} showTitle={false} />
+      </FoldedSection>
     </div>
   );
 }
