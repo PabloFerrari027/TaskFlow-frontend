@@ -3,14 +3,14 @@
 import * as React from "react";
 import { Coins } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { usePlanBudget } from "@/features/plans/hooks/use-plans";
+import { derivedCaps, messagesFor, messagesLabel } from "@/features/plans/lib/plan-caps";
 
-// No endpoint exposes the user's actual plan/token cap — `GET /auth/me` never
-// returns a planId, so there's no number to treat as "100%" (see
-// plan-picker.tsx). This meter shows the real usage of the current quota day
-// (since 00:00 UTC, every feature — the same count TOKEN_QUOTA_GUARD checks,
-// API.md § 23) on a bar that scales itself to a round number just above the
-// current value (like an auto-ranging chart axis), and counts down to the
-// next 00:00 UTC, when the daily cap resets.
+// The real usage of the current quota day (since 00:00 UTC, every feature —
+// the same count TOKEN_QUOTA_GUARD checks, API.md § 23) against the plan's
+// daily cap, with about how many messages are left, and a countdown to the
+// next 00:00 UTC, when the daily cap resets. While the plan can't be read,
+// the bar scales itself to a round number just above the current value.
 const NICE_SCALE_STEPS = [
   500, 1_000, 2_500, 5_000, 10_000, 25_000, 50_000, 100_000, 250_000, 500_000, 1_000_000,
 ];
@@ -41,6 +41,7 @@ export function AssistantUsageMeter({
   isUpdating: boolean;
 }) {
   const [now, setNow] = React.useState<Date>(() => new Date());
+  const budget = usePlanBudget();
 
   React.useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 60_000);
@@ -51,8 +52,12 @@ export function AssistantUsageMeter({
     return <div className="h-1.5 w-full animate-pulse rounded-full bg-muted" aria-hidden />;
   }
 
-  const scale = niceScaleFor(tokensToday);
+  const dailyCap = budget ? derivedCaps(budget).daily : null;
+  const scale = dailyCap ?? niceScaleFor(tokensToday);
   const percent = Math.min(100, (tokensToday / scale) * 100);
+  const label = dailyCap
+    ? `Hoje: ${Math.round(percent)}% do limite · ${messagesLabel(messagesFor(dailyCap - tokensToday))}`
+    : "Uso de IA hoje";
   const countdown = formatCountdown(msUntilNextUtcMidnight(now));
 
   return (
@@ -67,7 +72,8 @@ export function AssistantUsageMeter({
       >
         <div
           className={cn(
-            "h-full rounded-full bg-primary transition-[width] duration-500 ease-out",
+            "h-full rounded-full transition-[width] duration-500 ease-out",
+            dailyCap && percent >= 90 ? "bg-destructive" : "bg-primary",
             isUpdating && "animate-pulse"
           )}
           style={{ width: `${percent}%` }}
@@ -76,9 +82,9 @@ export function AssistantUsageMeter({
       <div className="flex items-center justify-between text-[11px] text-muted-foreground">
         <span className="flex items-center gap-1">
           <Coins className="size-3" />
-          Uso de IA hoje
+          {label}
         </span>
-        <span>reinicia em {countdown}</span>
+        <span>renova em {countdown}</span>
       </div>
     </div>
   );

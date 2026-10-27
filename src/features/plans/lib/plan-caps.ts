@@ -7,6 +7,22 @@ const WEEKS_DIVISOR = 4;
 // one — guaranteed in the catalog by the backend seed (API.md § 23).
 export const DEFAULT_PLAN_NAME = "FREE";
 
+// What one message to the assistant costs on average, as the quota counts it
+// (re-read input included). Measured on real conversations in Oct 2026:
+// 2.47M tokens over 164 messages. Only used to say "cerca de N mensagens";
+// long chats and attachments cost more.
+export const TOKENS_PER_MESSAGE = 15_000;
+
+export function messagesFor(tokens: number): number {
+  return Math.max(0, Math.floor(tokens / TOKENS_PER_MESSAGE));
+}
+
+// "cerca de 6 mensagens", "nenhuma mensagem", "1 mensagem".
+export function messagesLabel(count: number): string {
+  if (count === 0) return "nenhuma mensagem";
+  return count === 1 ? "cerca de 1 mensagem" : `cerca de ${count} mensagens`;
+}
+
 export function derivedCaps(monthlyTokenBudget: number) {
   return {
     daily: monthlyTokenBudget / DAYS_DIVISOR,

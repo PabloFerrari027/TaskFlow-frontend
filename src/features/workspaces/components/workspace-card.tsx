@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { WorkspaceRoleBadge } from "@/components/shared/status-badge";
 import { useAuth } from "@/lib/auth/auth-context";
 import { cn } from "@/lib/utils";
+import { peopleLabel } from "@/lib/format";
 import type { Workspace } from "@/types/workspace";
 
 export function WorkspaceCard({
@@ -46,7 +47,7 @@ export function WorkspaceCard({
         <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
           <span className="flex items-center gap-1">
             <Users className="size-3.5" />
-            {workspace.members.length} membro(s)
+            {peopleLabel(workspace.members.length)}
           </span>
           {myRole ? <WorkspaceRoleBadge role={myRole} /> : null}
         </div>

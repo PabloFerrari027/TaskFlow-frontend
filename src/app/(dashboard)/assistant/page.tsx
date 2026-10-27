@@ -10,6 +10,8 @@ import { canManageAssistantSettings } from "@/lib/permissions";
 import { WorkspaceAssistantSettingsPanel } from "@/features/workspaces/components/assistant-settings-panel";
 import { AssistantPromptCard } from "@/features/assistant/components/assistant-prompt-card";
 import { AiUsageHistory } from "@/features/assistant/components/ai-usage-history";
+import { FoldedSection } from "@/components/shared/folded-section";
+import { AssistantAllowanceCard } from "@/features/plans/components/assistant-allowance-card";
 import { AssistantProfileCard } from "@/features/assistant/components/assistant-profile-card";
 import { AssistantChannelsSection } from "@/features/assistant-channels/components/assistant-channels-section";
 import type { WorkspaceRole } from "@/types/workspace";
@@ -67,12 +69,12 @@ export default function AssistantPage() {
 
       <section className="space-y-4">
         <div className="space-y-1">
-          <h2 className="text-lg font-medium text-foreground">Uso de IA</h2>
-          <p className="text-sm text-muted-foreground">
-            Histórico do consumo de tokens do assistente e das análises com IA na sua conta.
-          </p>
+          <h2 className="text-lg font-medium text-foreground">Quanto ainda dá para conversar</h2>
         </div>
-        <AiUsageHistory />
+        <AssistantAllowanceCard showPlanLink />
+        <FoldedSection title="Ver detalhes técnicos" hint="O histórico do consumo em tokens, a unidade que a IA cobra">
+          <AiUsageHistory />
+        </FoldedSection>
       </section>
     </div>
   );

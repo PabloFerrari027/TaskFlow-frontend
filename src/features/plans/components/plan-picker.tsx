@@ -31,6 +31,7 @@ import {
   DEFAULT_PLAN_NAME,
   derivedCaps,
   formatTokensHuman,
+  messagesFor,
   utcMidnightInLocalTime,
 } from "@/features/plans/lib/plan-caps";
 import type { MyPlan, Plan } from "@/types/plan";
@@ -207,10 +208,10 @@ function PlanOption({
           {plan.name}
         </p>
         <p className="text-2xl font-semibold tracking-tight text-foreground">
-          {formatTokensHuman(plan.monthlyTokenBudget)}
+          ~{numberFormat.format(messagesFor(daily))} mensagens
         </p>
         <p className="text-xs text-muted-foreground">
-          por mês · {numberFormat.format(plan.monthlyTokenBudget)} tokens
+          por dia com o assistente · {formatTokensHuman(plan.monthlyTokenBudget)} por mês
         </p>
         <p className="pt-1 text-sm font-medium text-foreground">
           {formatPriceCents(plan.monthlyPriceCents ?? 0)}
@@ -239,11 +240,11 @@ function PlanOption({
       <ul className="flex-1 space-y-2 text-sm text-foreground">
         <li className="flex items-center gap-2">
           <CircleCheck className="size-4 shrink-0 text-primary" />
-          Cerca de {formatTokensHuman(weekly)} por semana
+          Cerca de {numberFormat.format(messagesFor(weekly))} mensagens por semana
         </li>
         <li className="flex items-center gap-2">
           <CircleCheck className="size-4 shrink-0 text-primary" />
-          Cerca de {formatTokensHuman(daily)} por dia
+          Cerca de {numberFormat.format(messagesFor(plan.monthlyTokenBudget))} mensagens por mês
         </li>
       </ul>
 
@@ -284,8 +285,8 @@ function HowLimitsWork() {
       <div className="space-y-1">
         <h3 className="font-medium text-foreground">Como funcionam os limites</h3>
         <p className="text-sm text-muted-foreground">
-          Cada mensagem ao assistente gasta uma parte desses tokens — mais quando a conversa é
-          longa ou tem anexos. Quanto maior o limite, mais você usa a IA antes de precisar
+          Cada mensagem ao assistente gasta uma parte do limite — mais quando a conversa é
+          longa ou tem anexos. Os números de mensagens são uma média. Quanto maior o limite, mais você usa a IA antes de precisar
           esperar ele reiniciar. O que sobra não passa para o período seguinte.
         </p>
       </div>

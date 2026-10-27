@@ -8,7 +8,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ErrorState } from "@/components/shared/error-state";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
-import { formatDateTime } from "@/lib/format";
+import { formatRelativeTime } from "@/lib/format";
+import { describeDevice } from "@/features/sessions/lib/describe-device";
 import {
   useRevokeSessionMutation,
   useSessionsQuery,
@@ -36,7 +37,7 @@ export function SessionList() {
 
   if (sessions.length === 0) {
     return (
-      <EmptyState icon={<MonitorSmartphone className="size-6" />} title="Nenhuma sessão ativa" />
+      <EmptyState icon={<MonitorSmartphone className="size-6" />} title="Nenhum aparelho conectado" />
     );
   }
 
@@ -49,15 +50,12 @@ export function SessionList() {
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <p className="truncate text-sm font-medium text-foreground">
-                  {session.deviceInfo || "Dispositivo desconhecido"}
+                  {describeDevice(session.deviceInfo)}
                 </p>
-                {session.current ? <Badge>Sessão atual</Badge> : null}
+                {session.current ? <Badge>Este aparelho</Badge> : null}
               </div>
               <p className="text-xs text-muted-foreground">
-                IP {session.ipAddress} · Último uso {formatDateTime(session.lastUsedAt)}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Expira em {formatDateTime(session.expiresAt)}
+                Usado {formatRelativeTime(session.lastUsedAt)}
               </p>
             </div>
           </div>
@@ -66,12 +64,12 @@ export function SessionList() {
             <ConfirmDialog
               trigger={
                 <Button variant="outline" size="sm">
-                  <ShieldOff /> Revogar
+                  <ShieldOff /> Desconectar
                 </Button>
               }
-              title="Revogar sessão"
-              description="Este dispositivo será desconectado imediatamente."
-              confirmLabel="Revogar"
+              title="Desconectar este aparelho?"
+              description={`${describeDevice(session.deviceInfo)} sai da sua conta agora e vai precisar entrar de novo.`}
+              confirmLabel="Desconectar"
               isLoading={revokeMutation.isPending}
               onConfirm={() => revokeMutation.mutate(session.id)}
             />

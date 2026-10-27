@@ -22,18 +22,18 @@ export function SessionsSettingsSection() {
   return (
     <Card id="sessoes">
       <CardHeader>
-        <CardTitle>Sessões</CardTitle>
-        <CardDescription>Dispositivos atualmente conectados à sua conta.</CardDescription>
+        <CardTitle>Aparelhos conectados</CardTitle>
+        <CardDescription>Onde sua conta está aberta agora.</CardDescription>
         <CardAction>
           <ConfirmDialog
             trigger={
               <Button variant="outline" size="sm">
-                <ShieldOff /> Encerrar todas
+                <ShieldOff /> Desconectar todos
               </Button>
             }
-            title="Encerrar todas as sessões"
-            description="Você será desconectado de todos os dispositivos, incluindo este. Será necessário fazer login novamente."
-            confirmLabel="Encerrar todas"
+            title="Desconectar todos os aparelhos?"
+            description="Sua conta sai de todos os aparelhos, inclusive deste. Depois é só entrar de novo."
+            confirmLabel="Desconectar todos"
             isLoading={revokeAllMutation.isPending}
             onConfirm={() =>
               revokeAllMutation.mutate(undefined, {

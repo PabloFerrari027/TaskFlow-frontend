@@ -26,6 +26,7 @@ import { RenameWorkspaceDialog } from "@/features/workspaces/components/rename-w
 import { WorkspaceAssistantSettingsPanel } from "@/features/workspaces/components/assistant-settings-panel";
 import { WorkspaceActivitySection } from "@/features/activity/components/workspace-activity-section";
 import { useAuth } from "@/lib/auth/auth-context";
+import { peopleLabel } from "@/lib/format";
 import {
   canDeleteWorkspace,
   canInviteWorkspaceMembers,
@@ -131,7 +132,7 @@ function CurrentWorkspaceSettings({ workspaceId }: { workspaceId: string }) {
         <div className="min-w-0">
           <h2 className="truncate text-lg font-semibold text-foreground">{workspace.name}</h2>
           <p className="text-sm text-muted-foreground">
-            Configurações do workspace atual · {workspace.members.length} membro(s)
+            Configurações do workspace atual · {peopleLabel(workspace.members.length)}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">

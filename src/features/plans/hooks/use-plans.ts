@@ -10,7 +10,12 @@ import {
 import { toast } from "sonner";
 import { plansService } from "@/features/plans/api/plans-service";
 import { assistantService } from "@/features/assistant/api/assistant-service";
-import { quotaWindowStarts } from "@/features/plans/lib/plan-caps";
+import {
+  DEFAULT_PLAN_NAME,
+  derivedCaps,
+  messagesFor,
+  quotaWindowStarts,
+} from "@/features/plans/lib/plan-caps";
 import { queryKeys } from "@/lib/query-keys";
 import { getErrorCode, getErrorMessage } from "@/lib/errors";
 import type {
@@ -32,6 +37,18 @@ export function useMyPlanQuery() {
     queryKey: queryKeys.plans.mine(),
     queryFn: () => plansService.getMine(),
   });
+}
+
+/** The monthly token budget the quota checks: the current plan, or FREE when none was chosen. */
+export function usePlanBudget(): number | undefined {
+  const myPlanQuery = useMyPlanQuery();
+  const plansQuery = usePlansQuery();
+  return (
+    myPlanQuery.data?.plan?.monthlyTokenBudget ??
+    (myPlanQuery.data
+      ? plansQuery.data?.find((plan) => plan.name === DEFAULT_PLAN_NAME)?.monthlyTokenBudget
+      : undefined)
+  );
 }
 
 // Errors are shown inline by the coupon field.
@@ -75,6 +92,37 @@ export function useQuotaWindowsUsageQueries() {
   return useQueries({
     queries: QUOTA_WINDOWS.map((window) => quotaWindowUsageOptions(window, now)),
   });
+}
+
+export interface AssistantAllowance {
+  /** Share of today's cap already used, 0-100. */
+  percentToday: number;
+  /** Messages left before any window (day, week or month) runs out. */
+  messagesLeft: number;
+  /** What a full day of the plan allows. */
+  messagesPerDay: number;
+  /** The month or week ran out before the day did. */
+  limitedBy: QuotaWindow;
+}
+
+// The plan in plain words: how much of today is used and about how many
+// messages are left — null while loading or when the plan can't be read.
+export function useAssistantAllowance(): AssistantAllowance | null {
+  const budget = usePlanBudget();
+  const windows = useQuotaWindowsUsageQueries();
+  const used = windows.map((query) => query.data);
+  if (!budget || used.some((value) => value === undefined)) return null;
+
+  const { daily, weekly } = derivedCaps(budget);
+  const caps: Record<QuotaWindow, number> = { day: daily, week: weekly, month: budget };
+  const left = QUOTA_WINDOWS.map((window, index) => ({ window, tokens: caps[window] - (used[index] ?? 0) }));
+  const tightest = left.reduce((a, b) => (b.tokens < a.tokens ? b : a));
+  return {
+    percentToday: Math.min(100, ((used[0] ?? 0) / daily) * 100),
+    messagesLeft: messagesFor(tightest.tokens),
+    messagesPerDay: messagesFor(daily),
+    limitedBy: tightest.window,
+  };
 }
 
 // Answers with the same shape as `GET /plans/me`, already reflecting the

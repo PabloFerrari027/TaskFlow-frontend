@@ -7,13 +7,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/shared/error-state";
 import {
   QUOTA_WINDOWS,
-  useMyPlanQuery,
-  usePlansQuery,
+  usePlanBudget,
   useQuotaWindowsUsageQueries,
   type QuotaWindow,
 } from "@/features/plans/hooks/use-plans";
 import {
-  DEFAULT_PLAN_NAME,
   derivedCaps,
   formatTokensHuman,
   utcMidnightInLocalTime,
@@ -33,13 +31,7 @@ const WINDOW_LABELS: Record<QuotaWindow, { title: string; since: string }> = {
 // of the current plan (or FREE, when none is assigned).
 export function UsageWindowsSummary() {
   const queries = useQuotaWindowsUsageQueries();
-  const myPlanQuery = useMyPlanQuery();
-  const plansQuery = usePlansQuery();
-  const budget =
-    myPlanQuery.data?.plan?.monthlyTokenBudget ??
-    (myPlanQuery.data
-      ? plansQuery.data?.find((plan) => plan.name === DEFAULT_PLAN_NAME)?.monthlyTokenBudget
-      : undefined);
+  const budget = usePlanBudget();
   const caps: Record<QuotaWindow, number> | null = budget
     ? { day: derivedCaps(budget).daily, week: derivedCaps(budget).weekly, month: budget }
     : null;

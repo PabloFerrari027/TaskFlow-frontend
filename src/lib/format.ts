@@ -34,6 +34,11 @@ export function formatRelativeTime(value: string) {
   }
 }
 
+// "1 pessoa", "3 pessoas" — instead of "1 membro(s)".
+export function peopleLabel(count: number) {
+  return count === 1 ? "1 pessoa" : `${count} pessoas`;
+}
+
 export function formatFileSize(bytes: number) {
   if (bytes < 1024) return `${bytes} B`;
   const units = ["KB", "MB", "GB"];
