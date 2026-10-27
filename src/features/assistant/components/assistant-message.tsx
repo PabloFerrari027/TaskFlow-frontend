@@ -20,6 +20,14 @@ import type {
 
 // The API only reports *which* stage the assistant is in — the wording is
 // ours, kept plain for non-technical users.
+// What became of a card proposed in an earlier visit.
+const PAST_ACTION_STATUS: Record<"pending" | "confirmed" | "cancelled" | "expired", string> = {
+  pending: "Ainda dá para confirmar.",
+  confirmed: "Confirmada.",
+  cancelled: "Cancelada.",
+  expired: "Não foi confirmada a tempo. Se ainda quiser, peça de novo.",
+};
+
 const STAGE_LABEL: Record<Exclude<AssistantChatStage, "running_tool">, string> = {
   transcribing: "Ouvindo seu áudio...",
   reading_attachments: "Lendo os anexos...",
@@ -224,9 +232,9 @@ export function AssistantMessage({
                 <span>
                   <span className="font-medium text-foreground">Ação proposta:</span>{" "}
                   {action.humanDescription ?? toolLabel(action.tool)}
-                  <span className="block">
-                    Era preciso confirmar na hora. Se ainda quiser, peça de novo.
-                  </span>
+                  {action.status ? (
+                    <span className="block">{PAST_ACTION_STATUS[action.status]}</span>
+                  ) : null}
                 </span>
               </li>
             ))}

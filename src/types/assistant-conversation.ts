@@ -3,12 +3,18 @@
 // latest messages — the client never resends `history`.
 import type { CursorPage } from "@/types/assistant-channel";
 
-// What a past turn proposed or did — a summary only: whether a proposed
-// action was later confirmed or cancelled is not saved.
+// What a past turn proposed or did. A proposed action comes back with its
+// status read on the spot (absent: nobody knows anymore); one still waiting
+// for this session also brings `params`/`diff` and can be confirmed.
 export interface AssistantConversationActionSummary {
+  id?: string;
   tool: string;
   riskLevel?: "standard" | "critical";
   humanDescription?: string;
+  expiresAt?: string;
+  status?: "pending" | "confirmed" | "cancelled" | "expired";
+  params?: Record<string, unknown>;
+  diff?: { field: string; from: unknown; to: unknown }[];
 }
 
 export interface AssistantConversationMessageMetadata {

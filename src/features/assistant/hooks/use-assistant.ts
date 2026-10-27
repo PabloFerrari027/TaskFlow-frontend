@@ -231,8 +231,7 @@ export function useConfirmPendingActionMutation(workspaceId: string) {
         router.push("/login");
         return;
       }
-
-      toast.success("Ação confirmada.");
+      // No toast: the card itself turns into "Confirmado", and a toast sat on top of the chat.
     },
     onError: (error) => toast.error(getErrorMessage(error)),
   });
@@ -324,7 +323,7 @@ export function useUpdateAssistantProfileMutation() {
 export function useCancelPendingActionMutation() {
   return useMutation({
     mutationFn: (actionId: string) => assistantService.cancelPendingAction(actionId),
-    onSuccess: () => toast.success("Ação cancelada."),
+    // No toast: the card itself says it was cancelled.
     onError: (error) => toast.error(getErrorMessage(error)),
   });
 }

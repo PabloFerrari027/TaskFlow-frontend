@@ -71,12 +71,15 @@ import type {
 
 const MAX_MESSAGE_LENGTH = 2000;
 
-// Saved chat messages back into transcript form. Proposed actions come back
-// display-only (`pastActions`): whether they were confirmed isn't saved, and
-// the action itself has long expired.
+// Saved chat messages back into transcript form. A proposed action still
+// waiting for this session comes back as a live card (it survives a page
+// reload); the others are a record (`pastActions`) with what happened.
 function toTranscript(messages: AssistantConversationMessage[]): ChatTranscriptMessage[] {
   return messages.map((message) => {
     const transcribed = new Set(message.metadata?.transcriptions?.map((t) => t.fileName));
+    const saved = message.metadata?.pendingActions ?? [];
+    const live = saved.filter((action) => action.status === "pending" && action.id && action.params);
+    const past = saved.filter((action) => !live.includes(action));
     return {
       id: message.id,
       role: message.role,
@@ -90,7 +93,19 @@ function toTranscript(messages: AssistantConversationMessage[]): ChatTranscriptM
         tool: action.tool,
         result: null,
       })),
-      pastActions: message.metadata?.pendingActions,
+      pendingActions: live.length
+        ? live.map((action) => ({
+            id: action.id!,
+            tool: action.tool,
+            riskLevel: action.riskLevel ?? "standard",
+            humanDescription: action.humanDescription ?? "",
+            params: action.params!,
+            diff: action.diff,
+            expiresAt: action.expiresAt,
+            status: "pending" as const,
+          }))
+        : undefined,
+      pastActions: past.length ? past : undefined,
     };
   });
 }

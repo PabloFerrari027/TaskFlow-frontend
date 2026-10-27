@@ -45,6 +45,7 @@ export function BarChartRenderer({
   const config = Object.fromEntries(
     series.map((s) => [s.alias, { label: s.label, color: s.color }])
   ) satisfies ChartConfig;
+  // Labelled bars get a 2px minimum: recharts skips a zero-size bar, and its "0%" label with it.
   const labelled = series.length === 1 && rows.length <= MAX_LABELLED_BARS;
   const format = (value: unknown) =>
     formatMetricValue(series[0].metric, typeof value === "number" ? value : null);
@@ -68,7 +69,7 @@ export function BarChartRenderer({
               content={(props) => <SeriesTooltipContent {...props} series={series} />}
             />
             {series.map((s) => (
-              <Bar key={s.alias} dataKey={s.alias} fill={s.color} radius={[4, 4, 0, 0]} maxBarSize={40}>
+              <Bar key={s.alias} dataKey={s.alias} fill={s.color} radius={[4, 4, 0, 0]} maxBarSize={40} minPointSize={labelled ? 2 : 0}>
                 {labelled ? (
                   <LabelList
                     dataKey={s.alias}
@@ -102,7 +103,7 @@ export function BarChartRenderer({
               content={(props) => <SeriesTooltipContent {...props} series={series} />}
             />
             {series.map((s) => (
-              <Bar key={s.alias} dataKey={s.alias} fill={s.color} radius={[0, 4, 4, 0]} maxBarSize={28}>
+              <Bar key={s.alias} dataKey={s.alias} fill={s.color} radius={[0, 4, 4, 0]} maxBarSize={28} minPointSize={labelled ? 2 : 0}>
                 {labelled ? (
                   <LabelList
                     dataKey={s.alias}

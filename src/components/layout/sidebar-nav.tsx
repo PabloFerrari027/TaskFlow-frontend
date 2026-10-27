@@ -42,8 +42,8 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <nav className="flex flex-col gap-6 px-3 py-5">
-      {/* The assistant is a headline feature: it gets a call to action above
-          every group instead of being one more link. */}
+      {/* Above every group, in the brand color, but the same size as any
+          link: the home page and the top bar already call for the assistant. */}
       <button
         type="button"
         data-tour="sidebar-assistant"
@@ -51,17 +51,10 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
           onNavigate?.();
           openChat();
         }}
-        className="group flex items-center gap-3 rounded-xl bg-linear-to-br from-primary to-primary/75 px-3 py-3 text-left text-primary-foreground shadow-sm shadow-primary/30 transition hover:shadow-md hover:shadow-primary/40"
+        className="-mb-3 flex items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium text-primary transition-colors hover:bg-primary/10"
       >
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary-foreground/15">
-          <Sparkles className="size-4.5" />
-        </span>
-        <span className="flex min-w-0 flex-col">
-          <span className="text-sm font-semibold">Conversar com a IA</span>
-          <span className="truncate text-xs text-primary-foreground/80">
-            Peça e ela faz por você
-          </span>
-        </span>
+        <Sparkles className="size-4.5" />
+        Conversar com a IA
       </button>
 
       {groups.map((group) => (
