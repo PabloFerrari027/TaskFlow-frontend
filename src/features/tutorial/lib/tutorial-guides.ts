@@ -280,7 +280,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Configurações do espaço",
         intro:
-          "Na página Espaços, abaixo dos cards, ficam as seções do espaço atual, uma embaixo da outra:",
+          "Na página Pessoas e espaços, abaixo dos cards, ficam as seções do espaço atual, uma embaixo da outra:",
         bullets: [
           "Membros: quem faz parte, com o papel de cada um.",
           "Convites: convites enviados e o estado de cada um (pendente, aceito, revogado ou expirado), com a data de expiração.",
@@ -289,14 +289,14 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         callouts: [
           {
             kind: "note",
-            text: "Desenvolvedores e Assistente têm cada um sua própria página no menu lateral, sempre referentes ao espaço selecionado no topo — não ficam nesta página.",
+            text: "O Assistente tem sua própria página no menu lateral, sempre referente ao espaço selecionado no topo. Para quem programa, chaves de API e webhooks ficam em “Avançado”, no fim desta página.",
           },
         ],
       },
       {
         heading: "Convidar pessoas",
         steps: [
-          "Na seção Membros ou Convites da página Espaços, clique em “Convidar pessoa”.",
+          "Na seção Membros ou Convites da página Pessoas e espaços, clique em “Convidar pessoa”.",
           "Informe o e-mail e escolha o papel: Administrador, Membro ou Convidado.",
           "A pessoa recebe um link. Ao abrir, ela vê um resumo do convite e precisa entrar (ou criar conta) para aceitar.",
           "Acompanhe na seção Convites. Se enviou para o e-mail errado, use “Revogar” e convide de novo.",
@@ -684,12 +684,11 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
           "Clicar num item abre um painel lateral sem tirar você do quadro. Existe também a página cheia do item, com o mesmo conteúdo. Nele, de cima para baixo:",
         bullets: [
           "Título e descrição, editáveis no próprio lugar.",
+          "Etapa, Prazo, Responsável e Prioridade, numa lista. Ao trocar, o valor é salvo na hora.",
+          "“Mais detalhes” (fechado até você abrir): coluna, quem acompanha, início, marco, estimativa, campos extras, dependências, aprovações e tempo.",
           "Subitens: use “Adicionar” para criar; clicar num subitem abre o painel dele.",
-          "Dependências, Aprovações, Tempo e Anexos.",
-          "Coluna, etapa, responsáveis, prazo, início, marco, estimativa e prioridade, cada um com seu seletor. Ao trocar, o valor é salvo na hora.",
-          "Participantes.",
-          "Campos extras da pasta.",
-          "Comentários e o histórico de atividade, sempre por último.",
+          "Anexos e comentários.",
+          "“Histórico” (fechado até você abrir), sempre por último.",
         ],
       },
       {
@@ -701,8 +700,8 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         ],
         callouts: [
           {
-            kind: "warning",
-            text: "Depois de definidos, prazo e prioridade só podem ser trocados por outro valor. O sistema não permite deixá-los em branco de novo.",
+            kind: "note",
+            text: "Para tirar o prazo, use o X ao lado da data. Para tirar a prioridade, escolha “Sem prioridade”.",
           },
         ],
       },
@@ -1174,7 +1173,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
           "A mesma linha do tempo existe em dois tamanhos, sempre em ordem cronológica e paginada. É a melhor forma de responder “quem mudou isso e quando?”.",
         bullets: [
           "Da pasta: na aba Atividade, dentro da pasta. Mostra só o que mudou nela: itens, comentários, colunas e campos extras.",
-          "Do espaço: na página Espaços, na seção Atividade. Mostra tudo, de todas as pastas, mais o que é do espaço (membros, automações, chaves de API).",
+          "Do espaço: na página Pessoas e espaços, na seção Atividade. Mostra tudo, de todas as pastas, mais o que é do espaço (membros, automações, chaves de API).",
         ],
       },
     ],

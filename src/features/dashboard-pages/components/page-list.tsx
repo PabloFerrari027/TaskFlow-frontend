@@ -58,12 +58,12 @@ export function PageList({ workspaceId }: { workspaceId: string }) {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Páginas de dashboard"
-        description="Monte páginas com os gráficos que importam para você e compartilhe quando quiser."
+        title="Resumos"
+        description="Números e gráficos das suas pastas e itens. Monte os seus e compartilhe quando quiser."
         actions={
           <OnlineOnly isOnline={isOnline}>
             <Button onClick={() => setCreating(true)}>
-              <Plus /> Nova página
+              <Plus /> Novo resumo
             </Button>
           </OnlineOnly>
         }
@@ -80,12 +80,12 @@ export function PageList({ workspaceId }: { workspaceId: string }) {
       ) : pages.length === 0 ? (
         <EmptyState
           icon={<LayoutDashboard className="size-6" />}
-          title="Nenhuma página ainda"
-          description="Crie uma página e adicione gráficos dos itens e pastas deste espaço."
+          title="Nenhum resumo ainda"
+          description="Crie um resumo e adicione gráficos dos itens e pastas deste espaço."
           action={
             <OnlineOnly isOnline={isOnline}>
               <Button onClick={() => setCreating(true)}>
-                <Plus /> Nova página
+                <Plus /> Novo resumo
               </Button>
             </OnlineOnly>
           }
@@ -131,10 +131,10 @@ export function PageList({ workspaceId }: { workspaceId: string }) {
         <PageNameDialog
           open
           onOpenChange={setCreating}
-          title="Nova página"
+          title="Novo resumo"
           description="Ela começa privada: só você vê até decidir compartilhar."
           initialName=""
-          submitLabel="Criar página"
+          submitLabel="Criar resumo"
           isPending={createMutation.isPending}
           onSubmit={(name) =>
             createMutation.mutate(

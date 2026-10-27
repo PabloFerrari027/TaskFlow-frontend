@@ -50,7 +50,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/folders", label: "Pastas", icon: FolderKanban, group: "work" },
   {
     href: "/workspaces/pages",
-    label: "Páginas",
+    label: "Resumos",
     icon: PanelsTopLeft,
     group: "work",
     workspaceHref: (workspaceId) => `/workspaces/${workspaceId}/pages`,

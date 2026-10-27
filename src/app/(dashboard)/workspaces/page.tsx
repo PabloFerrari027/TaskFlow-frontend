@@ -139,7 +139,7 @@ function CurrentWorkspaceSettings({ workspaceId }: { workspaceId: string }) {
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" asChild>
             <Link href={`/workspaces/${workspace.id}/pages`}>
-              <PanelsTopLeft /> Páginas
+              <PanelsTopLeft /> Resumos
             </Link>
           </Button>
           <RoleGate allowed={canManage}>
