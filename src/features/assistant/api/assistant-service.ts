@@ -56,6 +56,27 @@ function buildChatBody(
   };
 }
 
+// The server writes a `:ping` every 15 s while it works. Nothing at all for
+// this long means the connection died without closing (ex.: the API process
+// restarted mid-reply) — without a limit the chat stayed on "Pensando..."
+// forever; now the message fails and can be resent.
+const STREAM_IDLE_TIMEOUT_MS = 60_000;
+
+async function readWithin<T>(reader: ReadableStreamDefaultReader<T>, timeoutMs: number) {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(
+      () => reject(new AxiosError("Assistant stream stopped responding", AxiosError.ERR_NETWORK)),
+      timeoutMs
+    );
+  });
+  try {
+    return await Promise.race([reader.read(), timeout]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export const assistantService = {
   /**
    * `POST /assistant/chat/stream` — same body and admission errors as
@@ -110,7 +131,7 @@ export const assistantService = {
     let buffer = "";
     try {
       for (;;) {
-        const { value, done } = await reader.read();
+        const { value, done } = await readWithin(reader, STREAM_IDLE_TIMEOUT_MS);
         if (done) break;
         buffer += value;
 
