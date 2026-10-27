@@ -208,14 +208,13 @@ export const TOUR_STEPS: TourStep[] = [
     skipIfMissing: true,
     title: "As abas da pasta",
     description:
-      "Cada pasta tem várias abas, e uma frase logo abaixo explica a que está aberta. Você está em Itens, o quadro de trabalho.",
+      "Quatro abas ficam sempre à vista, e uma frase logo abaixo explica a que está aberta. Você está em Itens, o quadro de trabalho.",
     details: [
       "Itens: o quadro, com uma coluna por etapa do fluxo.",
-      "Estatísticas: os números da pasta, como quanto já foi feito e o que está atrasado.",
-      "Pessoas: quem tem acesso à pasta.",
-      "Convites: convide alguém por e-mail e acompanhe o aceite.",
-      "Campos extras: campos próprios em cada item, como cliente ou valor.",
-      "Atividade: tudo que mudou na pasta, com quem fez e quando.",
+      "Lembretes: o que volta sozinho em datas fixas, como uma conta todo mês.",
+      "Pessoas: quem tem acesso à pasta e os convites.",
+      "Em “Mais” ficam Estatísticas, Atividade, Campos extras, Lixeira e Configurações.",
+      "Editar, mover ou arquivar a pasta fica no botão “Opções da pasta”, ao lado do nome.",
     ],
   },
   {

@@ -384,7 +384,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         intro: "Na aba Pessoas da pasta:",
         bullets: [
           "Quem já é membro do workspace tem acesso automaticamente. Por isso a lista pode aparecer vazia: ela mostra só quem foi adicionado especificamente à pasta.",
-          "Para dar acesso a alguém de fora do workspace, use a aba Convites e “Convidar pessoa”, escolhendo Membro ou Convidado.",
+          "Para dar acesso a alguém de fora do workspace, abra a aba Pessoas e clique em “Convidar pessoa”, escolhendo Membro ou Convidado.",
           "“Remover da pasta” tira o acesso; você pode convidar de novo depois.",
         ],
         callouts: [
@@ -963,7 +963,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Criar uma repetição",
         steps: [
-          "Na pasta, abra a aba Repetições e clique em “Nova repetição”.",
+          "Na pasta, abra a aba Lembretes e clique em “Nova repetição”.",
           "Dê o título do item e, se quiser, coluna, responsável, prioridade e prazo (em dias depois de criado).",
           "Escolha quando repete: todo dia, toda semana (e em quais dias), todo mês (e em qual dia) ou todo ano — e o horário.",
           "Confira as próximas datas que aparecem embaixo e salve.",

@@ -2,7 +2,28 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ChevronDown } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+
+interface FolderTab {
+  href: string;
+  label: string;
+  /** One plain-language line on what the tab is for, shown under the tab bar. */
+  hint: string;
+  /** Other pages that count as this tab (Pessoas also covers Convites). */
+  also?: string[];
+  /** On a phone it moves into "Mais", so the bar fits without scrolling. */
+  phoneInMore?: boolean;
+}
+
+const TAB_CLASS = "shrink-0 border-b-2 px-2 py-2.5 text-sm font-medium transition-colors sm:px-3";
 
 export function FolderTabsNav({
   folderId,
@@ -15,9 +36,8 @@ export function FolderTabsNav({
   const pathname = usePathname();
   const base = `/folders/${folderId}`;
 
-  // `hint` is a one-line plain-language explanation of what the tab is for,
-  // shown under the tab bar so first-time users never have to guess.
-  const tabs = [
+  // What most people use, always visible; the rest under "Mais".
+  const mainTabs: FolderTab[] = [
     {
       href: `${base}/items`,
       label: "Itens",
@@ -27,31 +47,25 @@ export function FolderTabsNav({
       href: `${base}/timeline`,
       label: "Cronograma",
       hint: "Os itens com datas numa linha do tempo, com as dependências entre eles. Clique numa barra para abrir o item.",
+      phoneInMore: true,
     },
     {
       href: `${base}/recurring`,
-      label: "Repetições",
-      hint: "Itens que o TaskFlow cria sozinho em datas fixas, como “Pagar o aluguel” todo dia 5.",
-    },
-    {
-      href: `${base}/stats`,
-      label: "Estatísticas",
-      hint: "Veja em números como a pasta está andando: quanto já foi feito, o que está atrasado e quem está com mais itens.",
+      label: "Lembretes",
+      hint: "O que volta sozinho em datas fixas, como “Pagar o aluguel” todo dia 5.",
     },
     {
       href: `${base}/members`,
       label: "Pessoas",
-      hint: "Quem tem acesso a esta pasta. Para adicionar alguém, use a aba Convites.",
+      hint: "Quem tem acesso a esta pasta. Para chamar alguém, use “Convidar pessoa”.",
+      also: [`${base}/invitations`],
     },
+  ];
+  const moreTabs: FolderTab[] = [
     {
-      href: `${base}/invitations`,
-      label: "Convites",
-      hint: "Convide pessoas por e-mail e acompanhe quem já aceitou.",
-    },
-    {
-      href: `${base}/custom-fields`,
-      label: "Campos extras",
-      hint: "Crie campos próprios para guardar mais informações em cada item, como cliente ou valor.",
+      href: `${base}/stats`,
+      label: "Estatísticas",
+      hint: "Veja em números como a pasta está andando: quanto já foi feito, o que está atrasado e quem está com mais itens.",
     },
     {
       href: `${base}/activity`,
@@ -59,32 +73,42 @@ export function FolderTabsNav({
       hint: "A linha do tempo de tudo que mudou nesta pasta: quem fez e quando.",
     },
     {
-      href: `${base}/trash`,
-      label: "Lixeira",
-      hint: "Itens apagados nos últimos 30 dias. Dá para trazê-las de volta.",
-    },
-    {
-      href: `${base}/settings`,
-      label: "Configurações",
-      hint: "Ajuste como a pasta funciona: as etapas por onde os itens passam e outras regras.",
+      href: `${base}/custom-fields`,
+      label: "Campos extras",
+      hint: "Crie campos próprios para guardar mais informações em cada item, como cliente ou valor.",
     },
     ...(showAutomations
       ? [
           {
             href: `${base}/automations`,
             label: "Automações",
-            hint: "Deixe o TaskFlow fazer sozinho o que se repete nesta pasta, como mover itens concluídos de seção.",
+            hint: "Deixe o TaskFlow fazer sozinho o que se repete nesta pasta, como mover itens concluídos de coluna.",
           },
         ]
       : []),
+    {
+      href: `${base}/trash`,
+      label: "Lixeira",
+      hint: "Itens apagados nos últimos 30 dias. Dá para trazê-los de volta.",
+    },
+    {
+      href: `${base}/settings`,
+      label: "Configurações",
+      hint: "Ajuste como a pasta funciona: as etapas por onde os itens passam e outras regras.",
+    },
   ];
 
-  const activeTab = tabs.find((tab) => pathname.startsWith(tab.href));
+  const isActive = (tab: FolderTab) =>
+    [tab.href, ...(tab.also ?? [])].some((href) => pathname.startsWith(href));
+  const activeTab = [...mainTabs, ...moreTabs].find(isActive);
+  const activeMore = moreTabs.find(isActive);
+  const phoneTabs = mainTabs.filter((tab) => tab.phoneInMore);
+  const activePhoneTab = phoneTabs.find(isActive);
 
   return (
     <div className="space-y-2" data-tour="folder-tabs">
-      <div className="flex gap-1 overflow-x-auto border-b border-border/60">
-        {tabs.map((tab) => {
+      <div className="flex gap-0.5 overflow-x-auto border-b border-border/60 [scrollbar-width:none] sm:gap-1">
+        {mainTabs.map((tab) => {
           const active = tab === activeTab;
           return (
             <Link
@@ -92,7 +116,8 @@ export function FolderTabsNav({
               href={tab.href}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "shrink-0 border-b-2 px-3 py-2.5 text-sm font-medium transition-colors",
+                TAB_CLASS,
+                tab.phoneInMore && "hidden sm:block",
                 active
                   ? "border-primary text-foreground"
                   : "border-transparent text-muted-foreground hover:text-foreground"
@@ -102,8 +127,56 @@ export function FolderTabsNav({
             </Link>
           );
         })}
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            className={cn(
+              TAB_CLASS,
+              "inline-flex items-center gap-1 outline-none",
+              activeMore
+                ? "border-primary text-foreground"
+                : activePhoneTab
+                  ? "border-primary text-foreground sm:border-transparent sm:text-muted-foreground sm:hover:text-foreground"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+            )}
+          >
+            {activeMore ? (
+              activeMore.label
+            ) : activePhoneTab ? (
+              <>
+                <span className="sm:hidden">{activePhoneTab.label}</span>
+                <span className="hidden sm:inline">Mais</span>
+              </>
+            ) : (
+              "Mais"
+            )}
+            <ChevronDown className="size-4" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {phoneTabs.map((tab) => (
+              <DropdownMenuItem key={tab.href} asChild className="sm:hidden">
+                <Link href={tab.href}>{tab.label}</Link>
+              </DropdownMenuItem>
+            ))}
+            {moreTabs.map((tab) => (
+              <MoreTabItem key={tab.href} tab={tab} active={tab === activeMore} />
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
       {activeTab ? <p className="text-sm text-muted-foreground">{activeTab.hint}</p> : null}
     </div>
+  );
+}
+
+function MoreTabItem({ tab, active }: { tab: FolderTab; active: boolean }) {
+  return (
+    <>
+      {tab.label === "Lixeira" ? <DropdownMenuSeparator /> : null}
+      <DropdownMenuItem asChild>
+        <Link href={tab.href} aria-current={active ? "page" : undefined} className={cn(active && "font-medium")}>
+          {tab.label}
+        </Link>
+      </DropdownMenuItem>
+    </>
   );
 }

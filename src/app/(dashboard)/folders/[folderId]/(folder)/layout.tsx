@@ -3,8 +3,23 @@
 import * as React from "react";
 import { use } from "react";
 import Link from "next/link";
-import { Archive, FolderInput, FolderPlus, LayoutTemplate, Pencil, Wand2 } from "lucide-react";
+import {
+  Archive,
+  ChevronDown,
+  FolderInput,
+  FolderPlus,
+  LayoutTemplate,
+  Pencil,
+  Wand2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/shared/page-header";
 import { ErrorState } from "@/components/shared/error-state";
@@ -72,37 +87,46 @@ export default function FolderDetailLayout(
           <div className="flex flex-wrap items-center gap-2">
             <FolderStatusBadge status={folder.status} />
             <RoleGate allowed={canManage}>
-              <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
-                <Pencil /> Editar nome e descrição
-              </Button>
-              {folder.status === "ACTIVE" ? (
-                <Button variant="outline" size="sm" onClick={() => setSubfolderOpen(true)}>
-                  <FolderPlus /> Criar subpasta
-                </Button>
-              ) : null}
-              <Button variant="outline" size="sm" onClick={() => setMoveOpen(true)}>
-                <FolderInput /> Mover para outra pasta
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => setSaveTemplateOpen(true)}>
-                <LayoutTemplate /> Salvar como modelo
-              </Button>
-              {folder.status === "ACTIVE" ? (
-                <Button asChild variant="outline" size="sm">
-                  <Link href={`/templates?applyTo=${folder.id}`}>
-                    <Wand2 /> Aplicar um modelo
-                  </Link>
-                </Button>
-              ) : null}
-              {folder.status === "ACTIVE" ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-destructive hover:text-destructive"
-                  onClick={() => setArchiveOpen(true)}
-                >
-                  <Archive /> Arquivar pasta
-                </Button>
-              ) : null}
+              {/* One menu instead of six buttons competing with the title. */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    Opções da pasta <ChevronDown />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onSelect={() => setEditOpen(true)}>
+                    <Pencil /> Editar nome e descrição
+                  </DropdownMenuItem>
+                  {folder.status === "ACTIVE" ? (
+                    <DropdownMenuItem onSelect={() => setSubfolderOpen(true)}>
+                      <FolderPlus /> Criar subpasta
+                    </DropdownMenuItem>
+                  ) : null}
+                  <DropdownMenuItem onSelect={() => setMoveOpen(true)}>
+                    <FolderInput /> Mover para outra pasta
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onSelect={() => setSaveTemplateOpen(true)}>
+                    <LayoutTemplate /> Salvar como modelo
+                  </DropdownMenuItem>
+                  {folder.status === "ACTIVE" ? (
+                    <DropdownMenuItem asChild>
+                      <Link href={`/templates?applyTo=${folder.id}`}>
+                        <Wand2 /> Aplicar um modelo
+                      </Link>
+                    </DropdownMenuItem>
+                  ) : null}
+                  {folder.status === "ACTIVE" ? (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem variant="destructive" onSelect={() => setArchiveOpen(true)}>
+                        <Archive /> Arquivar pasta
+                      </DropdownMenuItem>
+                    </>
+                  ) : null}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </RoleGate>
           </div>
         }
