@@ -19,10 +19,10 @@ export function ItemDueDateInput({
   const updateMutation = useUpdateItemMutation(itemId);
 
   return (
-    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+    <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
       <Input
         type="date"
-        className="w-36 shrink-0"
+        className="w-[8.5rem] shrink-0 sm:w-36"
         value={toDateInputValue(dueDate)}
         disabled={updateMutation.isPending}
         onChange={(e) => {

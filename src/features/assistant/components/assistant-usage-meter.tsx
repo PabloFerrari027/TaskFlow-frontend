@@ -56,7 +56,7 @@ export function AssistantUsageMeter({
   const scale = dailyCap ?? niceScaleFor(tokensToday);
   const percent = Math.min(100, (tokensToday / scale) * 100);
   const label = dailyCap
-    ? `Hoje: ${Math.round(percent)}% do limite · ${messagesLabel(messagesFor(dailyCap - tokensToday))}`
+    ? `Hoje: ${Math.round(percent)}% · ${messagesLabel(messagesFor(dailyCap - tokensToday)).replace("cerca de ", "~")}`
     : "Uso de IA hoje";
   const countdown = formatCountdown(msUntilNextUtcMidnight(now));
 
@@ -79,12 +79,12 @@ export function AssistantUsageMeter({
           style={{ width: `${percent}%` }}
         />
       </div>
-      <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-        <span className="flex items-center gap-1">
+      <div className="flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
+        <span className="flex min-w-0 items-center gap-1">
           <Coins className="size-3" />
           {label}
         </span>
-        <span>renova em {countdown}</span>
+        <span className="shrink-0 whitespace-nowrap">renova em {countdown}</span>
       </div>
     </div>
   );
