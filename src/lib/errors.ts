@@ -249,19 +249,6 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   COUPON_REDEMPTION_LIMIT_REACHED: "Este cupom já atingiu o limite de usos.",
   COUPON_ALREADY_REDEEMED: "Você já usou este cupom.",
   COUPON_HAS_REDEMPTIONS: "Este cupom já foi usado e não pode ser apagado. Desative-o.",
-  ASSISTANT_CHANNEL_NOT_FOUND: "Este canal não existe.",
-  ASSISTANT_CHANNEL_UNAVAILABLE: "Este canal está indisponível no momento.",
-  INVALID_CHANNEL_ADDRESS: "Número inválido. Use o número com DDD (e o código do país, se não for do Brasil).",
-  ASSISTANT_CHANNEL_WORKSPACE_NOT_FOUND: "Espaço não encontrado.",
-  TOO_MANY_CHANNEL_VERIFICATION_REQUESTS:
-    "Muitos códigos pedidos em pouco tempo. Aguarde um pouco e tente de novo.",
-  CHANNEL_DELIVERY_FAILED:
-    "Não conseguimos enviar o código para este número. Confira se ele tem WhatsApp.",
-  CHANNEL_VERIFICATION_NOT_FOUND: "O código expirou ou já foi usado. Peça um novo.",
-  CHANNEL_VERIFICATION_INVALID_CODE: "Código incorreto. Confira e tente de novo.",
-  CHANNEL_VERIFICATION_MAX_ATTEMPTS_EXCEEDED: "Tentativas esgotadas. Peça um novo código.",
-  ASSISTANT_CHANNEL_LINK_NOT_FOUND: "Nenhum número vinculado a este canal.",
-  ASSISTANT_CHANNEL_CONVERSATION_NOT_FOUND: "Conversa não encontrada.",
   ASSISTANT_CONVERSATION_NOT_EMPTY: "A conversa já começou em outra aba. Atualize para ver as mensagens.",
   ITEM_NOT_MOVABLE_TO_FOLDER:
     "Só dá para levar para outra pasta (do mesmo espaço) um item solto: sem ser subitem, sem subitens, sem dependências e sem campos personalizados preenchidos.",

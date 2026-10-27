@@ -1071,7 +1071,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Escolher o que receber",
         intro:
-          "Em Conta → Notificações (ou na engrenagem do sino), ligue ou desligue cada tipo de aviso, no app, por e-mail e pelo WhatsApp. O WhatsApp usa o número que você vinculou ao assistente, na página Assistente. Sem número vinculado, nada é enviado por lá.",
+          "Em Conta → Notificações (ou na engrenagem do sino), ligue ou desligue cada tipo de aviso, no app e por e-mail.",
       },
       {
         heading: "Busca",
@@ -1530,31 +1530,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         heading: "Resumo e privacidade da conversa",
         bullets: [
           "O cabeçalho mostra quantas ações você confirmou na conversa. “Encerrar e revisar” mostra a lista antes de fechar.",
-          "A conversa não é guardada em lugar nenhum: ao fechar o painel, ela é descartada.",
-        ],
-      },
-      {
-        heading: "Pelo WhatsApp",
-        intro:
-          "Na página Assistente, em “Assistente no WhatsApp”, você vincula o seu número e passa a falar com o assistente sem abrir o TaskFlow:",
-        steps: [
-          "Informe o seu número (com DDD) e o espaço em que o assistente vai trabalhar.",
-          "Clique em “Enviar código pelo WhatsApp”. Chega um código de 6 dígitos no seu WhatsApp.",
-          "Digite o código na página e clique em Confirmar.",
-          "Mande um “oi” para o número do TaskFlow (o botão “Abrir conversa” já abre o chat).",
-        ],
-        bullets: [
-          "Mande texto, áudio, foto ou documento. Toda alteração pede confirmação com os botões Confirmar e Cancelar da própria conversa.",
-          "Ações críticas (excluir, arquivar, remover membro, encerrar sessão) não podem ser confirmadas pelo WhatsApp: faça-as aqui no app.",
-          "“nova” recomeça a conversa; “ajuda” lista os comandos; “/desvincular” desvincula o número.",
-          "Para trocar de espaço, escolha outro no cartão do WhatsApp. Para parar, clique em Desvincular.",
-          "Diferente do painel do app, as conversas pelo WhatsApp ficam guardadas: veja em “Conversas pelo WhatsApp”, na mesma página.",
-        ],
-        callouts: [
-          {
-            kind: "note",
-            text: "O código vale 10 minutos. Depois de 5 códigos errados, peça outro.",
-          },
+          "A conversa fica guardada: ao reabrir o painel, as mensagens anteriores continuam lá. Para começar do zero, use o botão de limpar a conversa.",
         ],
       },
       {

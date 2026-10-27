@@ -7,7 +7,6 @@ import type {
 } from "@/types/folder-template";
 import type { SearchParams } from "@/types/search";
 import type { WorkspaceBlueprintFilters } from "@/types/workspace-blueprint";
-import type { ListChannelConversationsParams } from "@/types/assistant-channel";
 import type { ListCouponsParams } from "@/types/plan";
 import { stableStringify } from "@/lib/utils";
 
@@ -26,15 +25,6 @@ export const queryKeys = {
   assistantConversation: {
     messages: () => ["assistant-conversation", "messages"] as const,
     profile: () => ["assistant-conversation", "profile"] as const,
-  },
-  // The assistant over WhatsApp & co. (API.md § 28) — per signed-in user.
-  assistantChannels: {
-    root: () => ["assistant-channels"] as const,
-    list: () => ["assistant-channels", "list"] as const,
-    conversations: (params: ListChannelConversationsParams) =>
-      ["assistant-channels", "conversations", params] as const,
-    messages: (conversationId: string) =>
-      ["assistant-channels", "messages", conversationId] as const,
   },
   clients: {
     all: (params?: { page?: number; status?: ClientStatus; email?: string }) =>

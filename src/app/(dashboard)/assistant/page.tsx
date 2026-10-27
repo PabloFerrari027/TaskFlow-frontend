@@ -13,7 +13,6 @@ import { AiUsageHistory } from "@/features/assistant/components/ai-usage-history
 import { FoldedSection } from "@/components/shared/folded-section";
 import { AssistantAllowanceCard } from "@/features/plans/components/assistant-allowance-card";
 import { AssistantProfileCard } from "@/features/assistant/components/assistant-profile-card";
-import { AssistantChannelsSection } from "@/features/assistant-channels/components/assistant-channels-section";
 import type { WorkspaceRole } from "@/types/workspace";
 
 export default function AssistantPage() {
@@ -38,8 +37,8 @@ export default function AssistantPage() {
         <div className="space-y-1">
           <h2 className="text-lg font-medium text-foreground">O que o assistente sabe sobre você</h2>
           <p className="text-sm text-muted-foreground">
-            Um resumo que ele mesmo escreve com o que você conta, para ajudar melhor — vale no app e no
-            WhatsApp. Você pode corrigir ou apagar quando quiser.
+            Um resumo que ele mesmo escreve com o que você conta, para ajudar melhor. Você pode corrigir
+            ou apagar quando quiser.
           </p>
         </div>
         <AssistantProfileCard />
@@ -64,8 +63,6 @@ export default function AssistantPage() {
           </Card>
         ) : null}
       </section>
-
-      <AssistantChannelsSection currentWorkspaceId={workspace?.id ?? null} />
 
       <section className="space-y-4">
         <div className="space-y-1">

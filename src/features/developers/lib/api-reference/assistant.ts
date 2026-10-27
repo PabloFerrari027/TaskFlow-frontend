@@ -133,7 +133,7 @@ export function buildAssistantEndpoints(workspaceId: string): ApiEndpoint[] {
       method: "GET",
       path: "/assistant/profile",
       summary: "O que o assistente sabe sobre você",
-      description: "Resumo escrito pelo assistente com o que você contou (vai ao prompt de toda conversa, no app e no WhatsApp) e o andamento do onboarding.",
+      description: "Resumo escrito pelo assistente com o que você contou (vai ao prompt de toda conversa) e o andamento do onboarding.",
       responseStatus: "200 OK",
       responseExample: '{ "summary": "Tem uma confeitaria e quer organizar as encomendas.", "onboarding": "FINISHED", "updatedAt": "..." }',
     },

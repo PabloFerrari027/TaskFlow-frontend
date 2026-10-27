@@ -20,7 +20,7 @@ const PROFILE_SUMMARY_MAX_LENGTH = 2000;
 /**
  * What the assistant knows about the user: a short summary it writes itself
  * from what they told it (mostly in the first conversation) and uses in every
- * chat, here and on WhatsApp. The user can read, fix or erase it.
+ * chat. The user can read, fix or erase it.
  */
 export function AssistantProfileCard() {
   const profileQuery = useAssistantProfileQuery();
@@ -102,7 +102,7 @@ export function AssistantProfileCard() {
                 </Button>
               }
               title="Apagar o que o assistente sabe sobre você?"
-              description="Ele deixa de usar essas informações nas conversas, aqui e no WhatsApp. Suas pastas, itens e mensagens não mudam."
+              description="Ele deixa de usar essas informações nas conversas. Suas pastas, itens e mensagens não mudam."
               confirmLabel="Apagar"
               isLoading={updateMutation.isPending}
               onConfirm={() => updateMutation.mutate(null)}

@@ -44,6 +44,4 @@ export interface NotificationPreference {
   inApp: boolean;
   /** Also sends an e-mail. */
   email: boolean;
-  /** Also sends to the WhatsApp linked to the assistant (nothing without a link). */
-  whatsapp: boolean;
 }

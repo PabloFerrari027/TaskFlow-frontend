@@ -161,17 +161,6 @@ export type ErrorCode =
   | "COUPON_REDEMPTION_LIMIT_REACHED"
   | "COUPON_ALREADY_REDEEMED"
   | "COUPON_HAS_REDEMPTIONS"
-  | "ASSISTANT_CHANNEL_NOT_FOUND"
-  | "ASSISTANT_CHANNEL_UNAVAILABLE"
-  | "INVALID_CHANNEL_ADDRESS"
-  | "ASSISTANT_CHANNEL_WORKSPACE_NOT_FOUND"
-  | "TOO_MANY_CHANNEL_VERIFICATION_REQUESTS"
-  | "CHANNEL_DELIVERY_FAILED"
-  | "CHANNEL_VERIFICATION_NOT_FOUND"
-  | "CHANNEL_VERIFICATION_INVALID_CODE"
-  | "CHANNEL_VERIFICATION_MAX_ATTEMPTS_EXCEEDED"
-  | "ASSISTANT_CHANNEL_LINK_NOT_FOUND"
-  | "ASSISTANT_CHANNEL_CONVERSATION_NOT_FOUND"
   | "ASSISTANT_CONVERSATION_NOT_EMPTY"
   | "ITEM_NOT_MOVABLE_TO_FOLDER"
   | "CAPTURE_NOT_FOUND"
@@ -238,4 +227,10 @@ export function isDomainError(
     "code" in data &&
     typeof (data as Record<string, unknown>).code === "string"
   );
+}
+
+// Newest page first; `nextCursor` goes further back.
+export interface CursorPage<T> {
+  items: T[];
+  nextCursor: string | null;
 }

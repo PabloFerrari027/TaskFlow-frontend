@@ -1,7 +1,7 @@
 // The user's single in-app chat with the assistant (API.md § 16, "O chat da
 // pessoa"). The server keeps the whole history and feeds the model only its
 // latest messages — the client never resends `history`.
-import type { CursorPage } from "@/types/assistant-channel";
+import type { CursorPage } from "@/types/common";
 
 // What a past turn proposed or did. A proposed action comes back with its
 // status read on the spot (absent: nobody knows anymore); one still waiting
@@ -44,8 +44,7 @@ export type AssistantConversationMessagePage = CursorPage<AssistantConversationM
 export type AssistantOnboardingStatus = "NOT_STARTED" | "IN_PROGRESS" | "FINISHED";
 
 // What the assistant knows about the user — a summary it writes itself from
-// what they told it (API.md § 16). Goes into every conversation, app and
-// WhatsApp alike.
+// what they told it (API.md § 16). Goes into every conversation.
 export interface AssistantProfile {
   summary: string | null;
   onboarding: AssistantOnboardingStatus;

@@ -27,7 +27,7 @@ export function Hero() {
         <p className="max-w-2xl text-balance text-lg text-muted-foreground">
           Conte o que você precisa — uma conta para pagar, um remédio, uma
           consulta, as compras da casa — e o TaskFlow guarda no lugar certo e
-          te lembra na hora. Por escrito ou por áudio, no app ou no WhatsApp.
+          te lembra na hora. Por escrito ou mandando um áudio.
         </p>
 
         <div className="flex flex-col gap-3 sm:flex-row">
