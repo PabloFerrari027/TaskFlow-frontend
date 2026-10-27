@@ -8,6 +8,8 @@ export const itemFormSchema = z.object({
   assigneeId: z.string().optional(),
   sectionId: z.string().min(1, "Selecione uma coluna."),
   dueDate: z.string().optional(),
+  /** "HH:mm"; only used together with a dueDate. */
+  dueTime: z.string().optional(),
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).optional(),
   mentionedUserIds: z.array(z.string()).max(50, "No máximo 50 menções."),
 });

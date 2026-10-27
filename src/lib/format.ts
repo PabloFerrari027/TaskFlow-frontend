@@ -109,9 +109,23 @@ export function fromDateInputValue(value: string) {
 // UTC offset, never as `...T12:00:00.000Z`, which the API reads as a day alone.
 export function dueDateFromDay(day: string, previous?: { dueDate: string | null; dueDateHasTime?: boolean }) {
   if (!previous?.dueDate || !previous.dueDateHasTime) return day;
-  const time = new Date(previous.dueDate);
+  return dueDateAt(day, timeInputValue(previous.dueDate));
+}
+
+// "HH:mm" in local time, for an <input type="time">.
+export function timeInputValue(value: string) {
+  const date = new Date(value);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+// A day plus an optional "HH:mm": without a time, the day alone; with one, that
+// local time with the UTC offset (the API needs the offset to know the hour).
+export function dueDateAt(day: string, time?: string) {
+  if (!time) return day;
   const [year, month, date] = day.split("-").map(Number);
-  const local = new Date(year, month - 1, date, time.getHours(), time.getMinutes());
+  const [hours, minutes] = time.split(":").map(Number);
+  const local = new Date(year, month - 1, date, hours, minutes);
   const offset = -local.getTimezoneOffset();
   const sign = offset >= 0 ? "+" : "-";
   const pad = (n: number) => String(Math.abs(n)).padStart(2, "0");
