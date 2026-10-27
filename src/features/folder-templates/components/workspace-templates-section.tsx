@@ -49,7 +49,7 @@ export function WorkspaceTemplatesSection() {
       <CardHeader>
         <CardTitle>Modelos de {workspace.name}</CardTitle>
         <CardDescription>
-          Modelos salvos a partir das pastas deste workspace. Só as pessoas daqui veem e usam.
+          Modelos salvos a partir das pastas deste espaço. Só as pessoas daqui veem e usam.
         </CardDescription>
         {canUseAi ? (
           <CardAction>

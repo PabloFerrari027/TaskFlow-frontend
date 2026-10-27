@@ -158,8 +158,8 @@ function FolderScopeNote({
       <p className="flex items-center gap-2">
         <Globe className="size-4 shrink-0" aria-hidden />
         {canLimit
-          ? "Do jeito que está, esta automação vale para todas as pastas do workspace."
-          : "Este tipo de acontecimento não pode ser limitado a uma pasta: a automação vai valer para todo o workspace."}
+          ? "Do jeito que está, esta automação vale para todas as pastas do espaço."
+          : "Este tipo de acontecimento não pode ser limitado a uma pasta: a automação vai valer para todo o espaço."}
       </p>
       {canLimit ? (
         <Button

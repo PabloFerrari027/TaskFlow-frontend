@@ -9,8 +9,8 @@ import {
 const TRUST_POINTS = [
   { icon: ShieldCheck, label: "Autenticação em duas etapas" },
   { icon: KeyRound, label: "Login com Google" },
-  { icon: Users, label: "Papéis e permissões por workspace" },
-  { icon: Layers, label: "Múltiplos workspaces e pastas" },
+  { icon: Users, label: "Papéis e permissões por espaço" },
+  { icon: Layers, label: "Múltiplos espaços e pastas" },
   { icon: SlidersHorizontal, label: "Campos personalizados por pasta" },
 ];
 

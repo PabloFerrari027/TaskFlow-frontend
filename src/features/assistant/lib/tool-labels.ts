@@ -3,10 +3,10 @@
 // never the raw tool name. Keep in sync with the backend catalogs
 // (`.claude/skills/taskflow-web-assistant/scripts/check-assistant-tools.mjs`).
 const TOOL_PAST_LABEL: Record<string, string> = {
-  create_workspace: "Workspace criado",
-  update_workspace: "Workspace atualizado",
+  create_workspace: "Espaço criado",
+  update_workspace: "Espaço atualizado",
   invite_workspace_member: "Membro convidado",
-  delete_workspace: "Workspace apagado",
+  delete_workspace: "Espaço apagado",
   remove_workspace_member: "Membro removido",
   create_folder: "Pasta criada",
   update_folder: "Pasta atualizada",
@@ -29,7 +29,7 @@ const TOOL_PAST_LABEL: Record<string, string> = {
   remind_about_item: "Aviso marcado",
   revoke_session: "Sessão encerrada",
   // Read tools: also reported as executed, so they need a label too.
-  list_workspaces: "Workspaces consultados",
+  list_workspaces: "Espaços consultados",
   list_folders: "Pastas consultadas",
   list_items: "Itens consultados",
   list_sessions: "Sessões consultadas",

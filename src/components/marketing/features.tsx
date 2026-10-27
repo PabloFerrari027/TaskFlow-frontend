@@ -10,9 +10,9 @@ import {
 const FEATURES = [
   {
     icon: Building2,
-    title: "Workspaces e pastas",
+    title: "Espaços e pastas",
     description:
-      "Organize equipes em workspaces, cada um com múltiplas pastas ativas ou arquivadas.",
+      "Organize equipes em espaços, cada um com múltiplas pastas ativas ou arquivadas.",
   },
   {
     icon: ListChecks,
@@ -36,7 +36,7 @@ const FEATURES = [
     icon: UserPlus,
     title: "Convites com papéis",
     description:
-      "Convide por e-mail para o workspace ou para uma pasta específica, com o papel certo para cada pessoa.",
+      "Convide por e-mail para o espaço ou para uma pasta específica, com o papel certo para cada pessoa.",
   },
   {
     icon: ShieldCheck,

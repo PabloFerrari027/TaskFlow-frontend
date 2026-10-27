@@ -86,7 +86,7 @@ export function AssistantChannelsSection({
         <div className="space-y-1">
           <h2 className="text-lg font-medium text-foreground">Conversas pelo WhatsApp</h2>
           <p className="text-sm text-muted-foreground">
-            Histórico completo, mesmo depois de “nova”, de trocar de workspace ou de desvincular.
+            Histórico completo, mesmo depois de “nova”, de trocar de espaço ou de desvincular.
           </p>
         </div>
         <ChannelConversationHistory workspaceNames={workspaceNames} />

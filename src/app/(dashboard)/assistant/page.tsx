@@ -49,14 +49,14 @@ export default function AssistantPage() {
         <div className="space-y-1">
           <h2 className="text-lg font-medium text-foreground">Configurações</h2>
           <p className="text-sm text-muted-foreground">
-            Liga ou desliga o assistente de IA com ações neste workspace.
+            Liga ou desliga o assistente de IA com ações neste espaço.
           </p>
         </div>
         {!isLoading && !workspace ? (
           <EmptyState
             icon={<Bot className="size-6" />}
-            title="Você ainda não tem um workspace"
-            description="Crie um workspace para configurar o assistente aqui."
+            title="Você ainda não tem um espaço"
+            description="Crie um espaço para configurar o assistente aqui."
           />
         ) : workspace ? (
           <Card className="p-4">

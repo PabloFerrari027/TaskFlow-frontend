@@ -148,7 +148,7 @@ export function ChannelConversationHistory({
   const [open, setOpen] = React.useState<ChannelConversation | null>(null);
   const conversations = conversationsQuery.data?.pages.flatMap((page) => page.items) ?? [];
   const workspaceName = (workspaceId: string) =>
-    workspaceNames.get(workspaceId) ?? "Outro workspace";
+    workspaceNames.get(workspaceId) ?? "Outro espaço";
 
   if (conversationsQuery.isLoading) {
     return (

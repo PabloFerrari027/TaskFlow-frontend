@@ -73,7 +73,7 @@ export function InviteFolderMemberDialog({
           <DialogTitle>Convidar para a pasta</DialogTitle>
           <DialogDescription>
             Dá acesso pontual a esta pasta sem tornar a pessoa membro do
-            workspace inteiro.
+            espaço inteiro.
           </DialogDescription>
         </DialogHeader>
 

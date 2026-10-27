@@ -12,7 +12,7 @@ export function WorkspaceActivitySection({ workspaceId }: { workspaceId: string 
     <ActivityFeed
       query={activityQuery}
       onPageChange={setPage}
-      emptyDescription="Mudanças em itens e comentários feitos neste workspace aparecerão aqui."
+      emptyDescription="Mudanças em itens e comentários feitos neste espaço aparecerão aqui."
     />
   );
 }

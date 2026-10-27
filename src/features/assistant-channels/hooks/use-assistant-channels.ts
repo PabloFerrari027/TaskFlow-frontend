@@ -69,7 +69,7 @@ export function useSwitchChannelWorkspaceMutation(channel: AssistantChannelId) {
       assistantChannelsService.switchWorkspace(channel, workspaceId),
     onSuccess: (link) => {
       setLink(queryClient, channel, link);
-      toast.success("Workspace trocado. A conversa recomeça do zero.");
+      toast.success("Espaço trocado. A conversa recomeça do zero.");
     },
     onError: (error) => toast.error(getErrorMessage(error)),
   });

@@ -39,10 +39,10 @@ function UseAction({
     return (
       <div className="space-y-3">
         <Note icon={<Sparkles />}>
-          <p>Para usar um modelo, você precisa de um workspace: é nele que a pasta é criada.</p>
+          <p>Para usar um modelo, você precisa de um espaço: é nele que a pasta é criada.</p>
         </Note>
         <Button size="lg" onClick={() => setCreateWorkspaceOpen(true)}>
-          <Plus /> Criar workspace
+          <Plus /> Criar espaço
         </Button>
         <CreateWorkspaceDialog open={createWorkspaceOpen} onOpenChange={setCreateWorkspaceOpen} />
       </div>
@@ -54,7 +54,7 @@ function UseAction({
     return (
       <Note icon={<Lock />}>
         <p>
-          Este modelo pertence a outro workspace e só pode ser usado lá. Troque de workspace no
+          Este modelo pertence a outro espaço e só pode ser usado lá. Troque de espaço no
           seletor do topo da tela para usá-lo.
         </p>
       </Note>
@@ -86,7 +86,7 @@ function UseAction({
             Troque de workspace no seletor do topo da tela, ou peça a um administrador para usar
             o modelo.{" "}
             <Link href="/workspaces" className="font-medium text-primary hover:underline">
-              Ver meus workspaces
+              Ver meus espaços
             </Link>
           </p>
         </Note>

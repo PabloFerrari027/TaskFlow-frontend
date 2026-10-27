@@ -198,7 +198,7 @@ export function ApplyBlueprintDialog({
             </>
           ) : (
             <p className="mr-auto text-xs text-muted-foreground">
-              Só donos e administradores do workspace podem usar modelos.
+              Só donos e administradores do espaço podem usar modelos.
             </p>
           )}
         </DialogFooter>

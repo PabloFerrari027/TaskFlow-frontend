@@ -29,7 +29,7 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   }));
 
   // Only the most specific match is highlighted: /workspaces/:id/pages is
-  // "Páginas", not also "Workspaces".
+  // "Páginas", not also "Espaços".
   const activeHref = items
     .map((item) => item.to)
     .filter((to) => pathname === to || pathname.startsWith(`${to}/`))

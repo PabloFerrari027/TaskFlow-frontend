@@ -74,7 +74,7 @@ export function WorkspaceTemplateActions({ template, onDeleted }: WorkspaceTempl
         onOpenChange={setDeleteOpen}
         trigger={<span className="hidden" />}
         title="Excluir este modelo?"
-        description="Ele some para todo o workspace. As pastas que já foram criadas com ele continuam iguais."
+        description="Ele some para todo o espaço. As pastas que já foram criadas com ele continuam iguais."
         confirmLabel="Excluir modelo"
         isLoading={deleteMutation.isPending}
         onConfirm={() =>

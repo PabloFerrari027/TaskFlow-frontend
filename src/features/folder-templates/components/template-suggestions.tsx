@@ -77,7 +77,7 @@ function SuggestionTile({
           </span>
         ) : isWorkspaceTemplate(template) ? (
           <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">
-            Do workspace
+            Do espaço
           </span>
         ) : null}
       </div>

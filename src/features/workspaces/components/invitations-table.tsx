@@ -57,7 +57,7 @@ export function WorkspaceInvitationsTable({
       <EmptyState
         icon={<MailX className="size-6" />}
         title="Nenhum convite enviado"
-        description="Convites enviados para este workspace aparecerão aqui."
+        description="Convites enviados para este espaço aparecerão aqui."
       />
     );
   }

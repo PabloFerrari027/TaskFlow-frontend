@@ -62,12 +62,12 @@ export const DATA_CATEGORIES: DataCategory[] = [
   },
   {
     category: "Conteúdo de trabalho",
-    data: "Workspaces, pastas, seções, itens, campos personalizados, comentários, menções e convites que você cria ou recebe.",
+    data: "Espaços, pastas, seções, itens, campos personalizados, comentários, menções e convites que você cria ou recebe.",
     purpose: "Entregar a funcionalidade principal do produto e permitir a colaboração com sua equipe.",
   },
   {
     category: "Histórico de atividade",
-    data: "Registro de quem alterou o quê e quando dentro de um workspace ou item.",
+    data: "Registro de quem alterou o quê e quando dentro de um espaço ou item.",
     purpose: "Dar transparência à equipe e permitir acompanhar o que mudou.",
   },
   {
@@ -81,7 +81,7 @@ export const USAGE_PURPOSES = [
   "Prestar o serviço: autenticar você, exibir suas pastas e itens e sincronizar alterações entre dispositivos e integrantes da equipe.",
   "Proteger sua conta: verificação em duas etapas por e-mail, controle de sessões e confirmação extra em ações sensíveis.",
   "Enviar comunicações necessárias ao serviço, como códigos de verificação, redefinição de senha e convites.",
-  "Notificar você quando for mencionado ou convidado para uma pasta ou workspace.",
+  "Notificar você quando for mencionado ou convidado para uma pasta ou espaço.",
   "Gerar análises e métricas sobre o seu próprio trabalho.",
   "Manter e melhorar o produto, corrigir falhas e prevenir fraudes e abusos.",
   "Cumprir obrigações legais e regulatórias, quando aplicável.",
@@ -94,7 +94,7 @@ export const NOT_DONE = [
 ];
 
 export const AI_POINTS = [
-  "O assistente e as consultas em linguagem natural só processam o que você digita quando decide usá-los, além do contexto necessário do workspace atual para responder.",
+  "O assistente e as consultas em linguagem natural só processam o que você digita quando decide usá-los, além do contexto necessário do espaço atual para responder.",
   "A conversa com o assistente não é salva: ela existe apenas enquanto a janela está aberta e some ao fechá-la.",
   "O assistente nunca altera seus dados sozinho. Toda ação que modifica algo aparece com uma descrição e os parâmetros exatos, e só é executada depois da sua confirmação. Ações críticas ainda pedem que você confirme sua identidade novamente.",
   "As respostas são geradas automaticamente e podem conter erros. Revise sempre a ação proposta antes de confirmar.",
@@ -102,7 +102,7 @@ export const AI_POINTS = [
 
 export const SHARING_POINTS = [
   {
-    title: "Integrantes do seu workspace e pastas",
+    title: "Integrantes do seu espaço e pastas",
     description:
       "Seu nome, e-mail, comentários, menções e atividades ficam visíveis para as pessoas com quem você colabora, de acordo com o papel de cada uma.",
   },
@@ -135,7 +135,7 @@ export const BROWSER_STORAGE: BrowserStorageItem[] = [
   },
   {
     name: "Preferências de interface",
-    description: "Tema, barra lateral recolhida, modo de visualização (quadro ou tabela), largura de colunas e workspace atual.",
+    description: "Tema, barra lateral recolhida, modo de visualização (quadro ou tabela), largura de colunas e espaço atual.",
   },
   {
     name: "Modo offline",
@@ -147,7 +147,7 @@ export const SECURITY_POINTS = [
   "Verificação em duas etapas por código enviado ao seu e-mail no login com senha.",
   "Lista de sessões ativas, com opção de encerrar qualquer uma delas.",
   "Confirmação de identidade adicional antes de ações críticas feitas pelo assistente.",
-  "Controle de acesso por papéis em workspaces e pastas.",
+  "Controle de acesso por papéis em espaços e pastas.",
   "Comunicação entre o aplicativo e a API protegida por conexão criptografada (HTTPS).",
 ];
 
@@ -175,12 +175,12 @@ export const FAQ: FaqItem[] = [
   {
     question: "Vocês vendem ou compartilham meus dados com anunciantes?",
     answer:
-      "Não. Não vendemos dados pessoais e não usamos o conteúdo das suas pastas para publicidade. O compartilhamento acontece apenas com as pessoas do seu workspace, com prestadores de serviço necessários à operação e quando a lei exige.",
+      "Não. Não vendemos dados pessoais e não usamos o conteúdo das suas pastas para publicidade. O compartilhamento acontece apenas com as pessoas do seu espaço, com prestadores de serviço necessários à operação e quando a lei exige.",
   },
   {
     question: "Quem consegue ver meus itens e pastas?",
     answer:
-      "Somente os integrantes dos workspaces e pastas dos quais você faz parte, conforme o papel de cada um. Ninguém fora deles enxerga o seu conteúdo.",
+      "Somente os integrantes dos espaços e pastas dos quais você faz parte, conforme o papel de cada um. Ninguém fora deles enxerga o seu conteúdo.",
   },
   {
     question: "Como funciona o login com Google? Vocês acessam minha conta do Google?",

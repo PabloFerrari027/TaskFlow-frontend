@@ -79,11 +79,11 @@ export default function HomePage() {
         <PageHeader title={title} description={todayLabel(now)} />
         <EmptyState
           icon={<Building2 className="size-6" />}
-          title="Vamos começar criando um workspace"
-          description="O workspace é o espaço da sua equipe: lá ficam as pastas, os itens e as pessoas."
+          title="Vamos começar criando um espaço"
+          description="Um espaço reúne suas pastas, itens e as pessoas com quem você divide: da casa, do trabalho ou da equipe."
           action={
             <Button onClick={() => setCreateWorkspaceOpen(true)}>
-              <Plus /> Criar workspace
+              <Plus /> Criar espaço
             </Button>
           }
         />

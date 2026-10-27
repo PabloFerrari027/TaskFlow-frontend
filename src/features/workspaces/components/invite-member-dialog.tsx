@@ -70,7 +70,7 @@ export function InviteMemberDialog({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Convidar para o workspace</DialogTitle>
+          <DialogTitle>Convidar para o espaço</DialogTitle>
           <DialogDescription>
             Um e-mail será enviado com um link de convite.
           </DialogDescription>

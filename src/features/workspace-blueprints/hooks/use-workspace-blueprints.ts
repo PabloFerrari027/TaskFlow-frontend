@@ -38,7 +38,7 @@ export function useWorkspaceBlueprintQuery(key: string | null | undefined) {
 /**
  * Not idempotent — two calls create the folders twice — so callers must block
  * a second submit while `isPending` (and while the queued run is going). The
- * workspace goes with each call: on "create workspace from a blueprint" it
+ * workspace goes with each call: on "create espaço from a blueprint" it
  * only exists once the create returns.
  */
 export function useApplyWorkspaceBlueprintMutation() {
@@ -67,7 +67,7 @@ export function useApplyWorkspaceBlueprintMutation() {
         queryClient.invalidateQueries({ queryKey: queryKeys.workspaceBlueprints.all() });
       }
       if (code === "FORBIDDEN_WORKSPACE_ACTION") {
-        toast.error("Só donos e administradores do workspace podem usar modelos. Nada foi criado.");
+        toast.error("Só donos e administradores do espaço podem usar modelos. Nada foi criado.");
         return;
       }
       // The server's text says which choice is wrong.

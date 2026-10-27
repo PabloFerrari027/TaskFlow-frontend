@@ -8,9 +8,9 @@ const PROBLEMS = [
 ];
 
 const SOLUTIONS = [
-  "Workspaces organizam times, pastas e itens em uma hierarquia clara",
+  "Espaços organizam times, pastas e itens em uma hierarquia clara",
   "Responsáveis, status e subitens deixam o progresso visível para todos",
-  "Convites por e-mail com papéis específicos para workspace e pasta",
+  "Convites por e-mail com papéis específicos para espaço e pasta",
   "Campos personalizados (texto, número, data, seleção, checkbox) por pasta",
 ];
 

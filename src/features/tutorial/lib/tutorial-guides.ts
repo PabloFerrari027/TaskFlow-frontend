@@ -95,7 +95,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         intro:
           "O TaskFlow tem poucas peças, sempre na mesma ordem de dentro para fora:",
         bullets: [
-          "Workspace: o espaço da sua equipe ou empresa. Reúne pessoas, pastas e configurações.",
+          "Espaço: o espaço da sua equipe ou empresa. Reúne pessoas, pastas e configurações.",
           "Pasta: um trabalho com começo e fim (ou uma área contínua). Pode ter subpastas.",
           "Coluna: uma etapa do quadro da pasta, como “A fazer” ou “Em andamento”. Pode ter subcolunas.",
           "Item: uma unidade de trabalho, com responsável, prazo, prioridade e status. Pode ter subitens.",
@@ -110,12 +110,12 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Do zero ao primeiro item",
         steps: [
-          "Se você ainda não tem workspace, a página Pastas mostra “Você ainda não tem um workspace”. Crie um pelo seletor no topo, em “Novo workspace”.",
+          "Se você ainda não tem espaço, a página Pastas mostra “Você ainda não tem um espaço”. Crie um pelo seletor no topo, em “Novo espaço”.",
           "Abra Pastas no menu lateral e clique em “Nova pasta”. Dê um nome e, se quiser, uma descrição.",
           "Entre na pasta. A aba Itens mostra o quadro. Clique em “Adicionar coluna” e crie as etapas do seu fluxo, por exemplo “A fazer”, “Em andamento” e “Concluído”.",
           "Clique em “Novo item”, escreva o título e escolha coluna, responsável, prazo e prioridade. Só o título é obrigatório.",
           "Arraste o item de uma coluna para outra conforme ele avança. Clique nele para abrir o detalhe.",
-          "Para trazer a equipe, abra Workspaces, entre no seu workspace e use a seção Convites.",
+          "Para trazer a equipe, abra Espaços, entre no seu espaço e use a seção Convites.",
         ],
         callouts: [
           {
@@ -130,10 +130,10 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
           "O menu lateral é dividido em grupos (Trabalho, Equipe, Ajuda e Conta), do que você usa todo dia para o que usa de vez em quando.",
         bullets: [
           "Início: seu resumo do dia, com os itens atribuídos a você, o que está atrasado e as pastas recentes. É a primeira tela depois do login.",
-          "Pastas: todas as pastas do workspace, ativas e arquivadas, em árvore ou tabela.",
-          "Desenvolvedores: chaves de API e webhooks do workspace atual (só Proprietário e Administrador veem este item).",
-          "Assistente: liga ou desliga o assistente de IA do workspace atual.",
-          "Workspaces: seus workspaces, membros, convites e a atividade do workspace atual.",
+          "Pastas: todas as pastas do espaço, ativas e arquivadas, em árvore ou tabela.",
+          "Desenvolvedores: chaves de API e webhooks do espaço atual (só Proprietário e Administrador veem este item).",
+          "Assistente: liga ou desliga o assistente de IA do espaço atual.",
+          "Espaços: seus espaços, membros, convites e a atividade do espaço atual.",
           "Perfil: foto, senha, vínculo com o Google e dispositivos conectados.",
         ],
       },
@@ -142,7 +142,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         question: "Criei uma pasta mas ela não aparece.",
         answer:
-          "Confira o workspace selecionado no topo: cada workspace tem suas próprias pastas. Pastas arquivadas ficam na aba Arquivadas da página Pastas.",
+          "Confira o espaço selecionado no topo: cada espaço tem suas próprias pastas. Pastas arquivadas ficam na aba Arquivadas da página Pastas.",
       },
       {
         question: "Preciso criar as colunas antes dos itens?",
@@ -158,15 +158,15 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
     id: "navigation",
     group: "start",
     title: "Navegando pelo sistema",
-    summary: "Menu lateral, barra superior, workspace atual e preferências que ficam salvas.",
+    summary: "Menu lateral, barra superior, espaço atual e preferências que ficam salvas.",
     icon: Compass,
     sections: [
       {
         heading: "Barra superior",
         bullets: [
           "Botão de menu: esconde ou mostra o menu lateral no computador. No celular, o menu abre como uma gaveta.",
-          "Seletor de workspace: troca o workspace atual. Tudo que você vê (pastas, atividade) é do workspace selecionado.",
-          "Botão “Perguntar à IA”: abre a conversa com o assistente (precisa estar ativado no workspace). Ela também abre pelo botão “Conversar com a IA”, no topo do menu lateral, pelo cartão da página Início ou com Ctrl J.",
+          "Seletor de espaço: troca o espaço atual. Tudo que você vê (pastas, atividade) é do espaço selecionado.",
+          "Botão “Perguntar à IA”: abre a conversa com o assistente (precisa estar ativado no espaço). Ela também abre pelo botão “Conversar com a IA”, no topo do menu lateral, pelo cartão da página Início ou com Ctrl J.",
           "Ícone de sincronização: só aparece quando você está offline, sincronizando ou com alterações pendentes.",
           "Tema: alterna entre claro, escuro e o padrão do sistema.",
           "Seu avatar: abre o menu da conta, com Tutorial, o tour guiado e “Sair”.",
@@ -177,7 +177,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         intro:
           "Algumas escolhas ficam guardadas só no navegador que você está usando. Elas não vão para o servidor nem acompanham você em outro dispositivo:",
         bullets: [
-          "O workspace atual.",
+          "O espaço atual.",
           "Se o menu lateral está escondido.",
           "O modo de visualização de pastas e de itens (cartões ou tabela).",
           "A largura de cada coluna do quadro.",
@@ -186,7 +186,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         callouts: [
           {
             kind: "note",
-            text: "Se você entrar de outro navegador e ver tudo “diferente” (outro workspace, outra visualização), é isso. Basta escolher de novo.",
+            text: "Se você entrar de outro navegador e ver tudo “diferente” (outro espaço, outra visualização), é isso. Basta escolher de novo.",
           },
         ],
       },
@@ -222,7 +222,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "O que a tela mostra",
         intro:
-          "A tela Início reúne os itens em que você é o responsável, no workspace selecionado no topo:",
+          "A tela Início reúne os itens em que você é o responsável, no espaço selecionado no topo:",
         bullets: [
           "Com você: quantos itens atribuídos a você ainda não foram concluídos.",
           "Atrasados: itens seus em aberto cujo prazo já passou.",
@@ -252,7 +252,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         question: "Os números não batem com o que vejo numa pasta.",
         answer:
-          "Confira o workspace selecionado no topo: a tela Início só conta o workspace atual. Os números também podem levar alguns segundos para atualizar depois de uma alteração.",
+          "Confira o espaço selecionado no topo: a tela Início só conta o espaço atual. Os números também podem levar alguns segundos para atualizar depois de uma alteração.",
       },
     ],
     related: ["items", "folder-stats"],
@@ -262,41 +262,41 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
   {
     id: "workspaces",
     group: "daily",
-    title: "Workspaces, pessoas e papéis",
-    summary: "Criar workspaces, convidar pessoas e entender o que cada papel pode fazer.",
+    title: "Espaços, pessoas e papéis",
+    summary: "Criar espaços, convidar pessoas e entender o que cada papel pode fazer.",
     icon: Building2,
     href: "/workspaces",
-    hrefLabel: "Abrir workspaces",
+    hrefLabel: "Abrir espaços",
     sections: [
       {
         heading: "Criar e alternar",
         steps: [
-          "No seletor do topo, escolha “Novo workspace” e dê um nome.",
-          "Para trocar de workspace, abra o mesmo seletor e clique no desejado. O item marcado é o atual.",
-          "Em Workspaces, cada card é um workspace. Clicar num card também o define como atual.",
-          "As configurações mostradas abaixo dos cards são sempre as do workspace atual: ao trocar no seletor, elas mudam junto.",
+          "No seletor do topo, escolha “Novo espaço” e dê um nome.",
+          "Para trocar de espaço, abra o mesmo seletor e clique no desejado. O item marcado é o atual.",
+          "Em Espaços, cada card é um espaço. Clicar num card também o define como atual.",
+          "As configurações mostradas abaixo dos cards são sempre as do espaço atual: ao trocar no seletor, elas mudam junto.",
         ],
       },
       {
-        heading: "Configurações do workspace",
+        heading: "Configurações do espaço",
         intro:
-          "Na página Workspaces, abaixo dos cards, ficam as seções do workspace atual, uma embaixo da outra:",
+          "Na página Espaços, abaixo dos cards, ficam as seções do espaço atual, uma embaixo da outra:",
         bullets: [
           "Membros: quem faz parte, com o papel de cada um.",
           "Convites: convites enviados e o estado de cada um (pendente, aceito, revogado ou expirado), com a data de expiração.",
-          "Atividade: a linha do tempo de tudo que aconteceu no workspace, de todas as pastas.",
+          "Atividade: a linha do tempo de tudo que aconteceu no espaço, de todas as pastas.",
         ],
         callouts: [
           {
             kind: "note",
-            text: "Desenvolvedores e Assistente têm cada um sua própria página no menu lateral, sempre referentes ao workspace selecionado no topo — não ficam nesta página.",
+            text: "Desenvolvedores e Assistente têm cada um sua própria página no menu lateral, sempre referentes ao espaço selecionado no topo — não ficam nesta página.",
           },
         ],
       },
       {
         heading: "Convidar pessoas",
         steps: [
-          "Na seção Membros ou Convites da página Workspaces, clique em “Convidar pessoa”.",
+          "Na seção Membros ou Convites da página Espaços, clique em “Convidar pessoa”.",
           "Informe o e-mail e escolha o papel: Administrador, Membro ou Convidado.",
           "A pessoa recebe um link. Ao abrir, ela vê um resumo do convite e precisa entrar (ou criar conta) para aceitar.",
           "Acompanhe na seção Convites. Se enviou para o e-mail errado, use “Revogar” e convide de novo.",
@@ -311,11 +311,11 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Papéis",
         intro:
-          "Existem quatro papéis: Proprietário, Administrador, Membro e Convidado. A tabela completa do que cada um pode fazer está em “Papéis e permissões”, logo abaixo dos guias. Em resumo, Proprietário e Administrador gerenciam o workspace; só o Proprietário controla o assistente, exclui o workspace e concede o papel de Proprietário.",
+          "Existem quatro papéis: Proprietário, Administrador, Membro e Convidado. A tabela completa do que cada um pode fazer está em “Papéis e permissões”, logo abaixo dos guias. Em resumo, Proprietário e Administrador gerenciam o espaço; só o Proprietário controla o assistente, exclui o espaço e concede o papel de Proprietário.",
         callouts: [
           {
             kind: "warning",
-            text: "O último Proprietário de um workspace não pode ser removido nem rebaixado. Promova outra pessoa a Proprietário antes de sair.",
+            text: "O último Proprietário de um espaço não pode ser removido nem rebaixado. Promova outra pessoa a Proprietário antes de sair.",
           },
           {
             kind: "tip",
@@ -324,16 +324,16 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         ],
       },
       {
-        heading: "Excluir um workspace",
+        heading: "Excluir um espaço",
         intro:
-          "Só o Proprietário pode, e apenas quando o workspace está vazio, sem outros membros além dele. Remova as demais pessoas primeiro.",
+          "Só o Proprietário pode, e apenas quando o espaço está vazio, sem outros membros além dele. Remova as demais pessoas primeiro.",
       },
     ],
     faq: [
       {
         question: "A pessoa aceitou o convite mas não vê as pastas.",
         answer:
-          "Peça que ela confira o workspace selecionado no seletor do topo. Quem entra num workspace passa a ver as pastas dele automaticamente. Para pastas específicas, o convite pode ter sido feito no nível da pasta (veja o guia de Pastas).",
+          "Peça que ela confira o espaço selecionado no seletor do topo. Quem entra num espaço passa a ver as pastas dele automaticamente. Para pastas específicas, o convite pode ter sido feito no nível da pasta (veja o guia de Pastas).",
       },
       {
         question: "Não consigo mudar o papel de alguém para Proprietário.",
@@ -383,14 +383,14 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         heading: "Quem tem acesso",
         intro: "Na aba Pessoas da pasta:",
         bullets: [
-          "Quem já é membro do workspace tem acesso automaticamente. Por isso a lista pode aparecer vazia: ela mostra só quem foi adicionado especificamente à pasta.",
-          "Para dar acesso a alguém de fora do workspace, abra a aba Pessoas e clique em “Convidar pessoa”, escolhendo Membro ou Convidado.",
+          "Quem já é membro do espaço tem acesso automaticamente. Por isso a lista pode aparecer vazia: ela mostra só quem foi adicionado especificamente à pasta.",
+          "Para dar acesso a alguém de fora do espaço, abra a aba Pessoas e clique em “Convidar pessoa”, escolhendo Membro ou Convidado.",
           "“Remover da pasta” tira o acesso; você pode convidar de novo depois.",
         ],
         callouts: [
           {
             kind: "note",
-            text: "Não existe papel de administrador dentro de uma pasta. Gerenciar pessoas, campos extras e arquivamento depende do papel da pessoa no workspace (Proprietário ou Administrador).",
+            text: "Não existe papel de administrador dentro de uma pasta. Gerenciar pessoas, campos extras e arquivamento depende do papel da pessoa no espaço (Proprietário ou Administrador).",
           },
         ],
       },
@@ -427,7 +427,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
     summary: "Começar uma pasta já organizada e salvar suas pastas como modelo.",
     icon: LayoutTemplate,
     audience:
-      "Qualquer pessoa pode ver os modelos. Para usar um modelo ou salvar uma pasta como modelo, é preciso ser Proprietário ou Administrador do workspace.",
+      "Qualquer pessoa pode ver os modelos. Para usar um modelo ou salvar uma pasta como modelo, é preciso ser Proprietário ou Administrador do espaço.",
     href: "/templates",
     hrefLabel: "Abrir modelos",
     sections: [
@@ -437,14 +437,14 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
           "Um modelo é uma pasta pronta para copiar. Em vez de montar colunas e campos do zero, você escolhe um modelo e o TaskFlow cria a pasta já organizada. Existem dois tipos, e os dois são grátis:",
         bullets: [
           "Modelos do TaskFlow: vêm prontos com o sistema e aparecem para todo mundo.",
-          "Modelos do workspace: salvos a partir de pastas do seu workspace. Só as pessoas desse workspace veem e usam.",
+          "Modelos do espaço: salvos a partir de pastas do seu espaço. Só as pessoas desse espaço veem e usam.",
         ],
       },
       {
         heading: "Usar um modelo",
         steps: [
           "Abra Modelos no menu lateral (ou “Começar de um modelo”, na página Pastas).",
-          "No alto aparecem os modelos do seu workspace. Mais abaixo, os do TaskFlow, com busca (por nome, descrição ou tag), filtro por categoria e nível, e ordem por destaques, mais usados ou mais recentes.",
+          "No alto aparecem os modelos do seu espaço. Mais abaixo, os do TaskFlow, com busca (por nome, descrição ou tag), filtro por categoria e nível, e ordem por destaques, mais usados ou mais recentes.",
           "Abra um modelo para ver a prévia: o guia, as colunas, as etapas, os itens de exemplo (com marcos e dependências), os campos, as automações, os formulários, as visões, os painéis e as subpastas.",
           "Clique em “Usar este modelo”, dê um nome à pasta e responda o que o modelo perguntar (veja abaixo).",
           "Acompanhe a barra de progresso. Quando terminar, você vai direto para a pasta criada.",
@@ -452,11 +452,11 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         callouts: [
           {
             kind: "tip",
-            text: "Também dá para escolher um modelo direto em “Nova pasta” ou “Criar subpasta”: os modelos aparecem logo abaixo do nome, começando pelos do seu workspace.",
+            text: "Também dá para escolher um modelo direto em “Nova pasta” ou “Criar subpasta”: os modelos aparecem logo abaixo do nome, começando pelos do seu espaço.",
           },
           {
             kind: "note",
-            text: "A pasta é criada no workspace que estiver selecionado no topo da tela. Só Proprietário e Administrador desse workspace podem usar modelos, porque o modelo cria campos extras e automações. Se o botão aparecer desativado, troque de workspace ou peça a um administrador.",
+            text: "A pasta é criada no espaço que estiver selecionado no topo da tela. Só Proprietário e Administrador desse espaço podem usar modelos, porque o modelo cria campos extras e automações. Se o botão aparecer desativado, troque de espaço ou peça a um administrador.",
           },
           {
             kind: "tip",
@@ -512,9 +512,9 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Criar ou adaptar um modelo com IA",
         steps: [
-          "Em Modelos, no quadro do seu workspace, clique em “Criar com IA” e descreva o que você quer organizar. Ou, na página de um modelo, clique em “Adaptar com IA” e diga o que mudar.",
+          "Em Modelos, no quadro do seu espaço, clique em “Criar com IA” e descreva o que você quer organizar. Ou, na página de um modelo, clique em “Adaptar com IA” e diga o que mudar.",
           "Confira o rascunho: a prévia mostra tudo o que ele vai criar. Nada foi salvo ainda.",
-          "Clique em “Criar pasta” para usar o rascunho agora, ou em “Salvar como modelo” para guardá-lo no workspace.",
+          "Clique em “Criar pasta” para usar o rascunho agora, ou em “Salvar como modelo” para guardá-lo no espaço.",
         ],
         callouts: [
           {
@@ -538,19 +538,19 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         callouts: [
           {
             kind: "note",
-            text: "O modelo é privado: só as pessoas do workspace veem e usam. Ele é uma cópia congelada da pasta. Para atualizá-lo, publique uma versão nova (veja abaixo).",
+            text: "O modelo é privado: só as pessoas do espaço veem e usam. Ele é uma cópia congelada da pasta. Para atualizá-lo, publique uma versão nova (veja abaixo).",
           },
         ],
       },
       {
         heading: "Editar, versões, imagens e excluir",
         intro:
-          "Abra um modelo do seu workspace. Proprietários e Administradores veem o quadro “Gerenciar este modelo”:",
+          "Abra um modelo do seu espaço. Proprietários e Administradores veem o quadro “Gerenciar este modelo”:",
         bullets: [
           "“Editar modelo” muda nome, descrição, categoria, tags, nível, idioma e duração.",
           "“Publicar versão nova” lê a pasta de origem de novo, como ela está agora. Escreva o que mudou: aparece no histórico de versões. Quem já usou o modelo é avisado de que há uma versão nova.",
           "Capa e imagens: a capa aparece no cartão do modelo; as imagens (até 6), na página dele. JPEG, PNG ou WebP de até 5MB.",
-          "“Excluir” apaga o modelo para todo o workspace. Pastas já criadas com ele continuam iguais.",
+          "“Excluir” apaga o modelo para todo o espaço. Pastas já criadas com ele continuam iguais.",
         ],
         callouts: [
           {
@@ -564,12 +564,12 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         question: "O botão “Usar este modelo” está desativado.",
         answer:
-          "No workspace selecionado você não é Proprietário nem Administrador. Troque de workspace no topo da tela ou peça a um administrador para usar o modelo.",
+          "No espaço selecionado você não é Proprietário nem Administrador. Troque de espaço no topo da tela ou peça a um administrador para usar o modelo.",
       },
       {
         question: "Outras pessoas veem os modelos que eu salvo?",
         answer:
-          "Só as pessoas do mesmo workspace. Quem é de fora não vê nem consegue usar.",
+          "Só as pessoas do mesmo espaço. Quem é de fora não vê nem consegue usar.",
       },
       {
         question: "Mudei minha pasta. O modelo que salvei muda junto?",
@@ -1058,7 +1058,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
     id: "notifications",
     group: "daily",
     title: "Notificações e busca",
-    summary: "Saiba o que mudou para você e encontre qualquer coisa no workspace.",
+    summary: "Saiba o que mudou para você e encontre qualquer coisa no espaço.",
     icon: Bell,
     sections: [
       {
@@ -1159,7 +1159,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Apagar comentários",
         bullets: [
-          "Você apaga os seus. Proprietários e Administradores do workspace apagam os de qualquer pessoa.",
+          "Você apaga os seus. Proprietários e Administradores do espaço apagam os de qualquer pessoa.",
           "Um comentário que já tem respostas não pode ser apagado (o botão fica desabilitado).",
         ],
       },
@@ -1169,12 +1169,12 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
           "Sob os comentários, a linha do tempo do item registra cada mudança: status, responsável, movimentação de coluna e novos comentários. Os comentários aparecem nos dois lugares de propósito: acima com o texto completo, e aqui como parte do resumo cronológico.",
       },
       {
-        heading: "Atividade da pasta e do workspace",
+        heading: "Atividade da pasta e do espaço",
         intro:
           "A mesma linha do tempo existe em dois tamanhos, sempre em ordem cronológica e paginada. É a melhor forma de responder “quem mudou isso e quando?”.",
         bullets: [
           "Da pasta: na aba Atividade, dentro da pasta. Mostra só o que mudou nela: itens, comentários, colunas e campos extras.",
-          "Do workspace: na página Workspaces, na seção Atividade. Mostra tudo, de todas as pastas, mais o que é do workspace (membros, automações, chaves de API).",
+          "Do espaço: na página Espaços, na seção Atividade. Mostra tudo, de todas as pastas, mais o que é do espaço (membros, automações, chaves de API).",
         ],
       },
     ],
@@ -1241,7 +1241,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         question: "Não vejo a aba Campos extras, ou o botão “Novo campo”.",
         answer:
-          "Gerenciar campos exige o papel de Proprietário ou Administrador no workspace.",
+          "Gerenciar campos exige o papel de Proprietário ou Administrador no espaço.",
       },
       {
         question: "O campo que criei não aparece no item.",
@@ -1269,7 +1269,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Comece por um template",
         intro:
-          "Sem regras na pasta ainda, a galeria de modelos ocupa a aba. Escolha um e o formulário abre já preenchido, faltando só o que é do seu workspace (por exemplo, qual coluna). Esses campos ficam destacados em âmbar.",
+          "Sem regras na pasta ainda, a galeria de modelos ocupa a aba. Escolha um e o formulário abre já preenchido, faltando só o que é do seu espaço (por exemplo, qual coluna). Esses campos ficam destacados em âmbar.",
         bullets: [
           "Mover para a coluna de concluídas: quando o status virar Concluída, o item vai para a coluna que você escolher.",
           "Devolver ao Backlog ao reabrir: quando um item concluído for reaberto, ele volta para a coluna que você escolher.",
@@ -1309,9 +1309,9 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
           "Dentro de cada pasta há a aba Automações. Ali você vê só o que age naquela pasta e pode ligar, pausar, editar ou excluir sem sair dela.",
         bullets: [
           "“Automações desta pasta”: as que valem só para ela. Uma automação criada por essa aba já nasce limitada à pasta.",
-          "“Automações de todo o workspace”: as que valem para todas as pastas, e por isso também agem nesta. Mudar uma delas muda o que acontece em todas as pastas.",
+          "“Automações de todo o espaço”: as que valem para todas as pastas, e por isso também agem nesta. Mudar uma delas muda o que acontece em todas as pastas.",
           "Se, ao montar a regra, ela deixar de estar limitada à pasta, um aviso em âmbar mostra isso e oferece “Limitar a esta pasta”.",
-          "“Automações antigas do workspace”: regras criadas antes, que reagem a algo fora das pastas (como alguém entrar no workspace). Não dá mais para criar ou editar regras assim, só pausar ou excluir.",
+          "“Automações antigas do espaço”: regras criadas antes, que reagem a algo fora das pastas (como alguém entrar no espaço). Não dá mais para criar ou editar regras assim, só pausar ou excluir.",
         ],
       },
       {
@@ -1334,7 +1334,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         question: "Não vejo a aba Automações na pasta.",
         answer:
-          "Ela só aparece para Proprietários e Administradores do workspace da pasta.",
+          "Ela só aparece para Proprietários e Administradores do espaço da pasta.",
       },
       {
         question: "Uma regra parou de funcionar.",
@@ -1353,7 +1353,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
     id: "developers",
     group: "advanced",
     title: "Chaves de API e webhooks",
-    summary: "Conecte um sistema seu ao workspace: chaves de API e avisos automáticos por webhook.",
+    summary: "Conecte um sistema seu ao espaço: chaves de API e avisos automáticos por webhook.",
     icon: Webhook,
     audience: "Proprietário e Administrador",
     href: "/developers",
@@ -1362,9 +1362,9 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Pra que serve, e quando ignorar",
         intro:
-          "Isso é para quando existe (ou vai existir) um sistema seu — um site, uma planilha automatizada, um bot — que precisa conversar com o TaskFlow sem uma pessoa clicando na tela. Se sua equipe só usa a interface do TaskFlow no dia a dia, pode pular esta seção sem perder nada: nada aqui muda o funcionamento normal do workspace.",
+          "Isso é para quando existe (ou vai existir) um sistema seu — um site, uma planilha automatizada, um bot — que precisa conversar com o TaskFlow sem uma pessoa clicando na tela. Se sua equipe só usa a interface do TaskFlow no dia a dia, pode pular esta seção sem perder nada: nada aqui muda o funcionamento normal do espaço.",
         bullets: [
-          "Chave de API: uma senha especial para um programa se identificar como o workspace, no lugar de uma pessoa.",
+          "Chave de API: uma senha especial para um programa se identificar como o espaço, no lugar de uma pessoa.",
           "Webhook: um aviso automático que o TaskFlow manda para um endereço seu toda vez que algo escolhido acontece — por exemplo, um item mudar de status.",
         ],
         callouts: [
@@ -1377,7 +1377,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Chaves de API",
         intro:
-          "Uma chave pertence ao workspace, não a uma pessoa: se quem criou sair do workspace, ela continua funcionando normalmente.",
+          "Uma chave pertence ao espaço, não a uma pessoa: se quem criou sair do espaço, ela continua funcionando normalmente.",
         steps: [
           "Na página Desenvolvedores → Chaves de API, clique em “Nova chave”.",
           "Dê um nome que ajude a lembrar pra que ela serve (por exemplo, “Integração com planilha de vendas”) e escolha os escopos: o que essa chave poderá fazer.",
@@ -1405,7 +1405,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
           "Um webhook é o oposto de ficar checando o TaskFlow toda hora: você cadastra um endereço seu (precisa ser https e público na internet — não funciona com endereços locais) e uma lista de eventos, e o TaskFlow avisa sozinho, na hora, sempre que um deles acontecer.",
         steps: [
           "Na página Desenvolvedores → Webhooks, clique em “Novo webhook”.",
-          "Informe a URL (https://…) que vai receber os avisos e escolha os eventos, como “item mudou de status” ou “membro adicionado ao workspace”.",
+          "Informe a URL (https://…) que vai receber os avisos e escolha os eventos, como “item mudou de status” ou “membro adicionado ao espaço”.",
           "Use o botão de “ping” para mandar um evento de teste e confirmar que seu sistema está recebendo e respondendo corretamente, antes de contar com eventos de verdade.",
         ],
         bullets: [
@@ -1422,9 +1422,9 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Segurança e histórico",
         intro:
-          "Toda criação, edição, giro de segredo e remoção — de chaves e de webhooks — fica registrada na seção Atividade da página Workspaces, com quem fez e quando.",
+          "Toda criação, edição, giro de segredo e remoção — de chaves e de webhooks — fica registrada na seção Atividade da página Espaços, com quem fez e quando.",
         bullets: [
-          "Só Proprietário e Administrador conseguem ver ou gerenciar qualquer uma das duas coisas, mesmo para apenas listar — mais restrito que a maioria das outras configurações, porque ambas dão acesso de longa duração ao workspace inteiro.",
+          "Só Proprietário e Administrador conseguem ver ou gerenciar qualquer uma das duas coisas, mesmo para apenas listar — mais restrito que a maioria das outras configurações, porque ambas dão acesso de longa duração ao espaço inteiro.",
         ],
       },
     ],
@@ -1442,7 +1442,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         question: "Não vejo a página Desenvolvedores no menu.",
         answer:
-          "Ela só aparece para Proprietário e Administrador do workspace atual — para os demais papéis, é esperado não existir.",
+          "Ela só aparece para Proprietário e Administrador do espaço atual — para os demais papéis, é esperado não existir.",
       },
     ],
     related: ["workspaces", "automations", "plans"],
@@ -1453,7 +1453,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
     title: "Assistente de IA",
     summary: "Consulte e altere dados conversando, sempre com a sua confirmação.",
     icon: Bot,
-    audience: "Ativação: Proprietário. Uso: quem estiver no workspace.",
+    audience: "Ativação: Proprietário. Uso: quem estiver no espaço.",
     href: "/assistant",
     hrefLabel: "Abrir assistente",
     sections: [
@@ -1461,7 +1461,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         heading: "Ativar",
         steps: [
           "O Proprietário abre a página Assistente, no menu lateral.",
-          "Liga a opção. Todo workspace novo nasce com o assistente desligado.",
+          "Liga a opção. Todo espaço novo nasce com o assistente desligado.",
         ],
         callouts: [
           {
@@ -1475,11 +1475,11 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         intro:
           "Clique no ícone do assistente na barra superior. Peça o que precisa em linguagem natural. Ele consegue, por exemplo:",
         bullets: [
-          "Criar e atualizar workspaces, pastas e itens.",
+          "Criar e atualizar espaços, pastas e itens.",
           "Atribuir itens, mudar o status, mover entre colunas e adicionar ou remover participantes.",
           "Pedir a aprovação de um item a alguém.",
-          "Convidar e remover membros do workspace.",
-          "Arquivar pastas, revogar sessões e excluir workspaces (ações críticas).",
+          "Convidar e remover membros do espaço.",
+          "Arquivar pastas, revogar sessões e excluir espaços (ações críticas).",
         ],
       },
       {
@@ -1514,7 +1514,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Ações críticas",
         intro:
-          "Ações de maior risco (excluir workspace, remover membro, arquivar pasta e revogar sessão) pedem uma confirmação extra de identidade numa janela que não fecha ao clicar fora:",
+          "Ações de maior risco (excluir espaço, remover membro, arquivar pasta e revogar sessão) pedem uma confirmação extra de identidade numa janela que não fecha ao clicar fora:",
         bullets: [
           "Com senha: digite sua senha atual.",
           "Com Google: use “Confirmar com Google”. Se sua conta tem os dois, você escolhe.",
@@ -1539,7 +1539,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
         intro:
           "Na página Assistente, em “Assistente no WhatsApp”, você vincula o seu número e passa a falar com o assistente sem abrir o TaskFlow:",
         steps: [
-          "Informe o seu número (com DDD) e o workspace em que o assistente vai trabalhar.",
+          "Informe o seu número (com DDD) e o espaço em que o assistente vai trabalhar.",
           "Clique em “Enviar código pelo WhatsApp”. Chega um código de 6 dígitos no seu WhatsApp.",
           "Digite o código na página e clique em Confirmar.",
           "Mande um “oi” para o número do TaskFlow (o botão “Abrir conversa” já abre o chat).",
@@ -1548,7 +1548,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
           "Mande texto, áudio, foto ou documento. Toda alteração pede confirmação com os botões Confirmar e Cancelar da própria conversa.",
           "Ações críticas (excluir, arquivar, remover membro, encerrar sessão) não podem ser confirmadas pelo WhatsApp: faça-as aqui no app.",
           "“nova” recomeça a conversa; “ajuda” lista os comandos; “/desvincular” desvincula o número.",
-          "Para trocar de workspace, escolha outro no cartão do WhatsApp. Para parar, clique em Desvincular.",
+          "Para trocar de espaço, escolha outro no cartão do WhatsApp. Para parar, clique em Desvincular.",
           "Diferente do painel do app, as conversas pelo WhatsApp ficam guardadas: veja em “Conversas pelo WhatsApp”, na mesma página.",
         ],
         callouts: [
@@ -1561,14 +1561,14 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Proteção automática",
         intro:
-          "Se o sistema perceber conteúdo suspeito repetidamente, ou várias falhas de reautenticação em pouco tempo, ele desliga o assistente do workspace sozinho. Depois disso, só um Proprietário pode reativá-lo.",
+          "Se o sistema perceber conteúdo suspeito repetidamente, ou várias falhas de reautenticação em pouco tempo, ele desliga o assistente do espaço sozinho. Depois disso, só um Proprietário pode reativá-lo.",
       },
     ],
     faq: [
       {
         question: "O campo de mensagem está desabilitado.",
         answer:
-          "O assistente está desligado neste workspace. Peça a um Proprietário para ligá-lo na página Assistente.",
+          "O assistente está desligado neste espaço. Peça a um Proprietário para ligá-lo na página Assistente.",
       },
       {
         question: "O assistente estava funcionando e parou.",
@@ -1724,7 +1724,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "O que é um plano",
         intro:
-          "Um plano define quantos “tokens” — a unidade que mede o quanto o modelo de IA processou — você pode gastar usando a IA do TaskFlow, como o chat do assistente. Cada plano tem um preço por mês (ainda só informativo: não há cobrança). O plano é por pessoa, não por workspace: o mesmo plano vale em todos os workspaces em que você está.",
+          "Um plano define quantos “tokens” — a unidade que mede o quanto o modelo de IA processou — você pode gastar usando a IA do TaskFlow, como o chat do assistente. Cada plano tem um preço por mês (ainda só informativo: não há cobrança). O plano é por pessoa, não por espaço: o mesmo plano vale em todos os espaços em que você está.",
         callouts: [
           {
             kind: "note",
@@ -1800,7 +1800,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Para administradores da plataforma",
         intro:
-          "Administradores da plataforma (papel diferente de Administrador de workspace) têm uma área própria, em Administração → Planos, para criar planos e ajustar o teto e o preço de um existente, e podem corrigir manualmente o plano de um cliente específico pela página de detalhe dele. Em Administração → Cupons, criam e acompanham os cupons de desconto.",
+          "Administradores da plataforma (papel diferente de Administrador de espaço) têm uma área própria, em Administração → Planos, para criar planos e ajustar o teto e o preço de um existente, e podem corrigir manualmente o plano de um cliente específico pela página de detalhe dele. Em Administração → Cupons, criam e acompanham os cupons de desconto.",
         callouts: [
           {
             kind: "note",

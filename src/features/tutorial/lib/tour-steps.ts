@@ -21,7 +21,7 @@ export interface TourStep {
   // were first shown on.
   route?: string;
   // Steps that only make sense together (they need the same optional data,
-  // e.g. "the workspace has at least one item"). When one of them can't find
+  // e.g. "the espaço has at least one item"). When one of them can't find
   // its target, the whole section is skipped.
   section?: string;
   // Skip the step instead of showing it centered when the target never
@@ -57,7 +57,7 @@ export const TOUR_STEPS: TourStep[] = [
     chapter: "Boas-vindas",
     title: "Bem-vindo ao TaskFlow!",
     description:
-      "Este tour leva cerca de 3 minutos: primeiro umas perguntas rápidas sobre você (para o assistente já te conhecer), depois as telas reais do sistema: o menu, suas pastas, o quadro de itens, um item por dentro e os workspaces. Nada é criado ou alterado sem você pedir.",
+      "Este tour leva cerca de 3 minutos: primeiro umas perguntas rápidas sobre você (para o assistente já te conhecer), depois as telas reais do sistema: o menu, suas pastas, o quadro de itens, um item por dentro e os espaços. Nada é criado ou alterado sem você pedir.",
     details: [
       "Use as setas → e ← do teclado para avançar e voltar, ou Esc para sair.",
       "Ao terminar, você volta para a página em que estava.",
@@ -85,12 +85,12 @@ export const TOUR_STEPS: TourStep[] = [
     chapter: "Navegação",
     target: "workspace-switcher",
     placement: "bottom",
-    title: "Seu workspace",
+    title: "Seu espaço",
     description:
-      "Um workspace é o espaço de uma equipe ou empresa: reúne pastas, itens e pessoas. Tudo o que você vê (pastas, atividade) pertence ao workspace selecionado aqui.",
+      "Um espaço é o espaço de uma equipe ou empresa: reúne pastas, itens e pessoas. Tudo o que você vê (pastas, atividade) pertence ao espaço selecionado aqui.",
     details: [
-      "Clique para trocar de workspace ou criar um novo.",
-      "Se algo parecer ter sumido, confira primeiro se o workspace certo está selecionado.",
+      "Clique para trocar de espaço ou criar um novo.",
+      "Se algo parecer ter sumido, confira primeiro se o espaço certo está selecionado.",
     ],
   },
   {
@@ -103,8 +103,8 @@ export const TOUR_STEPS: TourStep[] = [
     description: "É por aqui que você circula entre as áreas do sistema:",
     details: [
       "Início: o resumo do seu dia — o que vence, o que está atrasado e o assistente.",
-      "Pastas: todas as pastas do workspace, ativas e arquivadas.",
-      "Workspaces: membros, convites, atividade e automações.",
+      "Pastas: todas as pastas do espaço, ativas e arquivadas.",
+      "Espaços: membros, convites, atividade e automações.",
       "Perfil: sua conta, sua senha e seus dispositivos.",
     ],
   },
@@ -116,7 +116,7 @@ export const TOUR_STEPS: TourStep[] = [
     skipIfMissing: true,
     title: "Mais espaço para o quadro",
     description:
-      "Este botão esconde e mostra o menu lateral. O navegador lembra a sua escolha, junto com o workspace atual e a forma de visualizar pastas e itens.",
+      "Este botão esconde e mostra o menu lateral. O navegador lembra a sua escolha, junto com o espaço atual e a forma de visualizar pastas e itens.",
   },
   {
     id: "assistant",
@@ -130,7 +130,7 @@ export const TOUR_STEPS: TourStep[] = [
       "Exemplo: “crie um item Revisar contrato na pasta Jurídica”.",
       "Abra a conversa por este botão, pelo “Conversar com a IA” no menu lateral ou com Ctrl J (⌘J no Mac).",
       "Toda alteração aparece antes num cartão de ação pendente. Só o botão “Confirmar” executa; escrever “sim” no chat não basta.",
-      "Ações críticas, como remover membros ou excluir o workspace, pedem também a sua senha ou o Google.",
+      "Ações críticas, como remover membros ou excluir o espaço, pedem também a sua senha ou o Google.",
     ],
   },
   {
@@ -168,7 +168,7 @@ export const TOUR_STEPS: TourStep[] = [
     skipIfMissing: true,
     title: "Crie uma pasta",
     description:
-      "Uma pasta é um trabalho com começo e fim, ou uma área contínua da equipe. A página Pastas mostra todas as pastas do workspace, e é daqui que você cria a primeira.",
+      "Uma pasta é um trabalho com começo e fim, ou uma área contínua da equipe. A página Pastas mostra todas as pastas do espaço, e é daqui que você cria a primeira.",
     details: [
       "Clique em “Nova pasta”, dê um nome e, se quiser, uma descrição.",
       "Uma pasta pode ter subpastas, para separar fases ou frentes de trabalho.",
@@ -350,40 +350,40 @@ export const TOUR_STEPS: TourStep[] = [
   // ------------------------------------------------------------ workspaces
   {
     id: "workspace-cards",
-    chapter: "Workspaces",
+    chapter: "Espaços",
     route: "/workspaces",
     section: "workspace",
     target: "workspace-cards",
     placement: "bottom",
     skipIfMissing: true,
-    title: "Seus workspaces",
+    title: "Seus espaços",
     description:
-      "Cada cartão é um workspace do qual você faz parte, com o seu papel nele. Clicar no cartão o define como o atual — o mesmo que trocar no seletor do topo — e as configurações logo abaixo passam a ser as dele.",
+      "Cada cartão é um espaço do qual você faz parte, com o seu papel nele. Clicar no cartão o define como o atual — o mesmo que trocar no seletor do topo — e as configurações logo abaixo passam a ser as dele.",
   },
   {
     id: "workspace-members-section",
-    chapter: "Workspaces",
+    chapter: "Espaços",
     section: "workspace",
     target: "workspace-members-section",
     placement: "bottom",
     skipIfMissing: true,
     title: "Membros e convites",
     description:
-      "Abaixo dos cartões ficam as configurações do workspace atual: quem faz parte (com o papel de cada um: Proprietário, Administrador, Membro ou Convidado) e, logo abaixo, os convites por e-mail, com o status de cada um (pendente, aceito, revogado ou expirado).",
+      "Abaixo dos cartões ficam as configurações do espaço atual: quem faz parte (com o papel de cada um: Proprietário, Administrador, Membro ou Convidado) e, logo abaixo, os convites por e-mail, com o status de cada um (pendente, aceito, revogado ou expirado).",
   },
   {
     id: "workspace-more-in-sidebar",
-    chapter: "Workspaces",
+    chapter: "Espaços",
     section: "workspace",
     target: "sidebar-toggle",
     placement: "bottom",
     skipIfMissing: true,
     title: "O resto fica no menu lateral",
     description:
-      "Desenvolvedores e Assistente têm cada um a própria página no menu lateral, sempre falando do workspace atual (o que está selecionado no topo). A atividade do workspace fica nesta página, logo abaixo dos convites.",
+      "O Assistente tem a própria página no menu lateral, sempre falando do espaço atual (o que está selecionado no topo). A atividade do espaço fica nesta página, logo abaixo dos convites.",
     details: [
-      "Desenvolvedores: chaves de API e webhooks (só Proprietário e Administrador veem esta página).",
       "Assistente: liga ou desliga a IA (só o Proprietário pode alterar).",
+      "Para quem programa: em “Avançado”, no fim desta página, ficam as chaves de API e os webhooks (só Proprietário e Administrador veem).",
     ],
   },
 

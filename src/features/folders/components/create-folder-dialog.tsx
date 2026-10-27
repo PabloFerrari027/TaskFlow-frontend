@@ -198,7 +198,7 @@ export function CreateFolderDialog({
               ? `Crie uma subpasta dentro de “${parent.name}”, do zero ou a partir de um modelo.`
               : showSuggestions
                 ? "Comece do zero ou escolha um modelo com colunas e itens já organizados."
-                : "Crie uma pasta dentro deste workspace."}
+                : "Crie uma pasta dentro deste espaço."}
           </DialogDescription>
         </DialogHeader>
 

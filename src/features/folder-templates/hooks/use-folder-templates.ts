@@ -105,7 +105,7 @@ function toastInstantiationError(queryClient: QueryClient, error: unknown, templ
     return;
   }
   if (code === "FORBIDDEN_WORKSPACE_ACTION") {
-    toast.error("Só donos e administradores do workspace podem usar modelos. Nada foi criado.");
+    toast.error("Só donos e administradores do espaço podem usar modelos. Nada foi criado.");
     return;
   }
   if (code === "INVALID_TEMPLATE_INSTANTIATION" || code === "INVALID_FOLDER_TEMPLATE_SKELETON") {
@@ -294,7 +294,7 @@ export function useTemplateMediaMutation(templateId: string, admin = false) {
 
 function toastAiError(error: unknown) {
   if (getErrorCode(error) === "FORBIDDEN_WORKSPACE_ACTION") {
-    toast.error("Só donos e administradores do workspace podem usar a IA nos modelos.");
+    toast.error("Só donos e administradores do espaço podem usar a IA nos modelos.");
     return;
   }
   toast.error(getErrorMessage(error));
@@ -324,7 +324,7 @@ export function useCreateWorkspaceTemplateMutation(workspaceId: string) {
       folderTemplatesService.createForWorkspace(workspaceId, input),
     onSuccess: (template) => {
       cacheWorkspaceTemplate(queryClient, template);
-      toast.success("Modelo salvo no workspace.");
+      toast.success("Modelo salvo no espaço.");
     },
     onError: toastTemplateWriteError,
   });

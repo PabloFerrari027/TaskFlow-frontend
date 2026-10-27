@@ -1,9 +1,9 @@
 const STEPS = [
   {
     step: "01",
-    title: "Crie seu workspace",
+    title: "Crie seu espaço",
     description:
-      "Cadastre-se, confirme com o código de segurança enviado por e-mail e crie o workspace da sua equipe.",
+      "Cadastre-se, confirme com o código de segurança enviado por e-mail e crie o espaço da sua equipe.",
   },
   {
     step: "02",

@@ -53,7 +53,7 @@ export function FolderMembersTable({
       <EmptyState
         icon={<Users className="size-6" />}
         title="Ninguém foi adicionado só a esta pasta"
-        description="Quem já faz parte do workspace tem acesso automaticamente. Para dar acesso a outra pessoa, envie um convite."
+        description="Quem já faz parte do espaço tem acesso automaticamente. Para dar acesso a outra pessoa, envie um convite."
         action={
           canManage ? (
             <Button asChild>

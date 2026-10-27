@@ -42,10 +42,10 @@ export function WorkspaceBlueprintsSection() {
   return (
     <section className="space-y-4">
       <div className="space-y-1">
-        <h2 className="text-lg font-semibold tracking-tight">Modelos de workspace</h2>
+        <h2 className="text-lg font-semibold tracking-tight">Modelos de espaço</h2>
         <p className="text-sm text-muted-foreground">
           Um conjunto de pastas para o seu tipo de trabalho, já ligadas entre si por automações,
-          painéis e rotinas. Ao usar, as pastas são criadas no workspace atual — nada do que já
+          painéis e rotinas. Ao usar, as pastas são criadas no espaço atual — nada do que já
           existe muda.
         </p>
       </div>
@@ -57,7 +57,7 @@ export function WorkspaceBlueprintsSection() {
       ) : blueprints.length === 0 ? (
         <EmptyState
           icon={<LayoutTemplate className="size-6" />}
-          title="Nenhum modelo de workspace por enquanto"
+          title="Nenhum modelo de espaço por enquanto"
           description="Você ainda pode começar com os modelos de pasta abaixo."
         />
       ) : (

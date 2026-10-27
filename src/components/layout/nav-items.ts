@@ -11,12 +11,10 @@ import {
   CreditCard,
   Coins,
   Bot,
-  Code2,
   LayoutTemplate,
   ShieldAlert,
   TicketPercent,
 } from "lucide-react";
-import { canManageDeveloperPlatform } from "@/lib/permissions";
 import type { WorkspaceRole } from "@/types/workspace";
 
 export type NavGroup = "work" | "team" | "help" | "account" | "admin";
@@ -61,15 +59,9 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/templates", label: "Modelos", icon: LayoutTemplate, group: "work" },
 
   // Organizar a equipe.
-  { href: "/workspaces", label: "Workspaces", icon: Building2, group: "team" },
-  // Recurso técnico, só para Proprietário/Administrador.
-  {
-    href: "/developers",
-    label: "Desenvolvedores",
-    icon: Code2,
-    group: "team",
-    workspacePermission: canManageDeveloperPlatform,
-  },
+  { href: "/workspaces", label: "Pessoas e espaços", icon: Building2, group: "team" },
+  // "Desenvolvedores" (chaves de API, webhooks) saiu do menu: é técnico demais para
+  // quem só organiza a vida. Fica em "Avançado", na página de espaços.
 
   // Ajuda para quem está começando e informações de referência.
   { href: "/tutorial", label: "Tutorial", icon: BookOpen, group: "help" },

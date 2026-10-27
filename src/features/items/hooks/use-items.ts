@@ -692,7 +692,7 @@ export function useDeleteItemsMutation() {
     mutationFn: async (items: Item[]) => {
       if (isOffline()) {
         if (!workspaceId) {
-          throw new Error("Não foi possível apagar os itens: workspace indisponível.");
+          throw new Error("Não foi possível apagar os itens: espaço indisponível.");
         }
         for (const item of items) {
           queueEntityDelete({

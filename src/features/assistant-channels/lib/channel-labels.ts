@@ -13,7 +13,7 @@ export function channelLabel(channel: string) {
 
 export const END_REASON_LABEL: Record<ChannelConversationEndReason, string> = {
   new_command: "Encerrada com “nova”",
-  workspace_switch: "Workspace trocado",
+  workspace_switch: "Espaço trocado",
   unlinked: "Número desvinculado",
   relinked: "Número vinculado de novo",
   idle: "Encerrada por inatividade",

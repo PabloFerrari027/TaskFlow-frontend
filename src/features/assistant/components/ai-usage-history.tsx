@@ -92,10 +92,10 @@ export function AiUsageHistory({
 
   // In the admin variant this only resolves workspaces the *admin* also
   // belongs to (there's no endpoint to list another user's workspaces) — a
-  // client's own workspace correctly falls back to "Outro workspace".
+  // client's own workspace correctly falls back to "Outro espaço".
   function workspaceLabel(workspaceId: string | null) {
     if (!workspaceId) return "—";
-    return workspaceNames.get(workspaceId) ?? "Outro workspace";
+    return workspaceNames.get(workspaceId) ?? "Outro espaço";
   }
 
   const usage = usageQuery.data;

@@ -94,8 +94,8 @@ function CreateWorkspaceDialogContent({
       const count = application.result?.folders.length ?? 0;
       toast.success(
         count > 0
-          ? `Workspace criado com ${count} ${count === 1 ? "pasta pronta" : "pastas prontas"}.`
-          : "Workspace criado."
+          ? `Espaço criado com ${count} ${count === 1 ? "pasta pronta" : "pastas prontas"}.`
+          : "Espaço criado."
       );
       void finish(application.workspaceId, "/folders");
     },
@@ -150,7 +150,7 @@ function CreateWorkspaceDialogContent({
       onSuccess: (workspace) => {
         setCreated(workspace);
         if (!chosen) {
-          toast.success("Workspace criado.");
+          toast.success("Espaço criado.");
           void finish(workspace.id);
           return;
         }
@@ -181,7 +181,7 @@ function CreateWorkspaceDialogContent({
       {/* Header and footer stay put; only the body scrolls on short screens. */}
       <DialogContent className="flex max-h-[90vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-3xl">
         <DialogHeader className="border-b px-6 pt-6 pb-4">
-          <DialogTitle className="text-lg">Novo workspace</DialogTitle>
+          <DialogTitle className="text-lg">Novo espaço</DialogTitle>
           <DialogDescription>
             Comece do zero ou escolha um modelo: o TaskFlow cria as pastas e o que liga uma à
             outra. Você será o proprietário.
@@ -222,7 +222,7 @@ function CreateWorkspaceDialogContent({
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nome do workspace</FormLabel>
+                    <FormLabel>Nome do espaço</FormLabel>
                     <FormControl>
                       <Input placeholder="Marketing Team" autoFocus disabled={isLocked} {...field} />
                     </FormControl>
@@ -246,7 +246,7 @@ function CreateWorkspaceDialogContent({
                 <InstantiationProgress
                   done={runner.application?.progressDone ?? 0}
                   total={runner.application?.progressTotal ?? 0}
-                  label="Montando o workspace…"
+                  label="Montando o espaço…"
                 />
               ) : null}
 
@@ -281,9 +281,9 @@ function CreateWorkspaceDialogContent({
               >
                 {blueprint
                   ? isLocked
-                    ? "Montando workspace…"
+                    ? "Montando espaço…"
                     : "Criar a partir do modelo"
-                  : "Criar workspace"}
+                  : "Criar espaço"}
               </Button>
             </DialogFooter>
           </form>

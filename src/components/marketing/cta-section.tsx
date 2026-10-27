@@ -14,7 +14,7 @@ export function CtaSection() {
           Pronto para organizar o trabalho da sua equipe?
         </h2>
         <p className="mx-auto mt-3 max-w-xl text-primary-foreground/80">
-          Crie sua conta gratuitamente e monte seu primeiro workspace em
+          Crie sua conta gratuitamente e monte seu primeiro espaço em
           minutos.
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">

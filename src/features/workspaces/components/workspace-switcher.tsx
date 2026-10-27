@@ -33,14 +33,14 @@ export function WorkspaceSwitcher() {
             <span className="flex min-w-0 items-center gap-2">
               <Building2 className="size-4 shrink-0 text-muted-foreground" />
               <span className="truncate">
-                {workspace?.name ?? (isLoading ? "Carregando…" : "Nenhum workspace")}
+                {workspace?.name ?? (isLoading ? "Carregando…" : "Nenhum espaço")}
               </span>
             </span>
             <ChevronsUpDown className="size-3.5 shrink-0 text-muted-foreground" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-64">
-          <DropdownMenuLabel>Workspaces</DropdownMenuLabel>
+          <DropdownMenuLabel>Espaços</DropdownMenuLabel>
           <DropdownMenuSeparator />
           {workspaces.map((w) => (
             <DropdownMenuItem key={w.id} onClick={() => setWorkspaceId(w.id)}>
@@ -53,11 +53,11 @@ export function WorkspaceSwitcher() {
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
             <Link href="/workspaces">
-              <Settings /> Gerenciar workspaces
+              <Settings /> Gerenciar espaços
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setCreateOpen(true)}>
-            <Plus /> Novo workspace
+            <Plus /> Novo espaço
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

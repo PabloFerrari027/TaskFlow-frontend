@@ -32,7 +32,7 @@ export function SaveAsTemplateDialog({
       open={open}
       onOpenChange={onOpenChange}
       title="Salvar como modelo"
-      description="Crie pastas novas com a mesma organização desta. O modelo fica disponível só para as pessoas deste workspace."
+      description="Crie pastas novas com a mesma organização desta. O modelo fica disponível só para as pessoas deste espaço."
       notice={
         <SnapshotOptionsFields
           workspaceId={folder.workspaceId}

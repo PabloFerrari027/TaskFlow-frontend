@@ -301,7 +301,7 @@ export function ChartBuilderDialog({
         <DialogHeader>
           <DialogTitle>{chart ? "Editar gráfico" : "Novo gráfico"}</DialogTitle>
           <DialogDescription>
-            Escolha passo a passo o que mostrar. A pré-visualização usa os dados reais do workspace.
+            Escolha passo a passo o que mostrar. A pré-visualização usa os dados reais do espaço.
           </DialogDescription>
         </DialogHeader>
 
@@ -416,7 +416,7 @@ export function ChartBuilderDialog({
                 <Step
                   number={step++}
                   title="Filtros (opcional)"
-                  hint="Sem filtros, o gráfico considera tudo do workspace."
+                  hint="Sem filtros, o gráfico considera tudo do espaço."
                 >
                   {draft.conditions.map((condition, index) => (
                     <div key={condition.key} className={ROW_CLASS}>

@@ -78,7 +78,7 @@ export function TemplateDetailView({ templateId }: { templateId: string }) {
         <EmptyState
           icon={<SearchX className="size-6" />}
           title="Este modelo não está mais disponível"
-          description="Ele pode ter sido excluído, ou pertence a um workspace do qual você não faz parte."
+          description="Ele pode ter sido excluído, ou pertence a um espaço do qual você não faz parte."
           action={
             <Button asChild variant="outline">
               <Link href="/templates">Voltar para os modelos</Link>

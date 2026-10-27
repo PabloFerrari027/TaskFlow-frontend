@@ -16,7 +16,7 @@ export default function TemplatesPage() {
     <div className="space-y-6">
       <PageHeader
         title="Modelos"
-        description="Comece já organizado: um modelo de workspace cria várias pastas de uma vez; um modelo de pasta cria as colunas, os campos e itens de exemplo para você."
+        description="Comece já organizado: um modelo de espaço cria várias pastas de uma vez; um modelo de pasta cria as colunas, os campos e itens de exemplo para você."
         actions={<TutorialGuideLink guideId="templates" />}
       />
       <Suspense fallback={null}>

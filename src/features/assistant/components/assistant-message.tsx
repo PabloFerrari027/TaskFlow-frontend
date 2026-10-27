@@ -31,7 +31,7 @@ const PAST_ACTION_STATUS: Record<"pending" | "confirmed" | "cancelled" | "expire
 const STAGE_LABEL: Record<Exclude<AssistantChatStage, "running_tool">, string> = {
   transcribing: "Ouvindo seu áudio...",
   reading_attachments: "Lendo os anexos...",
-  loading_context: "Olhando o seu workspace...",
+  loading_context: "Olhando o seu espaço...",
   thinking: "Pensando...",
   checking_content: "Revisando a resposta...",
 };
@@ -42,7 +42,7 @@ const STAGE_LABEL: Record<Exclude<AssistantChatStage, "running_tool">, string> =
 const READ_TOOL_LABEL: Record<string, string> = {
   list_items: "Consultando os itens...",
   list_folders: "Consultando as pastas...",
-  list_workspaces: "Consultando os workspaces...",
+  list_workspaces: "Consultando os espaços...",
   list_sessions: "Consultando suas sessões...",
   find_information: "Procurando nas suas anotações...",
   suggest_organization: "Vendo como organizar suas anotações...",

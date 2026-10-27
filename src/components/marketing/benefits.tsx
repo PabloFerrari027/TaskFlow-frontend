@@ -11,7 +11,7 @@ const BENEFITS = [
     icon: Lock,
     title: "Acesso sob controle",
     description:
-      "Papéis por workspace e por pasta garantem que cada pessoa veja e edite exatamente o que deveria.",
+      "Papéis por espaço e por pasta garantem que cada pessoa veja e edite exatamente o que deveria.",
   },
   {
     icon: Puzzle,

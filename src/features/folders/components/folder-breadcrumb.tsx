@@ -27,7 +27,7 @@ export function FolderBreadcrumb({ folder }: { folder: Folder }) {
       <ol className="flex flex-wrap items-center gap-1 text-sm text-muted-foreground">
         <li>
           <Link href="/folders" className="hover:text-foreground hover:underline">
-            {workspaceQuery.data?.name ?? "Workspace"}
+            {workspaceQuery.data?.name ?? "Espaço"}
           </Link>
         </li>
         {ancestors.map((ancestor) => (

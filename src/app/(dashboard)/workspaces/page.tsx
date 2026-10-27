@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Building2, PanelsTopLeft, Pencil, Plus, Trash2, UserPlus } from "lucide-react";
+import { Building2, Code2, PanelsTopLeft, Pencil, Plus, Trash2, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -31,6 +31,7 @@ import {
   canDeleteWorkspace,
   canInviteWorkspaceMembers,
   canManageAssistantSettings,
+  canManageDeveloperPlatform,
   canManageWorkspace,
 } from "@/lib/permissions";
 import type { WorkspaceRole } from "@/types/workspace";
@@ -46,11 +47,11 @@ export default function WorkspacesPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Workspaces"
-        description="Workspaces dos quais você é membro."
+        title="Espaços"
+        description="Espaços dos quais você é membro."
         actions={
           <Button onClick={() => setCreateOpen(true)}>
-            <Plus /> Novo workspace
+            <Plus /> Novo espaço
           </Button>
         }
       />
@@ -81,11 +82,11 @@ export default function WorkspacesPage() {
       ) : (
         <EmptyState
           icon={<Building2 className="size-6" />}
-          title="Nenhum workspace ainda"
-          description="Crie o primeiro workspace para começar."
+          title="Nenhum espaço ainda"
+          description="Crie o primeiro espaço para começar."
           action={
             <Button onClick={() => setCreateOpen(true)}>
-              <Plus /> Criar workspace
+              <Plus /> Criar espaço
             </Button>
           }
         />
@@ -156,14 +157,14 @@ function CurrentWorkspaceSettings({ workspaceId }: { workspaceId: string }) {
                   title={
                     isEmpty
                       ? undefined
-                      : "Remova os demais membros antes de excluir o workspace."
+                      : "Remova os demais membros antes de excluir o espaço."
                   }
                 >
                   <Trash2 /> Excluir
                 </Button>
               }
-              title="Excluir workspace"
-              description="Esta ação é irreversível e não pode ser desfeita pela plataforma. O workspace deixará de aparecer para todos os membros."
+              title="Excluir espaço"
+              description="Esta ação é irreversível e não pode ser desfeita pela plataforma. O espaço deixará de aparecer para todos os membros."
               confirmLabel="Excluir"
               isLoading={deleteMutation.isPending}
               // The current-workspace context falls back to another workspace
@@ -202,12 +203,28 @@ function CurrentWorkspaceSettings({ workspaceId }: { workspaceId: string }) {
         <div>
           <h3 className="text-base font-semibold text-foreground">Atividade</h3>
           <p className="text-sm text-muted-foreground">
-            A linha do tempo de tudo que aconteceu neste workspace. Para ver só uma pasta, abra a
+            A linha do tempo de tudo que aconteceu neste espaço. Para ver só uma pasta, abra a
             aba Atividade dentro dele.
           </p>
         </div>
         <WorkspaceActivitySection workspaceId={workspace.id} />
       </Card>
+
+      <RoleGate allowed={canManageDeveloperPlatform(myRole)}>
+        <Card id="avancado" className="flex-row flex-wrap items-center justify-between gap-3 p-4">
+          <div>
+            <h3 className="text-base font-semibold text-foreground">Avançado</h3>
+            <p className="text-sm text-muted-foreground">
+              Para quem programa: chaves de API e webhooks para ligar este espaço a outros sistemas.
+            </p>
+          </div>
+          <Button asChild variant="outline" size="sm">
+            <Link href="/developers">
+              <Code2 /> Desenvolvedores
+            </Link>
+          </Button>
+        </Card>
+      </RoleGate>
 
       <RenameWorkspaceDialog
         workspaceId={workspace.id}

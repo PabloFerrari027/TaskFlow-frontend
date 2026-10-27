@@ -32,7 +32,7 @@ export default function TutorialPage() {
         <div className="space-y-1">
           <h2 className="text-lg font-semibold tracking-tight">Papéis e permissões</h2>
           <p className="text-sm text-muted-foreground">
-            O que cada papel do workspace pode fazer.
+            O que cada papel do espaço pode fazer.
           </p>
         </div>
         <RolesMatrix />

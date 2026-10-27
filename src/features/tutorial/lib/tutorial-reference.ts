@@ -17,7 +17,7 @@ export interface RolePermission {
 const MANAGERS: WorkspaceRole[] = ["OWNER", "ADMIN"];
 
 export const ROLE_PERMISSIONS: RolePermission[] = [
-  { action: "Convidar pessoas e gerenciar membros do workspace", roles: MANAGERS },
+  { action: "Convidar pessoas e gerenciar membros do espaço", roles: MANAGERS },
   { action: "Gerenciar pessoas e convites de uma pasta", roles: MANAGERS },
   { action: "Criar, editar e arquivar campos extras", roles: MANAGERS },
   { action: "Criar pastas a partir de um modelo", roles: MANAGERS },
@@ -27,7 +27,7 @@ export const ROLE_PERMISSIONS: RolePermission[] = [
   { action: "Apagar comentários de outras pessoas", roles: MANAGERS },
   { action: "Ligar ou desligar o assistente de IA", roles: ["OWNER"] },
   { action: "Conceder ou retirar o papel de Proprietário", roles: ["OWNER"] },
-  { action: "Excluir o workspace (vazio)", roles: ["OWNER"] },
+  { action: "Excluir o espaço (vazio)", roles: ["OWNER"] },
 ];
 
 export interface GlossaryTerm {
@@ -37,7 +37,7 @@ export interface GlossaryTerm {
 
 export const GLOSSARY: GlossaryTerm[] = [
   {
-    term: "Workspace",
+    term: "Espaço",
     definition: "O espaço da sua equipe ou empresa: reúne pessoas, pastas e configurações.",
   },
   {
@@ -91,7 +91,7 @@ export const GLOSSARY: GlossaryTerm[] = [
   },
   {
     term: "Convite",
-    definition: "Um link enviado por e-mail para alguém entrar em um workspace ou pasta, com data de expiração.",
+    definition: "Um link enviado por e-mail para alguém entrar em um espaço ou pasta, com data de expiração.",
   },
   {
     term: "Sessão",
@@ -103,7 +103,7 @@ export const GLOSSARY: GlossaryTerm[] = [
   },
   {
     term: "Chave de API",
-    definition: "Uma senha especial para um sistema seu se identificar como o workspace, sem uma pessoa envolvida.",
+    definition: "Uma senha especial para um sistema seu se identificar como o espaço, sem uma pessoa envolvida.",
   },
   {
     term: "Webhook",

@@ -61,7 +61,7 @@ export default function AdminClientDetailPage() {
       <Card className="grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-4">
         <InfoField label="Status" value={<ClientStatusBadge status={client.status} />} />
         <InfoField label="Papel" value={client.role} />
-        <InfoField label="Workspaces próprios" value={String(client.ownedWorkspacesCount)} />
+        <InfoField label="Espaços próprios" value={String(client.ownedWorkspacesCount)} />
         <InfoField label="Sessões ativas" value={String(client.activeSessionsCount)} />
         <InfoField label="Google vinculado" value={client.googleLinked ? "Sim" : "Não"} />
       </Card>

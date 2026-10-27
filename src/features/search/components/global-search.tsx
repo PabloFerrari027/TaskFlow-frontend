@@ -89,7 +89,7 @@ export function GlobalSearch() {
         open={open}
         onOpenChange={setOpen}
         title="Buscar"
-        description="Busque itens, comentários e pastas do workspace atual."
+        description="Busque itens, comentários e pastas do espaço atual."
       >
         {/* The server already ranks and filters; cmdk's own filter would hide matches on the snippet. */}
         <Command shouldFilter={false}>

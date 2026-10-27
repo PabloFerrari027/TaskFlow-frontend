@@ -53,7 +53,7 @@ export function RenameWorkspaceDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Renomear workspace</DialogTitle>
+          <DialogTitle>Renomear espaço</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>

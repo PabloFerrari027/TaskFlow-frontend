@@ -57,7 +57,7 @@ export function useRenameWorkspaceMutation(workspaceId: string) {
     onSuccess: (data) => {
       queryClient.setQueryData(queryKeys.workspaces.detail(workspaceId), data);
       queryClient.invalidateQueries({ queryKey: queryKeys.workspaces.all() });
-      toast.success("Workspace renomeado.");
+      toast.success("Espaço renomeado.");
     },
     onError: (error) => toast.error(getErrorMessage(error)),
   });
@@ -71,7 +71,7 @@ export function useDeleteWorkspaceMutation(workspaceId: string) {
     onSuccess: () => {
       queryClient.removeQueries({ queryKey: queryKeys.workspaces.detail(workspaceId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.workspaces.all() });
-      toast.success("Workspace excluído.");
+      toast.success("Espaço excluído.");
     },
     onError: (error) => toast.error(getErrorMessage(error)),
   });

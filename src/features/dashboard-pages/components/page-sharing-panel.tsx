@@ -187,7 +187,7 @@ function AccessListSection({
     <Section title="Pessoas com acesso">
       <div className="space-y-3 rounded-lg border border-border p-3">
         <div className="space-y-1.5">
-          <p className="text-xs font-medium text-muted-foreground">Membro do workspace</p>
+          <p className="text-xs font-medium text-muted-foreground">Membro do espaço</p>
           <div className="flex items-center gap-2">
             <UserPlus className="size-4 text-muted-foreground" />
             <InlinePicker

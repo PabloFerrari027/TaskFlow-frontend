@@ -17,7 +17,7 @@ export default function ForbiddenPage() {
         <h1 className="text-2xl font-semibold text-foreground">Acesso negado</h1>
         <p className="max-w-sm text-sm text-muted-foreground">
           Você não tem permissão para acessar este recurso. Se acha que isso é
-          um engano, peça a um administrador do workspace para verificar seu
+          um engano, peça a um administrador do espaço para verificar seu
           papel de acesso.
         </p>
       </div>

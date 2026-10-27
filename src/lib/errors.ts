@@ -26,14 +26,14 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
     "Número máximo de tentativas excedido. Solicite um novo código.",
   TOO_MANY_VERIFICATION_REQUESTS:
     "Muitas solicitações de código. Aguarde alguns minutos e tente novamente.",
-  WORKSPACE_NOT_FOUND: "Workspace não encontrado.",
+  WORKSPACE_NOT_FOUND: "Espaço não encontrado.",
   FORBIDDEN_WORKSPACE_ACTION: "Você não tem permissão para realizar esta ação.",
   MEMBER_ALREADY_EXISTS: "Este usuário já é membro.",
   MEMBER_NOT_FOUND: "Membro não encontrado.",
   LAST_OWNER_CANNOT_BE_REMOVED:
-    "Não é possível remover ou rebaixar o único proprietário do workspace.",
+    "Não é possível remover ou rebaixar o único proprietário do espaço.",
   WORKSPACE_NOT_EMPTY:
-    "Remova os demais membros antes de excluir o workspace.",
+    "Remova os demais membros antes de excluir o espaço.",
   INVITATION_NOT_FOUND: "Convite não encontrado.",
   INVITATION_ALREADY_PROCESSED: "Este convite já foi processado.",
   INVITATION_EXPIRED: "Este convite expirou.",
@@ -56,7 +56,7 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   CANNOT_MOVE_INTO_OWN_DESCENDANT:
     "Não é possível mover um item para dentro de um dos seus próprios descendentes.",
   PARENT_OUT_OF_SCOPE:
-    "O destino precisa estar no mesmo escopo do item (workspace, pasta ou item).",
+    "O destino precisa estar no mesmo escopo do item (espaço, pasta ou item).",
   PARENT_FOLDER_ARCHIVED: "Não é possível colocar uma pasta dentro de uma pasta arquivada.",
   FOLDER_HAS_CHILDREN:
     "Esta pasta tem subpastas. Mova ou arquive as subpastas primeiro.",
@@ -84,7 +84,7 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   PENDING_ACTION_EXPIRED: "Essa ação expirou. Peça de novo pelo chat.",
   REAUTHENTICATION_REQUIRED: "Senha incorreta ou reautenticação necessária.",
   ASSISTANT_DISABLED_FOR_WORKSPACE:
-    "O assistente está desligado neste workspace. Peça a um OWNER para habilitá-lo.",
+    "O assistente está desligado neste espaço. Peça a um OWNER para habilitá-lo.",
   ASSISTANT_ATTACHMENT_TOO_LARGE: "Um dos arquivos excede o limite de 20MB.",
   ASSISTANT_ATTACHMENTS_TOO_LARGE:
     "A soma dos anexos excede o limite permitido. Envie menos arquivos ou arquivos menores.",
@@ -136,7 +136,7 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   DASHBOARD_PAGE_NOT_FOUND: "Página não encontrada.",
   CHART_DEFINITION_NOT_FOUND: "Gráfico não encontrado.",
   PAGE_ACCESS_GRANT_NOT_FOUND: "Este acesso não existe mais.",
-  INVALID_ACCESS_GRANT_TARGET: "Escolha um membro deste workspace ou informe um e-mail válido.",
+  INVALID_ACCESS_GRANT_TARGET: "Escolha um membro deste espaço ou informe um e-mail válido.",
   ACCESS_GRANT_EMAIL_RATE_LIMIT:
     "Você convidou muitas pessoas por e-mail em pouco tempo. Tente novamente em 1 hora.",
   PAGE_ACCESS_TOKEN_INVALID: "Este link não é válido ou foi revogado.",
@@ -233,13 +233,13 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   TEMPLATE_AI_GENERATION_FAILED:
     "A IA não conseguiu montar um modelo agora. Tente de novo.",
   WORKSPACE_BLUEPRINT_NOT_FOUND:
-    "Este modelo de workspace não existe mais.",
+    "Este modelo de espaço não existe mais.",
   WORKSPACE_BLUEPRINT_UNAVAILABLE:
-    "Este modelo de workspace está indisponível no momento. Escolha outro ou tente mais tarde.",
+    "Este modelo de espaço está indisponível no momento. Escolha outro ou tente mais tarde.",
   INVALID_BLUEPRINT_APPLICATION:
     "Confira as informações do modelo: algum campo obrigatório ficou vazio.",
   BLUEPRINT_APPLICATION_NOT_FOUND:
-    "Não encontramos a montagem deste workspace.",
+    "Não encontramos a montagem deste espaço.",
   COUPON_NOT_FOUND: "Cupom não encontrado.",
   COUPON_CODE_ALREADY_EXISTS: "Já existe um cupom com este código.",
   INVALID_COUPON: "Confira as regras do cupom.",
@@ -252,7 +252,7 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   ASSISTANT_CHANNEL_NOT_FOUND: "Este canal não existe.",
   ASSISTANT_CHANNEL_UNAVAILABLE: "Este canal está indisponível no momento.",
   INVALID_CHANNEL_ADDRESS: "Número inválido. Use o número com DDD (e o código do país, se não for do Brasil).",
-  ASSISTANT_CHANNEL_WORKSPACE_NOT_FOUND: "Workspace não encontrado.",
+  ASSISTANT_CHANNEL_WORKSPACE_NOT_FOUND: "Espaço não encontrado.",
   TOO_MANY_CHANNEL_VERIFICATION_REQUESTS:
     "Muitos códigos pedidos em pouco tempo. Aguarde um pouco e tente de novo.",
   CHANNEL_DELIVERY_FAILED:
@@ -264,7 +264,7 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   ASSISTANT_CHANNEL_CONVERSATION_NOT_FOUND: "Conversa não encontrada.",
   ASSISTANT_CONVERSATION_NOT_EMPTY: "A conversa já começou em outra aba. Atualize para ver as mensagens.",
   ITEM_NOT_MOVABLE_TO_FOLDER:
-    "Só dá para levar para outra pasta (do mesmo workspace) um item solto: sem ser subitem, sem subitens, sem dependências e sem campos personalizados preenchidos.",
+    "Só dá para levar para outra pasta (do mesmo espaço) um item solto: sem ser subitem, sem subitens, sem dependências e sem campos personalizados preenchidos.",
   CAPTURE_NOT_FOUND: "Não há nada recente para desfazer ou mudar de lugar. Pode ter passado tempo demais.",
   CAPTURE_DESTINATION_NOT_FOUND: "Não encontramos uma pasta com esse nome.",
   CAPTURE_NOTHING_TO_SAVE: "Não há nada escrito para guardar.",

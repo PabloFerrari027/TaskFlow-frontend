@@ -121,7 +121,7 @@ export function MembersTable({
                       </Button>
                     }
                     title="Remover membro"
-                    description="Esta pessoa perderá acesso a este workspace. Essa ação não pode ser desfeita."
+                    description="Esta pessoa perderá acesso a este espaço. Essa ação não pode ser desfeita."
                     confirmLabel="Remover"
                     isLoading={removeMemberMutation.isPending}
                     onConfirm={() => removeMemberMutation.mutate(member.userId)}

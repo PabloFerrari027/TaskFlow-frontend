@@ -52,7 +52,7 @@ export const ENTITY_LABEL: Record<AutomationEntityType, string> = {
   SECTION: "uma seção",
   FOLDER: "uma pasta",
   CUSTOM_FIELD: "um campo personalizado",
-  WORKSPACE: "o workspace",
+  WORKSPACE: "o espaço",
 };
 
 // What the builder offers: things that happen *inside* a folder, since

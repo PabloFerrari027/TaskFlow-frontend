@@ -60,11 +60,11 @@ export default function FoldersPage() {
         <EmptyState
           className="mt-6"
           icon={<FolderKanban className="size-6" />}
-          title="Você ainda não tem um workspace"
-          description="Crie um workspace para começar a organizar pastas e itens."
+          title="Você ainda não tem um espaço"
+          description="Crie um espaço para começar a organizar pastas e itens."
           action={
             <Button onClick={() => setCreateWorkspaceOpen(true)}>
-              <Plus /> Criar workspace
+              <Plus /> Criar espaço
             </Button>
           }
         />
@@ -83,7 +83,7 @@ export default function FoldersPage() {
         description={
           workspace
             ? `Todas as pastas de ${workspace.name}.`
-            : "Todas as pastas deste workspace."
+            : "Todas as pastas deste espaço."
         }
         actions={
           workspaceId ? (
@@ -108,7 +108,7 @@ export default function FoldersPage() {
       ) : folders.length === 0 ? (
         <EmptyState
           icon={<FolderKanban className="size-6" />}
-          title="Nenhuma pasta neste workspace"
+          title="Nenhuma pasta neste espaço"
           description="Crie a primeira pasta do zero ou comece de um modelo já organizado."
           action={
             <div className="flex flex-wrap justify-center gap-2">

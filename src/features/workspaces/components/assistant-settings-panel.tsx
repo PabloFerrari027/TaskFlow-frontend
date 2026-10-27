@@ -25,7 +25,7 @@ export function WorkspaceAssistantSettingsPanel({
         <div className="space-y-1">
           <h3 className="text-base font-semibold text-foreground">Assistente de IA</h3>
           <p className="text-sm text-muted-foreground">
-            Converse com um assistente que lê os dados deste workspace e sugere ações, como
+            Converse com um assistente que lê os dados deste espaço e sugere ações, como
             criar itens. Nada é alterado sem a sua confirmação.
           </p>
         </div>
@@ -40,7 +40,7 @@ export function WorkspaceAssistantSettingsPanel({
       <p className="text-xs text-muted-foreground">
         {canManage
           ? "Por segurança, ele se desliga sozinho se notar conteúdo suspeito ou senhas erradas repetidas. Religue aqui quando quiser."
-          : "Somente o dono do workspace pode ligar ou desligar o assistente."}
+          : "Somente o dono do espaço pode ligar ou desligar o assistente."}
       </p>
     </div>
   );

@@ -724,7 +724,7 @@ export function AssistantChat() {
             <div className="min-w-0 flex-1">
               <SheetTitle>Assistente de IA</SheetTitle>
               <SheetDescription className="truncate text-xs">
-                {workspace ? `Trabalhando em ${workspace.name}` : "Nenhum workspace selecionado"}
+                {workspace ? `No espaço ${workspace.name}` : "Nenhum espaço selecionado"}
               </SheetDescription>
             </div>
             <div className="flex items-center gap-0.5">
@@ -861,7 +861,7 @@ export function AssistantChat() {
                       previousWorkspaceId !== messageWorkspaceId &&
                       (previousWorkspaceId !== null || messageWorkspaceId !== workspace.id);
                     const workspaceName =
-                      workspaces.find((w) => w.id === messageWorkspaceId)?.name ?? "outro workspace";
+                      workspaces.find((w) => w.id === messageWorkspaceId)?.name ?? "outro espaço";
                     return (
                       <React.Fragment key={message.id}>
                         {showWorkspace ? (

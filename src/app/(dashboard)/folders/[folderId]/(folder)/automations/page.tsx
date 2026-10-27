@@ -24,7 +24,7 @@ export default function FolderAutomationsPage(
       <EmptyState
         icon={<Lock className="size-6" />}
         title="Acesso restrito"
-        description="Somente Proprietário e Administrador do workspace podem ver e gerenciar automações."
+        description="Somente Proprietário e Administrador do espaço podem ver e gerenciar automações."
       />
     );
   }

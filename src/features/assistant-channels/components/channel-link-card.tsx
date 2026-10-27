@@ -45,8 +45,8 @@ function WorkspaceSelect({
 }) {
   return (
     <Select value={value} onValueChange={onChange} disabled={disabled}>
-      <SelectTrigger id={id} aria-label="Workspace do assistente" className="w-full sm:w-64">
-        <SelectValue placeholder="Escolha um workspace" />
+      <SelectTrigger id={id} aria-label="Espaço do assistente" className="w-full sm:w-64">
+        <SelectValue placeholder="Escolha um espaço" />
       </SelectTrigger>
       <SelectContent>
         {workspaces.map((workspace) => (
@@ -182,7 +182,7 @@ function LinkForm({
           </p>
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor={`${channel.channel}-workspace`}>Workspace</Label>
+          <Label htmlFor={`${channel.channel}-workspace`}>Espaço</Label>
           <WorkspaceSelect
             id={`${channel.channel}-workspace`}
             workspaces={workspaces}
@@ -236,7 +236,7 @@ function LinkedState({
           </dd>
         </div>
         <div className="space-y-1">
-          <dt className="text-xs text-muted-foreground">Workspace do assistente</dt>
+          <dt className="text-xs text-muted-foreground">Espaço do assistente</dt>
           <dd>
             <WorkspaceSelect
               workspaces={workspaces}
@@ -249,7 +249,7 @@ function LinkedState({
           </dd>
           {!workspace ? (
             <dd className="text-xs text-destructive">
-              Você não tem mais acesso a este workspace. Escolha outro.
+              Você não tem mais acesso a este espaço. Escolha outro.
             </dd>
           ) : null}
         </div>

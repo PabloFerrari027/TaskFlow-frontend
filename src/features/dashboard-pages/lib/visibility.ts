@@ -21,13 +21,13 @@ export const VISIBILITY_SPECS: VisibilitySpec[] = [
     value: "RESTRICTED",
     icon: Users,
     label: "Pessoas escolhidas",
-    description: "Só quem for adicionado abaixo: membros do workspace ou pessoas de fora, por e-mail.",
+    description: "Só quem for adicionado abaixo: membros do espaço ou pessoas de fora, por e-mail.",
   },
   {
     value: "WORKSPACE",
     icon: Building2,
-    label: "Todo o workspace",
-    description: "Todos os membros do workspace podem ver.",
+    label: "Todo o espaço",
+    description: "Todos os membros do espaço podem ver.",
   },
   {
     value: "PUBLIC",
@@ -42,7 +42,7 @@ export function visibilitySpec(value: DashboardPageVisibility): VisibilitySpec {
 }
 
 export const PUBLIC_REQUIRES_MANAGER_HINT =
-  "Só o Proprietário ou um Administrador do workspace pode tornar uma página pública.";
+  "Só o Proprietário ou um Administrador do espaço pode tornar uma página pública.";
 
 export function publicPageUrl(token: string) {
   const origin = typeof window === "undefined" ? "" : window.location.origin;

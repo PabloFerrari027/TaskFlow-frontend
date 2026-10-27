@@ -138,7 +138,7 @@ export function FolderAutomationsSection({ folder }: { folder: Folder }) {
       {workspaceRules.length > 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle>Automações de todo o workspace</CardTitle>
+            <CardTitle>Automações de todo o espaço</CardTitle>
             <CardDescription>
               Estas não são limitadas a uma pasta, então também agem aqui. Alterar ou pausar uma
               delas muda o que acontece em todas as pastas.
@@ -158,10 +158,10 @@ export function FolderAutomationsSection({ folder }: { folder: Folder }) {
       {outsideRules.length > 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle>Automações antigas do workspace</CardTitle>
+            <CardTitle>Automações antigas do espaço</CardTitle>
             <CardDescription>
               Estas reagem a coisas que acontecem fora das pastas, como alguém entrar no
-              workspace. Não dá mais para criar ou editar automações assim, mas estas continuam
+              espaço. Não dá mais para criar ou editar automações assim, mas estas continuam
               funcionando até você pausar ou excluir.
             </CardDescription>
           </CardHeader>

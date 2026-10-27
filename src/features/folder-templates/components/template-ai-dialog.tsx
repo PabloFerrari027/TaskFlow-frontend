@@ -172,8 +172,8 @@ export function TemplateAiDialog({
         <TemplateListingDialog
           open
           onOpenChange={setSaveOpen}
-          title="Salvar como modelo do workspace"
-          description="Fica disponível só para as pessoas deste workspace."
+          title="Salvar como modelo do espaço"
+          description="Fica disponível só para as pessoas deste espaço."
           submitLabel="Salvar modelo"
           isPending={createMutation.isPending}
           withDetails

@@ -514,7 +514,7 @@ export function TemplateStructurePreview({ skeleton }: { skeleton: FolderTemplat
             <CardTitle className="flex items-center gap-2">
               <LayoutDashboard className="size-4" aria-hidden /> Painéis
             </CardTitle>
-            <CardDescription>Páginas com gráficos da pasta, criadas no workspace.</CardDescription>
+            <CardDescription>Páginas com gráficos da pasta, criadas no espaço.</CardDescription>
           </CardHeader>
           <CardContent>
             <ul className="divide-y divide-border/60">
