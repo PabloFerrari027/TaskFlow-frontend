@@ -43,6 +43,10 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
           invalidate: !(background && isRealtimeConnected()),
         });
       }
+    } catch {
+      // API unreachable (restarting, network down): the outbox keeps what's
+      // pending and the next tick retries. Left unhandled, this surfaced as a
+      // red "Network Error" overlay over the whole app.
     } finally {
       syncingRef.current = false;
       setIsSyncing(false);
