@@ -15,6 +15,7 @@ import { HomeItemsByFolder } from "@/features/home/components/home-items-by-fold
 import { HomeRecentFolders } from "@/features/home/components/home-recent-folders";
 import { AssistantPromptCard } from "@/features/assistant/components/assistant-prompt-card";
 import { PendingApprovalsCard } from "@/features/approvals/components/pending-approvals-card";
+import { MyRemindersCard } from "@/features/reminders/components/my-reminders-card";
 import { useHomeStats } from "@/features/home/hooks/use-home-stats";
 import { readCount } from "@/features/home/lib/home-queries";
 import { CreateFolderDialog } from "@/features/folders/components/create-folder-dialog";
@@ -126,6 +127,7 @@ export default function HomePage() {
           />
         </div>
         <div className="space-y-6">
+          <MyRemindersCard />
           <HomeRecentFolders
             folders={folders}
             isLoading={workspaceLoading || foldersQuery.isLoading}

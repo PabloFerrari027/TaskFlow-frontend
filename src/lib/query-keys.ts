@@ -141,6 +141,10 @@ export const queryKeys = {
     item: (itemId: string) => ["approvals", "item", itemId] as const,
     pending: () => ["approvals", "pending"] as const,
   },
+  reminders: {
+    root: () => ["reminders"] as const,
+    mine: (workspaceId: string) => ["reminders", "mine", workspaceId] as const,
+  },
   timeTracking: {
     root: () => ["time-tracking"] as const,
     running: () => ["time-tracking", "running"] as const,
