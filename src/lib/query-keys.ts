@@ -42,6 +42,10 @@ export const queryKeys = {
       all: () => ["plans", "admin"] as const,
     },
   },
+  // Regras e modelos da IA por plano (API.md § 30) — só admin.
+  aiSettings: {
+    all: () => ["ai-settings"] as const,
+  },
   coupons: {
     root: () => ["coupons"] as const,
     list: (params: ListCouponsParams) => ["coupons", "list", params] as const,

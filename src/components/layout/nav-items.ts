@@ -14,6 +14,7 @@ import {
   LayoutTemplate,
   ShieldAlert,
   TicketPercent,
+  Sparkles,
 } from "lucide-react";
 import type { WorkspaceRole } from "@/types/workspace";
 
@@ -90,6 +91,13 @@ export const NAV_ITEMS: NavItem[] = [
     href: "/admin/coupons",
     label: "Cupons",
     icon: TicketPercent,
+    group: "admin",
+    requiresSuperAdmin: true,
+  },
+  {
+    href: "/admin/ai",
+    label: "Inteligência artificial",
+    icon: Sparkles,
     group: "admin",
     requiresSuperAdmin: true,
   },

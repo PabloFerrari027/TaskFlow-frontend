@@ -128,6 +128,14 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
     "Essa URL não pode ser usada: precisa ser https:// e não pode apontar para um endereço privado ou local.",
   INVALID_WEBHOOK_EVENT: "Um dos eventos escolhidos não é válido.",
   PLAN_NOT_FOUND: "Plano não encontrado.",
+  AI_RULE_NOT_FOUND: "Essa regra não existe mais. Recarregue a página.",
+  AI_RULE_GROUP_NOT_FOUND: "Esse grupo de regras não existe.",
+  AI_SETTINGS_PLAN_NOT_FOUND: "Plano não encontrado.",
+  AI_RULE_PROTECTED: "Essa é uma garantia de segurança: ela não pode ser mudada nem desligada.",
+  AI_RULE_BUILT_IN_BEHAVIOR: "Travas do sistema só ligam e desligam.",
+  AI_RULE_NOT_BUILT_IN: "Só regras que vieram prontas têm um texto original para voltar.",
+  TOO_MANY_AI_RULES: "Limite de 40 frases novas atingido. Apague alguma antes de criar outra.",
+  INVALID_AI_MODEL_CHOICE: "Modelo inválido. Use fornecedor:modelo (ex.: openai:gpt-4.1) de um fornecedor com chave configurada.",
   PLAN_NAME_ALREADY_EXISTS: "Já existe um plano com este nome.",
   // The API doesn't say whether the day, week or month cap was hit (§ 23), so
   // the message doesn't name one.
