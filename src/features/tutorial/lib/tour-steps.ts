@@ -392,10 +392,10 @@ export const TOUR_STEPS: TourStep[] = [
     chapter: "Pronto",
     title: "Tudo pronto!",
     description:
-      "Você já conhece o caminho principal do TaskFlow. Para um passo a passo de cada área, com perguntas frequentes e dicas, abra a página Tutorial.",
+      "Agora é só conversar: conte ao assistente o que você quer guardar ou organizar, do seu jeito, e ele monta as primeiras pastas com você.",
     details: [
-      "Um bom começo: crie uma pasta, uma coluna e um item. O resto você refina conforme precisar.",
-      "Dúvidas sobre dados e privacidade? Veja Privacidade e FAQ, no menu lateral.",
+      "Exemplos: “me lembra de pagar a luz todo dia 10”, “anota a consulta de terça às 9h”, “organiza as compras da casa”.",
+      "Para um passo a passo de cada área, com perguntas frequentes e dicas, veja o Tutorial.",
     ],
   },
 ];

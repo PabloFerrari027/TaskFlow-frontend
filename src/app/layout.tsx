@@ -21,11 +21,11 @@ const fontMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "TaskFlow — Organize pastas e itens em equipe",
+    default: "TaskFlow — Guarde, lembre e organize a sua vida conversando",
     template: "%s · TaskFlow",
   },
   description:
-    "TaskFlow é a plataforma de gestão de pastas e itens para equipes que precisam de clareza, colaboração e controle.",
+    "Conte ao TaskFlow o que você precisa — contas, remédios, consultas, compras — e ele guarda no lugar certo e te lembra na hora.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

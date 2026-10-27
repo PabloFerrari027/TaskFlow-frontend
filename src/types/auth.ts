@@ -118,6 +118,8 @@ export interface CurrentUserResponse {
   googleLinked: boolean;
   // Platform role — decides whether the admin area shows up.
   role: "CUSTOMER" | "SUPER_ADMIN";
+  // The welcome tour was seen or skipped, on any device.
+  tourSeen?: boolean;
 }
 
 export interface UpdateProfilePhotoResponse {

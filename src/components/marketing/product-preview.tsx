@@ -9,8 +9,8 @@ const COLUMNS = [
     title: "A fazer",
     icon: Circle,
     items: [
-      { title: "Definir escopo do onboarding", attachments: 0, tag: "Descoberta" },
-      { title: "Revisar copy da landing page", attachments: 1, tag: "Marketing" },
+      { title: "Pagar a conta de luz (dia 10)", attachments: 1, tag: "Contas" },
+      { title: "Marcar a consulta do dentista", attachments: 0, tag: "Saúde" },
     ],
   },
   {
@@ -18,8 +18,8 @@ const COLUMNS = [
     title: "Em andamento",
     icon: CircleDot,
     items: [
-      { title: "Implementar convite por e-mail", attachments: 2, tag: "Backend" },
-      { title: "Ajustar responsividade do dashboard", attachments: 0, tag: "Frontend" },
+      { title: "Lista de compras do mês", attachments: 0, tag: "Casa" },
+      { title: "Estudar para a prova de cálculo", attachments: 2, tag: "Estudos" },
     ],
   },
   {
@@ -27,7 +27,7 @@ const COLUMNS = [
     title: "Concluída",
     icon: CircleCheck,
     items: [
-      { title: "Configurar autenticação 2FA", attachments: 1, tag: "Segurança" },
+      { title: "Renovar a receita do remédio", attachments: 1, tag: "Saúde" },
     ],
   },
 ];
@@ -46,7 +46,7 @@ export function ProductPreview() {
         <span className="size-2.5 rounded-full bg-amber-500/50" />
         <span className="size-2.5 rounded-full bg-emerald-500/50" />
         <span className="ml-3 text-xs font-medium text-muted-foreground">
-          Website Redesign · Marketing Team
+          Minha casa · Este mês
         </span>
       </div>
 

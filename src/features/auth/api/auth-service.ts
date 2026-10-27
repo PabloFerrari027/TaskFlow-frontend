@@ -104,6 +104,11 @@ export const authService = {
     return data;
   },
 
+  // Remembered in the account, so the tour doesn't come back on another device.
+  async markTourSeen() {
+    await apiClient.put("/auth/me/tour");
+  },
+
   async uploadPhoto(file: File) {
     const formData = new FormData();
     formData.append("file", file);

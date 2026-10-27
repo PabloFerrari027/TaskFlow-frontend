@@ -1,8 +1,13 @@
 "use client";
 
 import * as React from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useCurrentWorkspace } from "@/features/workspaces/context/current-workspace-context";
+import { useCurrentUserQuery } from "@/features/auth/hooks/use-current-user";
+import { authService } from "@/features/auth/api/auth-service";
+import { queryKeys } from "@/lib/query-keys";
+import type { CurrentUserResponse } from "@/types/auth";
 
 const STORAGE_PREFIX = "taskflow.tourSeen.";
 // Lets the topbar/sidebar paint before the spotlight measures them.
@@ -18,32 +23,46 @@ interface TutorialContextValue {
 
 const TutorialContext = React.createContext<TutorialContextValue | null>(null);
 
-// Keyed by user so a second account on the same browser gets its own first-run
-// tour. Purely a per-browser preference — persisted to localStorage, never
-// synced with the server (the API has no user-preferences endpoint).
+// "Seen" lives in the account (GET /auth/me `tourSeen`), so the tour doesn't
+// come back on another device. localStorage stays as a fast local copy, keyed
+// by user, and a browser that saw it before the account knew is synced up.
 export function TutorialProvider({ children }: { children: React.ReactNode }) {
   const { userId } = useAuth();
+  const queryClient = useQueryClient();
   const { isLoading: isWorkspaceLoading } = useCurrentWorkspace();
+  const meQuery = useCurrentUserQuery({ enabled: Boolean(userId) });
+  const tourSeenOnServer = meQuery.data?.tourSeen;
   const [isTourOpen, setIsTourOpen] = React.useState(false);
 
-  React.useEffect(() => {
-    if (!userId || isWorkspaceLoading) return;
+  const markSeenOnServer = React.useCallback(() => {
+    queryClient.setQueryData<CurrentUserResponse>(queryKeys.auth.me(), (me) => (me ? { ...me, tourSeen: true } : me));
+    authService.markTourSeen().catch(() => {
+      // Best-effort: the local copy still keeps it from reopening here.
+    });
+  }, [queryClient]);
 
-    let seen = true;
+  React.useEffect(() => {
+    if (!userId || isWorkspaceLoading || tourSeenOnServer === undefined) return;
+    if (tourSeenOnServer) return;
+
+    let seenHere = true;
     try {
-      seen = window.localStorage.getItem(STORAGE_PREFIX + userId) !== null;
+      seenHere = window.localStorage.getItem(STORAGE_PREFIX + userId) !== null;
     } catch {
       // Without storage we can't remember the tour was shown, so don't
       // auto-open it on every load.
     }
-    if (seen) return;
+    if (seenHere) {
+      markSeenOnServer();
+      return;
+    }
 
     const timeout = window.setTimeout(
       () => setIsTourOpen(true),
       AUTO_START_DELAY_MS
     );
     return () => window.clearTimeout(timeout);
-  }, [userId, isWorkspaceLoading]);
+  }, [userId, isWorkspaceLoading, tourSeenOnServer, markSeenOnServer]);
 
   const startTour = React.useCallback(() => setIsTourOpen(true), []);
 
@@ -51,13 +70,14 @@ export function TutorialProvider({ children }: { children: React.ReactNode }) {
     (outcome: TourOutcome) => {
       setIsTourOpen(false);
       if (!userId) return;
+      markSeenOnServer();
       try {
         window.localStorage.setItem(STORAGE_PREFIX + userId, outcome);
       } catch {
         // ignore unavailable storage
       }
     },
-    [userId]
+    [userId, markSeenOnServer]
   );
 
   const value = React.useMemo(

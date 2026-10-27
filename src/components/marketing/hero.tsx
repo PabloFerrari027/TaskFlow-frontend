@@ -16,19 +16,18 @@ export function Hero() {
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-4 pt-20 pb-16 text-center sm:px-6 sm:pt-28">
         <div className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/60 px-3 py-1 text-xs font-medium text-muted-foreground">
           <Sparkles className="size-3.5 text-primary" />
-          Espaços, pastas e itens em um só lugar
+          Um assistente que guarda e lembra por você
         </div>
 
         <h1 className="max-w-3xl text-balance text-4xl font-semibold tracking-tight text-foreground sm:text-5xl md:text-6xl">
-          Organize o trabalho da sua equipe com{" "}
-          <span className="text-primary">clareza de ponta a ponta</span>
+          Guarde, lembre e organize a sua vida{" "}
+          <span className="text-primary">conversando</span>
         </h1>
 
         <p className="max-w-2xl text-balance text-lg text-muted-foreground">
-          TaskFlow reúne espaços, pastas, itens, subitens e anexos em
-          um fluxo simples — com convites por e-mail, papéis de acesso e
-          campos personalizados para adaptar cada pasta ao seu jeito de
-          trabalhar.
+          Conte o que você precisa — uma conta para pagar, um remédio, uma
+          consulta, as compras da casa — e o TaskFlow guarda no lugar certo e
+          te lembra na hora. Por escrito ou por áudio, no app ou no WhatsApp.
         </p>
 
         <div className="flex flex-col gap-3 sm:flex-row">
@@ -44,7 +43,7 @@ export function Hero() {
         </div>
 
         <p className="text-xs text-muted-foreground">
-          Sem cartão de crédito. Configure seu primeiro espaço em minutos.
+          Grátis para começar. Sem cartão de crédito.
         </p>
 
         <ProductPreview />

@@ -3,27 +3,27 @@ import { Gauge, Eye, Lock, Puzzle } from "lucide-react";
 const BENEFITS = [
   {
     icon: Eye,
-    title: "Visibilidade real",
+    title: "Tudo à vista",
     description:
-      "Todo mundo enxerga o mesmo status, os mesmos responsáveis e o mesmo histórico — sem retrabalho de alinhamento.",
+      "Você abre o app e já sabe o que vence hoje, o que atrasou e o que vem pela frente.",
   },
   {
     icon: Lock,
-    title: "Acesso sob controle",
+    title: "Só vê quem você chamar",
     description:
-      "Papéis por espaço e por pasta garantem que cada pessoa veja e edite exatamente o que deveria.",
+      "Suas pastas são suas até você decidir dividir, e dá para escolher quem pode editar.",
   },
   {
     icon: Puzzle,
-    title: "Flexível o suficiente",
+    title: "Serve para tudo",
     description:
-      "Campos personalizados adaptam cada pasta à sua realidade, sem exigir uma ferramenta nova para cada caso.",
+      "Casa, saúde, estudos, dinheiro ou trabalho: cada pasta se adapta ao assunto.",
   },
   {
     icon: Gauge,
-    title: "Rápido de adotar",
+    title: "Sem curva de aprendizado",
     description:
-      "Interface direta, sem curva de aprendizado — sua equipe começa a usar no primeiro dia.",
+      "Se você sabe mandar uma mensagem, sabe usar o TaskFlow.",
   },
 ];
 
@@ -33,7 +33,7 @@ export function Benefits() {
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-            Por que times escolhem o TaskFlow
+            Por que é mais leve
           </h2>
         </div>
 

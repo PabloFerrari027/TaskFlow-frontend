@@ -60,6 +60,7 @@ import {
 import type { FolderTemplateSummary } from "@/types/folder-template";
 import { useOptionalCurrentWorkspace } from "@/features/workspaces/context/current-workspace-context";
 import { useTutorial } from "@/features/tutorial/context/tutorial-context";
+import { useAssistantChat } from "@/features/assistant/context/assistant-chat-context";
 import { TOUR_STEPS, type TourStep } from "@/features/tutorial/lib/tour-steps";
 
 const SPOTLIGHT_PADDING = 6;
@@ -215,6 +216,7 @@ function wait(ms: number) {
 
 function TourOverlay() {
   const { closeTour } = useTutorial();
+  const { openChat } = useAssistantChat();
   const router = useRouter();
   const pathname = usePathname();
   const queryClient = useQueryClient();
@@ -842,7 +844,7 @@ function TourOverlay() {
 
         <div className="flex flex-wrap items-center justify-between gap-3">
           {isLast ? (
-            <Button variant="outline" size="lg" asChild>
+            <Button variant="ghost" size="lg" className="text-muted-foreground" asChild>
               <Link href="/tutorial" onClick={() => closeTour("completed")}>
                 Ver tutorial
               </Link>
@@ -858,9 +860,24 @@ function TourOverlay() {
                 Voltar
               </Button>
             ) : null}
-            <Button ref={primaryRef} size="lg" onClick={next}>
-              {isLast ? "Concluir" : isFirst ? "Começar" : "Próximo"}
-            </Button>
+            {isLast ? (
+              // The way forward after the tour is a conversation: the chat
+              // already knows what the person answered in "Sobre você".
+              <Button
+                ref={primaryRef}
+                size="lg"
+                onClick={() => {
+                  closeTour("completed");
+                  openChat();
+                }}
+              >
+                <Sparkles /> Conversar agora
+              </Button>
+            ) : (
+              <Button ref={primaryRef} size="lg" onClick={next}>
+                {isFirst ? "Começar" : "Próximo"}
+              </Button>
+            )}
           </div>
         </div>
       </div>

@@ -36,8 +36,9 @@ export default function DashboardLayout({
                   </div>
                 </div>
               </SidebarProvider>
+              {/* Inside the chat provider: the last step opens the chat. */}
+              <TutorialTour />
             </AssistantChatProvider>
-            <TutorialTour />
           </TutorialProvider>
         </SyncProvider>
       </CurrentWorkspaceProvider>

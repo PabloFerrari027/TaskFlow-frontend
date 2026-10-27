@@ -11,11 +11,11 @@ export function CtaSection() {
           className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent"
         />
         <h2 className="text-3xl font-semibold tracking-tight text-primary-foreground sm:text-4xl">
-          Pronto para organizar o trabalho da sua equipe?
+          Pronto para tirar isso da cabeça?
         </h2>
         <p className="mx-auto mt-3 max-w-xl text-primary-foreground/80">
-          Crie sua conta gratuitamente e monte seu primeiro espaço em
-          minutos.
+          Crie sua conta grátis e conte ao assistente a primeira coisa que
+          você não quer esquecer.
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Button size="lg" variant="secondary" asChild>

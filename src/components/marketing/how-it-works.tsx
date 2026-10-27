@@ -1,27 +1,27 @@
 const STEPS = [
   {
     step: "01",
-    title: "Crie seu espaço",
+    title: "Crie sua conta",
     description:
-      "Cadastre-se, confirme com o código de segurança enviado por e-mail e crie o espaço da sua equipe.",
+      "Com e-mail ou com Google. Leva um minuto.",
   },
   {
     step: "02",
-    title: "Monte suas pastas",
+    title: "Conte um pouco sobre você",
     description:
-      "Adicione pastas, convide colaboradores por e-mail e defina o papel de cada um.",
+      "Umas perguntas rápidas para o assistente entender o que você quer organizar. Dá para pular.",
   },
   {
     step: "03",
-    title: "Divida em itens",
+    title: "Fale o que precisa",
     description:
-      "Crie itens, atribua responsáveis, quebre em subitens e anexe os arquivos necessários.",
+      "“Me lembra de pagar a luz todo dia 10.” O assistente guarda e avisa na hora.",
   },
   {
     step: "04",
-    title: "Acompanhe o progresso",
+    title: "Veja tudo num lugar só",
     description:
-      "Mude o status conforme o trabalho avança e use campos personalizados para o que for específico da sua pasta.",
+      "A tela inicial mostra o que vence hoje, o que atrasou e os seus lembretes.",
   },
 ];
 
@@ -33,7 +33,7 @@ export function HowItWorks() {
           Como funciona
         </h2>
         <p className="mt-3 text-muted-foreground">
-          Do cadastro à primeira pasta rodando, em quatro passos.
+          Do cadastro ao primeiro lembrete, sem manual.
         </p>
       </div>
 

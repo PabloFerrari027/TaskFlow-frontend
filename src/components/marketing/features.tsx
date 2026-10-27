@@ -10,39 +10,39 @@ import {
 const FEATURES = [
   {
     icon: Building2,
-    title: "Espaços e pastas",
+    title: "Pastas prontas para começar",
     description:
-      "Organize equipes em espaços, cada um com múltiplas pastas ativas ou arquivadas.",
+      "Modelos para gastos do mês, remédios e consultas, estudos, vendas e muito mais. Ou o assistente monta com você.",
   },
   {
     icon: ListChecks,
-    title: "Itens e subitens",
+    title: "Itens e lembretes",
     description:
-      "Quebre o trabalho em itens com status (a fazer, em andamento, concluída) e subitens.",
+      "Cada coisa a fazer com prazo, hora e aviso. Marque como feita e veja o que ainda falta.",
   },
   {
     icon: Paperclip,
-    title: "Anexos por item",
+    title: "Fotos e documentos junto",
     description:
-      "Anexe arquivos de até 20MB diretamente no item relevante, sem perder contexto.",
+      "Guarde a receita, o boleto ou o comprovante no item certo, para achar quando precisar.",
   },
   {
     icon: SlidersHorizontal,
-    title: "Campos personalizados",
+    title: "Do seu jeito",
     description:
-      "Crie campos de texto, número, data, seleção única/múltipla, checkbox ou pessoas por pasta.",
+      "Colunas e campos extras para o que for seu: valor, cliente, dose, matéria.",
   },
   {
     icon: UserPlus,
-    title: "Convites com papéis",
+    title: "Divida com quem quiser",
     description:
-      "Convide por e-mail para o espaço ou para uma pasta específica, com o papel certo para cada pessoa.",
+      "Chame a família ou a equipe para uma pasta e decida quem só vê e quem pode editar.",
   },
   {
     icon: ShieldCheck,
-    title: "Autenticação segura",
+    title: "Seus dados protegidos",
     description:
-      "Login com 2FA por e-mail ou Google, sessões visíveis e revogáveis a qualquer momento.",
+      "Entrada com código por e-mail ou com Google. O assistente mostra o que vai fazer, e você confere.",
   },
 ];
 
@@ -52,11 +52,11 @@ export function Features() {
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-            Tudo que um time precisa para executar
+            O que dá para fazer
           </h2>
           <p className="mt-3 text-muted-foreground">
-            Sem inchaço de funcionalidades que ninguém usa — só o essencial,
-            bem feito.
+            Para a casa, a saúde, os estudos, o dinheiro ou o seu pequeno
+            negócio.
           </p>
         </div>
 
