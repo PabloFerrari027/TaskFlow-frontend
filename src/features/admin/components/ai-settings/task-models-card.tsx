@@ -22,7 +22,7 @@ const CHAT_MODELS = [
 ];
 const TRANSCRIPTION_MODELS = ["openai:gpt-4o-mini-transcribe", "openai:gpt-4o-transcribe", "gemini:gemini-flash-latest"];
 
-const EFFORT_LABEL: Record<string, string> = { low: "baixo", medium: "médio", high: "alto" };
+const EFFORT_LABEL: Record<string, string> = { none: "nenhum", low: "baixo", medium: "médio", high: "alto" };
 
 /** Mesma regra do servidor (`supportsReasoningEffort`): só os modelos que pensam antes de responder usam o esforço. */
 const REASONING_MODEL = /^openai:(?:od|gpt-5)/;
@@ -113,7 +113,8 @@ function TaskModelRow({ task, planId, providers }: { task: AiTask; planId: strin
               <SelectItem value={DEFAULT}>
                 Raciocínio: padrão{task.serverDefault.reasoningEffort ? ` (${EFFORT_LABEL[task.serverDefault.reasoningEffort] ?? task.serverDefault.reasoningEffort})` : ""}
               </SelectItem>
-              <SelectItem value="low">Raciocínio: baixo (mais barato)</SelectItem>
+              <SelectItem value="none">Raciocínio: nenhum (o mais barato)</SelectItem>
+              <SelectItem value="low">Raciocínio: baixo</SelectItem>
               <SelectItem value="medium">Raciocínio: médio</SelectItem>
               <SelectItem value="high">Raciocínio: alto (mais caro)</SelectItem>
             </SelectContent>
@@ -132,7 +133,8 @@ export function TaskModelsCard({ settings, planId }: { settings: AiSettings; pla
         <CardDescription>
           Qual modelo faz cada trabalho neste plano. Vale a partir da próxima mensagem. Um nome de
           modelo errado faz aquela tarefa falhar, então teste depois de trocar. Nos modelos que pensam
-          antes de responder (gpt-5), dá para escolher quanto raciocínio usar.
+          antes de responder (gpt-5), dá para escolher quanto raciocínio usar; na conversa do
+          assistente, os gpt-5.4 só funcionam com raciocínio “nenhum”.
         </CardDescription>
       </CardHeader>
       <CardContent className="divide-y">

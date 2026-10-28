@@ -1,7 +1,8 @@
 // Regras e modelos da IA por plano — tela de admin (API.md § 30).
 
 export type AiRuleKind = "PROMPT" | "BEHAVIOR";
-export type AiReasoningEffort = "low" | "medium" | "high";
+/** "none": sem raciocínio — o gpt-5.4-nano/mini só aceitam ações (tools) na conversa assim. */
+export type AiReasoningEffort = "none" | "low" | "medium" | "high";
 
 export interface AiRule {
   id: string;
