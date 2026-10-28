@@ -2,7 +2,10 @@
 
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { notificationsService } from "@/features/notifications/api/notifications-service";
+import {
+  calendarFeedService,
+  notificationsService,
+} from "@/features/notifications/api/notifications-service";
 import { queryKeys } from "@/lib/query-keys";
 import { getErrorMessage } from "@/lib/errors";
 import type { NotificationPreference } from "@/types/notification";
@@ -78,5 +81,32 @@ export function useSaveNotificationPreferenceMutation() {
       if (context?.previous) queryClient.setQueryData(key, context.previous);
       toast.error(getErrorMessage(error));
     },
+  });
+}
+
+export function useCalendarFeedQuery() {
+  return useQuery({
+    queryKey: queryKeys.notifications.calendarFeed(),
+    queryFn: () => calendarFeedService.status(),
+  });
+}
+
+export function useCreateCalendarFeedMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => calendarFeedService.create(),
+    onSuccess: () => queryClient.setQueryData(queryKeys.notifications.calendarFeed(), true),
+    onError: (error) => toast.error(getErrorMessage(error)),
+  });
+}
+
+export function useRemoveCalendarFeedMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => calendarFeedService.remove(),
+    onSuccess: () => queryClient.setQueryData(queryKeys.notifications.calendarFeed(), false),
+    onError: (error) => toast.error(getErrorMessage(error)),
   });
 }

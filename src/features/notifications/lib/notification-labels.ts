@@ -23,4 +23,8 @@ export const NOTIFICATION_TYPE_LABEL: Record<NotificationType, { title: string; 
     title: "Respostas de aprovação",
     description: "Quando um pedido de aprovação seu é aprovado ou recusado.",
   },
+  DAILY_DIGEST: {
+    title: "Resumo do dia",
+    description: "Um e-mail às 7h com o que vence hoje e o que está atrasado. Em dia sem nada, não chega.",
+  },
 };

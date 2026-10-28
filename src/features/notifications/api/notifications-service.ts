@@ -51,3 +51,22 @@ export const notificationsService = {
     return data.preferences;
   },
 };
+
+// Calendar link (Google Agenda and phone calendars subscribe to it). The server returns the path
+// only when the link is created; the full address uses the API URL.
+export const calendarFeedService = {
+  async status() {
+    const { data } = await apiClient.get<{ enabled: boolean }>("/me/calendar-feed");
+    return data.enabled;
+  },
+
+  // Creating again replaces the link (the old one stops working).
+  async create() {
+    const { data } = await apiClient.post<{ path: string }>("/me/calendar-feed");
+    return new URL(data.path, apiClient.defaults.baseURL).toString();
+  },
+
+  async remove() {
+    await apiClient.delete("/me/calendar-feed");
+  },
+};

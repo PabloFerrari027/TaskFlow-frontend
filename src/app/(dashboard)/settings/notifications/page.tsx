@@ -1,6 +1,7 @@
 "use client";
 
 import { PageHeader } from "@/components/shared/page-header";
+import { CalendarFeedSection } from "@/features/notifications/components/calendar-feed-section";
 import { NotificationPreferencesSection } from "@/features/notifications/components/notification-preferences-section";
 
 export default function NotificationSettingsPage() {
@@ -11,6 +12,7 @@ export default function NotificationSettingsPage() {
         description="Os avisos aparecem no sino, no topo da tela. Aqui você escolhe quais quer receber e quais também chegam por e-mail."
       />
       <NotificationPreferencesSection />
+      <CalendarFeedSection />
     </div>
   );
 }

@@ -8,9 +8,13 @@ export const NOTIFICATION_TYPES = [
   "ITEM_UNBLOCKED",
   "APPROVAL_REQUESTED",
   "APPROVAL_DECIDED",
+  "DAILY_DIGEST",
 ] as const;
 
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
+
+/** Only e-mail makes sense for these (the server ignores in-app); off by default. */
+export const EMAIL_ONLY_NOTIFICATION_TYPES: readonly NotificationType[] = ["DAILY_DIGEST"];
 
 export interface AppNotification {
   id: string;

@@ -9,7 +9,11 @@ import {
   useNotificationPreferencesQuery,
   useSaveNotificationPreferenceMutation,
 } from "@/features/notifications/hooks/use-notifications";
-import { NOTIFICATION_TYPES, type NotificationPreference } from "@/types/notification";
+import {
+  EMAIL_ONLY_NOTIFICATION_TYPES,
+  NOTIFICATION_TYPES,
+  type NotificationPreference,
+} from "@/types/notification";
 
 export function NotificationPreferencesSection() {
   const preferencesQuery = useNotificationPreferencesQuery();
@@ -47,8 +51,9 @@ export function NotificationPreferencesSection() {
               <span className="text-center">E-mail</span>
             </div>
             {NOTIFICATION_TYPES.map((type) => {
-              // The server default is every channel on.
-              const preference = byType.get(type) ?? { type, inApp: true, email: true };
+              const emailOnly = EMAIL_ONLY_NOTIFICATION_TYPES.includes(type);
+              // The server default is every channel on, except the e-mail-only ones (off).
+              const preference = byType.get(type) ?? { type, inApp: !emailOnly, email: !emailOnly };
               const label = NOTIFICATION_TYPE_LABEL[type];
               return (
                 <div
@@ -59,14 +64,20 @@ export function NotificationPreferencesSection() {
                     <p className="text-sm font-medium text-foreground">{label.title}</p>
                     <p className="text-xs text-muted-foreground">{label.description}</p>
                   </div>
-                  <label className="flex flex-col items-center gap-1 text-[11px] text-muted-foreground">
-                    <Switch
-                      checked={preference.inApp}
-                      onCheckedChange={(value) => toggle(preference, "inApp", value)}
-                      aria-label={`${label.title} no app`}
-                    />
-                    <span className="sm:hidden">App</span>
-                  </label>
+                  {emailOnly ? (
+                    <span className="w-9 text-center text-xs text-muted-foreground" aria-hidden>
+                      —
+                    </span>
+                  ) : (
+                    <label className="flex flex-col items-center gap-1 text-[11px] text-muted-foreground">
+                      <Switch
+                        checked={preference.inApp}
+                        onCheckedChange={(value) => toggle(preference, "inApp", value)}
+                        aria-label={`${label.title} no app`}
+                      />
+                      <span className="sm:hidden">App</span>
+                    </label>
+                  )}
                   <label className="flex flex-col items-center gap-1 text-[11px] text-muted-foreground">
                     <Switch
                       checked={preference.email}

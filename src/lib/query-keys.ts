@@ -244,6 +244,7 @@ export const queryKeys = {
       ["notifications", "list", params] as const,
     unreadCount: (workspaceId?: string) => ["notifications", "unread-count", workspaceId ?? null] as const,
     preferences: () => ["notifications", "preferences"] as const,
+    calendarFeed: () => ["notifications", "calendar-feed"] as const,
   },
   search: {
     root: () => ["search"] as const,
