@@ -17,7 +17,7 @@ import {
 } from "@/features/items/lib/item-list-refresh";
 import { queryKeys } from "@/lib/query-keys";
 import { celebrate } from "@/lib/celebrate";
-import { getBulkItemErrorMessage, getErrorMessage } from "@/lib/errors";
+import { getBulkItemErrorMessage, getErrorCode, getErrorMessage } from "@/lib/errors";
 import { MAX_PAGE_SIZE, type PaginatedResult } from "@/types/common";
 import { useCurrentWorkspace } from "@/features/workspaces/context/current-workspace-context";
 import {
@@ -375,6 +375,20 @@ export function useCreateItemMutation(
   });
 }
 
+/**
+ * Erro de uma edição de item. Conflito (outra pessoa mudou o item depois que ele foi aberto): aviso
+ * em palavras simples e a versão nova é buscada, para a pessoa refazer a mudança sobre ela.
+ */
+function handleItemMutationError(queryClient: QueryClient, itemId: string, error: unknown) {
+  if (getErrorCode(error) === "ITEM_VERSION_CONFLICT") {
+    toast.warning(getErrorMessage(error));
+    void queryClient.invalidateQueries({ queryKey: queryKeys.items.detail(itemId) });
+    scheduleItemListsRefresh(queryClient);
+    return;
+  }
+  toast.error(getErrorMessage(error));
+}
+
 export function useUpdateItemMutation(
   itemId: string,
   { silent = false }: ItemMutationOptions = {}
@@ -416,7 +430,8 @@ export function useUpdateItemMutation(
           })
         );
       }
-      return itemsService.update(itemId, payload);
+      // A versão que a pessoa está vendo: se outra pessoa mudou o item, o servidor responde 409.
+      return itemsService.update(itemId, { ...payload, expectedVersion: current?.version });
     },
     onSuccess: (item) => {
       queryClient.setQueryData(queryKeys.items.detail(itemId), item);
@@ -433,7 +448,7 @@ export function useUpdateItemMutation(
           : "Item atualizado."
       );
     },
-    onError: (error) => toast.error(getErrorMessage(error)),
+    onError: (error) => handleItemMutationError(queryClient, itemId, error),
   });
 }
 
@@ -886,7 +901,7 @@ export function useChangeItemStatusMutation(
           })
         );
       }
-      return itemsService.changeStatus(itemId, payload);
+      return itemsService.changeStatus(itemId, { ...payload, expectedVersion: current?.version });
     },
     // Read before the request goes out: afterwards the cache already holds DONE.
     // A custom status is resolved to its category by the caller (`category`).
@@ -922,7 +937,7 @@ export function useChangeItemStatusMutation(
             : "Status atualizado."
       );
     },
-    onError: (error) => toast.error(getErrorMessage(error)),
+    onError: (error) => handleItemMutationError(queryClient, itemId, error),
   });
 }
 

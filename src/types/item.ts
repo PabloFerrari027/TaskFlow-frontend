@@ -73,6 +73,8 @@ export interface CreateItemRequest {
 }
 
 export interface UpdateItemRequest {
+  /** Versão que a pessoa está vendo — se outra pessoa mudou o item, 409 ITEM_VERSION_CONFLICT. */
+  expectedVersion?: number;
   title?: string;
   description?: string;
   /** `null` unassigns; omitted leaves it as is. */
@@ -97,7 +99,10 @@ export interface UpdateItemRequest {
 }
 
 /** Send `status` (a category — goes to its default status) OR `statusId`. */
-export type ChangeItemStatusRequest = { status: ItemStatus; statusId?: never } | { statusId: string; status?: never };
+export type ChangeItemStatusRequest = ({ status: ItemStatus; statusId?: never } | { statusId: string; status?: never }) & {
+  /** Versão que a pessoa está vendo — se outra pessoa mudou o item, 409 ITEM_VERSION_CONFLICT. */
+  expectedVersion?: number;
+};
 
 /** A folder's custom status ("Em revisão", "Aguardando cliente"…), always inside one category. */
 export interface WorkflowStatus {

@@ -41,6 +41,8 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
     "Este convite foi enviado para outro e-mail. Entre com a conta correta.",
   FOLDER_NOT_FOUND: "Pasta não encontrada.",
   ITEM_NOT_FOUND: "Item não encontrado.",
+  ITEM_VERSION_CONFLICT:
+    "Outra pessoa mudou este item agora há pouco. Já mostramos a versão mais nova: confira e faça sua alteração de novo.",
   BULK_BATCH_TOO_LARGE: "Muitos itens de uma vez. Faça a ação em grupos menores.",
   ATTACHMENT_NOT_FOUND: "Anexo não encontrado.",
   INVALID_ITEM_COVER: "Use uma imagem JPEG, PNG ou WebP de até 10MB.",
