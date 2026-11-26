@@ -17,6 +17,7 @@ import {
   useStartAiTopUpCheckoutMutation,
 } from "@/features/plans/hooks/use-ai-top-ups";
 import { describePack } from "@/features/plans/lib/top-up";
+import { useBfcacheRestore } from "@/lib/use-bfcache-restore";
 
 /**
  * Pack list → Stripe Checkout. Open it only when `quota.topUp.purchasable`
@@ -36,6 +37,11 @@ export function BuyTopUpDialog({
   const packs = packsQuery.data ?? [];
   // isSuccess too: the browser is still leaving for Stripe, keep it locked.
   const locked = checkout.isPending || checkout.isSuccess;
+  // Back from Stripe (bfcache): the checkout is still in isSuccess — unlock and close.
+  useBfcacheRestore(() => {
+    checkout.reset();
+    onOpenChange(false);
+  });
 
   return (
     <Dialog open={open} onOpenChange={(next) => !locked && onOpenChange(next)}>
