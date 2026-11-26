@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 import { CREDITS_PER_MESSAGE, creditsToMessages, describePack, formatCredits, formatDayMonth } from "./top-up.ts";
 
 // Intl pt-BR usa espaço não separável entre "R$" e o valor.
-const nbsp = (text: string) => text.replace(/ /g, " ");
+const nbsp = (text: string) => text.replace(/\u00A0/g, " ");
 
 describe("formatCredits", () => {
   it("usa separador de milhar e só inteiros", () => {
@@ -40,6 +40,9 @@ describe("describePack", () => {
     assert.match(describePack({ credits: 4000, priceCents: 5990 }), /^4\.000 créditos/);
   });
 });
+
+// formatDayMonth lê o fuso do processo: fixa para o teste não depender da máquina.
+process.env.TZ = "UTC";
 
 describe("formatDayMonth", () => {
   it("devolve DD/MM", () => {
