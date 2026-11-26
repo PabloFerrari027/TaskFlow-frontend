@@ -396,6 +396,7 @@ export function buildBillingEndpoints(): ApiEndpoint[] {
       requestExample: ['curl "$API_URL/billing/ai-top-ups/packs" \\', '  -H "Authorization: Bearer $ACCESS_TOKEN"'].join("\n"),
       responseStatus: "200 OK",
       responseExample: '{ "data": [ { "id": "uuid", "name": "Recarga P", "credits": 500, "priceCents": 990, "currency": "BRL" } ] }',
+      errorCodes: ["FEATURE_DISABLED"],
     },
     {
       method: "POST",
@@ -419,7 +420,7 @@ export function buildBillingEndpoints(): ApiEndpoint[] {
       method: "GET",
       path: "/billing/ai-top-ups/me",
       summary: "Meu saldo de recarga e histórico de compras",
-      description: "Saldo em créditos inteiros, próxima expiração e compras paginadas (`page`, `limit`).",
+      description: "Saldo em créditos inteiros, próxima expiração e compras pagas paginadas (`page`, `limit`). Exige a feature `billing.ai_top_ups`.",
       queryParams: [
         { name: "page", type: "number", required: false },
         { name: "limit", type: "number", required: false },
@@ -433,7 +434,11 @@ export function buildBillingEndpoints(): ApiEndpoint[] {
         '    "meta": { "page": 1, "limit": 20, "total": 1, "totalPages": 1 } }',
         "}",
       ].join("\n"),
-      notes: ["`status`: `PENDING`, `COMPLETED`, `EXPIRED`, `PARTIALLY_REFUNDED`, `REFUNDED` ou `DISPUTED`."],
+      errorCodes: ["FEATURE_DISABLED"],
+      notes: [
+        "Lista só compras pagas: `PENDING` e `EXPIRED` nunca aparecem. `status`: `COMPLETED`, `PARTIALLY_REFUNDED`, `REFUNDED` ou `DISPUTED`.",
+        "Ordenada por `createdAt`, da mais nova para a mais antiga.",
+      ],
     },
     {
       method: "GET",
