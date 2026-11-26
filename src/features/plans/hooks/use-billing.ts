@@ -64,6 +64,8 @@ export function useChangeSubscriptionPlanMutation() {
       billingService.changePlan(plan.id, couponCode),
     onSuccess: (myPlan, { plan, couponCode }) => {
       queryClient.setQueryData(queryKeys.plans.mine(), myPlan);
+      // The plan sets the quota limits the allowance is computed against.
+      queryClient.invalidateQueries({ queryKey: queryKeys.aiUsage.root() });
       toast.success(
         couponCode && myPlan.discount
           ? `Plano ${plan.name} com o cupom ${myPlan.discount.couponCode}.`
