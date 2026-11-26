@@ -71,7 +71,9 @@ export function ChoosePlanDialog({
   // The mutation of the chosen branch: its pending state and coupon error.
   const confirmMutation =
     action === "checkout" ? checkoutMutation : action === "change" ? changeMutation : setMyPlanMutation;
-  const confirming = confirmMutation.isPending;
+  // isSuccess too: a checkout is "done" once the URL arrives, while the browser
+  // is still leaving for Stripe — keep the button locked so it is not clicked twice.
+  const confirming = confirmMutation.isPending || confirmMutation.isSuccess;
   const busy = previewMutation.isPending || confirming;
   const confirmError =
     confirmMutation.error && getErrorCode(confirmMutation.error)?.startsWith("COUPON_")
@@ -91,7 +93,7 @@ export function ChoosePlanDialog({
   function confirm() {
     const done = { onSuccess: () => onOpenChange(false) };
     if (action === "checkout") {
-      // Leaves for Stripe; the dialog stays "busy" until the page unloads.
+      // Leaves for Stripe; the dialog stays locked (isSuccess) until the page unloads.
       checkoutMutation.mutate({ planId: plan.id, couponCode: preview?.code });
     } else if (action === "change") {
       changeMutation.mutate({ plan, couponCode: preview?.code }, done);
