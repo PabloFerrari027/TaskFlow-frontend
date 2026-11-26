@@ -277,6 +277,11 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   CHECKOUT_ALREADY_COMPLETED: "Seu pagamento anterior acabou de ser aprovado. A assinatura está sendo ativada.",
   CHECKOUT_IN_PROGRESS: "Já estamos abrindo um pagamento para você. Aguarde um instante e tente de novo.",
   SUBSCRIPTION_NOT_SCHEDULED_TO_CANCEL: "Sua assinatura não está marcada para cancelar.",
+  AI_TOP_UP_PACK_NOT_FOUND: "Este pacote de recarga não está mais disponível.",
+  AI_TOP_UP_UNAVAILABLE: "A recarga de créditos ainda não está disponível para a sua conta.",
+  AI_TOP_UP_PACK_NAME_ALREADY_EXISTS: "Já existe um pacote de recarga com este nome.",
+  INVALID_AI_TOP_UP_PACK: "Confira os dados do pacote: créditos e preço precisam ser maiores que zero.",
+  INVALID_AI_TOP_UP_GRANT: "Confira os dados da concessão de créditos.",
   BILLING_ACCOUNT_NOT_FOUND: "Você ainda não tem dados de cobrança. Assine um plano primeiro.",
   // Sent as the final `error` frame of the assistant's chat stream, whose
   // server-side messages are in English.
