@@ -1,6 +1,9 @@
 # 0002. Testes unitários com `node --test`, sem Vitest na v1
 
-Status: aceita
+- **Status:** Proposto
+- **Data:** 2026-11-26
+- **Módulo:** plans-billing
+- **PR:** feat/recarga-ia-front
 
 ## Contexto
 
@@ -12,6 +15,10 @@ O frontend não tinha runner de testes. A recarga de IA trouxe lógica pura que 
 - Os arquivos de teste e o código que eles importam usam imports relativos com extensão `.ts` (`allowImportingTsExtensions` já está ligado no `tsconfig.json`); o alias `@/` não resolve fora do bundler do Next.
 - Requisito de ambiente: Node >= 22.18 (`engines` no `package.json`, `.nvmrc` com a 24).
 - Vitest ficou de fora na v1: nada ainda precisa de jsdom, mocks de módulo ou testes de componente. Quando precisar, a migração é trocar o runner, porque os testes usam só `describe`/`it`/`assert`.
+
+## Alternativas consideradas
+
+- **Vitest:** ficou de fora na v1; nada ainda precisa de jsdom, mocks de módulo ou testes de componente.
 
 ## Consequências
 
