@@ -33,13 +33,11 @@ export const aiTopUpsService = {
     return data;
   },
 
-  // ---- SUPER_ADMIN. The contract does not show the list body: accept a
-  // bare array or `{ data: [...] }` (the same envelope as the user's list).
+  // ---- SUPER_ADMIN. Same `{ data }` envelope as the user's list (API.md § 46),
+  // but including inactive packs.
   async listAdminPacks() {
-    const { data } = await apiClient.get<AiTopUpPackAdmin[] | { data: AiTopUpPackAdmin[] }>(
-      "/admin/ai-top-up-packs"
-    );
-    return Array.isArray(data) ? data : data.data;
+    const { data } = await apiClient.get<{ data: AiTopUpPackAdmin[] }>("/admin/ai-top-up-packs");
+    return data.data;
   },
 
   async createAdminPack(input: CreateAiTopUpPackRequest) {
