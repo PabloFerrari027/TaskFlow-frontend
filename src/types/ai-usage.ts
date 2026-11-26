@@ -73,3 +73,27 @@ export function buildAiUsageDateRange(days: number): { from: string; to: string 
   from.setHours(0, 0, 0, 0);
   return { from: from.toISOString(), to: to.toISOString() };
 }
+
+// `GET /ai-usage/me/quota` (contratos-recarga.md § 6). Percentages only: the
+// user never sees tokens or money. `topUp` is always present.
+export interface AiQuotaWindow {
+  usedPercent: number;
+  resetsAt: string;
+}
+
+export interface AiQuotaTopUp {
+  /** The only switch for showing a buy button: flags on and Stripe configured. */
+  purchasable: boolean;
+  balanceCredits: number;
+  nextExpiresAt: string | null;
+  /** A window is at 100% and the balance is paying for calls right now. */
+  active: boolean;
+}
+
+export interface AiQuota {
+  day: AiQuotaWindow;
+  week: AiQuotaWindow;
+  month: AiQuotaWindow;
+  limitingWindow: "day" | "week" | "month";
+  topUp: AiQuotaTopUp;
+}

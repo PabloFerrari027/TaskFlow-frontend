@@ -5,7 +5,7 @@ import {
   redirectToLogin,
 } from "@/lib/api/client";
 import { getAccessToken, getRefreshCredentials } from "@/lib/auth/token-store";
-import type { AiUsageQuery, AiUsageResponse } from "@/types/ai-usage";
+import type { AiQuota, AiUsageQuery, AiUsageResponse } from "@/types/ai-usage";
 import type {
   AssistantConversationMessagePage,
   AssistantProfile,
@@ -224,6 +224,12 @@ export const assistantService = {
   // Only the caller's own usage — there's no userId param (API.md § 24).
   async getMyAiUsage(params: AiUsageQuery) {
     const { data } = await apiClient.get<AiUsageResponse>("/ai-usage/me", { params });
+    return data;
+  },
+
+  // Percent used per window + the top-up summary (contratos-recarga.md § 6).
+  async getMyAiQuota() {
+    const { data } = await apiClient.get<AiQuota>("/ai-usage/me/quota");
     return data;
   },
 };

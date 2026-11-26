@@ -201,6 +201,16 @@ export const queryKeys = {
     // Nested under `["ai-usage", "me"]` so invalidating that prefix refreshes it too.
     window: (window: "day" | "week" | "month", from: string) =>
       ["ai-usage", "me", "window", window, from] as const,
+    // Percent per window + the top-up summary (`topUp.purchasable` gates every buy button).
+    quota: () => ["ai-usage", "me", "quota"] as const,
+  },
+  // Recarga de IA (contratos-recarga.md § 5). `mine` pages share the prefix.
+  aiTopUps: {
+    all: () => ["ai-top-ups"] as const,
+    packs: () => ["ai-top-ups", "packs"] as const,
+    mine: (page?: number) =>
+      page ? (["ai-top-ups", "me", { page }] as const) : (["ai-top-ups", "me"] as const),
+    adminPacks: () => ["ai-top-ups", "admin", "packs"] as const,
   },
   // The system catalog is global (API.md § 26): no workspaceId in its key, so
   // switching workspace never refetches it — only `workspace` depends on one.

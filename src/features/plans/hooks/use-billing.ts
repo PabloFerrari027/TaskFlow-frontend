@@ -6,6 +6,7 @@ import { billingService } from "@/features/plans/api/billing-service";
 import { queryKeys } from "@/lib/query-keys";
 import { getErrorCode, getErrorMessage } from "@/lib/errors";
 import { formatDate } from "@/lib/format";
+import { goToStripe } from "@/lib/navigation";
 
 // Coupon errors are shown inline by the dialog's coupon field, not toasted.
 function isCouponError(error: unknown) {
@@ -24,11 +25,6 @@ function refreshOnStaleState(error: unknown, invalidate: () => void) {
   ) {
     invalidate();
   }
-}
-
-// Stripe-hosted pages: a full navigation, not a router push.
-function goTo(url: string) {
-  window.location.assign(url);
 }
 
 // Shared by checkout and change: coupon errors stay inline; a stale plan or
@@ -50,7 +46,7 @@ export function useStartCheckoutMutation() {
     mutationFn: ({ planId, couponCode }: { planId: string; couponCode?: string }) =>
       billingService.startCheckout(planId, couponCode),
     // The dialog keeps its button locked (isSuccess) while the browser leaves for Stripe.
-    onSuccess: (checkout) => goTo(checkout.url),
+    onSuccess: (checkout) => goToStripe(checkout.url),
     onError: (error) => handlePlanPurchaseError(error, queryClient),
   });
 }
@@ -121,7 +117,7 @@ export function useResumeSubscriptionMutation() {
 export function useOpenBillingPortalMutation() {
   return useMutation({
     mutationFn: () => billingService.openPortal(),
-    onSuccess: ({ url }) => goTo(url),
+    onSuccess: ({ url }) => goToStripe(url),
     onError: (error) => toast.error(getErrorMessage(error)),
   });
 }

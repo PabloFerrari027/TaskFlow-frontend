@@ -4,6 +4,8 @@ import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAssistantAllowance } from "@/features/plans/hooks/use-plans";
+import { useMyAiQuotaQuery } from "@/features/plans/hooks/use-ai-top-ups";
+import { formatCredits, formatDayMonth } from "@/features/plans/lib/top-up";
 import { messagesLabel, utcMidnightInLocalTime } from "@/features/plans/lib/plan-caps";
 import { cn } from "@/lib/utils";
 
@@ -17,6 +19,7 @@ const RESET_TEXT = {
 // stay one click away, under "Ver detalhes técnicos".
 export function AssistantAllowanceCard({ showPlanLink = false }: { showPlanLink?: boolean }) {
   const allowance = useAssistantAllowance();
+  const topUp = useMyAiQuotaQuery().data?.topUp;
 
   if (!allowance) return <Skeleton className="h-32 w-full" />;
 
@@ -47,6 +50,12 @@ export function AssistantAllowanceCard({ showPlanLink = false }: { showPlanLink?
       <p className="text-sm text-foreground">
         Você usou {percent}% do limite de hoje. Ainda dá para {messagesLabel(messagesLeft)}.
       </p>
+      {topUp && topUp.balanceCredits > 0 ? (
+        <p className="text-sm text-foreground">
+          +{formatCredits(topUp.balanceCredits)} créditos de recarga
+          {topUp.nextExpiresAt ? ` (os próximos vencem em ${formatDayMonth(topUp.nextExpiresAt)})` : ""}.
+        </p>
+      ) : null}
       <p className="text-xs text-muted-foreground">
         {RESET_TEXT[limitedBy]()} Conversas longas ou com anexos gastam mais.
         {showPlanLink ? (

@@ -5,14 +5,16 @@ import { PageHeader } from "@/components/shared/page-header";
 import { TutorialGuideLink } from "@/components/shared/tutorial-guide-link";
 import { FoldedSection } from "@/components/shared/folded-section";
 import { CheckoutReturnHandler } from "@/features/plans/components/checkout-return-handler";
+import { TopUpReturnHandler } from "@/features/plans/components/top-up-return-handler";
+import { AiTopUpSection } from "@/features/plans/components/ai-top-up-section";
 import { SubscriptionStatusCard } from "@/features/plans/components/subscription-status-card";
 import { PlanPicker } from "@/features/plans/components/plan-picker";
 import { AssistantAllowanceCard } from "@/features/plans/components/assistant-allowance-card";
 import { UsageWindowsSummary } from "@/features/plans/components/usage-windows-summary";
 import { AiUsageHistory } from "@/features/assistant/components/ai-usage-history";
 
-// Single page for plan + subscription (+ AI top-ups later). It is where Stripe
-// sends the user back (BILLING_*_URL → /settings/billing). `/settings/plan`
+// Single page for plan + subscription + AI top-ups. It is where Stripe
+// sends the user back (BILLING_*_URL and BILLING_TOP_UP_*_URL → /settings/billing). `/settings/plan`
 // redirects here.
 export default function BillingPage() {
   return (
@@ -20,6 +22,7 @@ export default function BillingPage() {
       {/* useSearchParams: keep it behind a Suspense boundary (Next 16). */}
       <Suspense fallback={null}>
         <CheckoutReturnHandler />
+        <TopUpReturnHandler />
       </Suspense>
 
       <PageHeader
@@ -32,12 +35,7 @@ export default function BillingPage() {
 
       <AssistantAllowanceCard />
 
-      {/*
-        TODO(PR-4, recarga de IA): a seção "Recarga de IA" (saldo, comprar
-        pacote, lotes a vencer) entra aqui, entre o consumo e os planos.
-        Fora do escopo deste PR (decisões-v1: rotas /billing/ai-top-ups,
-        flag billing.ai_top_ups).
-      */}
+      <AiTopUpSection />
 
       <section id="planos" className="scroll-mt-20 space-y-4">
         <div className="space-y-1">
