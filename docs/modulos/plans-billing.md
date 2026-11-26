@@ -43,7 +43,7 @@ O cupom é conferido antes por `POST /plans/coupons/preview` (nada é reservado)
 
 ## Retorno do Stripe e polling
 
-A volta do Stripe não prova o pagamento: o plano só muda quando o webhook chega. `?checkout=success` mostra um toast "Confirmando o pagamento…" e consulta `GET /plans/me` a cada 2 s por até 30 s (`refetchInterval` do React Query) até haver plano pago com assinatura vigente; depois, toast de sucesso, ou aviso neutro se estourar os 30 s. `?checkout=cancel` mostra um toast neutro. A query string é limpa com `router.replace` logo no início, para um reload não repetir o aviso. O handler usa `useSearchParams`, então fica dentro de `<Suspense>` (Next 16). Decisão pequena, por isso sem ADR.
+A volta do Stripe não prova o pagamento: o plano só muda quando o webhook chega. `?checkout=success` mostra um toast "Confirmando o pagamento…" e consulta `GET /plans/me` a cada 2 s por até 30 s (`refetchInterval` do React Query) até haver plano pago com assinatura vigente; depois, toast de sucesso, ou aviso neutro se estourar os 30 s. `?checkout=cancel` mostra um toast neutro. A query string é limpa com `router.replace` logo no início, para um reload não repetir o aviso. O handler usa `useSearchParams`, então fica dentro de `<Suspense>` (Next 16). Decisão registrada no ADR 0001 (`docs/adr/`).
 
 ## Decisões e limites
 
