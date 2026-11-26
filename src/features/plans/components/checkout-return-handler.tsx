@@ -46,36 +46,46 @@ export function CheckoutReturnHandler() {
       returnedFromPayment && !timedOut && !isPaidAndActive(query.state.data) ? POLL_INTERVAL_MS : false,
   });
   const confirmed = isPaidAndActive(data);
+  const planName = data?.plan?.name;
+  const startedAt = React.useRef<number | null>(null);
+  const finished = React.useRef(false);
 
   React.useEffect(() => {
     if (!checkout || handled.current) return;
     handled.current = true;
-    if (checkout === "success") {
-      toast.loading("Confirmando o pagamento…", { id: TOAST_ID, duration: Infinity });
-    } else if (checkout === "cancel") {
-      toast.info("Pagamento cancelado. Nada foi cobrado.");
-    }
+    if (checkout === "cancel") toast.info("Pagamento cancelado. Nada foi cobrado.");
     router.replace(BILLING_PATH, { scroll: false });
   }, [checkout, router]);
 
   React.useEffect(() => {
-    if (!returnedFromPayment) return;
+    if (!returnedFromPayment || timedOut) return;
     if (confirmed) {
-      toast.success(`Pagamento confirmado. Plano ${data?.plan?.name} ativo.`, {
+      finished.current = true;
+      toast.success(`Pagamento confirmado. Plano ${planName} ativo.`, {
         id: TOAST_ID,
         duration: 5_000,
       });
       return;
     }
+    // Same id: calling it again just keeps the one toast.
+    toast.loading("Confirmando o pagamento…", { id: TOAST_ID, duration: Infinity });
+    // The 30 s budget counts from the return, not from the last re-render.
+    startedAt.current ??= Date.now();
+    const remaining = Math.max(0, POLL_TIMEOUT_MS - (Date.now() - startedAt.current));
     const timer = window.setTimeout(() => {
+      finished.current = true;
       toast.info("Ainda estamos confirmando o pagamento. O plano muda assim que o Stripe avisar.", {
         id: TOAST_ID,
         duration: 8_000,
       });
       setTimedOut(true);
-    }, POLL_TIMEOUT_MS);
-    return () => window.clearTimeout(timer);
-  }, [returnedFromPayment, confirmed, data?.plan?.name]);
+    }, remaining);
+    return () => {
+      window.clearTimeout(timer);
+      // Left before confirming or timing out: nothing else would close it.
+      if (!finished.current) toast.dismiss(TOAST_ID);
+    };
+  }, [returnedFromPayment, confirmed, timedOut, planName]);
 
   return null;
 }
