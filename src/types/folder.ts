@@ -1,4 +1,8 @@
 import type { InvitationStatus } from "./common";
+import type {
+  EffectiveFolderAppearance,
+  FolderAppearanceKeys,
+} from "./folder-appearance";
 
 export type FolderStatus = "ACTIVE" | "ARCHIVED";
 
@@ -18,6 +22,8 @@ export interface Folder {
   version: number;
   createdAt: string;
   updatedAt: string;
+  appearance: FolderAppearanceKeys;
+  effectiveAppearance: EffectiveFolderAppearance;
 }
 
 export interface CreateFolderRequest {

@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib/api/client";
+import type { FolderAppearanceKeys } from "@/types/folder-appearance";
 import type { PaginatedResult, PaginationParams } from "@/types/common";
 import type {
   CreateFolderRequest,
@@ -45,6 +46,14 @@ export const foldersService = {
     const { data } = await apiClient.patch<Folder>(
       `/folders/${folderId}/move`,
       payload
+    );
+    return data;
+  },
+
+  async updateAppearance(folderId: string, patch: Partial<FolderAppearanceKeys>) {
+    const { data } = await apiClient.patch<Folder>(
+      `/folders/${folderId}/appearance`,
+      patch
     );
     return data;
   },
