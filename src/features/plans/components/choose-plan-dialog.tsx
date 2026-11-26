@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { BadgePercent, X } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,18 +15,30 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  useChangeSubscriptionPlanMutation,
+  useStartCheckoutMutation,
+} from "@/features/plans/hooks/use-billing";
+import {
   usePreviewCouponMutation,
   useSetMyPlanMutation,
 } from "@/features/plans/hooks/use-plans";
+import { hasSubscriptionInForce } from "@/features/plans/lib/subscription";
 import { describeDiscount, formatPriceCents } from "@/features/plans/lib/price";
 import { getErrorCode, getErrorMessage } from "@/lib/errors";
 import { formatDate } from "@/lib/format";
+import { useBfcacheRestore } from "@/lib/use-bfcache-restore";
 import type { CouponPreview, MyPlan, Plan } from "@/types/plan";
 
 /**
- * Switching plan (or applying a coupon to the current one). A coupon is
- * checked first with the preview — nothing is reserved — and redeemed
- * together with the switch: if it is refused then, the plan does not change.
+ * Switching plan (or applying a coupon to the current one). What "confirm"
+ * does depends on the plan and the subscription:
+ * - free plan → `PATCH /plans/me` (with a subscription in force it is not
+ *   possible: the user cancels it instead);
+ * - paid plan, no subscription in force → Stripe Checkout (+ coupon);
+ * - paid plan, subscription ACTIVE/TRIALING/PAST_DUE → change the subscription
+ *   (+ coupon), charging the pro-rata difference right away on an upgrade.
+ * A coupon is checked first with the preview — nothing is reserved — and
+ * redeemed together with the action: if it is refused then, nothing changes.
  */
 export function ChoosePlanDialog({
   plan,
@@ -42,20 +55,42 @@ export function ChoosePlanDialog({
   const [preview, setPreview] = React.useState<CouponPreview | null>(null);
   const previewMutation = usePreviewCouponMutation();
   const setMyPlanMutation = useSetMyPlanMutation();
+  const checkoutMutation = useStartCheckoutMutation();
+  const changeMutation = useChangeSubscriptionPlanMutation();
 
   const isCurrent = myPlan?.plan?.id === plan.id;
   const isFree = plan.monthlyPriceCents === 0;
+  const subscribed = hasSubscriptionInForce(myPlan?.subscription);
+  const action: "free" | "cancel-first" | "checkout" | "change" = isFree
+    ? subscribed
+      ? "cancel-first"
+      : "free"
+    : subscribed
+      ? "change"
+      : "checkout";
   const losesDiscount = Boolean(myPlan?.discount) && !isCurrent && !preview;
-  const busy = previewMutation.isPending || setMyPlanMutation.isPending;
+  // The mutation of the chosen branch: its pending state and coupon error.
+  const confirmMutation =
+    action === "checkout" ? checkoutMutation : action === "change" ? changeMutation : setMyPlanMutation;
+  // isSuccess too: a checkout is "done" once the URL arrives, while the browser
+  // is still leaving for Stripe — keep the button locked so it is not clicked twice.
+  const confirming = confirmMutation.isPending || confirmMutation.isSuccess;
+  const busy = previewMutation.isPending || confirming;
+  // Back from Stripe (bfcache): the checkout is still in isSuccess and the
+  // dialog locked — unlock the button and close it.
+  useBfcacheRestore(() => {
+    checkoutMutation.reset();
+    onOpenChange(false);
+  });
   const confirmError =
-    setMyPlanMutation.error && getErrorCode(setMyPlanMutation.error)?.startsWith("COUPON_")
-      ? getErrorMessage(setMyPlanMutation.error)
+    confirmMutation.error && getErrorCode(confirmMutation.error)?.startsWith("COUPON_")
+      ? getErrorMessage(confirmMutation.error)
       : null;
 
   function check() {
     const value = code.trim();
     if (!value) return;
-    setMyPlanMutation.reset();
+    confirmMutation.reset();
     previewMutation.mutate(
       { planId: plan.id, code: value },
       { onSuccess: setPreview, onError: () => setPreview(null) }
@@ -63,23 +98,34 @@ export function ChoosePlanDialog({
   }
 
   function confirm() {
-    setMyPlanMutation.mutate(
-      { plan, couponCode: preview?.code },
-      { onSuccess: () => onOpenChange(false) }
-    );
+    const done = { onSuccess: () => onOpenChange(false) };
+    if (action === "checkout") {
+      // Leaves for Stripe; the dialog stays locked (isSuccess) until the page unloads.
+      checkoutMutation.mutate({ planId: plan.id, couponCode: preview?.code });
+    } else if (action === "change") {
+      changeMutation.mutate({ plan, couponCode: preview?.code }, done);
+    } else if (action === "free") {
+      setMyPlanMutation.mutate({ plan }, done);
+    }
   }
 
   return (
-    <Dialog open={open} onOpenChange={(next) => !setMyPlanMutation.isPending && onOpenChange(next)}>
+    <Dialog open={open} onOpenChange={(next) => !confirming && onOpenChange(next)}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {isCurrent ? `Aplicar um cupom ao plano ${plan.name}` : `Trocar para o plano ${plan.name}?`}
+            {isCurrent
+              ? `Aplicar um cupom ao plano ${plan.name}`
+              : action === "checkout"
+                ? `Assinar o plano ${plan.name}`
+                : `Trocar para o plano ${plan.name}?`}
           </DialogTitle>
           <DialogDescription>
             {isCurrent
               ? "Um cupom novo substitui o desconto que você tem hoje."
-              : "O novo limite passa a valer na próxima vez que você usar a IA. Você pode trocar de novo quando quiser."}
+              : action === "checkout"
+                ? "Você paga com cartão numa página segura do Stripe e volta para cá. O plano muda assim que o pagamento é confirmado."
+                : "O novo limite passa a valer na próxima vez que você usar a IA. Você pode trocar de novo quando quiser."}
           </DialogDescription>
         </DialogHeader>
 
@@ -130,7 +176,7 @@ export function ChoosePlanDialog({
                     onClick={() => {
                       setPreview(null);
                       setCode("");
-                      setMyPlanMutation.reset();
+                      confirmMutation.reset();
                     }}
                   >
                     <X />
@@ -169,19 +215,43 @@ export function ChoosePlanDialog({
               termina com a troca.
             </p>
           ) : null}
+          {action === "change" ? (
+            <p className="text-sm text-amber-700 dark:text-amber-400">
+              A diferença até o fim do período é calculada proporcionalmente. Ao subir de plano, ela
+              é cobrada agora no cartão que você já cadastrou; ao descer, vira crédito nas próximas
+              faturas.
+            </p>
+          ) : null}
+          {action === "cancel-first" ? (
+            <p className="text-sm text-amber-700 dark:text-amber-400">
+              Você tem uma assinatura paga. Para voltar ao plano gratuito, cancele a assinatura: o
+              plano atual continua valendo até o fim do período que você já pagou.
+            </p>
+          ) : null}
           {confirmError ? <p className="text-sm text-destructive">{confirmError}</p> : null}
-          <p className="text-xs text-muted-foreground">
-            Ainda não há cobrança: o preço é só informativo por enquanto.
-          </p>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" disabled={setMyPlanMutation.isPending} onClick={() => onOpenChange(false)}>
+          <Button variant="outline" disabled={confirming} onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button disabled={busy || (isCurrent && !preview)} onClick={confirm} loading={setMyPlanMutation.isPending}>
-            {isCurrent ? "Aplicar cupom" : "Trocar de plano"}
-          </Button>
+          {action === "cancel-first" ? (
+            <Button asChild onClick={() => onOpenChange(false)}>
+              <Link href="/settings/billing">Gerenciar assinatura</Link>
+            </Button>
+          ) : (
+            <Button
+              disabled={busy || (isCurrent && !preview)}
+              onClick={confirm}
+              loading={confirming}
+            >
+              {isCurrent
+                ? "Aplicar cupom"
+                : action === "checkout"
+                  ? "Ir para o pagamento"
+                  : "Trocar de plano"}
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

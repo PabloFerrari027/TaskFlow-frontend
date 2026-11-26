@@ -191,6 +191,9 @@ export const queryKeys = {
         : (["activity", "item", itemId] as const),
   },
   aiUsage: {
+    // Everything the assistant's allowance shows (usage windows and, in
+    // later features, the quota): invalidating it refreshes them all.
+    root: () => ["ai-usage", "me"] as const,
     me: (params: { days: number; feature?: AiUsageFeature; page: number }) =>
       ["ai-usage", "me", params] as const,
     // Total since the start of a quota window (API.md § 23). Keyed on the

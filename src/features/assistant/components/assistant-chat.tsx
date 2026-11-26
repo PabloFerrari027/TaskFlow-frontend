@@ -908,7 +908,7 @@ export function AssistantChat() {
                 >
                   <p>{getMessageForCode("TOKEN_QUOTA_EXCEEDED")}</p>
                   <Link
-                    href="/settings/plan"
+                    href="/settings/billing"
                     onClick={() => handleOpenChange(false)}
                     className="font-medium text-primary hover:underline"
                   >

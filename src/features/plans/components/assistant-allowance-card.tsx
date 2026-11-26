@@ -52,7 +52,7 @@ export function AssistantAllowanceCard({ showPlanLink = false }: { showPlanLink?
         {showPlanLink ? (
           <>
             {" "}
-            <Link href="/settings/plan" className="text-primary hover:underline">
+            <Link href="/settings/billing" className="text-primary hover:underline">
               Ver planos
             </Link>
           </>

@@ -160,6 +160,16 @@ export const GENERAL_ERRORS: ApiErrorCode[] = [
   { code: "COUPON_REDEMPTION_LIMIT_REACHED", status: 409, when: "`maxRedemptions` esgotado." },
   { code: "COUPON_ALREADY_REDEEMED", status: 409, when: "O usuário já usou este cupom." },
   { code: "COUPON_HAS_REDEMPTIONS", status: 409, when: "`DELETE /admin/coupons/:couponId` — cupom já resgatado (desative em vez de apagar)." },
+  { code: "PLAN_REQUIRES_CHECKOUT", status: 402, when: "`PATCH /plans/me` com plano pago — use `POST /billing/checkout`." },
+  { code: "PLAN_NOT_PURCHASABLE", status: 422, when: "Checkout/troca de assinatura para um plano gratuito." },
+  { code: "SUBSCRIPTION_ALREADY_ACTIVE", status: 409, when: "Checkout com assinatura em vigor, ou `PATCH /plans/me` para o gratuito (cancele a assinatura)." },
+  { code: "CHECKOUT_ALREADY_COMPLETED", status: 409, when: "O pagamento anterior acabou de ser aprovado; a assinatura está sendo ativada." },
+  { code: "CHECKOUT_IN_PROGRESS", status: 409, when: "Já há um checkout sendo aberto para o usuário." },
+  { code: "NO_ACTIVE_SUBSCRIPTION", status: 409, when: "Trocar, cancelar ou retomar sem assinatura em vigor." },
+  { code: "ALREADY_ON_PLAN", status: 409, when: "`POST /billing/subscription/change` para o plano em que a assinatura já está (sem cupom)." },
+  { code: "SUBSCRIPTION_NOT_SCHEDULED_TO_CANCEL", status: 409, when: "Retomar uma assinatura sem cancelamento agendado." },
+  { code: "BILLING_ACCOUNT_NOT_FOUND", status: 404, when: "`POST /billing/portal` — o usuário nunca abriu um checkout." },
+  { code: "BILLING_NOT_CONFIGURED", status: 503, when: "Servidor sem `STRIPE_SECRET_KEY`: todas as rotas `/billing/*` indisponíveis." },
   { code: "AI_USAGE_INVALID_RANGE", status: 400, when: "`from` posterior a `to`, ou intervalo maior que 90 dias." },
 ];
 

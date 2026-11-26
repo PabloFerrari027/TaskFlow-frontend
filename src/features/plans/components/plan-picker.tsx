@@ -146,7 +146,7 @@ function CurrentPlanSummary({
               {myPlan.effectiveMonthlyPriceCents > 0 ? "/mês" : ""}
             </span>
           </p>
-          {discount ? (
+          {discount && !myPlan.subscription ? (
             <p className="flex items-center gap-1.5 text-muted-foreground">
               <BadgePercent className="size-4 text-emerald-600" />
               Cupom {discount.couponCode}: {describeDiscount(discount)}

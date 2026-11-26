@@ -5,7 +5,7 @@ export interface Plan {
   id: string;
   name: string;
   monthlyTokenBudget: number;
-  /** BRL cents, `0` = free. Informative only: there is no checkout yet. */
+  /** BRL cents, `0` = free. Paid plans are bought by subscription (`/billing/*`). */
   monthlyPriceCents: number;
   createdAt: string;
   updatedAt: string;
@@ -32,11 +32,48 @@ export interface ActiveDiscount extends DiscountTerms {
   endsAt: string | null;
 }
 
+/**
+ * Stripe subscription status (API.md § 23). `PAST_DUE` keeps the plan in force;
+ * `UNPAID`/`CANCELED`/`INCOMPLETE_EXPIRED`/`PAUSED` mean it ended; `INCOMPLETE`
+ * is a first payment still pending.
+ */
+export type SubscriptionStatus =
+  | "ACTIVE"
+  | "TRIALING"
+  | "PAST_DUE"
+  | "UNPAID"
+  | "CANCELED"
+  | "INCOMPLETE"
+  | "INCOMPLETE_EXPIRED"
+  | "PAUSED";
+
+export interface Subscription {
+  status: SubscriptionStatus;
+  /** Plan stays in force until here when `cancelAtPeriodEnd` is true. */
+  currentPeriodEnd: string | null;
+  cancelAtPeriodEnd: boolean;
+}
+
+export interface CheckoutResponse {
+  checkoutId: string;
+  /** Stripe-hosted payment page: redirect the user there. */
+  url: string;
+  expiresAt: string;
+  planId: string;
+  planName: string;
+  couponCode: string | null;
+  originalPriceCents: number;
+  discountedPriceCents: number;
+  currency: string;
+}
+
 export interface MyPlan {
   /** `null` = no plan assigned: the FREE quota, price 0. */
   plan: Plan | null;
   discount: ActiveDiscount | null;
   effectiveMonthlyPriceCents: number;
+  /** `null` = never subscribed to a paid plan; otherwise the latest one, even if ended. */
+  subscription: Subscription | null;
 }
 
 export interface CouponPreview extends DiscountTerms {
