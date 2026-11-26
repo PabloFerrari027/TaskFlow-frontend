@@ -5,17 +5,9 @@ import { aiTopUpsService } from "@/features/plans/api/ai-top-ups-service";
 import { TOP_UP_HISTORY_PAGE_SIZE } from "@/features/plans/hooks/use-ai-top-ups";
 import { usePaymentReturn } from "@/features/plans/hooks/use-payment-return";
 import { formatCredits } from "@/features/plans/lib/top-up";
+import { isTopUpConfirmed } from "@/features/plans/lib/top-up-confirmation";
 import { queryKeys } from "@/lib/query-keys";
 import type { MyAiTopUps } from "@/types/ai-top-up";
-
-// The webhook moved the balance, or settled the newest purchase (list order:
-// newest first). Compared with the first picture seen after the return.
-function isTopUpConfirmed(data: MyAiTopUps | undefined, first: MyAiTopUps | undefined) {
-  if (!data) return false;
-  if (first && data.balance.credits !== first.balance.credits) return true;
-  const newest = data.purchases.data[0];
-  return newest !== undefined && newest.status !== "PENDING";
-}
 
 /**
  * Where Stripe sends the user back after buying credits (`?topUp=success|cancel`).

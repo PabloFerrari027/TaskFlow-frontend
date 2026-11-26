@@ -1,4 +1,5 @@
-import { formatPriceCents } from "@/features/plans/lib/price";
+// Relative with extension: `npm run test:unit` runs this file straight on Node.
+import { formatPriceCents } from "./price.ts";
 
 // A chat message is estimated at TOKENS_PER_MESSAGE tokens (plan-caps.ts) and
 // the server prices it in µUSD, which the front never sees. This is the
