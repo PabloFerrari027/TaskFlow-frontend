@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { billingService } from "@/features/plans/api/billing-service";
 import { queryKeys } from "@/lib/query-keys";
@@ -31,6 +31,17 @@ function goTo(url: string) {
   window.location.assign(url);
 }
 
+// Shared by checkout and change: coupon errors stay inline; a stale plan or
+// subscription refreshes both caches before the toast.
+function handlePlanPurchaseError(error: unknown, queryClient: QueryClient) {
+  if (isCouponError(error)) return;
+  refreshOnStaleState(error, () => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.plans.all() });
+    queryClient.invalidateQueries({ queryKey: queryKeys.plans.mine() });
+  });
+  toast.error(getErrorMessage(error));
+}
+
 /** Paid plan without a subscription in force → Stripe Checkout (+ coupon). */
 export function useStartCheckoutMutation() {
   const queryClient = useQueryClient();
@@ -38,16 +49,9 @@ export function useStartCheckoutMutation() {
   return useMutation({
     mutationFn: ({ planId, couponCode }: { planId: string; couponCode?: string }) =>
       billingService.startCheckout(planId, couponCode),
-    // The mutation stays "pending" while the browser leaves for Stripe.
+    // The dialog keeps its button locked (isSuccess) while the browser leaves for Stripe.
     onSuccess: (checkout) => goTo(checkout.url),
-    onError: (error) => {
-      if (isCouponError(error)) return;
-      refreshOnStaleState(error, () => {
-        queryClient.invalidateQueries({ queryKey: queryKeys.plans.all() });
-        queryClient.invalidateQueries({ queryKey: queryKeys.plans.mine() });
-      });
-      toast.error(getErrorMessage(error));
-    },
+    onError: (error) => handlePlanPurchaseError(error, queryClient),
   });
 }
 
@@ -66,14 +70,7 @@ export function useChangeSubscriptionPlanMutation() {
           : `Plano ${plan.name} escolhido.`
       );
     },
-    onError: (error) => {
-      if (isCouponError(error)) return;
-      refreshOnStaleState(error, () => {
-        queryClient.invalidateQueries({ queryKey: queryKeys.plans.all() });
-        queryClient.invalidateQueries({ queryKey: queryKeys.plans.mine() });
-      });
-      toast.error(getErrorMessage(error));
-    },
+    onError: (error) => handlePlanPurchaseError(error, queryClient),
   });
 }
 
