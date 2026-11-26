@@ -1710,7 +1710,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "Escolher ou trocar de plano",
         steps: [
-          "Abra Configurações → Plano.",
+          "Abra Configurações → Plano e cobrança.",
           "No topo aparece o seu plano atual, com o preço que você paga (já com desconto, se tiver).",
           "Na lista, cada plano mostra o limite por mês, quanto isso dá por semana e por dia, e o preço. O seu está marcado como “Seu plano”.",
           "Clique em “Escolher este plano” no que quiser. Se tiver um cupom, digite-o e clique em “Aplicar” para ver o preço com desconto.",
@@ -1805,7 +1805,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         question: "Recebi um aviso de limite de tokens atingido.",
         answer:
-          "Você atingiu o limite de IA do seu plano (do dia, da semana ou do mês). Ele libera sozinho quando o período recomeçar; se precisar de mais, troque para um plano com limite maior em Configurações → Plano.",
+          "Você atingiu o limite de IA do seu plano (do dia, da semana ou do mês). Ele libera sozinho quando o período recomeçar; se precisar de mais, troque para um plano com limite maior em Configurações → Plano e cobrança.",
       },
       {
         question: "Preciso pagar para escolher um plano?",
