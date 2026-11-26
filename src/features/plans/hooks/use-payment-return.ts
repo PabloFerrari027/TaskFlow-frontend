@@ -57,6 +57,8 @@ export function usePaymentReturn<T>({
   const { data } = useQuery({
     queryKey,
     queryFn,
+    // Only after a payment: otherwise the screen's own queries already load it.
+    enabled: returnedFromPayment,
     // Cached data from before the payment must not end the wait.
     staleTime: 0,
     refetchInterval: (query) =>
