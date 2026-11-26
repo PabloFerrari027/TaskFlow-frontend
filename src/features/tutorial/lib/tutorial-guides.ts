@@ -1699,7 +1699,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         heading: "O que é um plano",
         intro:
-          "Um plano define quantos “tokens” — a unidade que mede o quanto o modelo de IA processou — você pode gastar usando a IA do TaskFlow, como o chat do assistente. Cada plano tem um preço por mês (ainda só informativo: não há cobrança). O plano é por pessoa, não por espaço: o mesmo plano vale em todos os espaços em que você está.",
+          "Um plano define quantos “tokens” — a unidade que mede o quanto o modelo de IA processou — você pode gastar usando a IA do TaskFlow, como o chat do assistente. Cada plano tem um preço por mês; o plano gratuito não custa nada e os pagos são uma assinatura mensal no cartão. O plano é por pessoa, não por espaço: o mesmo plano vale em todos os espaços em que você está.",
         callouts: [
           {
             kind: "note",
@@ -1714,12 +1714,14 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
           "No topo aparece o seu plano atual, com o preço que você paga (já com desconto, se tiver).",
           "Na lista, cada plano mostra o limite por mês, quanto isso dá por semana e por dia, e o preço. O seu está marcado como “Seu plano”.",
           "Clique em “Escolher este plano” no que quiser. Se tiver um cupom, digite-o e clique em “Aplicar” para ver o preço com desconto.",
-          "Clique em “Trocar de plano” para confirmar.",
+          "Plano gratuito: clique em “Trocar de plano” para confirmar. Plano pago: clique em “Ir para o pagamento”, pague com cartão na página segura do Stripe e você volta para cá; o plano muda assim que o pagamento é confirmado.",
+          "Se você já assina um plano pago, a troca por outro plano pago acontece na hora e a diferença do mês é calculada proporcionalmente: ao subir, é cobrada no cartão já cadastrado; ao descer, vira crédito.",
+          "Para cancelar, use “Cancelar assinatura” no cartão “Sua assinatura”: o plano continua valendo até o fim do período pago. Ali também ficam “Gerenciar pagamento” (cartão e faturas) e “Retomar assinatura”.",
         ],
         callouts: [
           {
             kind: "note",
-            text: "Ainda não há cobrança: qualquer plano da lista pode ser escolhido livremente, mesmo o maior.",
+            text: "Plano pago exige assinatura mensal no cartão. Cupom de desconto é opcional e só vale para planos pagos.",
           },
         ],
       },
@@ -1798,9 +1800,9 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
     ],
     faq: [
       {
-        question: "Já escolhi um plano, por que não vejo qual é na tela?",
+        question: "Como vejo qual é o meu plano?",
         answer:
-          "É uma limitação de verdade, não um esquecimento da interface: não existe hoje uma forma de consultar o plano já escolhido, só de trocar.",
+          "Em Configurações → Plano e cobrança: o plano atual aparece no topo, marcado como “Seu plano” na lista, e, se você assina um plano pago, o cartão “Sua assinatura” mostra preço, desconto e a próxima cobrança.",
       },
       {
         question: "Recebi um aviso de limite de tokens atingido.",
@@ -1810,7 +1812,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         question: "Preciso pagar para escolher um plano?",
         answer:
-          "Não. O plano é só um limite de uso de IA, e qualquer plano da lista pode ser escolhido livremente.",
+          "Só nos planos pagos: eles são uma assinatura mensal no cartão, paga numa página segura do Stripe. O plano gratuito pode ser escolhido sem pagar nada.",
       },
       {
         question: "Por que o meu “dia” de uso não começa à meia-noite?",
