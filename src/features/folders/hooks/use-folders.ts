@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { foldersService } from "@/features/folders/api/folders-service";
+import { setFolderDetail } from "@/features/folders/lib/folder-cache";
 import { queryKeys } from "@/lib/query-keys";
 import { getErrorMessage } from "@/lib/errors";
 import { MAX_PAGE_SIZE } from "@/types/common";
@@ -125,7 +126,7 @@ export function useUpdateFolderMutation(
     },
     onMutate: (payload) => patchCachedFolder(queryClient, workspaceId, folderId, payload),
     onSuccess: (data) => {
-      queryClient.setQueryData(queryKeys.folders.detail(folderId), data);
+      setFolderDetail(queryClient, data);
       if (silent) {
         // The optimistic patch already shows the edit; swap in the server copy
         // (new version) and let inactive caches refetch on their next mount.
@@ -167,7 +168,7 @@ export function useMoveFolderMutation(workspaceId: string) {
     mutationFn: ({ folderId, parentId }: { folderId: string; parentId: string | null }) =>
       foldersService.move(folderId, { parentId }),
     onSuccess: (data) => {
-      queryClient.setQueryData(queryKeys.folders.detail(data.id), data);
+      setFolderDetail(queryClient, data);
       queryClient.invalidateQueries({ queryKey: queryKeys.folders.all(workspaceId) });
       // Its items now roll up into a different parent.
       queryClient.invalidateQueries({ queryKey: queryKeys.folderStats.root() });
@@ -202,7 +203,7 @@ export function useArchiveFolderMutation(folderId: string) {
     onMutate: () =>
       patchCachedFolder(queryClient, workspaceId, folderId, { status: "ARCHIVED" }),
     onSuccess: (data) => {
-      queryClient.setQueryData(queryKeys.folders.detail(folderId), data);
+      setFolderDetail(queryClient, data);
       queryClient.invalidateQueries({ queryKey: queryKeys.folders.all(data.workspaceId) });
       toast.success(
         isOffline()

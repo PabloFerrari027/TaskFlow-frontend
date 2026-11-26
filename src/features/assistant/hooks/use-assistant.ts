@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { setFolderDetail } from "@/features/folders/lib/folder-cache";
 import { assistantService } from "@/features/assistant/api/assistant-service";
 import { queryKeys } from "@/lib/query-keys";
 import { getErrorCode, getErrorMessage } from "@/lib/errors";
@@ -129,7 +130,7 @@ function applyConfirmedActionEffects(
     case "update_folder":
     case "archive_folder": {
       const folder = result as Folder;
-      queryClient.setQueryData(queryKeys.folders.detail(folder.id), folder);
+      setFolderDetail(queryClient, folder);
       queryClient.invalidateQueries({ queryKey: queryKeys.folders.all(workspaceId) });
       return;
     }

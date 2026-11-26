@@ -8,7 +8,7 @@ import type {
 import type { SearchParams } from "@/types/search";
 import type { WorkspaceBlueprintFilters } from "@/types/workspace-blueprint";
 import type { ListCouponsParams } from "@/types/plan";
-import { stableStringify } from "@/lib/utils";
+import { stableStringify } from "./utils.ts";
 
 export const queryKeys = {
   auth: {
