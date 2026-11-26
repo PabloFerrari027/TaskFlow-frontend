@@ -1693,8 +1693,8 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
     title: "Plano e uso de IA",
     summary: "O limite de uso do assistente e como trocar de plano.",
     icon: Coins,
-    href: "/settings/plan",
-    hrefLabel: "Abrir Plano",
+    href: "/settings/billing",
+    hrefLabel: "Abrir Plano e cobrança",
     sections: [
       {
         heading: "O que é um plano",
