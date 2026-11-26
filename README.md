@@ -23,6 +23,7 @@ NEXT_PUBLIC_GOOGLE_CLIENT_ID=   # opcional — login com Google fica oculto se v
 - `npm run dev` — servidor de desenvolvimento
 - `npm run build` — build de produção
 - `npm run lint` — ESLint
+- `npm run test:unit` — testes unitários (`node --test`); exige Node >= 22.18 (há um `.nvmrc` com a 24: `nvm use`)
 
 ## Arquitetura
 
