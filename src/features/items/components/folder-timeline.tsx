@@ -50,7 +50,7 @@ interface Row {
 
 function barClass(item: TimelineItem, end: number, today: number) {
   if (item.status === "DONE") return "bg-emerald-500/80";
-  if (end < today) return "bg-destructive/80";
+  if (end < today) return "bg-destructive";
   if (item.status === "IN_PROGRESS") return "bg-amber-500/80";
   return "bg-primary/70";
 }
@@ -293,7 +293,7 @@ export function FolderTimeline({ folderId }: { folderId: string }) {
         <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-sm bg-primary/70" /> A fazer</span>
         <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-sm bg-amber-500/80" /> Em andamento</span>
         <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-sm bg-emerald-500/80" /> Concluída</span>
-        <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-sm bg-destructive/80" /> Atrasada</span>
+        <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-sm bg-destructive" /> Atrasada</span>
         <span className="flex items-center gap-1.5"><span className="size-2.5 rotate-45 rounded-[1px] bg-violet-500" /> Marco</span>
       </div>
     </div>

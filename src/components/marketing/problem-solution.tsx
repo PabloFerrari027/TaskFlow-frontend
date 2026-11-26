@@ -35,7 +35,7 @@ export function ProblemSolution() {
           <ul className="mt-4 space-y-3">
             {PROBLEMS.map((item) => (
               <li key={item} className="flex items-start gap-3 text-sm text-muted-foreground">
-                <XCircle className="mt-0.5 size-4 shrink-0 text-destructive/70" />
+                <XCircle className="mt-0.5 size-4 shrink-0 text-destructive" />
                 {item}
               </li>
             ))}

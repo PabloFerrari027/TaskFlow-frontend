@@ -137,7 +137,7 @@ export function AssistantMessage({
             {voiceNotes.map((voiceNote, index) => (
               <p
                 key={index}
-                className="mb-1 flex items-center gap-1.5 text-xs font-medium text-primary-foreground/75"
+                className="mb-1 flex items-center gap-1.5 text-xs font-medium text-primary-foreground"
               >
                 <Mic className="size-3.5" />
                 Mensagem de voz
@@ -154,11 +154,11 @@ export function AssistantMessage({
                 className={isUser ? USER_BUBBLE_MARKDOWN_CLASS : undefined}
               />
             ) : message.transcribing ? (
-              <p className="animate-pulse text-sm text-primary-foreground/80">
+              <p className="animate-pulse text-sm text-primary-foreground">
                 Transcrevendo seu áudio...
               </p>
             ) : voiceNotes.length > 0 ? (
-              <p className="text-sm text-primary-foreground/80 italic">Áudio não transcrito.</p>
+              <p className="text-sm text-primary-foreground italic">Áudio não transcrito.</p>
             ) : null}
           </div>
         ) : null}

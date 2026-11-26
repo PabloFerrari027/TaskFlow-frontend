@@ -13,7 +13,7 @@ export function CtaSection() {
         <h2 className="text-3xl font-semibold tracking-tight text-primary-foreground sm:text-4xl">
           Pronto para tirar isso da cabeça?
         </h2>
-        <p className="mx-auto mt-3 max-w-xl text-primary-foreground/80">
+        <p className="mx-auto mt-3 max-w-xl text-primary-foreground">
           Crie sua conta grátis e conte ao assistente a primeira coisa que
           você não quer esquecer.
         </p>
