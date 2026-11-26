@@ -23,14 +23,11 @@ export const plansService = {
     return data;
   },
 
-  // With a coupon, redeeming it and switching plan are atomic: a refused
-  // coupon leaves the plan as it was. Without one, moving to ANOTHER plan
-  // cancels the current discount.
-  async setMine(planId: string, couponCode?: string) {
-    const { data } = await apiClient.patch<MyPlan>("/plans/me", {
-      planId,
-      couponCode: couponCode || undefined,
-    });
+  // Free plans only: a paid plan answers 402 PLAN_REQUIRES_CHECKOUT (use
+  // billingService) and `couponCode` is rejected with 400. Moving to ANOTHER
+  // plan cancels the current discount.
+  async setMine(planId: string) {
+    const { data } = await apiClient.patch<MyPlan>("/plans/me", { planId });
     return data;
   },
 

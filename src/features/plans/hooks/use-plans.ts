@@ -125,31 +125,28 @@ export function useAssistantAllowance(): AssistantAllowance | null {
   };
 }
 
-// Answers with the same shape as `GET /plans/me`, already reflecting the
-// change. A coupon is redeemed atomically with it; coupon errors are shown
-// inline by the dialog, so they are not toasted here.
+// Free plans only (`PATCH /plans/me`); paid ones go through `use-billing`.
+// Answers with the same shape as `GET /plans/me`, already reflecting the change.
 export function useSetMyPlanMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ plan, couponCode }: { plan: { id: string; name: string }; couponCode?: string }) =>
-      plansService.setMine(plan.id, couponCode),
-    onSuccess: (myPlan, { plan, couponCode }) => {
+    mutationFn: ({ plan }: { plan: { id: string; name: string } }) => plansService.setMine(plan.id),
+    onSuccess: (myPlan, { plan }) => {
       queryClient.setQueryData(queryKeys.plans.mine(), myPlan);
-      toast.success(
-        couponCode && myPlan.discount
-          ? `Plano ${plan.name} com o cupom ${myPlan.discount.couponCode}.`
-          : `Plano ${plan.name} escolhido.`
-      );
+      toast.success(`Plano ${plan.name} escolhido.`);
     },
     onError: (error) => {
-      if (getErrorCode(error)?.startsWith("COUPON_")) return;
       // A SUPER_ADMIN may have removed or changed the plan since the list
       // loaded — refresh it so the user picks from what exists now.
       if (getErrorCode(error) === "PLAN_NOT_FOUND") {
         queryClient.invalidateQueries({ queryKey: queryKeys.plans.all() });
         toast.error("Esse plano não está mais disponível. A lista foi atualizada.");
         return;
+      }
+      // A subscription changed under the user's feet: show the current state.
+      if (getErrorCode(error) === "SUBSCRIPTION_ALREADY_ACTIVE") {
+        queryClient.invalidateQueries({ queryKey: queryKeys.plans.mine() });
       }
       toast.error(getErrorMessage(error));
     },
