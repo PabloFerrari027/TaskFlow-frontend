@@ -26,6 +26,7 @@ import { hasSubscriptionInForce } from "@/features/plans/lib/subscription";
 import { describeDiscount, formatPriceCents } from "@/features/plans/lib/price";
 import { getErrorCode, getErrorMessage } from "@/lib/errors";
 import { formatDate } from "@/lib/format";
+import { useBfcacheRestore } from "@/lib/use-bfcache-restore";
 import type { CouponPreview, MyPlan, Plan } from "@/types/plan";
 
 /**
@@ -75,6 +76,12 @@ export function ChoosePlanDialog({
   // is still leaving for Stripe — keep the button locked so it is not clicked twice.
   const confirming = confirmMutation.isPending || confirmMutation.isSuccess;
   const busy = previewMutation.isPending || confirming;
+  // Back from Stripe (bfcache): the checkout is still in isSuccess and the
+  // dialog locked — unlock the button and close it.
+  useBfcacheRestore(() => {
+    checkoutMutation.reset();
+    onOpenChange(false);
+  });
   const confirmError =
     confirmMutation.error && getErrorCode(confirmMutation.error)?.startsWith("COUPON_")
       ? getErrorMessage(confirmMutation.error)
