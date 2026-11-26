@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { foldersService } from "@/features/folders/api/folders-service";
-import { setFolderDetail } from "@/features/folders/lib/folder-cache";
+import { isWorkspaceFolderDetail, setFolderDetail } from "@/features/folders/lib/folder-cache";
 import { queryKeys } from "@/lib/query-keys";
 import { getErrorMessage } from "@/lib/errors";
 import { MAX_PAGE_SIZE } from "@/types/common";
@@ -170,6 +170,10 @@ export function useMoveFolderMutation(workspaceId: string) {
     onSuccess: (data) => {
       setFolderDetail(queryClient, data);
       queryClient.invalidateQueries({ queryKey: queryKeys.folders.all(workspaceId) });
+      // A moved folder (and its sub-folders) inherits appearance from the new parent.
+      queryClient.invalidateQueries({
+        predicate: (q) => isWorkspaceFolderDetail(q, workspaceId),
+      });
       // Its items now roll up into a different parent.
       queryClient.invalidateQueries({ queryKey: queryKeys.folderStats.root() });
       queryClient.invalidateQueries({ queryKey: queryKeys.home.root() });

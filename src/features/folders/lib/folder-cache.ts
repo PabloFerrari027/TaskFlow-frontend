@@ -16,3 +16,16 @@ export function setFolderDetail(qc: QueryClient, folder: Folder): void {
     mergeFolderDetail(prev, folder)
   );
 }
+
+/**
+ * Matches only `["folders", <id>]` detail queries of the workspace. Used to
+ * refresh sub-folders that inherit their appearance from a folder above.
+ */
+export function isWorkspaceFolderDetail(
+  query: { queryKey: readonly unknown[]; state: { data?: unknown } },
+  workspaceId: string
+): boolean {
+  if (query.queryKey.length !== 2 || query.queryKey[0] !== "folders") return false;
+  const data = query.state.data as { workspaceId?: unknown } | null | undefined;
+  return data?.workspaceId === workspaceId;
+}

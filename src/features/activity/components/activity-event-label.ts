@@ -73,6 +73,7 @@ const EXACT_LABELS: Record<string, string> = {
   "items.item_unblocked": "o item foi liberado (as dependências terminaram)",
   "items.item_due_soon": "o prazo está chegando",
   "items.item_overdue": "o item passou do prazo",
+  "folders.folder_appearance_changed": "mudou a aparência da pasta",
   "approvals.approval_requested": "pediu aprovação",
   "approvals.approval_decided": "respondeu um pedido de aprovação",
 };

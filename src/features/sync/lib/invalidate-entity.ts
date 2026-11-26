@@ -1,5 +1,6 @@
 import type { InvalidateQueryFilters, QueryClient } from "@tanstack/react-query";
 import { pendingItemMutations } from "@/features/items/lib/item-list-refresh";
+import { isWorkspaceFolderDetail } from "@/features/folders/lib/folder-cache";
 import { queryKeys } from "@/lib/query-keys";
 
 // A refetch already in flight is left alone instead of cancelled and restarted
@@ -48,6 +49,11 @@ export function invalidateByEntityChange(
     case "FOLDER":
       invalidate(queryClient, { queryKey: queryKeys.folders.detail(entityId) });
       invalidate(queryClient, { queryKey: queryKeys.folders.all(workspaceId) });
+      // Sub-folders inherit appearance from the folder above, so any folder
+      // change may alter their effective appearance.
+      invalidate(queryClient, {
+        predicate: (q) => isWorkspaceFolderDetail(q, workspaceId),
+      });
       // A moved sub-folder takes its items out of one subtree and into another.
       invalidate(queryClient, { queryKey: queryKeys.folderStats.root() });
       invalidate(queryClient, { queryKey: queryKeys.home.root() });
