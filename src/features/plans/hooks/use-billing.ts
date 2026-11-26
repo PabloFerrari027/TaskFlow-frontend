@@ -27,7 +27,7 @@ function refreshOnStaleState(error: unknown, invalidate: () => void) {
 }
 
 // Stripe-hosted pages: a full navigation, not a router push.
-function goTo(url: string) {
+export function goTo(url: string) {
   window.location.assign(url);
 }
 
