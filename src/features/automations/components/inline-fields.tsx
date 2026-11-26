@@ -37,7 +37,7 @@ export function InlineChip({
       type="button"
       data-empty={empty || undefined}
       className={cn(
-        "inline-flex h-7 max-w-full items-center gap-1 rounded-md border border-border bg-muted/60 px-2 text-sm font-medium text-foreground transition-colors hover:bg-muted focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-50 data-[empty=true]:border-dashed data-[empty=true]:border-amber-500/70 data-[empty=true]:bg-amber-500/5 data-[empty=true]:font-normal data-[empty=true]:text-muted-foreground",
+        "inline-flex h-7 max-w-full items-center gap-1 rounded-md border border-border bg-muted/60 px-2 text-sm font-medium text-foreground transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-50 data-[empty=true]:border-dashed data-[empty=true]:border-amber-500/70 data-[empty=true]:bg-amber-500/5 data-[empty=true]:font-normal data-[empty=true]:text-muted-foreground",
         className
       )}
       {...props}

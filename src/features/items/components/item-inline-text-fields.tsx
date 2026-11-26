@@ -206,7 +206,7 @@ export function ItemDescriptionField({
         }}
         className={cn(
           INLINE_FIELD_CLASS,
-          "mt-2 min-h-20 cursor-text rounded-lg border py-1.5 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+          "mt-2 min-h-20 cursor-text rounded-lg border py-1.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring",
           isSaving && "opacity-60"
         )}
       >

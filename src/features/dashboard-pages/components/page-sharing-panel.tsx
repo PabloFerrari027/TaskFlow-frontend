@@ -96,7 +96,7 @@ function VisibilitySection({
               disabled={locked}
               onClick={() => choose(spec.value)}
               className={cn(
-                "flex w-full items-start gap-3 rounded-lg border p-3 text-left transition-colors focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none",
+                "flex w-full items-start gap-3 rounded-lg border p-3 text-left transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
                 selected ? "border-primary bg-primary/5" : "border-border hover:bg-muted",
                 locked && "cursor-not-allowed opacity-50 hover:bg-transparent"
               )}

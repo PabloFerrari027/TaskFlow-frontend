@@ -34,7 +34,7 @@ export function TemplateCard({ template, categories, applyTo }: TemplateCardProp
           ? `/templates/${template.id}?applyTo=${encodeURIComponent(applyTo)}`
           : `/templates/${template.id}`
       }
-      className="group block rounded-xl focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+      className="group block rounded-xl focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
     >
       <Card
         className={cn(

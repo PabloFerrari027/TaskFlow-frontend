@@ -100,7 +100,7 @@ export function PageList({ workspaceId }: { workspaceId: string }) {
                   <div className="flex items-start gap-2">
                     <Link
                       href={pagesHref(workspaceId, page.id)}
-                      className="min-w-0 flex-1 rounded-sm after:absolute after:inset-0 after:rounded-xl focus-visible:outline-none focus-visible:after:ring-[3px] focus-visible:after:ring-ring/50"
+                      className="min-w-0 flex-1 rounded-sm after:absolute after:inset-0 after:rounded-xl focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-ring"
                     >
                       <h2 className="truncate text-base font-semibold text-foreground">{page.name}</h2>
                     </Link>
