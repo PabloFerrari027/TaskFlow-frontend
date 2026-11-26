@@ -314,4 +314,9 @@ export const queryKeys = {
     indicator: (workspaceId: string, userId: string, indicator: string) =>
       ["home", workspaceId, userId, indicator] as const,
   },
+  // The signed-in user's feature flags (GET /features/me), per open workspace.
+  featureFlags: {
+    root: () => ["feature-flags"] as const,
+    mine: (workspaceId: string | null) => ["feature-flags", "me", workspaceId] as const,
+  },
 } as const;
