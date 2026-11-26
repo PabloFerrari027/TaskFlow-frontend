@@ -1770,8 +1770,30 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
           "Se você tentar usar o assistente depois de atingir qualquer um dos limites (dia, semana ou mês), a mensagem é recusada com um aviso de que o limite de IA do seu plano foi atingido. Não é uma falha do sistema — é o limite funcionando como esperado, e nenhum token é gasto na tentativa.",
         bullets: [
           "O aviso não diz qual dos três limites foi atingido — em geral é o do dia, o mais apertado.",
-          "O uso volta sozinho quando o período recomeçar, sem nenhuma ação sua. Se precisar de mais, troque para um plano com limite maior.",
+          "O uso volta sozinho quando o período recomeçar, sem nenhuma ação sua. Se precisar de mais, troque para um plano com limite maior ou compre créditos de recarga.",
           "Um aviso diferente, de “muitas perguntas em pouco tempo”, não tem a ver com o plano: é um limite de frequência que protege o sistema. Basta esperar um pouco e tentar de novo.",
+        ],
+      },
+      {
+        heading: "Comprar créditos de recarga",
+        intro:
+          "Quando o limite do seu plano acaba, você pode comprar créditos de recarga: um pagamento único, só no cartão, sem assinatura. Os créditos são usados só quando o limite do plano já bloquearia a mensagem, e passam por cima dos limites do dia, da semana e do mês ao mesmo tempo. O saldo aparece em Plano e cobrança, na seção “Recarga de IA”, e no cartão de uso do assistente.",
+        steps: [
+          "Quando o limite de IA for atingido, clique em “Comprar créditos” no aviso do chat ou abra Configurações → Plano e cobrança → Recarga de IA.",
+          "Escolha um pacote: cada um mostra quantos créditos traz, quantas mensagens isso dá em média e o preço.",
+          "Clique em “Ir para o pagamento”, pague com cartão na página segura do Stripe e volte para cá.",
+          "Os créditos entram assim que o pagamento é confirmado, em alguns segundos. A tela avisa quando isso acontecer.",
+        ],
+        bullets: [
+          "Os créditos valem por 12 meses a partir da compra; os que vencem primeiro são usados primeiro.",
+          "Trocar ou cancelar o plano não afeta os créditos que você já comprou.",
+          "Cupom de desconto não vale para recarga, só para assinatura de plano pago.",
+        ],
+        callouts: [
+          {
+            kind: "note",
+            text: "O botão “Comprar créditos” só aparece quando a compra está disponível para a sua conta. Se não aparecer, a recarga não está liberada para você no momento.",
+          },
         ],
       },
       {
@@ -1807,7 +1829,12 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
       {
         question: "Recebi um aviso de limite de tokens atingido.",
         answer:
-          "Você atingiu o limite de IA do seu plano (do dia, da semana ou do mês). Ele libera sozinho quando o período recomeçar; se precisar de mais, troque para um plano com limite maior em Configurações → Plano e cobrança.",
+          "Você atingiu o limite de IA do seu plano (do dia, da semana ou do mês). Ele libera sozinho quando o período recomeçar. Se precisar de mais agora, clique em “Comprar créditos” no aviso (quando disponível) ou troque para um plano com limite maior em Configurações → Plano e cobrança.",
+      },
+      {
+        question: "O que são créditos de recarga e quando vencem?",
+        answer:
+          "São créditos avulsos, comprados uma vez no cartão, que cobrem o uso de IA depois que o limite do plano acaba. Valem por 12 meses, o lote que vence primeiro é usado primeiro, e o cupom de desconto não se aplica a eles.",
       },
       {
         question: "Preciso pagar para escolher um plano?",
