@@ -15,7 +15,7 @@ Ordem da página: `SubscriptionStatusCard` → `AssistantAllowanceCard` → `AiT
 | `src/types/plan.ts` | `Plan`, `MyPlan` (com `subscription`), `SubscriptionStatus`, `CheckoutResponse`, cupons |
 | `features/plans/api/plans-service.ts` | `GET /plans`, `GET /plans/me`, `PATCH /plans/me` (**só plano gratuito**, sem cupom), preview de cupom, admin |
 | `features/plans/api/billing-service.ts` | `startCheckout`, `changePlan`, `cancel`, `resume`, `openPortal` (`/billing/*`) |
-| `features/plans/hooks/use-billing.ts` | Mutações de billing; checkout e portal fazem `window.location.assign(url)` |
+| `features/plans/hooks/use-billing.ts` | Mutações de billing; checkout e portal navegam por `goToStripe(url)` (valida a URL, ver ADR 0004) |
 | `features/plans/lib/subscription.ts` | `hasSubscriptionInForce` (ACTIVE/TRIALING/PAST_DUE), `hasSubscriptionEnded` |
 | `features/plans/components/choose-plan-dialog.tsx` | Decide a ação ao escolher um plano (tabela abaixo) |
 | `features/plans/components/subscription-status-card.tsx` | Status, desconto, banners e ações da assinatura |
@@ -58,7 +58,7 @@ A volta do Stripe não prova o pagamento: o plano só muda quando o webhook cheg
 
 **Cache de uso de IA.** Trocar de plano (`POST /billing/subscription/change`) invalida o prefixo `queryKeys.aiUsage.root()` (`["ai-usage","me"]`), para o uso e o limite do assistente serem relidos.
 
-## Decisões e limites
+## Limites e regras
 
 - Cupom só vale para assinatura (decisões v1); o campo não aparece para plano gratuito.
 - Sem notificação in-app de PAST_DUE: só o banner e os e-mails nativos do Stripe.
@@ -68,6 +68,9 @@ A volta do Stripe não prova o pagamento: o plano só muda quando o webhook cheg
 ## Decisões
 
 - [0001 — Página única de billing e retorno do Stripe por polling](../adr/0001-pagina-unica-de-billing-e-retorno-do-stripe-por-polling.md)
+- [0002 — Testes unitários com `node --test` e `CREDITS_PER_MESSAGE`](../adr/0002-testes-unitarios-com-node-test.md)
+- [0003 — Confirmar a recarga pelo `purchaseId` guardado no `sessionStorage`](../adr/0003-confirmar-recarga-pelo-purchase-id.md)
+- [0004 — Só navegar para URLs https do Stripe](../adr/0004-validar-a-url-do-stripe-antes-de-navegar.md)
 
 ## Recarga de IA
 
@@ -75,7 +78,8 @@ Contrato: `specs/contratos-recarga.md` §5 e §6; decisões em `specs/decisoes-v
 
 - **Unidade:** créditos inteiros (1 crédito = 1.000 µUSD no servidor), "≈N mensagens" por `CREDITS_PER_MESSAGE` (só exibição) e preço em R$. O usuário comum nunca vê µUSD nem tokens.
 - **Quando mostrar o botão:** só com `GET /ai-usage/me/quota` → `topUp.purchasable`. Sem isso a seção mostra o saldo (se houver) e um aviso, ou some (flag desligada ou nada a mostrar).
-- **Compra:** `BuyTopUpDialog` → `POST /billing/ai-top-ups/checkout` → redirect ao Stripe (só cartão). Os créditos só entram pelo webhook.
+- **Compra:** `BuyTopUpDialog` → `POST /billing/ai-top-ups/checkout` → redirect ao Stripe (só cartão). Os créditos só entram pelo webhook. Se o usuário voltar pelo Voltar do navegador (bfcache), o diálogo é destravado (`useBfcacheRestore`).
+- **URL do Stripe:** o redirect só acontece para `https` em host `*.stripe.com` (`isStripeUrl`/`goToStripe`); qualquer outra URL vira erro da mutation, sem navegar (vale também para assinatura e portal).
 - **Retorno:** `?topUp=success` faz polling de `GET /billing/ai-top-ups/me` (página 1, 2 s, até 30 s) até a compra aparecer na lista. `/me` só traz compras pagas (nunca `PENDING`/`EXPIRED`), então o front guarda o `purchaseId` do checkout no `sessionStorage` e confirma quando esse id é listado; sem o id, compara com a primeira leitura (saldo diferente ou `meta.total` maior). O id é apagado ao confirmar, cancelar ou expirar o prazo. Ao confirmar, invalida a cota. `?topUp=cancel` mostra toast neutro. A lógica é a mesma da assinatura (`usePaymentReturn`).
 - **Card de uso:** `AssistantAllowanceCard` mostra "+N créditos de recarga (os próximos vencem em DD/MM)" quando há saldo.
 - **Chat:** depois de `TOKEN_QUOTA_EXCEEDED`, "Comprar créditos" aparece se e só se `topUp.purchasable`; senão, o texto atual e "Ver planos". `AI_INSUFFICIENT_CREDITS` nunca mostra compra. Saldo maior que o da hora do 429 libera o aviso.
