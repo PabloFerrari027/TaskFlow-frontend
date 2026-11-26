@@ -37,6 +37,8 @@ import {
   useSendChatMessageMutation,
 } from "@/features/assistant/hooks/use-assistant";
 import { useQuotaWindowUsageQuery } from "@/features/plans/hooks/use-plans";
+import { useMyAiQuotaQuery } from "@/features/plans/hooks/use-ai-top-ups";
+import { BuyTopUpDialog } from "@/features/plans/components/buy-top-up-dialog";
 import {
   getRecordedDuration,
   useAudioRecorder,
@@ -290,6 +292,10 @@ export function AssistantChat() {
   // (API.md § 23 doesn't say which). Unlike the credits case it clears on its
   // own when the window resets, so the composer stays usable.
   const [quotaExceeded, setQuotaExceeded] = React.useState(false);
+  // Recarga de IA (not the provider's `creditsExhausted`): the balance seen
+  // when the cap was hit, to notice a purchase confirmed since.
+  const [topUpBalanceAtExceed, setTopUpBalanceAtExceed] = React.useState(0);
+  const [buyTopUpOpen, setBuyTopUpOpen] = React.useState(false);
   const { workspace, workspaces } = useCurrentWorkspace();
   const { userId } = useAuth();
   const myRole = workspace?.members.find((m) => m.userId === userId)?.role as
@@ -332,6 +338,21 @@ export function AssistantChat() {
   // running total.
   const usageQuery = useQuotaWindowUsageQuery("day", { enabled: open && assistantEnabled });
   const tokensToday = usageQuery.data ?? null;
+
+  // Percent + top-up summary: `topUp.purchasable` is the only thing that
+  // shows the buy button, and only after TOKEN_QUOTA_EXCEEDED (never after
+  // AI_INSUFFICIENT_CREDITS, which is the provider running out of balance).
+  const quotaQuery = useMyAiQuotaQuery({ enabled: open && assistantEnabled });
+  const topUp = quotaQuery.data?.topUp;
+  const canBuyTopUp = topUp?.purchasable === true;
+  // A purchase confirmed since the cap was hit frees the composer again.
+  const quotaBlocked =
+    quotaExceeded && !((topUp?.balanceCredits ?? 0) > topUpBalanceAtExceed);
+  function markQuotaExceeded() {
+    setTopUpBalanceAtExceed(topUp?.balanceCredits ?? 0);
+    setQuotaExceeded(true);
+    quotaQuery.refetch();
+  }
 
   // Read inside the recorder's `onstop` handler, which closes over whatever
   // `files`/`sendMessage` existed when recording *started* — these refs give
@@ -438,7 +459,7 @@ export function AssistantChat() {
     profileQuery.data !== undefined &&
     profileQuery.data.onboarding !== "FINISHED" &&
     !creditsExhausted &&
-    !quotaExceeded;
+    !quotaBlocked;
   React.useEffect(() => {
     if (!shouldStart || startedRef.current) return;
     startedRef.current = true;
@@ -476,7 +497,7 @@ export function AssistantChat() {
           const code = getErrorCode(error);
           dispatch({ type: "stream-failed", messageId: replyId });
           if (code === "AI_INSUFFICIENT_CREDITS") setCreditsExhausted(true);
-          if (code === "TOKEN_QUOTA_EXCEEDED") setQuotaExceeded(true);
+          if (code === "TOKEN_QUOTA_EXCEEDED") markQuotaExceeded();
           // Already started in another tab: show what's there instead.
           if (code === "ASSISTANT_CONVERSATION_NOT_EMPTY") messagesQuery.refetch();
           // Closed mid-opening: try again on the next open.
@@ -626,7 +647,7 @@ export function AssistantChat() {
           const code = getErrorCode(error);
           dispatch({ type: "stream-failed", messageId: replyId });
           if (code === "AI_INSUFFICIENT_CREDITS") setCreditsExhausted(true);
-          if (code === "TOKEN_QUOTA_EXCEEDED") setQuotaExceeded(true);
+          if (code === "TOKEN_QUOTA_EXCEEDED") markQuotaExceeded();
           // A voice note can't be retyped: if the turn failed before it was
           // even understood (admission refusal, transcription/network error —
           // not the audio itself being too long or silent, and not the user
@@ -901,19 +922,37 @@ export function AssistantChat() {
                   {getMessageForCode("AI_INSUFFICIENT_CREDITS")}
                 </p>
               ) : null}
-              {quotaExceeded && !creditsExhausted ? (
+              {quotaBlocked && !creditsExhausted ? (
                 <div
                   role="alert"
                   className="space-y-1 rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-foreground"
                 >
                   <p>{getMessageForCode("TOKEN_QUOTA_EXCEEDED")}</p>
-                  <Link
-                    href="/settings/billing"
-                    onClick={() => handleOpenChange(false)}
-                    className="font-medium text-primary hover:underline"
-                  >
-                    Ver consumo e planos
-                  </Link>
+                  {canBuyTopUp ? (
+                    <div className="flex flex-wrap items-center gap-3 pt-1">
+                      <Button type="button" size="sm" onClick={() => setBuyTopUpOpen(true)}>
+                        Comprar créditos
+                      </Button>
+                      <Link
+                        href="/settings/billing"
+                        onClick={() => handleOpenChange(false)}
+                        className="font-medium text-primary hover:underline"
+                      >
+                        Ver planos
+                      </Link>
+                    </div>
+                  ) : (
+                    <Link
+                      href="/settings/billing"
+                      onClick={() => handleOpenChange(false)}
+                      className="font-medium text-primary hover:underline"
+                    >
+                      Ver planos
+                    </Link>
+                  )}
+                  {canBuyTopUp ? (
+                    <BuyTopUpDialog open={buyTopUpOpen} onOpenChange={setBuyTopUpOpen} />
+                  ) : null}
                 </div>
               ) : null}
             </div>
