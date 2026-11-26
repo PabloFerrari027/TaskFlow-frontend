@@ -53,7 +53,7 @@ export function AssistantAllowanceCard({ showPlanLink = false }: { showPlanLink?
       {topUp && topUp.balanceCredits > 0 ? (
         <p className="text-sm text-foreground">
           +{formatCredits(topUp.balanceCredits)} créditos de recarga
-          {topUp.nextExpiresAt ? `, vencem em ${formatDayMonth(topUp.nextExpiresAt)}` : ""}.
+          {topUp.nextExpiresAt ? ` (os próximos vencem em ${formatDayMonth(topUp.nextExpiresAt)})` : ""}.
         </p>
       ) : null}
       <p className="text-xs text-muted-foreground">

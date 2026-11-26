@@ -77,7 +77,7 @@ Contrato: `specs/contratos-recarga.md` §5 e §6; decisões em `specs/decisoes-v
 - **Quando mostrar o botão:** só com `GET /ai-usage/me/quota` → `topUp.purchasable`. Sem isso a seção mostra o saldo (se houver) e um aviso, ou some (flag desligada ou nada a mostrar).
 - **Compra:** `BuyTopUpDialog` → `POST /billing/ai-top-ups/checkout` → redirect ao Stripe (só cartão). Os créditos só entram pelo webhook.
 - **Retorno:** `?topUp=success` faz polling de `GET /billing/ai-top-ups/me` (página 1, 2 s, até 30 s) até a compra aparecer na lista. `/me` só traz compras pagas (nunca `PENDING`/`EXPIRED`), então o front guarda o `purchaseId` do checkout no `sessionStorage` e confirma quando esse id é listado; sem o id, compara com a primeira leitura (saldo diferente ou `meta.total` maior). O id é apagado ao confirmar, cancelar ou expirar o prazo. Ao confirmar, invalida a cota. `?topUp=cancel` mostra toast neutro. A lógica é a mesma da assinatura (`usePaymentReturn`).
-- **Card de uso:** `AssistantAllowanceCard` mostra "+N créditos de recarga, vencem em DD/MM" quando há saldo.
+- **Card de uso:** `AssistantAllowanceCard` mostra "+N créditos de recarga (os próximos vencem em DD/MM)" quando há saldo.
 - **Chat:** depois de `TOKEN_QUOTA_EXCEEDED`, "Comprar créditos" aparece se e só se `topUp.purchasable`; senão, o texto atual e "Ver planos". `AI_INSUFFICIENT_CREDITS` nunca mostra compra. Saldo maior que o da hora do 429 libera o aviso.
 - **Admin:** aba "Pacotes de recarga" em `/admin/plans` (listar, criar, editar, ativar/desativar; preço digitado em R$ e enviado em centavos via `parsePriceInput`). A concessão manual de créditos é só API na v1, sem tela.
 - **Testes:** `npm run test:unit` (`node --test`, ver ADR 0002) exige Node >= 22.18; o `.nvmrc` fixa a 24.
