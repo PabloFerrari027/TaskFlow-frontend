@@ -80,4 +80,5 @@ Contrato: `specs/contratos-recarga.md` §5 e §6; decisões em `specs/decisoes-v
 - **Card de uso:** `AssistantAllowanceCard` mostra "+N créditos de recarga, vencem em DD/MM" quando há saldo.
 - **Chat:** depois de `TOKEN_QUOTA_EXCEEDED`, "Comprar créditos" aparece se e só se `topUp.purchasable`; senão, o texto atual e "Ver planos". `AI_INSUFFICIENT_CREDITS` nunca mostra compra. Saldo maior que o da hora do 429 libera o aviso.
 - **Admin:** aba "Pacotes de recarga" em `/admin/plans` (listar, criar, editar, ativar/desativar; preço digitado em R$ e enviado em centavos via `parsePriceInput`). A concessão manual de créditos é só API na v1, sem tela.
+- **Testes:** `npm run test:unit` (`node --test`, ver ADR 0002) exige Node >= 22.18; o `.nvmrc` fixa a 24.
 - **Limites:** `CREDITS_PER_MESSAGE` é uma heurística do front; o contrato garante `createdAt` DESC em `/me`.
