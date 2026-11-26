@@ -294,7 +294,8 @@ export function AssistantChat() {
   const [quotaExceeded, setQuotaExceeded] = React.useState(false);
   // Recarga de IA (not the provider's `creditsExhausted`): the balance seen
   // when the cap was hit, to notice a purchase confirmed since.
-  const [topUpBalanceAtExceed, setTopUpBalanceAtExceed] = React.useState(0);
+  // `null` = the quota had not loaded when the 429 came: nothing to compare yet.
+  const [topUpBalanceAtExceed, setTopUpBalanceAtExceed] = React.useState<number | null>(null);
   const [buyTopUpOpen, setBuyTopUpOpen] = React.useState(false);
   const { workspace, workspaces } = useCurrentWorkspace();
   const { userId } = useAuth();
@@ -347,9 +348,10 @@ export function AssistantChat() {
   const canBuyTopUp = topUp?.purchasable === true;
   // A purchase confirmed since the cap was hit frees the composer again.
   const quotaBlocked =
-    quotaExceeded && !((topUp?.balanceCredits ?? 0) > topUpBalanceAtExceed);
+    quotaExceeded &&
+    !(topUp !== undefined && topUpBalanceAtExceed !== null && topUp.balanceCredits > topUpBalanceAtExceed);
   function markQuotaExceeded() {
-    setTopUpBalanceAtExceed(topUp?.balanceCredits ?? 0);
+    setTopUpBalanceAtExceed(topUp?.balanceCredits ?? null);
     setQuotaExceeded(true);
     quotaQuery.refetch();
   }
