@@ -4,12 +4,13 @@ import { describe, it } from "node:test";
 import type { Oklch } from "./color-math.ts";
 import {
   contrastViolations,
+  type LightModeTokens,
   type ModeTokens,
   type StatusTokens,
 } from "./contrast-pairs.ts";
 
 // Corrected default light theme (spec 4.3), with the destructive overridden per test.
-const light: ModeTokens = {
+const light: LightModeTokens = {
   background: [0.982, 0.005, 275],
   foreground: [0.21, 0.022, 275],
   card: [1, 0, 0],
@@ -25,6 +26,7 @@ const light: ModeTokens = {
   mutedForeground: [0.49, 0.022, 275],
   accent: [0.945, 0.026, 275],
   accentForeground: [0.36, 0.12, 275],
+  chart1: [0.535, 0.225, 275],
   border: [0.915, 0.01, 275],
   input: [0.89, 0.012, 275],
   ring: [0.535, 0.225, 275],
@@ -61,7 +63,11 @@ describe("contrastViolations", () => {
   });
 
   it("uses /20 and /30 for S1 in dark mode", () => {
-    const dark: ModeTokens = { ...light, background: [0.165, 0.014, 275], card: [0.205, 0.016, 275] };
+    const dark: ModeTokens = {
+      ...light, // dark has no per-palette border/input; the extras are ignored
+      background: [0.165, 0.014, 275],
+      card: [0.205, 0.016, 275],
+    };
     const v = contrastViolations(dark, status([0.2, 0.05, 27]), "dark");
     const names = v.map((x) => x.pair);
     assert.ok(names.includes("S1:destructive/30@card"));

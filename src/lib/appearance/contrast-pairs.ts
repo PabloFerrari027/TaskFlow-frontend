@@ -12,28 +12,29 @@ import {
 export type Mode = "light" | "dark";
 
 export const TOKEN_NAMES = [
+  "primary",
+  "primaryForeground",
+  "primaryHover",
+  "ring",
+  "chart1",
+  "accent",
+  "accentForeground",
   "background",
   "foreground",
   "card",
   "cardForeground",
   "popover",
   "popoverForeground",
-  "primary",
-  "primaryForeground",
-  "primaryHover",
   "secondary",
   "secondaryForeground",
   "muted",
   "mutedForeground",
-  "accent",
-  "accentForeground",
-  "border",
-  "input",
-  "ring",
 ] as const;
 
 export type TokenName = (typeof TOKEN_NAMES)[number];
 export type ModeTokens = Record<TokenName, Oklch>;
+/** Light mode also carries border and input per palette; dark keeps them fixed (white with alpha). */
+export type LightModeTokens = ModeTokens & { border: Oklch; input: Oklch };
 
 /** Global state colors: identical in every palette, tested against each palette's neutrals. */
 export interface StatusTokens {
