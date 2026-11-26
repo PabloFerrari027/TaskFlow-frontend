@@ -1,6 +1,6 @@
 import type { ApiEndpoint } from "@/features/developers/lib/api-reference-data";
 
-// API.md § 23-24 (Planos, cupons e cota de tokens de IA + Consumo de tokens de IA).
+// API.md § 23-24 (Planos, assinatura Stripe, cupons e cota de tokens de IA + Consumo de tokens de IA).
 export function buildBillingEndpoints(): ApiEndpoint[] {
   return [
     {
@@ -11,45 +11,38 @@ export function buildBillingEndpoints(): ApiEndpoint[] {
       requestExample: ['curl "$API_URL/plans" \\', '  -H "Authorization: Bearer $ACCESS_TOKEN"'].join("\n"),
       responseStatus: "200 OK",
       responseExample: '[ { "id": "uuid", "name": "PRO", "monthlyTokenBudget": 1000000, "monthlyPriceCents": 4990, "createdAt": "...", "updatedAt": "..." } ]',
-      notes: ["`monthlyPriceCents`: centavos de BRL, `0` = gratuito. Só informativo enquanto não existe checkout."],
+      notes: ["`monthlyPriceCents`: centavos de BRL, `0` = gratuito. Plano pago se contrata por assinatura (`POST /billing/checkout`)."],
     },
     {
       method: "GET",
       path: "/plans/me",
-      summary: "Meu plano e desconto vigente",
+      summary: "Meu plano, desconto vigente e assinatura",
       description:
-        "`plan: null` = sem plano atribuído (cota do FREE, preço 0). `discount: null` = sem desconto vigente. O preço com desconto é o snapshot do resgate.",
+        "`plan: null` = sem plano atribuído (cota do FREE, preço 0). `discount: null` = sem desconto vigente. O preço com desconto é o snapshot do resgate. `subscription: null` = nunca assinou; senão, a mais recente, inclusive encerrada (`CANCELED`).",
       requestExample: ['curl "$API_URL/plans/me" \\', '  -H "Authorization: Bearer $ACCESS_TOKEN"'].join("\n"),
       responseStatus: "200 OK",
-      responseExample: `{\n  "plan": { "id": "uuid", "name": "PRO", "monthlyTokenBudget": 1000000, "monthlyPriceCents": 4990, "createdAt": "...", "updatedAt": "..." },\n  "discount": { "couponCode": "BLACKFRIDAY30", "discountType": "PERCENT", "percentOff": 30, "amountOffCents": null, "duration": "REPEATING", "durationInMonths": 3, "originalPriceCents": 4990, "discountedPriceCents": 3493, "redeemedAt": "...", "endsAt": "..." },\n  "effectiveMonthlyPriceCents": 3493\n}`,
+      responseExample: `{\n  "plan": { "id": "uuid", "name": "PRO", "monthlyTokenBudget": 1000000, "monthlyPriceCents": 4990, "createdAt": "...", "updatedAt": "..." },\n  "discount": { "couponCode": "BLACKFRIDAY30", "discountType": "PERCENT", "percentOff": 30, "amountOffCents": null, "duration": "REPEATING", "durationInMonths": 3, "originalPriceCents": 4990, "discountedPriceCents": 3493, "redeemedAt": "...", "endsAt": "..." },\n  "effectiveMonthlyPriceCents": 3493,\n  "subscription": { "status": "ACTIVE", "currentPeriodEnd": "2026-11-03T12:00:00.000Z", "cancelAtPeriodEnd": false }\n}`,
+      notes: [
+        "`subscription.status`: `ACTIVE`, `TRIALING`, `PAST_DUE` (cobrança falhou, o plano continua valendo), `INCOMPLETE` (primeira cobrança pendente) ou encerrada (`UNPAID`, `CANCELED`, `INCOMPLETE_EXPIRED`, `PAUSED`).",
+        "`cancelAtPeriodEnd: true` = cancelada, mas vale até `currentPeriodEnd`.",
+      ],
     },
     {
       method: "PATCH",
       path: "/plans/me",
-      summary: "Trocar meu próprio plano (com cupom opcional)",
+      summary: "Trocar meu plano para um plano gratuito",
       description:
-        "Sem checagem de pagamento nesta versão — qualquer usuário autenticado pode \"assinar\" qualquer plano cadastrado, de graça. Com `couponCode`, o resgate é atômico com a troca: cupom recusado, plano mantido. Sem cupom, trocar para outro plano cancela o desconto vigente.",
-      bodyParams: [
-        { name: "planId", type: "string", required: true },
-        { name: "couponCode", type: "string", required: false, notes: "case-insensitive; também aplica um cupom ao plano atual" },
-      ],
+        "Só planos gratuitos (`monthlyPriceCents = 0`). Plano pago responde `402 PLAN_REQUIRES_CHECKOUT` (use `POST /billing/checkout`) e `couponCode` não é aceito (`400`). Com assinatura paga em vigor, ir para o gratuito é cancelar a assinatura: aqui responde `409 SUBSCRIPTION_ALREADY_ACTIVE`. Trocar de plano cancela o desconto vigente.",
+      bodyParams: [{ name: "planId", type: "string", required: true }],
       requestExample: [
         'curl -X PATCH "$API_URL/plans/me" \\',
         '  -H "Authorization: Bearer $ACCESS_TOKEN" \\',
         '  -H "Content-Type: application/json" \\',
-        "  -d '{ \"planId\": \"uuid\", \"couponCode\": \"blackfriday30\" }'",
+        "  -d '{ \"planId\": \"uuid\" }'",
       ].join("\n"),
       responseStatus: "200 OK",
       responseExample: "(mesmo formato de GET /plans/me, já com a troca)",
-      errorCodes: [
-        "PLAN_NOT_FOUND",
-        "COUPON_NOT_FOUND",
-        "COUPON_ALREADY_REDEEMED",
-        "COUPON_NOT_YET_VALID",
-        "COUPON_EXPIRED",
-        "COUPON_NOT_APPLICABLE_TO_PLAN",
-        "COUPON_REDEMPTION_LIMIT_REACHED",
-      ],
+      errorCodes: ["PLAN_NOT_FOUND", "PLAN_REQUIRES_CHECKOUT", "SUBSCRIPTION_ALREADY_ACTIVE"],
     },
     {
       method: "POST",
@@ -76,6 +69,123 @@ export function buildBillingEndpoints(): ApiEndpoint[] {
         "COUPON_EXPIRED",
         "COUPON_NOT_APPLICABLE_TO_PLAN",
         "COUPON_REDEMPTION_LIMIT_REACHED",
+      ],
+    },
+    {
+      method: "POST",
+      path: "/billing/checkout",
+      summary: "Assinar um plano pago (Stripe Checkout)",
+      description:
+        "Abre a página de pagamento hospedada pelo Stripe; redirecione o usuário para `url`. O plano só muda quando o Stripe confirma o pagamento (webhook): ao voltar em `/settings/billing?checkout=success`, recarregue `GET /plans/me` (pode levar alguns segundos). Com cupom, a vaga fica reservada até `expiresAt`. Chamar de novo expira o checkout anterior. Rate limit: 20 req/min. Sem `STRIPE_SECRET_KEY` no servidor: `503 BILLING_NOT_CONFIGURED`.",
+      bodyParams: [
+        { name: "planId", type: "string", required: true },
+        { name: "couponCode", type: "string", required: false, notes: "case-insensitive; a vaga fica reservada até `expiresAt`" },
+      ],
+      requestExample: [
+        'curl -X POST "$API_URL/billing/checkout" \\',
+        '  -H "Authorization: Bearer $ACCESS_TOKEN" \\',
+        '  -H "Content-Type: application/json" \\',
+        "  -d '{ \"planId\": \"uuid\", \"couponCode\": \"blackfriday30\" }'",
+      ].join("\n"),
+      responseStatus: "201 Created",
+      responseExample: '{ "checkoutId": "uuid", "url": "https://checkout.stripe.com/c/pay/cs_...", "expiresAt": "...", "planId": "uuid", "planName": "PRO", "couponCode": "BLACKFRIDAY30", "originalPriceCents": 4990, "discountedPriceCents": 3493, "currency": "BRL" }',
+      errorCodes: [
+        "PLAN_NOT_FOUND",
+        "PLAN_NOT_PURCHASABLE",
+        "SUBSCRIPTION_ALREADY_ACTIVE",
+        "CHECKOUT_ALREADY_COMPLETED",
+        "CHECKOUT_IN_PROGRESS",
+        "BILLING_NOT_CONFIGURED",
+        "COUPON_NOT_FOUND",
+        "COUPON_ALREADY_REDEEMED",
+        "COUPON_NOT_YET_VALID",
+        "COUPON_EXPIRED",
+        "COUPON_NOT_APPLICABLE_TO_PLAN",
+        "COUPON_REDEMPTION_LIMIT_REACHED",
+      ],
+    },
+    {
+      method: "POST",
+      path: "/billing/subscription/change",
+      summary: "Trocar o plano da assinatura",
+      description:
+        "Upgrade ou downgrade entre planos pagos, opcionalmente com cupom. A diferença proporcional é cobrada na hora no upgrade e vira crédito nas próximas faturas no downgrade. Sem cupom, a troca remove o desconto atual. Para ir a um plano gratuito, cancele. Rate limit: 20 req/min.",
+      bodyParams: [
+        { name: "planId", type: "string", required: true },
+        { name: "couponCode", type: "string", required: false, notes: "case-insensitive; mesmo `planId` + cupom = aplicar o cupom ao plano atual" },
+      ],
+      requestExample: [
+        'curl -X POST "$API_URL/billing/subscription/change" \\',
+        '  -H "Authorization: Bearer $ACCESS_TOKEN" \\',
+        '  -H "Content-Type: application/json" \\',
+        "  -d '{ \"planId\": \"uuid\" }'",
+      ].join("\n"),
+      responseStatus: "200 OK",
+      responseExample: "(mesmo formato de GET /plans/me, já com a troca)",
+      errorCodes: [
+        "NO_ACTIVE_SUBSCRIPTION",
+        "PLAN_NOT_FOUND",
+        "PLAN_NOT_PURCHASABLE",
+        "ALREADY_ON_PLAN",
+        "BILLING_NOT_CONFIGURED",
+        "COUPON_NOT_FOUND",
+        "COUPON_ALREADY_REDEEMED",
+        "COUPON_NOT_YET_VALID",
+        "COUPON_EXPIRED",
+        "COUPON_NOT_APPLICABLE_TO_PLAN",
+        "COUPON_REDEMPTION_LIMIT_REACHED",
+      ],
+    },
+    {
+      method: "POST",
+      path: "/billing/subscription/cancel",
+      summary: "Cancelar a assinatura no fim do período",
+      description:
+        "O plano continua valendo até `currentPeriodEnd`, sem reembolso proporcional; depois o usuário volta ao plano padrão e o desconto termina. Idempotente.",
+      requestExample: [
+        'curl -X POST "$API_URL/billing/subscription/cancel" \\',
+        '  -H "Authorization: Bearer $ACCESS_TOKEN"',
+      ].join("\n"),
+      responseStatus: "200 OK",
+      responseExample: '{ "status": "ACTIVE", "currentPeriodEnd": "2026-11-03T12:00:00.000Z", "cancelAtPeriodEnd": true }',
+      errorCodes: [
+        "NO_ACTIVE_SUBSCRIPTION",
+        "BILLING_NOT_CONFIGURED",
+      ],
+    },
+    {
+      method: "POST",
+      path: "/billing/subscription/resume",
+      summary: "Retomar uma assinatura com cancelamento agendado",
+      description:
+        "Desfaz o cancelamento antes de `currentPeriodEnd`.",
+      requestExample: [
+        'curl -X POST "$API_URL/billing/subscription/resume" \\',
+        '  -H "Authorization: Bearer $ACCESS_TOKEN"',
+      ].join("\n"),
+      responseStatus: "200 OK",
+      responseExample: '{ "status": "ACTIVE", "currentPeriodEnd": "2026-11-03T12:00:00.000Z", "cancelAtPeriodEnd": false }',
+      errorCodes: [
+        "NO_ACTIVE_SUBSCRIPTION",
+        "SUBSCRIPTION_NOT_SCHEDULED_TO_CANCEL",
+        "BILLING_NOT_CONFIGURED",
+      ],
+    },
+    {
+      method: "POST",
+      path: "/billing/portal",
+      summary: "Abrir o portal do cliente (Stripe)",
+      description:
+        "Link para o portal do Stripe, onde o usuário troca o cartão e vê faturas e recibos. A volta é `/settings/billing`.",
+      requestExample: [
+        'curl -X POST "$API_URL/billing/portal" \\',
+        '  -H "Authorization: Bearer $ACCESS_TOKEN"',
+      ].join("\n"),
+      responseStatus: "200 OK",
+      responseExample: '{ "url": "https://billing.stripe.com/p/session/..." }',
+      errorCodes: [
+        "BILLING_ACCOUNT_NOT_FOUND",
+        "BILLING_NOT_CONFIGURED",
       ],
     },
     {
@@ -132,7 +242,7 @@ export function buildBillingEndpoints(): ApiEndpoint[] {
       path: "/admin/users/:userId/plan",
       summary: "Forçar o plano de um usuário",
       description:
-        "Exige `SUPER_ADMIN`. O fluxo normal é o próprio usuário via `PATCH /plans/me` acima — isto é uma correção manual. Trocar para outro plano cancela o desconto vigente do usuário.",
+        "Exige `SUPER_ADMIN`. O fluxo normal é o próprio usuário via checkout/`PATCH /plans/me` — isto é uma correção manual, sem cobrança e sem mexer na assinatura do Stripe. Trocar para outro plano cancela o desconto vigente do usuário.",
       bodyParams: [{ name: "planId", type: "string", required: true }],
       requestExample: [
         'curl -X PATCH "$API_URL/admin/users/USER_ID/plan" \\',
