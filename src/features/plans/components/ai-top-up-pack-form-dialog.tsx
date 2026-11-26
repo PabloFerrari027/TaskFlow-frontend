@@ -39,13 +39,24 @@ function initialState(pack: AiTopUpPackAdmin | null): FormState {
   };
 }
 
+// Server limits (AiTopUpPack entity, API.md § 46).
+const MAX_NAME_LENGTH = 60;
+const MAX_CREDITS = 1_000_000;
+const MIN_PRICE_CENTS = 100;
+const MAX_PRICE_CENTS = 10_000_000;
+
 const isInt = (value: string, min: number) => /^\d{1,9}$/.test(value) && Number(value) >= min;
 
 function validate(state: FormState): string | null {
   if (!state.name.trim()) return "Dê um nome ao pacote.";
-  if (!isInt(state.credits, 1)) return "Os créditos precisam ser um número inteiro de 1 ou mais.";
-  if (!isValidPriceInput(state.price) || parsePriceInput(state.price) < 1) {
-    return "Informe o preço em reais, como 9,90.";
+  if (state.name.trim().length > MAX_NAME_LENGTH) return `O nome pode ter até ${MAX_NAME_LENGTH} caracteres.`;
+  if (!isInt(state.credits, 1) || Number(state.credits) > MAX_CREDITS) {
+    return "Os créditos precisam ser um número inteiro de 1 a 1.000.000.";
+  }
+  if (!isValidPriceInput(state.price)) return "Informe o preço em reais, como 9,90.";
+  const priceCents = parsePriceInput(state.price);
+  if (priceCents < MIN_PRICE_CENTS || priceCents > MAX_PRICE_CENTS) {
+    return "O preço precisa ficar entre R$ 1,00 e R$ 100.000,00.";
   }
   if (!isInt(state.sortOrder, 0)) return "A ordem precisa ser um número inteiro, 0 ou mais.";
   return null;

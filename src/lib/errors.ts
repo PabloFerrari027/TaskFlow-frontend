@@ -280,7 +280,7 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   AI_TOP_UP_PACK_NOT_FOUND: "Este pacote de recarga não está mais disponível.",
   AI_TOP_UP_UNAVAILABLE: "A recarga de créditos ainda não está disponível para a sua conta.",
   AI_TOP_UP_PACK_NAME_ALREADY_EXISTS: "Já existe um pacote de recarga com este nome.",
-  INVALID_AI_TOP_UP_PACK: "Confira os dados do pacote: créditos e preço precisam ser maiores que zero.",
+  INVALID_AI_TOP_UP_PACK: "Confira os dados do pacote: nome de 1 a 60 caracteres, créditos de 1 a 1.000.000 e preço de R$ 1,00 a R$ 100.000,00.",
   INVALID_AI_TOP_UP_GRANT: "Confira os dados da concessão de créditos.",
   BILLING_ACCOUNT_NOT_FOUND: "Você ainda não tem dados de cobrança. Assine um plano primeiro.",
   // Sent as the final `error` frame of the assistant's chat stream, whose
