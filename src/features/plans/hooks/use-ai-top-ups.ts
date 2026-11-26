@@ -4,8 +4,8 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tansta
 import { toast } from "sonner";
 import { aiTopUpsService } from "@/features/plans/api/ai-top-ups-service";
 import { assistantService } from "@/features/assistant/api/assistant-service";
-import { goTo } from "@/features/plans/hooks/use-billing";
 import { rememberPendingTopUpPurchase } from "@/features/plans/lib/top-up-confirmation";
+import { goToStripe } from "@/lib/navigation";
 import { queryKeys } from "@/lib/query-keys";
 import { getErrorCode, getErrorMessage } from "@/lib/errors";
 import type { CreateAiTopUpPackRequest, UpdateAiTopUpPackRequest } from "@/types/ai-top-up";
@@ -55,7 +55,7 @@ export function useStartAiTopUpCheckoutMutation() {
     onSuccess: (checkout) => {
       // The paid list never shows PENDING: the return confirms by this id.
       rememberPendingTopUpPurchase(checkout.purchaseId);
-      goTo(checkout.url);
+      goToStripe(checkout.url);
     },
     onError: (error) => {
       const code = getErrorCode(error);
