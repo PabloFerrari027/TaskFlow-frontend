@@ -23,6 +23,8 @@ interface PaymentReturnOptions<T> {
   isConfirmed: (data: T | undefined, first: T | undefined) => boolean;
   /** Runs once, when the payment is confirmed (e.g. refresh related caches). */
   onConfirmed?: (data: T) => void;
+  /** Runs once when the return ends: confirmed, cancelled or timed out. */
+  onSettled?: () => void;
 }
 
 /**
@@ -44,6 +46,7 @@ export function usePaymentReturn<T>({
   queryFn,
   isConfirmed,
   onConfirmed,
+  onSettled,
 }: PaymentReturnOptions<T>) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -75,15 +78,18 @@ export function usePaymentReturn<T>({
   const confirmedHandled = React.useRef(false);
   // Latest data/callback for the effect below without making it re-run on
   // every poll (a re-run would flicker the toast).
-  const latest = React.useRef({ data, onConfirmed });
+  const latest = React.useRef({ data, onConfirmed, onSettled });
   React.useEffect(() => {
-    latest.current = { data, onConfirmed };
+    latest.current = { data, onConfirmed, onSettled };
   });
 
   React.useEffect(() => {
     if (!result || handled.current) return;
     handled.current = true;
-    if (result === "cancel") toast.info(cancelMessage);
+    if (result === "cancel") {
+      toast.info(cancelMessage);
+      latest.current.onSettled?.();
+    }
     router.replace(BILLING_PATH, { scroll: false });
   }, [result, cancelMessage, router]);
 
@@ -96,6 +102,7 @@ export function usePaymentReturn<T>({
         confirmedHandled.current = true;
         const { data: current, onConfirmed: callback } = latest.current;
         if (current !== undefined) callback?.(current);
+        latest.current.onSettled?.();
       }
       return;
     }
@@ -107,6 +114,7 @@ export function usePaymentReturn<T>({
     const timer = window.setTimeout(() => {
       finished.current = true;
       toast.info(timeoutMessage, { id: toastId, duration: 8_000 });
+      latest.current.onSettled?.();
       setTimedOut(true);
     }, remaining);
     return () => {
