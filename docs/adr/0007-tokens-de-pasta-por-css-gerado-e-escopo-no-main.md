@@ -12,7 +12,7 @@ Cada pasta pode ter paleta, fonte e peso próprios, escolhidos num catálogo fec
 ## Decisão
 
 - **CSS gerado do catálogo (D9).** O front guarda uma cópia do JSON do catálogo (`src/lib/appearance/folder-appearance-catalog.json`). `npm run gen:appearance` gera `src/app/folder-appearance.css`, importado por `globals.css`. Há uma regra por valor (`[data-folder-palette="azul"]`, `.dark [data-folder-palette="azul"]`, `[data-folder-font=...]`, `[data-folder-weight=...]`). Testes conferem contraste AA contra a cópia do JSON.
-- **Escopo no `<main>` (D4, D17).** O `<main>` do dashboard (`ThemedMain`) recebe `data-folder-palette/font/weight` só para eixos não padrão e ganha `bg-background`, para que a troca de neutros apareça de forma coerente. Sidebar e topbar ficam fora.
+- **Escopo no `<main>` (D4, D17).** O `<main>` do dashboard (`ThemedMain`) recebe `data-folder-palette/font/weight` só para eixos não padrão e o fundo vem da regra gerada `[data-folder-palette]:not([data-folder-portal-host]) { background-color: var(--background); color: var(--foreground) }`, para que a troca de neutros apareça de forma coerente. Sidebar e topbar ficam fora.
 - **Host de portal.** Diálogos, menus e tooltips abrem em `body`, fora do `<main>`. `ThemedMain` monta um segundo elemento no fim do `<body>` (`data-folder-portal-host`) com os mesmos atributos, e os primitivos de `components/ui` usam `useFolderPortalContainer()` como container. Fora do `<main>` o container é `undefined` e tudo continua indo para o `body`.
 - **Preview (D5).** Um único painel no modo atual, com o botão "Ver no modo escuro/claro".
 - **Opt-out local.** A pessoa pode ignorar a aparência de pasta neste navegador (`taskflow.ignoreFolderAppearance` no `localStorage`).
