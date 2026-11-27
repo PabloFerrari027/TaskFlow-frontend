@@ -26,7 +26,8 @@ export function useActiveFolderAppearance(folderId: string, folder: Folder | und
   React.useEffect(() => {
     if (!fontKey || fontKey === "default" || !(fontKey in FOLDER_FONTS)) return;
     if (typeof document === "undefined" || !document.fonts) return;
-    void document.fonts.load(`600 1em ${FOLDER_FONTS[fontKey].style.fontFamily}`);
+    // Purely an optimization: a failed preload (network, invalid name) must not surface in the console.
+    document.fonts.load(`600 1em ${FOLDER_FONTS[fontKey].style.fontFamily}`).catch(() => {});
   }, [fontKey]);
 
   React.useEffect(() => {
