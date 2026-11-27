@@ -6,6 +6,7 @@ import { QueryProvider } from "@/providers/query-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/lib/auth/auth-context";
+import { folderFontVariables } from "@/lib/appearance/folder-fonts";
 
 // Rounder and warmer than Inter, with a generous x-height: reads easily for a
 // non-technical audience at the small sizes most of the app uses.
@@ -33,7 +34,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="pt-BR"
       suppressHydrationWarning
-      className={`${fontSans.variable} ${fontMono.variable} h-full antialiased`}
+      className={`${fontSans.variable} ${fontMono.variable} ${folderFontVariables} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <ThemeProvider

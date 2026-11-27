@@ -38,7 +38,7 @@ export function ChartTypePicker({
             aria-checked={selected}
             onClick={() => onChange(spec.type)}
             className={cn(
-              "flex flex-col items-center gap-1.5 rounded-lg border p-3 text-center transition-colors focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none",
+              "flex flex-col items-center gap-1.5 rounded-lg border p-3 text-center transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
               selected
                 ? "border-primary bg-primary/5 text-foreground"
                 : "border-border text-muted-foreground hover:bg-muted hover:text-foreground"

@@ -18,6 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { FolderStatusBadge } from "@/components/shared/status-badge";
+import { FolderColorDot } from "@/features/folders/components/folder-color-dot";
 import { CreateFolderDialog } from "@/features/folders/components/create-folder-dialog";
 import { MoveFolderDialog } from "@/features/folders/components/move-folder-dialog";
 import { buildTree, type TreeNode } from "@/lib/tree";
@@ -128,7 +129,10 @@ function FolderTreeNode({
             <FolderKanban className="size-4" />
           </div>
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium text-foreground">{folder.name}</p>
+            <p className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+              <FolderColorDot folder={folder} />
+              <span className="truncate">{folder.name}</span>
+            </p>
             <p className="truncate text-xs text-muted-foreground">
               {folder.description || "Sem descrição"}
             </p>

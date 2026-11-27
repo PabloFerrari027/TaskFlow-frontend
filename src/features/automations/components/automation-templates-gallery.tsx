@@ -46,7 +46,7 @@ export function AutomationTemplatesGallery({
             key={template.id}
             type="button"
             onClick={() => onPick(template)}
-            className="space-y-1 rounded-lg border border-border/60 bg-card p-4 text-left transition-colors hover:border-primary/40 hover:bg-muted/40 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+            className="space-y-1 rounded-lg border border-border/60 bg-card p-4 text-left transition-colors hover:border-primary/40 hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
           >
             <p className="text-sm font-medium text-foreground">{template.title}</p>
             <p className="text-xs text-muted-foreground">{template.description}</p>

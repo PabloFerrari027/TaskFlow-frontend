@@ -8,6 +8,7 @@ import {
   invalidateByEntityChange,
   invalidateWorkspaceData,
 } from "@/features/sync/lib/invalidate-entity";
+import { setFolderDetail } from "@/features/folders/lib/folder-cache";
 import { queryKeys } from "@/lib/query-keys";
 import type { Folder } from "@/types/folder";
 import type { Section } from "@/types/section";
@@ -190,7 +191,7 @@ function applyServerState(
     }
     case "FOLDER": {
       const folder = state as unknown as Folder;
-      queryClient.setQueryData(queryKeys.folders.detail(folder.id), folder);
+      setFolderDetail(queryClient, folder);
       queryClient.invalidateQueries({ queryKey: queryKeys.folders.all(folder.workspaceId) });
       return;
     }

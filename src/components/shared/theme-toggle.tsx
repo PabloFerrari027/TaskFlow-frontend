@@ -1,17 +1,27 @@
 "use client";
 
 import { useTheme } from "next-themes";
-import { Moon, Sun, Monitor } from "lucide-react";
+import { Moon, Sun, Monitor, Palette } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useIgnoreFolderAppearance } from "@/features/folders/hooks/use-folder-appearance-enabled";
+import { setIgnoreFolderAppearance } from "@/features/folders/lib/folder-appearance-pref";
 
-export function ThemeToggle() {
+interface ThemeToggleProps {
+  /** Shows the per-browser "always use the default appearance" item (dashboard topbar only). */
+  showFolderOptOut?: boolean;
+}
+
+export function ThemeToggle({ showFolderOptOut = false }: ThemeToggleProps) {
   const { setTheme } = useTheme();
+  const ignoreFolderAppearance = useIgnoreFolderAppearance();
 
   return (
     <DropdownMenu>
@@ -36,6 +46,18 @@ export function ThemeToggle() {
         <DropdownMenuItem onClick={() => setTheme("system")}>
           <Monitor /> Sistema
         </DropdownMenuItem>
+        {showFolderOptOut ? (
+          <>
+            <DropdownMenuSeparator />
+            {/* Per-browser opt-out: folders keep their appearance for everyone else. */}
+            <DropdownMenuCheckboxItem
+              checked={ignoreFolderAppearance}
+              onCheckedChange={(checked) => setIgnoreFolderAppearance(checked === true)}
+            >
+              <Palette /> Usar sempre a aparência padrão
+            </DropdownMenuCheckboxItem>
+          </>
+        ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
   );

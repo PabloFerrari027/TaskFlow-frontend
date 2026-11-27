@@ -40,6 +40,7 @@ const ERROR_MESSAGES: Record<ErrorCode, string> = {
   INVITATION_EMAIL_MISMATCH:
     "Este convite foi enviado para outro e-mail. Entre com a conta correta.",
   FOLDER_NOT_FOUND: "Pasta não encontrada.",
+  FOLDER_APPEARANCE_INVALID: "Escolha uma opção da lista.",
   ITEM_NOT_FOUND: "Item não encontrado.",
   ITEM_VERSION_CONFLICT:
     "Outra pessoa mudou este item agora há pouco. Já mostramos a versão mais nova: confira e faça sua alteração de novo.",

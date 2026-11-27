@@ -8,7 +8,7 @@ import type {
 import type { SearchParams } from "@/types/search";
 import type { WorkspaceBlueprintFilters } from "@/types/workspace-blueprint";
 import type { ListCouponsParams } from "@/types/plan";
-import { stableStringify } from "@/lib/utils";
+import { stableStringify } from "./utils.ts";
 
 export const queryKeys = {
   auth: {
@@ -313,5 +313,10 @@ export const queryKeys = {
     root: () => ["home"] as const,
     indicator: (workspaceId: string, userId: string, indicator: string) =>
       ["home", workspaceId, userId, indicator] as const,
+  },
+  // The signed-in user's feature flags (GET /features/me), per open workspace.
+  featureFlags: {
+    root: () => ["feature-flags"] as const,
+    mine: (workspaceId: string | null) => ["feature-flags", "me", workspaceId] as const,
   },
 } as const;

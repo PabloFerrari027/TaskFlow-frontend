@@ -3,6 +3,7 @@
 import * as React from "react"
 import { cn } from "cn"
 import { Dialog as SheetPrimitive } from "radix-ui"
+import { useFolderPortalContainer } from "@/features/folders/context/folder-appearance-context"
 
 import { Button } from "@/components/ui/button"
 import { XIcon } from "lucide-react"
@@ -26,7 +27,13 @@ function SheetClose({
 function SheetPortal({
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Portal>) {
-  return <SheetPrimitive.Portal data-slot="sheet-portal" {...props} />
+  return (
+    <SheetPrimitive.Portal
+      data-slot="sheet-portal"
+      container={useFolderPortalContainer()}
+      {...props}
+    />
+  )
 }
 
 function SheetOverlay({

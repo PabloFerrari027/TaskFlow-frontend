@@ -56,7 +56,7 @@ function SuggestionTile({
         // The strip below keeps the cursor over the button once it lifts, so
         // hovering its bottom edge doesn't flicker between lifted and not.
         "after:absolute after:inset-x-0 after:-bottom-1 after:h-1",
-        "hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md focus-visible:ring-[3px] focus-visible:ring-ring/50",
+        "hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring",
         selected && "border-primary bg-primary/5 ring-1 ring-primary"
       )}
       title={template.description ?? template.name}

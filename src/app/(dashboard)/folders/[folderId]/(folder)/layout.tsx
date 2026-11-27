@@ -9,6 +9,7 @@ import {
   FolderInput,
   FolderPlus,
   LayoutTemplate,
+  Palette,
   Pencil,
   Wand2,
 } from "lucide-react";
@@ -39,6 +40,8 @@ import {
   useFoldersQuery,
 } from "@/features/folders/hooks/use-folders";
 import { useFolderPermission } from "@/features/folders/hooks/use-folder-permission";
+import { useActiveFolderAppearance } from "@/features/folders/hooks/use-active-folder-appearance";
+import { useMyFeaturesQuery } from "@/features/feature-flags/hooks/use-my-features";
 import { useAuth } from "@/lib/auth/auth-context";
 
 export default function FolderDetailLayout(
@@ -57,6 +60,12 @@ export default function FolderDetailLayout(
   const archiveMutation = useArchiveFolderMutation(folderId);
   // Destination list for "Mover para…" — same cached query as the folders page.
   const workspaceFoldersQuery = useFoldersQuery(folderQuery.data?.workspaceId ?? null);
+  // Every tab of the folder themes the main area with its effective appearance.
+  useActiveFolderAppearance(folderId, folderQuery.data);
+  const featuresQuery = useMyFeaturesQuery(folderQuery.data?.workspaceId ?? null, {
+    enabled: Boolean(folderQuery.data?.workspaceId),
+  });
+  const appearanceEnabled = featuresQuery.data?.["folders.appearance"] === true;
 
   if (folderQuery.isLoading) {
     return (
@@ -98,6 +107,13 @@ export default function FolderDetailLayout(
                   <DropdownMenuItem onSelect={() => setEditOpen(true)}>
                     <Pencil /> Editar nome e descrição
                   </DropdownMenuItem>
+                  {appearanceEnabled ? (
+                    <DropdownMenuItem asChild>
+                      <Link href={`/folders/${folder.id}/settings#aparencia`}>
+                        <Palette /> Aparência da pasta
+                      </Link>
+                    </DropdownMenuItem>
+                  ) : null}
                   {folder.status === "ACTIVE" ? (
                     <DropdownMenuItem onSelect={() => setSubfolderOpen(true)}>
                       <FolderPlus /> Criar subpasta

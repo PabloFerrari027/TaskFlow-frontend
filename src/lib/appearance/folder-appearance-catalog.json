@@ -1,0 +1,1843 @@
+{
+  "catalogVersion": 1,
+  "contentHash": "8b1e412ffe5d8e6fee3acd6f91e42f63d75cddc73d1624bf5ae9eb1c221192af",
+  "status": {
+    "light": {
+      "destructive": [
+        0.482,
+        0.196,
+        27
+      ],
+      "success": [
+        0.5,
+        0.109,
+        162
+      ],
+      "successForeground": [
+        0.985,
+        0,
+        0
+      ]
+    },
+    "dark": {
+      "destructive": [
+        0.784,
+        0.125,
+        22.216
+      ],
+      "success": [
+        0.72,
+        0.14,
+        162
+      ],
+      "successForeground": [
+        0.165,
+        0.014,
+        275
+      ]
+    }
+  },
+  "palettes": [
+    {
+      "key": "default",
+      "name": "Violeta",
+      "hue": 275,
+      "neutralChroma": 1,
+      "light": {
+        "primary": [
+          0.535,
+          0.225,
+          275
+        ],
+        "primaryForeground": [
+          0.985,
+          0,
+          0
+        ],
+        "primaryHover": [
+          0.495,
+          0.225,
+          275
+        ],
+        "ring": [
+          0.535,
+          0.225,
+          275
+        ],
+        "chart1": [
+          0.535,
+          0.225,
+          275
+        ],
+        "accent": [
+          0.945,
+          0.026,
+          275
+        ],
+        "accentForeground": [
+          0.36,
+          0.12,
+          275
+        ],
+        "background": [
+          0.982,
+          0.005,
+          275
+        ],
+        "foreground": [
+          0.21,
+          0.022,
+          275
+        ],
+        "card": [
+          1,
+          0,
+          0
+        ],
+        "cardForeground": [
+          0.21,
+          0.022,
+          275
+        ],
+        "popover": [
+          1,
+          0,
+          0
+        ],
+        "popoverForeground": [
+          0.21,
+          0.022,
+          275
+        ],
+        "secondary": [
+          0.955,
+          0.009,
+          275
+        ],
+        "secondaryForeground": [
+          0.25,
+          0.03,
+          275
+        ],
+        "muted": [
+          0.955,
+          0.009,
+          275
+        ],
+        "mutedForeground": [
+          0.49,
+          0.022,
+          275
+        ],
+        "border": [
+          0.915,
+          0.01,
+          275
+        ],
+        "input": [
+          0.89,
+          0.012,
+          275
+        ]
+      },
+      "dark": {
+        "primary": [
+          0.68,
+          0.169,
+          275
+        ],
+        "primaryForeground": [
+          0.165,
+          0.014,
+          275
+        ],
+        "primaryHover": [
+          0.72,
+          0.145,
+          275
+        ],
+        "ring": [
+          0.68,
+          0.169,
+          275
+        ],
+        "chart1": [
+          0.68,
+          0.169,
+          275
+        ],
+        "accent": [
+          0.3,
+          0.055,
+          275
+        ],
+        "accentForeground": [
+          0.9,
+          0.04,
+          275
+        ],
+        "background": [
+          0.165,
+          0.014,
+          275
+        ],
+        "foreground": [
+          0.96,
+          0.004,
+          275
+        ],
+        "card": [
+          0.205,
+          0.016,
+          275
+        ],
+        "cardForeground": [
+          0.96,
+          0.004,
+          275
+        ],
+        "popover": [
+          0.215,
+          0.016,
+          275
+        ],
+        "popoverForeground": [
+          0.96,
+          0.004,
+          275
+        ],
+        "secondary": [
+          0.265,
+          0.018,
+          275
+        ],
+        "secondaryForeground": [
+          0.96,
+          0.004,
+          275
+        ],
+        "muted": [
+          0.265,
+          0.018,
+          275
+        ],
+        "mutedForeground": [
+          0.7,
+          0.018,
+          275
+        ]
+      },
+      "swatch": {
+        "light": "#5052ec",
+        "dark": "#7c8cff"
+      }
+    },
+    {
+      "key": "azul",
+      "name": "Azul",
+      "hue": 255,
+      "neutralChroma": 1,
+      "light": {
+        "primary": [
+          0.5,
+          0.164,
+          255
+        ],
+        "primaryForeground": [
+          0.985,
+          0,
+          0
+        ],
+        "primaryHover": [
+          0.46,
+          0.151,
+          255
+        ],
+        "ring": [
+          0.5,
+          0.164,
+          255
+        ],
+        "chart1": [
+          0.5,
+          0.164,
+          255
+        ],
+        "accent": [
+          0.945,
+          0.026,
+          255
+        ],
+        "accentForeground": [
+          0.36,
+          0.118,
+          255
+        ],
+        "background": [
+          0.982,
+          0.005,
+          255
+        ],
+        "foreground": [
+          0.21,
+          0.022,
+          255
+        ],
+        "card": [
+          1,
+          0,
+          0
+        ],
+        "cardForeground": [
+          0.21,
+          0.022,
+          255
+        ],
+        "popover": [
+          1,
+          0,
+          0
+        ],
+        "popoverForeground": [
+          0.21,
+          0.022,
+          255
+        ],
+        "secondary": [
+          0.955,
+          0.009,
+          255
+        ],
+        "secondaryForeground": [
+          0.25,
+          0.03,
+          255
+        ],
+        "muted": [
+          0.955,
+          0.009,
+          255
+        ],
+        "mutedForeground": [
+          0.49,
+          0.022,
+          255
+        ],
+        "border": [
+          0.915,
+          0.01,
+          255
+        ],
+        "input": [
+          0.89,
+          0.012,
+          255
+        ]
+      },
+      "dark": {
+        "primary": [
+          0.665,
+          0.161,
+          255
+        ],
+        "primaryForeground": [
+          0.165,
+          0.014,
+          255
+        ],
+        "primaryHover": [
+          0.705,
+          0.156,
+          255
+        ],
+        "ring": [
+          0.665,
+          0.161,
+          255
+        ],
+        "chart1": [
+          0.665,
+          0.161,
+          255
+        ],
+        "accent": [
+          0.3,
+          0.055,
+          255
+        ],
+        "accentForeground": [
+          0.9,
+          0.04,
+          255
+        ],
+        "background": [
+          0.165,
+          0.014,
+          255
+        ],
+        "foreground": [
+          0.96,
+          0.004,
+          255
+        ],
+        "card": [
+          0.205,
+          0.016,
+          255
+        ],
+        "cardForeground": [
+          0.96,
+          0.004,
+          255
+        ],
+        "popover": [
+          0.215,
+          0.016,
+          255
+        ],
+        "popoverForeground": [
+          0.96,
+          0.004,
+          255
+        ],
+        "secondary": [
+          0.265,
+          0.018,
+          255
+        ],
+        "secondaryForeground": [
+          0.96,
+          0.004,
+          255
+        ],
+        "muted": [
+          0.265,
+          0.018,
+          255
+        ],
+        "mutedForeground": [
+          0.7,
+          0.018,
+          255
+        ]
+      },
+      "swatch": {
+        "light": "#0161bd",
+        "dark": "#4795f4"
+      }
+    },
+    {
+      "key": "ciano",
+      "name": "Petróleo",
+      "hue": 220,
+      "neutralChroma": 1,
+      "light": {
+        "primary": [
+          0.495,
+          0.09,
+          220
+        ],
+        "primaryForeground": [
+          0.985,
+          0,
+          0
+        ],
+        "primaryHover": [
+          0.455,
+          0.082,
+          220
+        ],
+        "ring": [
+          0.495,
+          0.09,
+          220
+        ],
+        "chart1": [
+          0.495,
+          0.09,
+          220
+        ],
+        "accent": [
+          0.945,
+          0.03,
+          220
+        ],
+        "accentForeground": [
+          0.36,
+          0.065,
+          220
+        ],
+        "background": [
+          0.982,
+          0.005,
+          220
+        ],
+        "foreground": [
+          0.21,
+          0.022,
+          220
+        ],
+        "card": [
+          1,
+          0,
+          0
+        ],
+        "cardForeground": [
+          0.21,
+          0.022,
+          220
+        ],
+        "popover": [
+          1,
+          0,
+          0
+        ],
+        "popoverForeground": [
+          0.21,
+          0.022,
+          220
+        ],
+        "secondary": [
+          0.955,
+          0.009,
+          220
+        ],
+        "secondaryForeground": [
+          0.25,
+          0.03,
+          220
+        ],
+        "muted": [
+          0.955,
+          0.009,
+          220
+        ],
+        "mutedForeground": [
+          0.49,
+          0.022,
+          220
+        ],
+        "border": [
+          0.915,
+          0.01,
+          220
+        ],
+        "input": [
+          0.89,
+          0.012,
+          220
+        ]
+      },
+      "dark": {
+        "primary": [
+          0.65,
+          0.118,
+          220
+        ],
+        "primaryForeground": [
+          0.165,
+          0.014,
+          220
+        ],
+        "primaryHover": [
+          0.69,
+          0.118,
+          220
+        ],
+        "ring": [
+          0.65,
+          0.118,
+          220
+        ],
+        "chart1": [
+          0.65,
+          0.118,
+          220
+        ],
+        "accent": [
+          0.3,
+          0.054,
+          220
+        ],
+        "accentForeground": [
+          0.9,
+          0.04,
+          220
+        ],
+        "background": [
+          0.165,
+          0.014,
+          220
+        ],
+        "foreground": [
+          0.96,
+          0.004,
+          220
+        ],
+        "card": [
+          0.205,
+          0.016,
+          220
+        ],
+        "cardForeground": [
+          0.96,
+          0.004,
+          220
+        ],
+        "popover": [
+          0.215,
+          0.016,
+          220
+        ],
+        "popoverForeground": [
+          0.96,
+          0.004,
+          220
+        ],
+        "secondary": [
+          0.265,
+          0.018,
+          220
+        ],
+        "secondaryForeground": [
+          0.96,
+          0.004,
+          220
+        ],
+        "muted": [
+          0.265,
+          0.018,
+          220
+        ],
+        "mutedForeground": [
+          0.7,
+          0.018,
+          220
+        ]
+      },
+      "swatch": {
+        "light": "#016d85",
+        "dark": "#029fc1"
+      }
+    },
+    {
+      "key": "verde-agua",
+      "name": "Verde-água",
+      "hue": 185,
+      "neutralChroma": 1,
+      "light": {
+        "primary": [
+          0.49,
+          0.086,
+          185
+        ],
+        "primaryForeground": [
+          0.985,
+          0,
+          0
+        ],
+        "primaryHover": [
+          0.45,
+          0.079,
+          185
+        ],
+        "ring": [
+          0.49,
+          0.086,
+          185
+        ],
+        "chart1": [
+          0.49,
+          0.086,
+          185
+        ],
+        "accent": [
+          0.945,
+          0.03,
+          185
+        ],
+        "accentForeground": [
+          0.36,
+          0.063,
+          185
+        ],
+        "background": [
+          0.982,
+          0.005,
+          185
+        ],
+        "foreground": [
+          0.21,
+          0.022,
+          185
+        ],
+        "card": [
+          1,
+          0,
+          0
+        ],
+        "cardForeground": [
+          0.21,
+          0.022,
+          185
+        ],
+        "popover": [
+          1,
+          0,
+          0
+        ],
+        "popoverForeground": [
+          0.21,
+          0.022,
+          185
+        ],
+        "secondary": [
+          0.955,
+          0.009,
+          185
+        ],
+        "secondaryForeground": [
+          0.25,
+          0.03,
+          185
+        ],
+        "muted": [
+          0.955,
+          0.009,
+          185
+        ],
+        "mutedForeground": [
+          0.49,
+          0.022,
+          185
+        ],
+        "border": [
+          0.915,
+          0.01,
+          185
+        ],
+        "input": [
+          0.89,
+          0.012,
+          185
+        ]
+      },
+      "dark": {
+        "primary": [
+          0.65,
+          0.102,
+          185
+        ],
+        "primaryForeground": [
+          0.165,
+          0.014,
+          185
+        ],
+        "primaryHover": [
+          0.69,
+          0.102,
+          185
+        ],
+        "ring": [
+          0.65,
+          0.102,
+          185
+        ],
+        "chart1": [
+          0.65,
+          0.102,
+          185
+        ],
+        "accent": [
+          0.3,
+          0.053,
+          185
+        ],
+        "accentForeground": [
+          0.9,
+          0.04,
+          185
+        ],
+        "background": [
+          0.165,
+          0.014,
+          185
+        ],
+        "foreground": [
+          0.96,
+          0.004,
+          185
+        ],
+        "card": [
+          0.205,
+          0.016,
+          185
+        ],
+        "cardForeground": [
+          0.96,
+          0.004,
+          185
+        ],
+        "popover": [
+          0.215,
+          0.016,
+          185
+        ],
+        "popoverForeground": [
+          0.96,
+          0.004,
+          185
+        ],
+        "secondary": [
+          0.265,
+          0.018,
+          185
+        ],
+        "secondaryForeground": [
+          0.96,
+          0.004,
+          185
+        ],
+        "muted": [
+          0.265,
+          0.018,
+          185
+        ],
+        "mutedForeground": [
+          0.7,
+          0.018,
+          185
+        ]
+      },
+      "swatch": {
+        "light": "#017067",
+        "dark": "#2fa397"
+      }
+    },
+    {
+      "key": "verde",
+      "name": "Verde",
+      "hue": 150,
+      "neutralChroma": 1,
+      "light": {
+        "primary": [
+          0.485,
+          0.133,
+          150
+        ],
+        "primaryForeground": [
+          0.985,
+          0,
+          0
+        ],
+        "primaryHover": [
+          0.445,
+          0.122,
+          150
+        ],
+        "ring": [
+          0.485,
+          0.133,
+          150
+        ],
+        "chart1": [
+          0.485,
+          0.133,
+          150
+        ],
+        "accent": [
+          0.945,
+          0.03,
+          150
+        ],
+        "accentForeground": [
+          0.36,
+          0.099,
+          150
+        ],
+        "background": [
+          0.982,
+          0.005,
+          150
+        ],
+        "foreground": [
+          0.21,
+          0.022,
+          150
+        ],
+        "card": [
+          1,
+          0,
+          0
+        ],
+        "cardForeground": [
+          0.21,
+          0.022,
+          150
+        ],
+        "popover": [
+          1,
+          0,
+          0
+        ],
+        "popoverForeground": [
+          0.21,
+          0.022,
+          150
+        ],
+        "secondary": [
+          0.955,
+          0.009,
+          150
+        ],
+        "secondaryForeground": [
+          0.25,
+          0.03,
+          150
+        ],
+        "muted": [
+          0.955,
+          0.009,
+          150
+        ],
+        "mutedForeground": [
+          0.49,
+          0.022,
+          150
+        ],
+        "border": [
+          0.915,
+          0.01,
+          150
+        ],
+        "input": [
+          0.89,
+          0.012,
+          150
+        ]
+      },
+      "dark": {
+        "primary": [
+          0.65,
+          0.136,
+          150
+        ],
+        "primaryForeground": [
+          0.165,
+          0.014,
+          150
+        ],
+        "primaryHover": [
+          0.69,
+          0.136,
+          150
+        ],
+        "ring": [
+          0.65,
+          0.136,
+          150
+        ],
+        "chart1": [
+          0.65,
+          0.136,
+          150
+        ],
+        "accent": [
+          0.3,
+          0.055,
+          150
+        ],
+        "accentForeground": [
+          0.9,
+          0.04,
+          150
+        ],
+        "background": [
+          0.165,
+          0.014,
+          150
+        ],
+        "foreground": [
+          0.96,
+          0.004,
+          150
+        ],
+        "card": [
+          0.205,
+          0.016,
+          150
+        ],
+        "cardForeground": [
+          0.96,
+          0.004,
+          150
+        ],
+        "popover": [
+          0.215,
+          0.016,
+          150
+        ],
+        "popoverForeground": [
+          0.96,
+          0.004,
+          150
+        ],
+        "secondary": [
+          0.265,
+          0.018,
+          150
+        ],
+        "secondaryForeground": [
+          0.96,
+          0.004,
+          150
+        ],
+        "muted": [
+          0.265,
+          0.018,
+          150
+        ],
+        "mutedForeground": [
+          0.7,
+          0.018,
+          150
+        ]
+      },
+      "swatch": {
+        "light": "#017333",
+        "dark": "#47a661"
+      }
+    },
+    {
+      "key": "ambar",
+      "name": "Âmbar",
+      "hue": 70,
+      "neutralChroma": 1,
+      "light": {
+        "primary": [
+          0.505,
+          0.109,
+          70
+        ],
+        "primaryForeground": [
+          0.985,
+          0,
+          0
+        ],
+        "primaryHover": [
+          0.465,
+          0.1,
+          70
+        ],
+        "ring": [
+          0.505,
+          0.109,
+          70
+        ],
+        "chart1": [
+          0.505,
+          0.109,
+          70
+        ],
+        "accent": [
+          0.945,
+          0.03,
+          70
+        ],
+        "accentForeground": [
+          0.36,
+          0.078,
+          70
+        ],
+        "background": [
+          0.982,
+          0.005,
+          70
+        ],
+        "foreground": [
+          0.21,
+          0.022,
+          70
+        ],
+        "card": [
+          1,
+          0,
+          0
+        ],
+        "cardForeground": [
+          0.21,
+          0.022,
+          70
+        ],
+        "popover": [
+          1,
+          0,
+          0
+        ],
+        "popoverForeground": [
+          0.21,
+          0.022,
+          70
+        ],
+        "secondary": [
+          0.955,
+          0.009,
+          70
+        ],
+        "secondaryForeground": [
+          0.25,
+          0.03,
+          70
+        ],
+        "muted": [
+          0.955,
+          0.009,
+          70
+        ],
+        "mutedForeground": [
+          0.49,
+          0.022,
+          70
+        ],
+        "border": [
+          0.915,
+          0.01,
+          70
+        ],
+        "input": [
+          0.89,
+          0.012,
+          70
+        ]
+      },
+      "dark": {
+        "primary": [
+          0.67,
+          0.144,
+          70
+        ],
+        "primaryForeground": [
+          0.165,
+          0.014,
+          70
+        ],
+        "primaryHover": [
+          0.71,
+          0.144,
+          70
+        ],
+        "ring": [
+          0.67,
+          0.144,
+          70
+        ],
+        "chart1": [
+          0.67,
+          0.144,
+          70
+        ],
+        "accent": [
+          0.3,
+          0.055,
+          70
+        ],
+        "accentForeground": [
+          0.9,
+          0.04,
+          70
+        ],
+        "background": [
+          0.165,
+          0.014,
+          70
+        ],
+        "foreground": [
+          0.96,
+          0.004,
+          70
+        ],
+        "card": [
+          0.205,
+          0.016,
+          70
+        ],
+        "cardForeground": [
+          0.96,
+          0.004,
+          70
+        ],
+        "popover": [
+          0.215,
+          0.016,
+          70
+        ],
+        "popoverForeground": [
+          0.96,
+          0.004,
+          70
+        ],
+        "secondary": [
+          0.265,
+          0.018,
+          70
+        ],
+        "secondaryForeground": [
+          0.96,
+          0.004,
+          70
+        ],
+        "muted": [
+          0.265,
+          0.018,
+          70
+        ],
+        "mutedForeground": [
+          0.7,
+          0.018,
+          70
+        ]
+      },
+      "swatch": {
+        "light": "#8c5801",
+        "dark": "#cc8305"
+      }
+    },
+    {
+      "key": "laranja",
+      "name": "Laranja",
+      "hue": 45,
+      "neutralChroma": 1,
+      "light": {
+        "primary": [
+          0.515,
+          0.147,
+          45
+        ],
+        "primaryForeground": [
+          0.985,
+          0,
+          0
+        ],
+        "primaryHover": [
+          0.475,
+          0.135,
+          45
+        ],
+        "ring": [
+          0.515,
+          0.147,
+          45
+        ],
+        "chart1": [
+          0.515,
+          0.147,
+          45
+        ],
+        "accent": [
+          0.945,
+          0.029,
+          45
+        ],
+        "accentForeground": [
+          0.36,
+          0.103,
+          45
+        ],
+        "background": [
+          0.982,
+          0.005,
+          45
+        ],
+        "foreground": [
+          0.21,
+          0.022,
+          45
+        ],
+        "card": [
+          1,
+          0,
+          0
+        ],
+        "cardForeground": [
+          0.21,
+          0.022,
+          45
+        ],
+        "popover": [
+          1,
+          0,
+          0
+        ],
+        "popoverForeground": [
+          0.21,
+          0.022,
+          45
+        ],
+        "secondary": [
+          0.955,
+          0.009,
+          45
+        ],
+        "secondaryForeground": [
+          0.25,
+          0.03,
+          45
+        ],
+        "muted": [
+          0.955,
+          0.009,
+          45
+        ],
+        "mutedForeground": [
+          0.49,
+          0.022,
+          45
+        ],
+        "border": [
+          0.915,
+          0.01,
+          45
+        ],
+        "input": [
+          0.89,
+          0.012,
+          45
+        ]
+      },
+      "dark": {
+        "primary": [
+          0.675,
+          0.161,
+          45
+        ],
+        "primaryForeground": [
+          0.165,
+          0.014,
+          45
+        ],
+        "primaryHover": [
+          0.715,
+          0.161,
+          45
+        ],
+        "ring": [
+          0.675,
+          0.161,
+          45
+        ],
+        "chart1": [
+          0.675,
+          0.161,
+          45
+        ],
+        "accent": [
+          0.3,
+          0.055,
+          45
+        ],
+        "accentForeground": [
+          0.9,
+          0.04,
+          45
+        ],
+        "background": [
+          0.165,
+          0.014,
+          45
+        ],
+        "foreground": [
+          0.96,
+          0.004,
+          45
+        ],
+        "card": [
+          0.205,
+          0.016,
+          45
+        ],
+        "cardForeground": [
+          0.96,
+          0.004,
+          45
+        ],
+        "popover": [
+          0.215,
+          0.016,
+          45
+        ],
+        "popoverForeground": [
+          0.96,
+          0.004,
+          45
+        ],
+        "secondary": [
+          0.265,
+          0.018,
+          45
+        ],
+        "secondaryForeground": [
+          0.96,
+          0.004,
+          45
+        ],
+        "muted": [
+          0.265,
+          0.018,
+          45
+        ],
+        "mutedForeground": [
+          0.7,
+          0.018,
+          45
+        ]
+      },
+      "swatch": {
+        "light": "#a94400",
+        "dark": "#e57136"
+      }
+    },
+    {
+      "key": "rosa",
+      "name": "Rosa",
+      "hue": 350,
+      "neutralChroma": 1,
+      "light": {
+        "primary": [
+          0.52,
+          0.2,
+          350
+        ],
+        "primaryForeground": [
+          0.985,
+          0,
+          0
+        ],
+        "primaryHover": [
+          0.48,
+          0.2,
+          350
+        ],
+        "ring": [
+          0.52,
+          0.2,
+          350
+        ],
+        "chart1": [
+          0.52,
+          0.2,
+          350
+        ],
+        "accent": [
+          0.945,
+          0.03,
+          350
+        ],
+        "accentForeground": [
+          0.36,
+          0.12,
+          350
+        ],
+        "background": [
+          0.982,
+          0.005,
+          350
+        ],
+        "foreground": [
+          0.21,
+          0.022,
+          350
+        ],
+        "card": [
+          1,
+          0,
+          0
+        ],
+        "cardForeground": [
+          0.21,
+          0.022,
+          350
+        ],
+        "popover": [
+          1,
+          0,
+          0
+        ],
+        "popoverForeground": [
+          0.21,
+          0.022,
+          350
+        ],
+        "secondary": [
+          0.955,
+          0.009,
+          350
+        ],
+        "secondaryForeground": [
+          0.25,
+          0.03,
+          350
+        ],
+        "muted": [
+          0.955,
+          0.009,
+          350
+        ],
+        "mutedForeground": [
+          0.49,
+          0.022,
+          350
+        ],
+        "border": [
+          0.915,
+          0.01,
+          350
+        ],
+        "input": [
+          0.89,
+          0.012,
+          350
+        ]
+      },
+      "dark": {
+        "primary": [
+          0.68,
+          0.17,
+          350
+        ],
+        "primaryForeground": [
+          0.165,
+          0.014,
+          350
+        ],
+        "primaryHover": [
+          0.72,
+          0.17,
+          350
+        ],
+        "ring": [
+          0.68,
+          0.17,
+          350
+        ],
+        "chart1": [
+          0.68,
+          0.17,
+          350
+        ],
+        "accent": [
+          0.3,
+          0.055,
+          350
+        ],
+        "accentForeground": [
+          0.9,
+          0.04,
+          350
+        ],
+        "background": [
+          0.165,
+          0.014,
+          350
+        ],
+        "foreground": [
+          0.96,
+          0.004,
+          350
+        ],
+        "card": [
+          0.205,
+          0.016,
+          350
+        ],
+        "cardForeground": [
+          0.96,
+          0.004,
+          350
+        ],
+        "popover": [
+          0.215,
+          0.016,
+          350
+        ],
+        "popoverForeground": [
+          0.96,
+          0.004,
+          350
+        ],
+        "secondary": [
+          0.265,
+          0.018,
+          350
+        ],
+        "secondaryForeground": [
+          0.96,
+          0.004,
+          350
+        ],
+        "muted": [
+          0.265,
+          0.018,
+          350
+        ],
+        "mutedForeground": [
+          0.7,
+          0.018,
+          350
+        ]
+      },
+      "swatch": {
+        "light": "#b51c79",
+        "dark": "#e266a7"
+      }
+    },
+    {
+      "key": "grafite",
+      "name": "Grafite",
+      "hue": 275,
+      "neutralChroma": 0,
+      "light": {
+        "primary": [
+          0.5,
+          0.02,
+          275
+        ],
+        "primaryForeground": [
+          0.985,
+          0,
+          0
+        ],
+        "primaryHover": [
+          0.46,
+          0.02,
+          275
+        ],
+        "ring": [
+          0.5,
+          0.02,
+          275
+        ],
+        "chart1": [
+          0.5,
+          0.02,
+          275
+        ],
+        "accent": [
+          0.945,
+          0,
+          275
+        ],
+        "accentForeground": [
+          0.36,
+          0.02,
+          275
+        ],
+        "background": [
+          0.982,
+          0,
+          275
+        ],
+        "foreground": [
+          0.21,
+          0,
+          275
+        ],
+        "card": [
+          1,
+          0,
+          0
+        ],
+        "cardForeground": [
+          0.21,
+          0,
+          275
+        ],
+        "popover": [
+          1,
+          0,
+          0
+        ],
+        "popoverForeground": [
+          0.21,
+          0,
+          275
+        ],
+        "secondary": [
+          0.955,
+          0,
+          275
+        ],
+        "secondaryForeground": [
+          0.25,
+          0,
+          275
+        ],
+        "muted": [
+          0.955,
+          0,
+          275
+        ],
+        "mutedForeground": [
+          0.49,
+          0,
+          275
+        ],
+        "border": [
+          0.915,
+          0,
+          275
+        ],
+        "input": [
+          0.89,
+          0,
+          275
+        ]
+      },
+      "dark": {
+        "primary": [
+          0.665,
+          0.017,
+          275
+        ],
+        "primaryForeground": [
+          0.165,
+          0,
+          275
+        ],
+        "primaryHover": [
+          0.705,
+          0.017,
+          275
+        ],
+        "ring": [
+          0.665,
+          0.017,
+          275
+        ],
+        "chart1": [
+          0.665,
+          0.017,
+          275
+        ],
+        "accent": [
+          0.3,
+          0,
+          275
+        ],
+        "accentForeground": [
+          0.9,
+          0,
+          275
+        ],
+        "background": [
+          0.165,
+          0,
+          275
+        ],
+        "foreground": [
+          0.96,
+          0,
+          275
+        ],
+        "card": [
+          0.205,
+          0,
+          275
+        ],
+        "cardForeground": [
+          0.96,
+          0,
+          275
+        ],
+        "popover": [
+          0.215,
+          0,
+          275
+        ],
+        "popoverForeground": [
+          0.96,
+          0,
+          275
+        ],
+        "secondary": [
+          0.265,
+          0,
+          275
+        ],
+        "secondaryForeground": [
+          0.96,
+          0,
+          275
+        ],
+        "muted": [
+          0.265,
+          0,
+          275
+        ],
+        "mutedForeground": [
+          0.7,
+          0,
+          275
+        ]
+      },
+      "swatch": {
+        "light": "#60636f",
+        "dark": "#90939e"
+      }
+    }
+  ],
+  "fonts": [
+    {
+      "key": "default",
+      "name": "Plus Jakarta Sans",
+      "category": "sans"
+    },
+    {
+      "key": "inter",
+      "name": "Inter",
+      "category": "sans"
+    },
+    {
+      "key": "nunito",
+      "name": "Nunito",
+      "category": "sans"
+    },
+    {
+      "key": "lexend",
+      "name": "Lexend",
+      "category": "sans"
+    },
+    {
+      "key": "atkinson",
+      "name": "Atkinson Hyperlegible Next",
+      "category": "sans"
+    },
+    {
+      "key": "source-serif",
+      "name": "Source Serif 4",
+      "category": "serif"
+    }
+  ],
+  "weights": [
+    {
+      "key": "default",
+      "name": "Padrão",
+      "medium": 500,
+      "semibold": 600,
+      "bold": 700
+    },
+    {
+      "key": "leve",
+      "name": "Leve",
+      "medium": 500,
+      "semibold": 550,
+      "bold": 650
+    },
+    {
+      "key": "marcante",
+      "name": "Marcante",
+      "medium": 550,
+      "semibold": 700,
+      "bold": 800
+    }
+  ]
+}

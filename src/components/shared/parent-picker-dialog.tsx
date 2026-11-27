@@ -34,6 +34,8 @@ interface ParentPickerDialogProps {
   currentParentId: string | null;
   isPending: boolean;
   onConfirm: (parentId: string | null) => void;
+  // Optional note about the current choice, shown above the confirm button.
+  renderNotice?: (selectedParentId: string | null) => React.ReactNode;
 }
 
 interface Row {
@@ -75,6 +77,7 @@ function ParentPickerBody({
   currentParentId,
   isPending,
   onConfirm,
+  renderNotice,
 }: Omit<ParentPickerDialogProps, "open" | "onOpenChange">) {
   // Lives inside DialogContent, which unmounts on close — so the selection
   // resets to the current parent every time the dialog reopens.
@@ -114,6 +117,8 @@ function ParentPickerBody({
           />
         ))}
       </div>
+
+      {renderNotice?.(selected)}
 
       <DialogFooter>
         <Button

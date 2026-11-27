@@ -76,7 +76,7 @@ export function RecordingWaveform({
             barsRef.current[index] = element;
           }}
           style={{ transform: `scaleY(${MIN_SCALE})` }}
-          className="h-full w-0.75 shrink-0 rounded-full bg-destructive/70 transition-transform duration-75"
+          className="h-full w-0.75 shrink-0 rounded-full bg-destructive transition-transform duration-75"
         />
       ))}
     </div>

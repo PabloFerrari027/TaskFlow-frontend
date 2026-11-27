@@ -9,6 +9,7 @@ import { shortenId } from "@/lib/format";
 import { mentionToken } from "@/lib/mentions";
 import { cn } from "@/lib/utils";
 import { useAssignableMembers } from "@/features/items/hooks/use-assignable-members";
+import { useFolderPortalContainer } from "@/features/folders/context/folder-appearance-context";
 
 // An `@` at the start of a word, followed by the (possibly empty) query being
 // typed — up to three words, so full names can be searched.
@@ -49,6 +50,8 @@ export function MentionTextarea({
   const [query, setQuery] = React.useState<string | null>(null);
   const [active, setActive] = React.useState(0);
   const [position, setPosition] = React.useState<ListPosition | null>(null);
+  // Inside a themed folder the list mounts in its portal host, not the bare body.
+  const portalContainer = useFolderPortalContainer();
   const listId = React.useId();
 
   function setRefs(node: HTMLTextAreaElement | null) {
@@ -82,7 +85,8 @@ export function MentionTextarea({
   const open = query !== null && options.length > 0;
 
   // Below the field, in a portal. Inside a dialog it's hosted by the dialog
-  // (its transform would break `fixed`), elsewhere by the body.
+  // (its transform would break `fixed`), elsewhere by the folder portal host
+  // (or the body outside a themed folder).
   React.useLayoutEffect(() => {
     if (!open) return;
 
@@ -107,7 +111,7 @@ export function MentionTextarea({
 
       const fitsBelow = window.innerHeight - rect.bottom >= 240;
       setPosition({
-        host: document.body,
+        host: portalContainer ?? document.body,
         style: {
           position: "fixed",
           left: rect.left,
@@ -125,7 +129,7 @@ export function MentionTextarea({
       window.removeEventListener("resize", place);
       window.removeEventListener("scroll", place, true);
     };
-  }, [open, value]);
+  }, [open, value, portalContainer]);
 
   function detectTrigger(text: string, caret: number) {
     const match = TRIGGER.exec(text.slice(0, caret));
