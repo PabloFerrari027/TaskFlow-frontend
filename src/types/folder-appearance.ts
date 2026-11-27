@@ -24,3 +24,7 @@ export interface EffectiveFolderAppearance {
   };
   catalogVersion: number;
 }
+
+// Must match the font keys of the catalog JSON (guarded by a unit test).
+export const FOLDER_FONT_KEYS = ["default", "inter", "nunito", "lexend", "atkinson", "source-serif"] as const;
+export type FolderFontKey = (typeof FOLDER_FONT_KEYS)[number];
