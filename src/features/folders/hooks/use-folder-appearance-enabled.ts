@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { useMyFeaturesQuery } from "@/features/feature-flags/hooks/use-my-features";
+import { isAppearanceApplied } from "@/features/folders/lib/appearance-gate";
 import {
   getIgnoreFolderAppearanceServerSnapshot,
   getIgnoreFolderAppearanceSnapshot,
@@ -18,12 +19,21 @@ export function useIgnoreFolderAppearance(): boolean {
 }
 
 /**
+ * The `folders.appearance` flag of the workspace, ignoring the local opt-out.
+ * No request without a workspace (outside a folder). A missing flag means off.
+ */
+export function useFolderAppearanceFlag(workspaceId: string | null | undefined): boolean {
+  const { data: features } = useMyFeaturesQuery(workspaceId, { enabled: Boolean(workspaceId) });
+  return features?.["folders.appearance"] === true;
+}
+
+/**
  * Whether folder appearance is applied for this reader: the `folders.appearance`
  * flag must be on and the local opt-out must not be set. A missing flag means
  * off; a storage read error means the opt-out is not set.
  */
 export function useFolderAppearanceEnabled(workspaceId: string | null | undefined): boolean {
-  const { data: features } = useMyFeaturesQuery(workspaceId);
+  const flag = useFolderAppearanceFlag(workspaceId);
   const ignore = useIgnoreFolderAppearance();
-  return features?.["folders.appearance"] === true && !ignore;
+  return isAppearanceApplied(flag, ignore);
 }

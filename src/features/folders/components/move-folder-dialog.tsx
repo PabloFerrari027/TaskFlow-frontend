@@ -3,7 +3,7 @@
 import * as React from "react";
 import { ParentPickerDialog } from "@/components/shared/parent-picker-dialog";
 import { useMoveFolderMutation } from "@/features/folders/hooks/use-folders";
-import { useMyFeaturesQuery } from "@/features/feature-flags/hooks/use-my-features";
+import { useFolderAppearanceFlag } from "@/features/folders/hooks/use-folder-appearance-enabled";
 import { moveAppearanceNotice } from "@/features/folders/lib/appearance-options";
 import type { Folder } from "@/types/folder";
 
@@ -22,8 +22,7 @@ export function MoveFolderDialog({
   onOpenChange,
 }: MoveFolderDialogProps) {
   const moveMutation = useMoveFolderMutation(folder.workspaceId);
-  const { data: features } = useMyFeaturesQuery(folder.workspaceId);
-  const appearanceEnabled = features?.["folders.appearance"] === true;
+  const appearanceEnabled = useFolderAppearanceFlag(folder.workspaceId);
 
   // Inherited axes follow the new parent; warn when that changes what the folder shows.
   const renderNotice = (parentId: string | null) => {
