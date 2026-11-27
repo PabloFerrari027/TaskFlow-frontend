@@ -88,13 +88,16 @@ export function sourceLabel(
 export function moveAppearanceNotice(
   folder: AppearanceFolderLike,
   destination: EffectiveFolderAppearance | null,
-  destinationName: string,
+  // null when moving to the root.
+  destinationName: string | null,
 ): string | null {
   const after = previewEffectiveAfterMove(folder.appearance, destination);
   const now = folder.effectiveAppearance;
   const changed =
     after.paletteKey !== now.paletteKey || after.fontKey !== now.fontKey || after.weightKey !== now.weightKey;
-  return changed ? `A aparência desta pasta vai seguir a de “${destinationName}”.` : null;
+  if (!changed) return null;
+  if (destinationName === null) return "A aparência desta pasta vai voltar ao padrão do TaskFlow.";
+  return `A aparência desta pasta vai seguir a de “${destinationName}”.`;
 }
 
 // Same naming as css-generator.ts (chart1 -> chart-1, primaryHover -> primary-hover).

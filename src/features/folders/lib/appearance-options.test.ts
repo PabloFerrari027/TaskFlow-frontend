@@ -118,8 +118,8 @@ test("moveAppearanceNotice only warns when the effective appearance changes", ()
   );
   // Root destination: inherited axes go back to the default.
   assert.equal(
-    moveAppearanceNotice(moving, null, "Padrão do TaskFlow"),
-    "A aparência desta pasta vai seguir a de “Padrão do TaskFlow”.",
+    moveAppearanceNotice(moving, null, null),
+    "A aparência desta pasta vai voltar ao padrão do TaskFlow.",
   );
   const own = folder("o", "a", ["rosa", "inter", "leve"], eff(["rosa", "inter", "leve"], ["self", "self", "self"]));
   assert.equal(moveAppearanceNotice(own, otherDest, "Destino"), null);

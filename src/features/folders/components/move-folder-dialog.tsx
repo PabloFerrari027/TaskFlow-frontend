@@ -33,7 +33,7 @@ export function MoveFolderDialog({
     const notice = moveAppearanceNotice(
       folder,
       destination?.effectiveAppearance ?? null,
-      destination?.name ?? "Padrão do TaskFlow"
+      destination?.name ?? null
     );
     return notice ? (
       <p role="status" className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
