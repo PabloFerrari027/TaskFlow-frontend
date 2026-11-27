@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { FolderStatusBadge } from "@/components/shared/status-badge";
+import { FolderColorDot } from "@/features/folders/components/folder-color-dot";
 import { CreateFolderDialog } from "@/features/folders/components/create-folder-dialog";
 import { MoveFolderDialog } from "@/features/folders/components/move-folder-dialog";
 import { useUpdateFolderMutation } from "@/features/folders/hooks/use-folders";
@@ -168,6 +169,7 @@ function FolderRow({
             // Keeps names aligned with siblings that do have a disclosure button.
             <span className="size-6 shrink-0" aria-hidden />
           )}
+          <FolderColorDot folder={folder} />
           {canEdit ? (
             <FolderTextCell folder={folder} field="name" label="Nome" />
           ) : (

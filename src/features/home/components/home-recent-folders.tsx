@@ -6,6 +6,7 @@ import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/componen
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatRelativeTime } from "@/lib/format";
+import { FolderColorDot } from "@/features/folders/components/folder-color-dot";
 import type { Folder } from "@/types/folder";
 
 const RECENT_COUNT = 5;
@@ -55,7 +56,10 @@ export function HomeRecentFolders({
                     <FolderKanban className="size-4" />
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-medium">{folder.name}</span>
+                    <span className="flex items-center gap-1.5 text-sm font-medium">
+                      <FolderColorDot folder={folder} />
+                      <span className="truncate">{folder.name}</span>
+                    </span>
                     <span className="block text-xs text-muted-foreground">
                       Atualizado {formatRelativeTime(folder.updatedAt)}
                     </span>
