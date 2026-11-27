@@ -27,7 +27,7 @@ export function useActiveFolderAppearance(folderId: string, folder: Folder | und
 
   // Warm the font file only when the appearance is really applied (flag on, no opt-out): 0 extra bytes otherwise. Never awaited.
   React.useEffect(() => {
-    if (!shouldPreloadFont(applied, fontKey) || !fontKey || !(fontKey in FOLDER_FONTS)) return;
+    if (!shouldPreloadFont(applied, fontKey) || !fontKey || fontKey === "default" || !(fontKey in FOLDER_FONTS)) return;
     if (typeof document === "undefined" || !document.fonts) return;
     // Purely an optimization: a failed preload (network, invalid name) must not surface in the console.
     document.fonts.load(`600 1em ${FOLDER_FONTS[fontKey].style.fontFamily}`).catch(() => {});
