@@ -44,7 +44,7 @@ Em Configurações da pasta há a seção "Aparência" (`FolderAppearanceSection
 - Leitura: todo `FolderDto` traz `appearance` (chaves próprias, `null` = herda) e `effectiveAppearance` (`paletteKey`, `fontKey`, `weightKey`, `source` por eixo: `self | ancestor | default`, `sourceFolderId` por eixo, `catalogVersion`).
 - `sourceFolderId` é **omitido** para GUEST do workspace e convidado só da pasta (D10); `source` continua vindo. O front trata o campo como opcional.
 - Escrita: só OWNER/ADMIN; `FOLDER_APPEARANCE_INVALID` (400, com `field`), `FORBIDDEN_WORKSPACE_ACTION` (403), `FEATURE_DISABLED` (403), `FOLDER_NOT_FOUND` (404). Não sobe `version` da pasta; o sync push ignora chaves de aparência.
-- Mover a pasta muda a aparência herdada dela e da subárvore (o cache de pastas é atualizado por `folder-cache`).
+- Mover a pasta muda a aparência herdada dela e da subárvore (`folder-cache` preserva o `effectiveAppearance` em cache quando uma resposta de rename, arquivar ou mover não o traz, e atualiza as subpastas que herdam).
 
 ## Rollout
 
