@@ -3,6 +3,7 @@
 import * as React from "react"
 import { cn } from "cn"
 import { Dialog as DialogPrimitive } from "radix-ui"
+import { useFolderPortalContainer } from "@/features/folders/context/folder-appearance-context"
 
 import { Button } from "@/components/ui/button"
 import { XIcon } from "lucide-react"
@@ -22,7 +23,13 @@ function DialogTrigger({
 function DialogPortal({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Portal>) {
-  return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />
+  return (
+    <DialogPrimitive.Portal
+      data-slot="dialog-portal"
+      container={useFolderPortalContainer()}
+      {...props}
+    />
+  )
 }
 
 function DialogClose({
