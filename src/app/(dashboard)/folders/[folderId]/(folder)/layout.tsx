@@ -59,7 +59,7 @@ export default function FolderDetailLayout(
   // Destination list for "Mover para…" — same cached query as the folders page.
   const workspaceFoldersQuery = useFoldersQuery(folderQuery.data?.workspaceId ?? null);
   // Every tab of the folder themes the main area with its effective appearance.
-  useActiveFolderAppearance(folderQuery.data);
+  useActiveFolderAppearance(folderId, folderQuery.data);
 
   if (folderQuery.isLoading) {
     return (

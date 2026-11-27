@@ -10,6 +10,7 @@ import {
 interface FolderAppearanceContextValue {
   active: ActiveFolderAppearance | null;
   activate: (folderId: string, workspaceId: string, eff: EffectiveFolderAppearance | null) => void;
+  pend: (folderId: string) => void;
   release: (folderId: string) => void;
 }
 
@@ -24,16 +25,29 @@ export function FolderAppearanceProvider({ children }: { children: React.ReactNo
   const [active, dispatch] = React.useReducer(nextActiveAppearance, null);
   const pending = React.useRef(new Map<string, ReturnType<typeof setTimeout>>());
 
+  const cancelRelease = React.useCallback((folderId: string) => {
+    const timer = pending.current.get(folderId);
+    if (timer !== undefined) {
+      clearTimeout(timer);
+      pending.current.delete(folderId);
+    }
+  }, []);
+
   const activate = React.useCallback(
     (folderId: string, workspaceId: string, eff: EffectiveFolderAppearance | null) => {
-      const timer = pending.current.get(folderId);
-      if (timer !== undefined) {
-        clearTimeout(timer);
-        pending.current.delete(folderId);
-      }
+      cancelRelease(folderId);
       dispatch({ type: "activate", folderId, workspaceId, eff });
     },
-    [],
+    [cancelRelease],
+  );
+
+  // The folder route is shown but its data is still loading.
+  const pend = React.useCallback(
+    (folderId: string) => {
+      cancelRelease(folderId);
+      dispatch({ type: "pending", folderId });
+    },
+    [cancelRelease],
   );
 
   // Deferred so a route that shows the same folder can re-activate it in the
@@ -58,7 +72,10 @@ export function FolderAppearanceProvider({ children }: { children: React.ReactNo
     };
   }, []);
 
-  const value = React.useMemo(() => ({ active, activate, release }), [active, activate, release]);
+  const value = React.useMemo(
+    () => ({ active, activate, pend, release }),
+    [active, activate, pend, release],
+  );
   return <FolderAppearanceContext.Provider value={value}>{children}</FolderAppearanceContext.Provider>;
 }
 

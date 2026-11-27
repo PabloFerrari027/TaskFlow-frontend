@@ -31,7 +31,7 @@ export default function SectionPage(
   const sectionsQuery = useSectionsQuery(folderId);
   // Outside the folder layout, so it themes the main area on its own.
   const folderQuery = useFolderQuery(folderId);
-  useActiveFolderAppearance(folderQuery.data);
+  useActiveFolderAppearance(folderId, folderQuery.data);
   const { viewMode, setViewMode } = useItemViewMode();
   const { filters, patchFilters, resetFilters, activeCount } = useItemFilters();
   const [createItemSectionId, setCreateItemSectionId] = React.useState<string | null>(null);

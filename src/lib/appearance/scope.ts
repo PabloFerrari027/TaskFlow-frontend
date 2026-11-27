@@ -33,16 +33,22 @@ export interface ActiveFolderAppearance {
   folderId: string;
   workspaceId: string;
   eff: EffectiveFolderAppearance | null;
+  // Folder whose route is shown but still loading; the current appearance is
+  // kept until it activates, so the default theme never flashes in between.
+  pendingFolderId?: string;
 }
 
 export type ActiveAppearanceEvent =
-  | ({ type: "activate" } & ActiveFolderAppearance)
+  | ({ type: "activate" } & Omit<ActiveFolderAppearance, "pendingFolderId">)
+  | { type: "pending"; folderId: string }
   | { type: "release"; folderId: string };
 
 /**
- * Which folder themes the main area. Activating replaces; releasing only
- * clears when it is the active folder, so a late release from the previous
- * route never wipes the folder the next route just activated.
+ * Which folder themes the main area. Activating replaces. A pending folder
+ * (route shown, data loading) keeps the current appearance. Releasing the
+ * active folder clears it unless another folder is pending; releasing the
+ * pending folder means folders were left, so it clears too. Any other
+ * release is a late one from a previous route and is ignored.
  */
 export function nextActiveAppearance(
   current: ActiveFolderAppearance | null,
@@ -52,5 +58,13 @@ export function nextActiveAppearance(
     const { folderId, workspaceId, eff } = event;
     return { folderId, workspaceId, eff };
   }
-  return current?.folderId === event.folderId ? null : current;
+  if (!current) return null;
+  const pending = current.pendingFolderId;
+  if (event.type === "pending") {
+    if (event.folderId === current.folderId || event.folderId === pending) return current;
+    return { ...current, pendingFolderId: event.folderId };
+  }
+  if (event.folderId === pending) return null;
+  if (event.folderId === current.folderId) return pending ? current : null;
+  return current;
 }

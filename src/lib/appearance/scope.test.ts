@@ -100,4 +100,29 @@ describe("nextActiveAppearance", () => {
   it("release of the active folder clears it", () => {
     assert.equal(nextActiveAppearance(a, { type: "release", folderId: "A" }), null);
   });
+
+  it("pending of another folder keeps the current appearance until it activates", () => {
+    let s = nextActiveAppearance(a, { type: "pending", folderId: "B" });
+    assert.equal(s?.folderId, "A");
+    assert.equal(s?.eff, a.eff);
+    // The previous route's deferred release must not wipe it while B loads.
+    s = nextActiveAppearance(s, { type: "release", folderId: "A" });
+    assert.equal(s?.folderId, "A");
+    assert.equal(s?.eff, a.eff);
+    s = nextActiveAppearance(s, { type: "activate", ...b });
+    assert.deepEqual(s, b);
+    // Pending with nothing active stays empty; pending of the active folder is a no-op.
+    assert.equal(nextActiveAppearance(null, { type: "pending", folderId: "B" }), null);
+    assert.equal(nextActiveAppearance(a, { type: "pending", folderId: "A" }), a);
+  });
+
+  it("leaving folders after pending clears", () => {
+    let s = nextActiveAppearance(a, { type: "pending", folderId: "B" });
+    s = nextActiveAppearance(s, { type: "release", folderId: "A" });
+    // B unmounts before loading (went home): nothing is left to theme.
+    assert.equal(nextActiveAppearance(s, { type: "release", folderId: "B" }), null);
+    // Same when B's release lands before A's.
+    const t = nextActiveAppearance(a, { type: "pending", folderId: "B" });
+    assert.equal(nextActiveAppearance(t, { type: "release", folderId: "B" }), null);
+  });
 });
