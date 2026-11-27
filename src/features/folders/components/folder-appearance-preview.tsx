@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import type { FolderAppearanceCatalog } from "@/lib/appearance/catalog";
 import catalogJson from "@/lib/appearance/folder-appearance-catalog.json";
 import { toScopeAttributes } from "@/lib/appearance/scope";
+import { isPreviewTakenOver } from "@/features/folders/lib/appearance-gate";
 import { previewResetStyle, type ResolvedAppearance } from "@/features/folders/lib/appearance-options";
 import type { EffectiveFolderAppearance } from "@/types/folder-appearance";
 
@@ -31,6 +32,8 @@ export function useRootFontSans(): string {
 function usePreviewThemeToggle() {
   const { theme, setTheme, resolvedTheme } = useTheme();
   const previous = React.useRef<string | null>(null);
+  // Theme the preview itself applied; a different theme later means the person took over.
+  const applied = React.useRef<string | null>(null);
   const setThemeRef = React.useRef(setTheme);
 
   React.useEffect(() => {
@@ -38,10 +41,18 @@ function usePreviewThemeToggle() {
   }, [setTheme]);
 
   React.useEffect(() => {
+    if (previous.current !== null && isPreviewTakenOver(theme, applied.current)) {
+      previous.current = null;
+      applied.current = null;
+    }
+  }, [theme]);
+
+  React.useEffect(() => {
     const restore = () => {
       if (previous.current === null) return;
       setThemeRef.current(previous.current);
       previous.current = null;
+      applied.current = null;
     };
     window.addEventListener("pagehide", restore);
     return () => {
@@ -53,10 +64,12 @@ function usePreviewThemeToggle() {
   const toggle = () => {
     if (previous.current === null) {
       previous.current = theme ?? "system";
-      setTheme(resolvedTheme === "dark" ? "light" : "dark");
+      applied.current = resolvedTheme === "dark" ? "light" : "dark";
+      setTheme(applied.current);
     } else {
       setTheme(previous.current);
       previous.current = null;
+      applied.current = null;
     }
   };
 
