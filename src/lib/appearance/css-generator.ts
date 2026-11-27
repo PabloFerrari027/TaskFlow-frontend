@@ -19,6 +19,12 @@ function shadows(hue: number): string {
   ].join("\n");
 }
 
+// Tokens the light rule sets on the element but the dark palette does not define:
+// inherit them from .dark on <html>, like the default folder does.
+const DARK_INHERITED = ["border", "input", "shadow-card", "shadow-card-hover"]
+  .map((n) => `  --${n}: inherit;`)
+  .join("\n");
+
 /** Static CSS for every non-default palette, font and weight of the catalog. */
 export function generateFolderAppearanceCss(catalog: FolderAppearanceCatalog): string {
   const out: string[] = [
@@ -29,7 +35,7 @@ export function generateFolderAppearanceCss(catalog: FolderAppearanceCatalog): s
     if (p.key === "default") continue;
     out.push(
       `[data-folder-palette="${p.key}"] {\n${declarations(p.light)}\n${shadows(p.hue)}\n}`,
-      `.dark [data-folder-palette="${p.key}"] {\n${declarations(p.dark)}\n}`,
+      `.dark [data-folder-palette="${p.key}"] {\n${declarations(p.dark)}\n${DARK_INHERITED}\n}`,
     );
   }
 

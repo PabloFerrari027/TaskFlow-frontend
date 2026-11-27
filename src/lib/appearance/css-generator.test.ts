@@ -32,7 +32,6 @@ test("dark rule carries card and popover", () => {
   assert.match(m[1], /--popover: oklch\(/);
   assert.match(m[1], /--primary-hover: oklch\(/);
   assert.match(m[1], /--chart-1: oklch\(/);
-  assert.ok(!/--border:|--input:|--shadow-card/.test(m[1]));
   const light = /\n\[data-folder-palette="azul"\] \{([^}]*)\}/.exec(css);
   assert.ok(light && /--shadow-card-hover:/.test(light[1]) && /--border:/.test(light[1]));
 });
@@ -42,4 +41,17 @@ test("emits font and weight rules", () => {
   assert.match(css, /\[data-folder-font="inter"\] \{\n  --font-sans: var\(--font-folder-inter\);\n  font-family: var\(--font-sans\);\n\}/);
   assert.match(css, /\[data-folder-weight="marcante"\] \{[^}]*--font-weight-bold: 800;/);
   assert.match(css, /\[data-folder-palette\]:not\(\[data-folder-portal-host\]\) \{/);
+});
+
+test("dark rule covers every variable the light rule declares", () => {
+  const css = generateFolderAppearanceCss(catalog);
+  const names = (body: string): Set<string> =>
+    new Set([...body.matchAll(/^\s*(--[\w-]+):/gm)].map((x) => x[1]));
+  for (const p of catalog.palettes.filter((x) => x.key !== "default")) {
+    const light = new RegExp(`\\n\\[data-folder-palette="${p.key}"\\] \\{([^}]*)\\}`).exec(css);
+    const dark = new RegExp(`\\.dark \\[data-folder-palette="${p.key}"\\] \\{([^}]*)\\}`).exec(css);
+    assert.ok(light && dark, p.key);
+    const darkNames = names(dark[1]);
+    for (const n of names(light[1])) assert.ok(darkNames.has(n), `${p.key}: dark missing ${n}`);
+  }
 });

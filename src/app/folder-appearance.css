@@ -42,6 +42,10 @@
   --secondary-foreground: oklch(0.96 0.004 255);
   --muted: oklch(0.265 0.018 255);
   --muted-foreground: oklch(0.7 0.018 255);
+  --border: inherit;
+  --input: inherit;
+  --shadow-card: inherit;
+  --shadow-card-hover: inherit;
 }
 
 [data-folder-palette="ciano"] {
@@ -86,6 +90,10 @@
   --secondary-foreground: oklch(0.96 0.004 220);
   --muted: oklch(0.265 0.018 220);
   --muted-foreground: oklch(0.7 0.018 220);
+  --border: inherit;
+  --input: inherit;
+  --shadow-card: inherit;
+  --shadow-card-hover: inherit;
 }
 
 [data-folder-palette="verde-agua"] {
@@ -130,6 +138,10 @@
   --secondary-foreground: oklch(0.96 0.004 185);
   --muted: oklch(0.265 0.018 185);
   --muted-foreground: oklch(0.7 0.018 185);
+  --border: inherit;
+  --input: inherit;
+  --shadow-card: inherit;
+  --shadow-card-hover: inherit;
 }
 
 [data-folder-palette="verde"] {
@@ -174,6 +186,10 @@
   --secondary-foreground: oklch(0.96 0.004 150);
   --muted: oklch(0.265 0.018 150);
   --muted-foreground: oklch(0.7 0.018 150);
+  --border: inherit;
+  --input: inherit;
+  --shadow-card: inherit;
+  --shadow-card-hover: inherit;
 }
 
 [data-folder-palette="ambar"] {
@@ -218,6 +234,10 @@
   --secondary-foreground: oklch(0.96 0.004 70);
   --muted: oklch(0.265 0.018 70);
   --muted-foreground: oklch(0.7 0.018 70);
+  --border: inherit;
+  --input: inherit;
+  --shadow-card: inherit;
+  --shadow-card-hover: inherit;
 }
 
 [data-folder-palette="laranja"] {
@@ -262,6 +282,10 @@
   --secondary-foreground: oklch(0.96 0.004 45);
   --muted: oklch(0.265 0.018 45);
   --muted-foreground: oklch(0.7 0.018 45);
+  --border: inherit;
+  --input: inherit;
+  --shadow-card: inherit;
+  --shadow-card-hover: inherit;
 }
 
 [data-folder-palette="rosa"] {
@@ -306,6 +330,10 @@
   --secondary-foreground: oklch(0.96 0.004 350);
   --muted: oklch(0.265 0.018 350);
   --muted-foreground: oklch(0.7 0.018 350);
+  --border: inherit;
+  --input: inherit;
+  --shadow-card: inherit;
+  --shadow-card-hover: inherit;
 }
 
 [data-folder-palette="grafite"] {
@@ -350,6 +378,10 @@
   --secondary-foreground: oklch(0.96 0 275);
   --muted: oklch(0.265 0 275);
   --muted-foreground: oklch(0.7 0 275);
+  --border: inherit;
+  --input: inherit;
+  --shadow-card: inherit;
+  --shadow-card-hover: inherit;
 }
 
 [data-folder-palette]:not([data-folder-portal-host]) {
