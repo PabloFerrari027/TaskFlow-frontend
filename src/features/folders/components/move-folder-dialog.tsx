@@ -3,6 +3,8 @@
 import * as React from "react";
 import { ParentPickerDialog } from "@/components/shared/parent-picker-dialog";
 import { useMoveFolderMutation } from "@/features/folders/hooks/use-folders";
+import { useMyFeaturesQuery } from "@/features/feature-flags/hooks/use-my-features";
+import { moveAppearanceNotice } from "@/features/folders/lib/appearance-options";
 import type { Folder } from "@/types/folder";
 
 interface MoveFolderDialogProps {
@@ -20,6 +22,25 @@ export function MoveFolderDialog({
   onOpenChange,
 }: MoveFolderDialogProps) {
   const moveMutation = useMoveFolderMutation(folder.workspaceId);
+  const { data: features } = useMyFeaturesQuery(folder.workspaceId);
+  const appearanceEnabled = features?.["folders.appearance"] === true;
+
+  // Inherited axes follow the new parent; warn when that changes what the folder shows.
+  const renderNotice = (parentId: string | null) => {
+    if (!appearanceEnabled || parentId === folder.parentId) return null;
+    const destination = parentId ? folders.find((f) => f.id === parentId) : undefined;
+    if (parentId && !destination) return null;
+    const notice = moveAppearanceNotice(
+      folder,
+      destination?.effectiveAppearance ?? null,
+      destination?.name ?? "Padrão do TaskFlow"
+    );
+    return notice ? (
+      <p role="status" className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+        {notice}
+      </p>
+    ) : null;
+  };
 
   const items = React.useMemo(
     () =>
@@ -44,6 +65,7 @@ export function MoveFolderDialog({
       movingId={folder.id}
       currentParentId={folder.parentId}
       isPending={moveMutation.isPending}
+      renderNotice={renderNotice}
       onConfirm={(parentId) =>
         moveMutation.mutate(
           { folderId: folder.id, parentId },
