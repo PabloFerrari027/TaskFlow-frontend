@@ -8,6 +8,8 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { SidebarProvider } from "@/components/layout/sidebar-context";
 import { Topbar } from "@/components/layout/topbar";
 import { AssistantChatProvider } from "@/features/assistant/context/assistant-chat-context";
+import { FolderAppearanceProvider } from "@/features/folders/context/folder-appearance-context";
+import { ThemedMain } from "@/features/folders/components/themed-main";
 
 export default function DashboardLayout({
   children,
@@ -22,19 +24,23 @@ export default function DashboardLayout({
           <TutorialProvider>
             <AssistantChatProvider>
               <SidebarProvider>
-                <div className="flex min-h-screen">
-                  <Sidebar />
-                  <div className="flex min-w-0 flex-1 flex-col">
-                    <Topbar />
-                    <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
-                      {/* Caps line length on wide monitors. Boards and dashboard
-                          grids opt out by rendering `data-page-width="full"`. */}
-                      <div className="mx-auto w-full max-w-7xl has-data-[page-width=full]:max-w-none">
-                        {children}
-                      </div>
-                    </main>
+                <FolderAppearanceProvider>
+                  <div className="flex min-h-screen">
+                    <Sidebar />
+                    <div className="flex min-w-0 flex-1 flex-col">
+                      <Topbar />
+                      {/* Only the main area follows the folder appearance; the
+                          sidebar, topbar, tour and toasts stay on the default. */}
+                      <ThemedMain className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
+                        {/* Caps line length on wide monitors. Boards and dashboard
+                            grids opt out by rendering `data-page-width="full"`. */}
+                        <div className="mx-auto w-full max-w-7xl has-data-[page-width=full]:max-w-none">
+                          {children}
+                        </div>
+                      </ThemedMain>
+                    </div>
                   </div>
-                </div>
+                </FolderAppearanceProvider>
               </SidebarProvider>
               {/* Inside the chat provider: the last step opens the chat. */}
               <TutorialTour />

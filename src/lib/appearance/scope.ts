@@ -23,3 +23,34 @@ export function toScopeAttributes(
   if (known(catalog.weights, eff.weightKey)) out["data-folder-weight"] = eff.weightKey;
   return out;
 }
+
+export {
+  readIgnoreFolderAppearance,
+  writeIgnoreFolderAppearance,
+} from "../../features/folders/lib/folder-appearance-pref.ts";
+
+export interface ActiveFolderAppearance {
+  folderId: string;
+  workspaceId: string;
+  eff: EffectiveFolderAppearance | null;
+}
+
+export type ActiveAppearanceEvent =
+  | ({ type: "activate" } & ActiveFolderAppearance)
+  | { type: "release"; folderId: string };
+
+/**
+ * Which folder themes the main area. Activating replaces; releasing only
+ * clears when it is the active folder, so a late release from the previous
+ * route never wipes the folder the next route just activated.
+ */
+export function nextActiveAppearance(
+  current: ActiveFolderAppearance | null,
+  event: ActiveAppearanceEvent,
+): ActiveFolderAppearance | null {
+  if (event.type === "activate") {
+    const { folderId, workspaceId, eff } = event;
+    return { folderId, workspaceId, eff };
+  }
+  return current?.folderId === event.folderId ? null : current;
+}

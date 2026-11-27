@@ -39,6 +39,7 @@ import {
   useFoldersQuery,
 } from "@/features/folders/hooks/use-folders";
 import { useFolderPermission } from "@/features/folders/hooks/use-folder-permission";
+import { useActiveFolderAppearance } from "@/features/folders/hooks/use-active-folder-appearance";
 import { useAuth } from "@/lib/auth/auth-context";
 
 export default function FolderDetailLayout(
@@ -57,6 +58,8 @@ export default function FolderDetailLayout(
   const archiveMutation = useArchiveFolderMutation(folderId);
   // Destination list for "Mover para…" — same cached query as the folders page.
   const workspaceFoldersQuery = useFoldersQuery(folderQuery.data?.workspaceId ?? null);
+  // Every tab of the folder themes the main area with its effective appearance.
+  useActiveFolderAppearance(folderQuery.data);
 
   if (folderQuery.isLoading) {
     return (

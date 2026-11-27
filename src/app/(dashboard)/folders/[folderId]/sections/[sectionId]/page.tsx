@@ -9,6 +9,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ErrorState } from "@/components/shared/error-state";
 import { useSectionsQuery } from "@/features/sections/hooks/use-sections";
+import { useFolderQuery } from "@/features/folders/hooks/use-folders";
+import { useActiveFolderAppearance } from "@/features/folders/hooks/use-active-folder-appearance";
 import { SectionColumn } from "@/features/items/components/section-column";
 import { ItemDetailSheet } from "@/features/items/components/item-detail-sheet";
 import { ItemFiltersBar } from "@/features/items/components/item-filters-bar";
@@ -27,6 +29,9 @@ export default function SectionPage(
 ) {
   const { folderId, sectionId } = use(props.params);
   const sectionsQuery = useSectionsQuery(folderId);
+  // Outside the folder layout, so it themes the main area on its own.
+  const folderQuery = useFolderQuery(folderId);
+  useActiveFolderAppearance(folderQuery.data);
   const { viewMode, setViewMode } = useItemViewMode();
   const { filters, patchFilters, resetFilters, activeCount } = useItemFilters();
   const [createItemSectionId, setCreateItemSectionId] = React.useState<string | null>(null);
