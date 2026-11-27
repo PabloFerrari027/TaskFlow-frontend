@@ -10,6 +10,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "gen:appearance": "node scripts/generate-folder-appearance-css.ts",
     "test:unit": "node --test \"src/**/*.test.ts\""
   },
   "dependencies": {
