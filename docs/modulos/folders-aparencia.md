@@ -28,11 +28,16 @@ Em Configurações da pasta há a seção "Aparência" (`FolderAppearanceSection
 
 ## Fontes
 
-`lib/appearance/folder-fonts.ts` declara 5 fontes variáveis do `next/font/google` (Inter, Nunito, Lexend, Atkinson Hyperlegible Next, Source Serif 4) com `preload: false`: o navegador só baixa o arquivo quando um elemento usa a família. `folderFontVariables` entra na classe do `<html>`. `useActiveFolderAppearance` pede `document.fonts.load` da fonte assim que a chave é conhecida (otimização, nunca aguardada).
+`lib/appearance/folder-fonts.ts` declara 5 fontes variáveis do `next/font/google` (Inter, Nunito, Lexend, Atkinson Hyperlegible Next, Source Serif 4) com `preload: false`: o navegador só baixa o arquivo quando um elemento usa a família. `folderFontVariables` entra na classe do `<html>`. `useActiveFolderAppearance` pede `document.fonts.load` da fonte (otimização, nunca aguardada) **somente quando a aparência é de fato aplicada**: flag ligada, sem opt-out e `fontKey` diferente de `default` (`shouldPreloadFont` em `lib/appearance-gate.ts`). Com a flag desligada ou o opt-out ativo, nenhum byte de fonte a mais é baixado.
 
 ## Preferência local
 
-`features/folders/lib/folder-appearance-pref.ts`: a chave `taskflow.ignoreFolderAppearance` no `localStorage` vale `"1"` quando a pessoa escolhe ignorar a aparência das pastas neste navegador; ausente, sem storage ou erro de leitura significam "não ignora". Store externo (`useSyncExternalStore`) mantém todos os leitores em sincronia, inclusive entre abas (evento `storage`). O controle fica em `components/shared/theme-toggle.tsx`. `useFolderAppearanceEnabled(workspaceId)` = flag `folders.appearance` ligada (via `useMyFeaturesQuery`) **e** opt-out desligado.
+`features/folders/lib/folder-appearance-pref.ts`: a chave `taskflow.ignoreFolderAppearance` no `localStorage` vale `"1"` quando a pessoa escolhe ignorar a aparência das pastas neste navegador; ausente, sem storage ou erro de leitura significam "não ignora". Store externo (`useSyncExternalStore`) mantém todos os leitores em sincronia, inclusive entre abas (evento `storage`). O controle fica em `components/shared/theme-toggle.tsx` e só aparece com a prop `showFolderOptOut`, passada apenas pela topbar do dashboard e combinada com a flag do workspace da pasta ativa (`useFolderAppearanceFlag`); site de marketing, política de privacidade e quem está com a flag desligada não o veem.
+
+- `useFolderAppearanceFlag(workspaceId)` = flag `folders.appearance` ligada, sem olhar o opt-out. A consulta (`useMyFeaturesQuery`) só roda com `workspaceId` (`enabled: Boolean(workspaceId)`): fora de pasta não há `GET /features/me` extra.
+- `useFolderAppearanceEnabled(workspaceId)` = flag ligada **e** opt-out desligado (`isAppearanceApplied`). Vale para atributos do `<main>`, host de portal e pré-carga de fonte.
+- A bolinha de cor (`FolderColorDot`) depende só da flag e **ignora o opt-out**: ela apenas identifica a pasta (spec §3.3).
+- A prévia (`FolderAppearancePreview`) guarda o tema que ela mesma aplicou; se a pessoa escolhe outro tema no menu durante a alternância, ela assume o controle: nada é restaurado ao sair e o botão volta ao estado inicial.
 
 ## Edição
 
@@ -44,7 +49,11 @@ Em Configurações da pasta há a seção "Aparência" (`FolderAppearanceSection
 - Leitura: todo `FolderDto` traz `appearance` (chaves próprias, `null` = herda) e `effectiveAppearance` (`paletteKey`, `fontKey`, `weightKey`, `source` por eixo: `self | ancestor | default`, `sourceFolderId` por eixo, `catalogVersion`).
 - `sourceFolderId` é **omitido** para GUEST do workspace e convidado só da pasta (D10); `source` continua vindo. O front trata o campo como opcional.
 - Escrita: só OWNER/ADMIN; `FOLDER_APPEARANCE_INVALID` (400, com `field`), `FORBIDDEN_WORKSPACE_ACTION` (403), `FEATURE_DISABLED` (403), `FOLDER_NOT_FOUND` (404). Não sobe `version` da pasta; o sync push ignora chaves de aparência.
-- Mover a pasta muda a aparência herdada dela e da subárvore (`folder-cache` preserva o `effectiveAppearance` em cache quando uma resposta de rename, arquivar ou mover não o traz, e atualiza as subpastas que herdam).
+- Mover a pasta muda a aparência herdada dela e da subárvore (`folder-cache` preserva o `effectiveAppearance` em cache quando uma resposta de rename, arquivar ou mover não o traz, e atualiza as subpastas que herdam; no mover esse valor preservado pode estar desatualizado, e a invalidação feita logo em seguida o corrige).
+
+## Limitações conhecidas
+
+- Se a aparência da pasta passa de ou para `default` com um diálogo, menu ou outro overlay aberto, o host de portal entra ou sai e o Radix remonta o conteúdo do overlay (perde-se o estado interno dele). É raro e aceito.
 
 ## Rollout
 
