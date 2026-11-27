@@ -104,7 +104,7 @@ export function ItemCardItem({ item, onReorder }: ItemCardItemProps) {
       {item.priority || item.dueDate || item.isMilestone || item.estimateMinutes ? (
         <div className="flex flex-wrap items-center gap-1.5">
           {item.isMilestone ? (
-            <span className="inline-flex items-center gap-1 text-xs text-violet-600 dark:text-violet-400">
+            <span className="inline-flex items-center gap-1 text-xs text-primary">
               <Diamond className="size-3" /> Marco
             </span>
           ) : null}
