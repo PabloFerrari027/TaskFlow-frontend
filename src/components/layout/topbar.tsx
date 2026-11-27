@@ -9,6 +9,8 @@ import { SidebarNav } from "@/components/layout/sidebar-nav";
 import { useSidebar } from "@/components/layout/sidebar-context";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { UserMenu } from "@/components/layout/user-menu";
+import { useFolderAppearanceContext } from "@/features/folders/context/folder-appearance-context";
+import { useFolderAppearanceFlag } from "@/features/folders/hooks/use-folder-appearance-enabled";
 import { WorkspaceSwitcher } from "@/features/workspaces/components/workspace-switcher";
 import { SyncStatusIndicator } from "@/features/sync/components/sync-status-indicator";
 import { AssistantChat } from "@/features/assistant/components/assistant-chat";
@@ -19,6 +21,9 @@ import { RunningTimerIndicator } from "@/features/time-tracking/components/runni
 export function Topbar() {
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const { collapsed, toggle } = useSidebar();
+  // Same workspace source as ThemedMain; the opt-out only matters where a folder can be themed.
+  const activeWorkspaceId = useFolderAppearanceContext()?.active?.workspaceId;
+  const showFolderOptOut = useFolderAppearanceFlag(activeWorkspaceId);
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-border/60 bg-background/80 px-4 backdrop-blur-md sm:px-6 lg:px-10">
@@ -62,7 +67,7 @@ export function Topbar() {
         <AssistantChat />
         <NotificationBell />
         <SyncStatusIndicator />
-        <ThemeToggle />
+        <ThemeToggle showFolderOptOut={showFolderOptOut} />
         <UserMenu />
       </div>
     </header>
